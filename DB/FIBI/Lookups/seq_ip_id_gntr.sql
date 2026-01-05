@@ -1,0 +1,1 @@
+INSERT INTO seq_ip_id_gntr VALUES (1);

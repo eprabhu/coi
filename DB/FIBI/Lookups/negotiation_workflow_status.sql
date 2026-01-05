@@ -1,0 +1,1 @@
+INSERT INTO negotiation_workflow_status VALUES ('1','Draft',NOW(),'fibi_admin');

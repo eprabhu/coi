@@ -1,0 +1,1 @@
+INSERT INTO fibi_workflow_map VALUES (1,'Proposal',NOW(),'fibi_admin','R');

@@ -1,0 +1,1 @@
+INSERT INTO cost_element_job_profile_mapping VALUES ('1','EOM - others','1','fibi_admin',NOW());

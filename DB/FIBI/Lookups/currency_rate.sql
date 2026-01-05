@@ -1,0 +1,1 @@
+INSERT INTO currency_rate VALUES ('USA',1,'fibi_admin',NOW());

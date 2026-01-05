@@ -1,0 +1,12 @@
+INSERT INTO claim_status VALUES ('1','In Progress','Y',NOW(),'fibi_admin')
+,('10','Invoice Generated','Y',NOW(),'fibi_admin')
+,('11','Invoice Not Generated','Y',NOW(),'fibi_admin')
+,('12','Incomplete','Y',NOW(),'fibi_admin')
+,('2','Revision requested','Y',NOW(),'fibi_admin')
+,('3','Approval in Progress','Y',NOW(),'fibi_admin')
+,('4','Completed','Y',NOW(),'fibi_admin')
+,('5','Approved','Y',NOW(),'fibi_admin')
+,('6','Submitted for Funding Agency Review','Y',NOW(),'fibi_admin')
+,('7','Revision Requested by Funding Agency','Y',NOW(),'fibi_admin')
+,('8','Approved by Funding Agency','Y',NOW(),'fibi_admin')
+,('9','Invoice triggered','Y',NOW(),'fibi_admin');

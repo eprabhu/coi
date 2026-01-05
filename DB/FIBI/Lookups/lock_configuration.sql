@@ -1,0 +1,1 @@
+INSERT INTO lock_configuration (MODULE_CODE, SUB_MODULE_CODE, DESCRIPTION, IS_ACTIVE, IS_CHAT_ENABLED, UPDATE_USER, UPDATE_TIMESTAMP) VALUES ('20', '0', 'Service Request', 'N', 'Y', 'fibi_admin', now());

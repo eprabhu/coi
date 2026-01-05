@@ -1,0 +1,31 @@
+DELIMITER $$
+CREATE PROCEDURE `GET_PERSON_BASED_RIGHT_AND_UNIT`(AV_RIGHT_NAME varchar(150),
+AV_UNIT_NUMBER varchar(40)
+)
+BEGIN
+IF AV_UNIT_NUMBER IS NULL OR AV_UNIT_NUMBER = '' THEN
+   SELECT DISTINCT PR.PERSON_ID FROM PERSON_ROLES PR,
+        (SELECT ROLE_ID,RT.RIGHT_NAME
+           FROM ROLE_RIGHTS RR,
+                RIGHTS RT
+            WHERE RR.RIGHT_ID = RT.RIGHT_ID
+              AND RT.RIGHT_NAME = AV_RIGHT_NAME
+        ) RLE
+        WHERE RLE.ROLE_ID = PR.ROLE_ID;
+ELSE
+  SELECT DISTINCT PR.PERSON_ID FROM PERSON_ROLES PR,
+        (SELECT ROLE_ID,RT.RIGHT_NAME
+           FROM ROLE_RIGHTS RR,
+                RIGHTS RT
+            WHERE RR.RIGHT_ID = RT.RIGHT_ID
+              AND RT.RIGHT_NAME = AV_RIGHT_NAME
+        ) RLE
+        WHERE
+          (( PR. DESCEND_FLAG = 'Y' AND AV_UNIT_NUMBER IN (SELECT CHILD_UNIT_NUMBER
+                                                                 FROM UNIT_WITH_CHILDREN
+                                                                                  WHERE UNIT_NUMBER = PR.UNIT_NUMBER
+             ))OR ( PR. DESCEND_FLAG = 'N' AND PR.UNIT_NUMBER = AV_UNIT_NUMBER )
+            )
+         AND RLE.ROLE_ID = PR.ROLE_ID;
+         END IF;
+END$$

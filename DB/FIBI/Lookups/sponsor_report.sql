@@ -1,0 +1,1 @@
+INSERT INTO sponsor_report VALUES (1,'6','42','4','17','000101',NOW(),'fibi_admin',3,0,0,NULL,'N',NULL,'Y',0);

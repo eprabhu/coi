@@ -1,0 +1,1 @@
+INSERT INTO preference_type VALUES ('101','Email Notifications',NOW(),'fibi_admin');

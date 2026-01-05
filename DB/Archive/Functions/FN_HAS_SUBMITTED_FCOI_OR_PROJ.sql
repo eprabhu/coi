@@ -1,0 +1,20 @@
+DELIMITER //
+CREATE FUNCTION `FN_HAS_SUBMITTED_FCOI_OR_PROJ`(AV_PERSON_ID VARCHAR(45)) RETURNS VARCHAR(5)
+    NOT DETERMINISTIC
+    READS SQL DATA
+BEGIN
+
+/*
+Returns TRUE if AV_PERSON_ID has disclosures having review status Submitted(2), Review in progress(3), 
+Completed(4), Review assigned(7) and Assigned Review Completed(8).
+*/
+IF EXISTS (SELECT 1
+FROM COI_DISCLOSURE
+WHERE PERSON_ID = AV_PERSON_ID
+AND REVIEW_STATUS_CODE IN ('2', '3', '4', '7', '8'))
+THEN RETURN 'TRUE';
+END IF;
+
+RETURN 'FALSE';
+END
+//

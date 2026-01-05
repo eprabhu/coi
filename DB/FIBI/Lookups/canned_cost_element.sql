@@ -1,0 +1,1 @@
+INSERT INTO canned_cost_element VALUES (1,1,'Grant Rev','1',NOW(),'fibi_admin',1,'N','');

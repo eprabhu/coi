@@ -1,0 +1,2 @@
+INSERT INTO MANPOWER_USER_ACTIONS  (MANPOWER_USER_ACTION_CODE,MANPOWER_USER_ACTION,DESCRIPTION,IS_ACTIVE,UPDATE_TIMESTAMP,UPDATE_USER) VALUES ('1','Re-trigger','This feature allows Feed Admin to perform on-demand WD API calls to sync data.','Y',NOW(),'fibi_admin');
+INSERT INTO MANPOWER_USER_ACTIONS  (MANPOWER_USER_ACTION_CODE,MANPOWER_USER_ACTION,DESCRIPTION,IS_ACTIVE,UPDATE_TIMESTAMP,UPDATE_USER) VALUES ('2','Manual Process','Data correction/update was done manually. Enter the comments to close the case.','Y',NOW(),'fibi_admin');

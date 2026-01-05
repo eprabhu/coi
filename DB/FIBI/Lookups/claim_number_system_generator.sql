@@ -1,0 +1,1 @@
+INSERT INTO claim_number_system_generator VALUES (1,YEAR(CURDATE()));

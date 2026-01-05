@@ -1,0 +1,1 @@
+INSERT INTO quest_column_nextvalue VALUES (1,1,1,1,1,1,1,1,1,1,1);

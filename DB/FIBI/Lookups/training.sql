@@ -1,0 +1,1 @@
+INSERT INTO training VALUES (10,'COI Training',NOW(),'fibi_admin');

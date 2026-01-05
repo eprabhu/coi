@@ -1,0 +1,1 @@
+INSERT INTO report_last_sync_time VALUES (NOW(),NOW(),NULL,NULL,NULL);
