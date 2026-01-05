@@ -1,0 +1,21 @@
+
+
+--
+--  `quest_answer_delete_log`
+--
+
+DROP TABLE IF EXISTS `quest_answer_delete_log`;
+
+CREATE TABLE `quest_answer_delete_log` (
+  `LOG_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `QUESTIONNAIRE_ID` int(11) DEFAULT NULL,
+  `QUESTIONNAIRE_NUMBER` int(11) DEFAULT NULL,
+  `MODULE_CODE` int(11) DEFAULT NULL,
+  `MODULE_ITEM_KEY` varchar(20) DEFAULT NULL,
+  `SUB_MODULE_CODE` int(11) DEFAULT NULL,
+  `SUB_MODULE_ITEM_KEY` varchar(20) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `UPDATE_USER` varchar(60) DEFAULT NULL,
+  PRIMARY KEY (`LOG_ID`)
+);
+

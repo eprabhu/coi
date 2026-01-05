@@ -1,0 +1,1 @@
+INSERT INTO seq_ip_number_gntr (FY_BASED_IP_COUNTER,CURRENT_FY) VALUES (3,25);

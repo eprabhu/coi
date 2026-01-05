@@ -1,0 +1,19 @@
+
+
+--
+--  `assoc_reverse_mapping`
+--
+
+DROP TABLE IF EXISTS `assoc_reverse_mapping`;
+
+CREATE TABLE `assoc_reverse_mapping` (
+  `RELATION_TYPE_CODE` varchar(3) NOT NULL,
+  `SELECTED_CONFIG_CODE` varchar(3) NOT NULL,
+  `SOURCE_MODULE_CODE` varchar(3) NOT NULL,
+  `DEST_ASSOC_CONFIG_CODE` varchar(3) DEFAULT NULL,
+  `DEPENDENT_RELATION` varchar(3) DEFAULT NULL,
+  `UPDATE_USER` varchar(60) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  PRIMARY KEY (`RELATION_TYPE_CODE`,`SELECTED_CONFIG_CODE`,`SOURCE_MODULE_CODE`)
+);
+

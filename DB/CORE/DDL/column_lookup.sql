@@ -1,0 +1,23 @@
+
+
+--
+--  `column_lookup`
+--
+
+DROP TABLE IF EXISTS `column_lookup`;
+
+CREATE TABLE `column_lookup` (
+  `COLUMN_ID` int(11) NOT NULL,
+  `COLUMN_NAME` varchar(250) DEFAULT NULL,
+  `FILTER_TYPE` varchar(250) DEFAULT NULL,
+  `VALUE_FIELD` varchar(300) DEFAULT NULL,
+  `INDEX_FIELD` varchar(200) DEFAULT NULL,
+  `QUERY_TYPE` varchar(100) DEFAULT NULL,
+  `INNER_JOIN` varchar(1) DEFAULT NULL,
+  `SUMMABLE` varchar(1) DEFAULT NULL,
+  `IS_CURRENCY` varchar(1) DEFAULT NULL,
+  `UPDATE_USER` varchar(60) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  PRIMARY KEY (`COLUMN_ID`)
+);
+

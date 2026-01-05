@@ -1,0 +1,33 @@
+
+
+--
+--  `activity_duration_tracker`
+--
+
+DROP TABLE IF EXISTS `activity_duration_tracker`;
+
+CREATE TABLE `activity_duration_tracker` (
+  `ADT_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `MODULE_CODE` int(11) DEFAULT NULL,
+  `SECTION_CODE` varchar(255) DEFAULT NULL,
+  `MODULE_ITEM_KEY` varchar(255) DEFAULT NULL,
+  `MODULE_ITEM_ID` int(11) DEFAULT NULL,
+  `SECTION_ITEM_ID` int(11) DEFAULT NULL,
+  `FIELD` varchar(255) DEFAULT NULL,
+  `VALUE_STRING` varchar(255) DEFAULT NULL,
+  `VALUE_ID` varchar(255) DEFAULT NULL,
+  `MESSAGE` varchar(255) DEFAULT NULL,
+  `START_TIME` datetime DEFAULT NULL,
+  `END_TIME` datetime DEFAULT NULL,
+  `DURATION` varchar(20) DEFAULT NULL,
+  `START_PERSON_ID` varchar(40) DEFAULT NULL,
+  `END_PERSON_ID` varchar(40) DEFAULT NULL,
+  `IS_HOLD` varchar(1) DEFAULT NULL,
+  `ASSIGNEE_PERSON_ID` varchar(40) DEFAULT NULL,
+  `ASSIGNEE_GROUP` varchar(40) DEFAULT NULL,
+  `PARENT_ADT_ID` int(11) DEFAULT NULL,
+  PRIMARY KEY (`ADT_ID`),
+  KEY `ADT_FK1` (`PARENT_ADT_ID`),
+  CONSTRAINT `ADT_FK1` FOREIGN KEY (`PARENT_ADT_ID`) REFERENCES `activity_duration_tracker` (`ADT_ID`)
+);
+

@@ -1,0 +1,22 @@
+
+
+--
+--  `reminder_notification`
+--
+
+DROP TABLE IF EXISTS `reminder_notification`;
+
+CREATE TABLE `reminder_notification` (
+  `REMINDER_NOTIFICATION_ID` int(11) NOT NULL,
+  `REMINDER_NAME` varchar(60) DEFAULT NULL,
+  `NOTIFICATION_TYPE_ID` int(11) DEFAULT NULL,
+  `DAYS_TO_DUE_DATE` int(11) DEFAULT NULL,
+  `PROCEDURE_NAME` varchar(200) DEFAULT NULL,
+  `IS_ACTVE` varchar(1) DEFAULT NULL,
+  `UPDATE_USER` varchar(60) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `PLACEHOLDER_VALUES` longtext,
+  `REMINDER_TYPE_FLAG` varchar(3) DEFAULT NULL,
+  PRIMARY KEY (`REMINDER_NOTIFICATION_ID`)
+);
+

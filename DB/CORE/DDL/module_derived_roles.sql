@@ -1,0 +1,25 @@
+
+
+--
+--  `module_derived_roles`
+--
+
+DROP TABLE IF EXISTS `module_derived_roles`;
+
+CREATE TABLE `module_derived_roles` (
+  `MODULE_CODE` int(11) NOT NULL,
+  `ROLE_ID` int(11) NOT NULL,
+  `DERIVED_ROLE_NAME` varchar(50) DEFAULT NULL,
+  `CAN_DISPLAY` varchar(1) DEFAULT NULL,
+  `AUTO_GRANT_TO_PI` varchar(1) DEFAULT NULL,
+  `AUTO_GRANT_TO_COI` varchar(1) DEFAULT NULL,
+  `AUTO_GRANT_TO_MODULE_CREATOR` varchar(1) DEFAULT NULL,
+  `AUTO_GRANT_TO_OTHERS` varchar(1) DEFAULT NULL,
+  `UPDATE_USER` varchar(60) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `IS_ACTIVE` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`MODULE_CODE`,`ROLE_ID`),
+  KEY `ROLE_FK1_idx` (`ROLE_ID`),
+  CONSTRAINT `ROLE_FK2` FOREIGN KEY (`ROLE_ID`) REFERENCES `role` (`ROLE_ID`)
+);
+

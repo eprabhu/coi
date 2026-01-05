@@ -1,0 +1,18 @@
+
+
+--
+--  `currency_format`
+--
+
+DROP TABLE IF EXISTS `currency_format`;
+
+CREATE TABLE `currency_format` (
+  `CURRENCY_CODE` varchar(3) NOT NULL,
+  `COUNTRY_CODE` varchar(3) NOT NULL,
+  `LANGUAGE` varchar(30) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `UPDATE_USER` varchar(60) DEFAULT NULL,
+  PRIMARY KEY (`CURRENCY_CODE`,`COUNTRY_CODE`),
+  CONSTRAINT `CURRENCY_FORMAT_FK1` FOREIGN KEY (`CURRENCY_CODE`) REFERENCES `currency` (`CURRENCY_CODE`)
+);
+

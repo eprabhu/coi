@@ -1,0 +1,21 @@
+
+
+--
+--  `system_notification`
+--
+
+DROP TABLE IF EXISTS `system_notification`;
+
+CREATE TABLE `system_notification` (
+  `SYSTEM_NOTIFICATION_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `PUBLISHED_START_DATE` datetime DEFAULT NULL,
+  `PUBLISHED_END_DATE` datetime DEFAULT NULL,
+  `MESSAGE` varchar(4000) DEFAULT NULL,
+  `SORT_ORDER` int(11) DEFAULT NULL,
+  `IS_ACTIVE` varchar(1) DEFAULT 'Y',
+  `UPDATE_USER` varchar(60) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `PRIORITY` varchar(1) DEFAULT 'N',
+  PRIMARY KEY (`SYSTEM_NOTIFICATION_ID`)
+);
+

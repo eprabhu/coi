@@ -1,0 +1,24 @@
+
+
+--
+--  `dyn_subsection_config`
+--
+
+DROP TABLE IF EXISTS `dyn_subsection_config`;
+
+CREATE TABLE `dyn_subsection_config` (
+  `SUB_SECTION_CODE` varchar(5) NOT NULL,
+  `SECTION_CODE` varchar(6) NOT NULL,
+  `PARENT_SUB_SECTION_CODE` varchar(5) DEFAULT NULL,
+  `DESCRIPTION` varchar(200) NOT NULL,
+  `IS_ACTIVE` varchar(1) DEFAULT 'Y',
+  `UPDATE_TIMESTAMP` datetime NOT NULL,
+  `UPDATE_USER` varchar(60) NOT NULL,
+  `HELP` varchar(2000) DEFAULT NULL,
+  `INSTRUCTION` varchar(2000) DEFAULT NULL,
+  `INCLUDE_CUSTOM_DATA` varchar(1) DEFAULT 'N',
+  PRIMARY KEY (`SUB_SECTION_CODE`),
+  KEY `DYN_SUBSECTION_CONFIG_FK1` (`SECTION_CODE`),
+  CONSTRAINT `DYN_SUBSECTION_CONFIG_FK1` FOREIGN KEY (`SECTION_CODE`) REFERENCES `dyn_section_config` (`SECTION_CODE`)
+);
+

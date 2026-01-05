@@ -1,0 +1,18 @@
+
+
+--
+--  `person_role_module`
+--
+
+DROP TABLE IF EXISTS `person_role_module`;
+
+CREATE TABLE `person_role_module` (
+  `ROLE_TYPE_CODE` int(11) NOT NULL,
+  `MODULE_CODE` int(11) NOT NULL,
+  `SUB_MODULE_CODE` int(11) NOT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `UPDATE_USER` varchar(60) DEFAULT NULL,
+  PRIMARY KEY (`ROLE_TYPE_CODE`,`MODULE_CODE`,`SUB_MODULE_CODE`),
+  CONSTRAINT `PERSON_ROLE_MODULE_FK1` FOREIGN KEY (`ROLE_TYPE_CODE`) REFERENCES `person_role_type` (`ROLE_TYPE_CODE`)
+);
+

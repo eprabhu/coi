@@ -1,0 +1,17 @@
+
+
+--
+--  `currency`
+--
+
+DROP TABLE IF EXISTS `currency`;
+
+CREATE TABLE `currency` (
+  `CURRENCY_CODE` varchar(3) NOT NULL,
+  `CURRENCY` varchar(40) DEFAULT NULL,
+  `CURRENCY_SYMBOL` varchar(3) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `UPDATE_USER` varchar(40) DEFAULT NULL,
+  PRIMARY KEY (`CURRENCY_CODE`)
+);
+

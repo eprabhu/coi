@@ -1,0 +1,16 @@
+
+
+--
+--  `message`
+--
+
+DROP TABLE IF EXISTS `message`;
+
+CREATE TABLE `message` (
+  `MESSAGE_TYPE_CODE` varchar(4) NOT NULL,
+  `DESCRIPTION` varchar(255) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime(6) DEFAULT NULL,
+  `UPDATE_USER` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`MESSAGE_TYPE_CODE`)
+);
+

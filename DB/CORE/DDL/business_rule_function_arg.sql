@@ -1,0 +1,23 @@
+
+
+--
+--  `business_rule_function_arg`
+--
+
+DROP TABLE IF EXISTS `business_rule_function_arg`;
+
+CREATE TABLE `business_rule_function_arg` (
+  `FUNCTION_NAME` varchar(100) NOT NULL,
+  `ARGUMENT_SEQUENCE_NUMBER` int(11) NOT NULL,
+  `ARGUMENT_NAME` varchar(30) DEFAULT NULL,
+  `DESCRIPTION` varchar(200) DEFAULT NULL,
+  `DATA_TYPE` varchar(9) DEFAULT NULL,
+  `DEFAULT_VALUE` varchar(200) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `UPDATE_USER` varchar(60) DEFAULT NULL,
+  `LOOKUP_WINDOW_NAME` varchar(100) DEFAULT NULL,
+  `LOOKUP_TYPE` varchar(200) DEFAULT NULL,
+  `ARGUMENT_TYPE` varchar(1) DEFAULT NULL,
+  `ARGUMENT_LABEL` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`FUNCTION_NAME`,`ARGUMENT_SEQUENCE_NUMBER`)
+);

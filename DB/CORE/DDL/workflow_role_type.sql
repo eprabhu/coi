@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS `workflow_role_type`;
+
+CREATE TABLE `workflow_role_type` (
+  `ROLE_TYPE_CODE` int(11) NOT NULL,
+  `DESCRIPTION` varchar(60) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `UPDATE_USER` varchar(8) DEFAULT NULL,
+  PRIMARY KEY (`ROLE_TYPE_CODE`)
+);
