@@ -1,0 +1,2 @@
+INSERT INTO `PARAMETER` (`PARAMETER_NAME`, `VALUE`, `DESCRIPTION`, `UPDATE_TIMESTAMP`, `UPDATE_USER`) VALUES ('ENABLE_COI_NOTES_TAB', 'N', 'This parameter determines to show COI notes tab', now(), 'quickstart');
+INSERT INTO `PARAMETER` (`PARAMETER_NAME`, `VALUE`, `DESCRIPTION`, `UPDATE_TIMESTAMP`, `UPDATE_USER`) VALUES ('ENABLE_COI_ATTACHMENTS_TAB', 'N', 'This parameter determines to show COI attachments tab', now(), 'quickstart');

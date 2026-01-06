@@ -1,0 +1,1 @@
+\. ./FIBI-COI-5.8.6/FC-1727/Procedures/GET_ALL_RIGHTS_FOR_A_MODULE.sql

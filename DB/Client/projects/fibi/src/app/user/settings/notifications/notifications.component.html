@@ -1,0 +1,64 @@
+<div class="card-widget-container mb-3">
+  <div class="card card-inner card-widget-box h-100">
+    <div class="card-header">
+      <h4 class="card-title">
+        <div>Notifications</div>
+      </h4>
+    </div>
+    <div class="card-content min-height" *ngIf="notificationWidgetOpen">
+      <div class="card-body">
+        <div class="form-group col-6 offset-md-3 searchBox">
+          <input type="text" placeholder="Search notifications, example &quot;Create Proposal Review&quot;"
+            [(ngModel)]="searchText ">
+          <a class="searchButton">
+            <i aria-hidden="true" class="fa fa-search fa-med mr-4 pt-2"></i>
+          </a>
+        </div>
+        <div id="accordion" class="qa-display" id="qa-tab">
+          <ng-container *ngIf="notificationList.length > 0">
+            <div *ngFor="let notification of notificationList ; let moduleIndex = index">
+              <div class="card-header group-header mt-2">
+                <h4 class="card-title"> {{notification?.moduleName}}
+                  <i aria-hidden="true" id="advancesearch" class="accordion-arrow hand-cursor"
+                    [ngClass]=" isGroupExpanded[moduleIndex] ? 'fa fa-angle-double-up': 'fa fa-angle-double-down'"
+                    (click)="showOrHideList(moduleIndex);"></i>
+                </h4>
+              </div>
+              <ng-container *ngIf="notification.notificationListGrouped.length > 0">
+                <div id="collapseOne{{moduleIndex}}" *ngIf="isGroupExpanded[moduleIndex]" class="collapse show p-3">
+                  <div
+                    *ngFor="let notificationOfGroup of notification.notificationListGrouped | SearchFilter : searchText; let listIndex=index"
+                    class="d-flex justify-content-between mt-3"
+                    [ngClass]=" listIndex != notification.notificationListGrouped.length - 1 ? 'list-bottom-border': ''">
+                    <p>{{notificationOfGroup?.DESCRIPTION}}</p>
+                    <a *ngIf="notificationOfGroup.IS_SENT == '0'">
+                      <label class="switch toggle-inactive">
+                        <input type="checkbox"  [disabled]="isSave"
+                          (click)="activateOrDeactivateNotificationForUser(notificationOfGroup,moduleIndex,listIndex)">
+                        <span class="slider round"><small class="deactivate-text">No</small></span>
+                      </label>
+                    </a>
+                    <a *ngIf="notificationOfGroup.IS_SENT == '1'">
+                      <label class="switch toggle-active">
+                        <input type="checkbox"  [disabled]="isSave"
+                          (click)="activateOrDeactivateNotificationForUser(notificationOfGroup,moduleIndex,listIndex)"
+                          checked>
+                        <span class="slider round"><small>Yes</small></span>
+                      </label>
+                    </a>
+                  </div>
+                </div>
+              </ng-container>
+              <div *ngIf="notification.notificationListGrouped === 0">
+                <p>There are no notifications with user preference in this module</p>
+              </div>
+            </div>
+          </ng-container>
+          <div *ngIf="notificationList.length === 0">
+            <p>There are no notifications with user preference</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

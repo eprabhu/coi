@@ -1,0 +1,1 @@
+INSERT IGNORE INTO PARAMETER (PARAMETER_NAME, VALUE, DESCRIPTION, UPDATE_TIMESTAMP, UPDATE_USER) VALUES ('ALLOW_ENGAGEMENT_DELETION', 'N', 'If the parameter is set to \'Y\', engagement deletion is permitted.', now(), 'admin');

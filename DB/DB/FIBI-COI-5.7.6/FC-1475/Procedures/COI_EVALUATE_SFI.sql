@@ -1,0 +1,138 @@
+DELIMITER //
+CREATE PROCEDURE `COI_EVALUATE_SFI`(
+    IN AV_PERSON_ENTITY_ID INT
+)
+proc_main: BEGIN
+    DECLARE LS_EVALUATION_ENABLED VARCHAR(1) DEFAULT 'N';
+    DECLARE LI_QUESTIONS_6_8_9 INT DEFAULT 0;
+    DECLARE LI_QUESTIONS_1_TO_5 INT DEFAULT 0;
+    DECLARE LI_TRAVEL_COMP_THRESHOLD INT DEFAULT 0;
+    DECLARE LI_RESULT INT DEFAULT 0;
+    DECLARE LS_SFI_REASON VARCHAR(2000) DEFAULT '';
+
+    -- Check if evaluation is enabled
+    SELECT VALUE 
+    INTO LS_EVALUATION_ENABLED
+    FROM PARAMETER 
+    WHERE PARAMETER_NAME = 'ENABLE_SIGNIFICANT_FIN_INTEREST_EVALUATION';
+
+    IF LS_EVALUATION_ENABLED <> 'Y' THEN
+        SELECT 
+            "N" AS EVALUATION_ENABLED,
+            0 AS QUESTIONS_6_8_9_YES,
+            0 AS QUESTIONS_1_TO_5_OVER_5K,
+            0 AS TRAVEL_COMP_OVER_THRESHOLD,
+            0 AS LI_RESULT;
+        LEAVE proc_main;
+    END IF;
+
+    -- Check Matrix Questions 6, 8, 9 for 'YES'
+    SELECT COUNT(*) 
+    INTO LI_QUESTIONS_6_8_9
+    FROM PER_ENT_MATRIX_ANSWER 
+    WHERE PERSON_ENTITY_ID = AV_PERSON_ENTITY_ID 
+      AND MATRIX_QUESTION_ID IN (6, 8, 9)
+      AND UPPER(TRIM(COLUMN_VALUE)) = 'YES';
+
+    -- Check Matrix Questions 1-5 for '$5,000 OR MORE'
+    SELECT COUNT(*) 
+    INTO LI_QUESTIONS_1_TO_5
+    FROM PER_ENT_MATRIX_ANSWER 
+    WHERE PERSON_ENTITY_ID = AV_PERSON_ENTITY_ID 
+      AND MATRIX_QUESTION_ID IN (1, 2, 3, 4, 5)
+      AND UPPER(TRIM(COLUMN_VALUE)) = '$5,000 OR MORE';
+
+    -- Combined check: travel reimbursement + compensation threshold
+    SELECT COUNT(*)
+    INTO LI_TRAVEL_COMP_THRESHOLD
+    FROM (
+        SELECT 
+            COALESCE(pe.COMPENSATION_AMOUNT, 0) + COALESCE(tr.TOTAL_TRAVEL_REIMBURSEMENT, 0) AS TOTAL_AMOUNT
+        FROM (
+            SELECT PERSON_ENTITY_ID, PERSON_ENTITY_NUMBER, COMPENSATION_AMOUNT
+            FROM PERSON_ENTITY
+            WHERE PERSON_ENTITY_ID = AV_PERSON_ENTITY_ID
+        ) pe
+        LEFT JOIN (
+            SELECT 
+                t1.PERSON_ENTITY_NUMBER,
+                SUM(CAST(t3.VALUE AS DECIMAL(14,2))) AS TOTAL_TRAVEL_REIMBURSEMENT
+            FROM COI_TRAVEL_DISCLOSURE t1
+            LEFT JOIN FB_COMP_CUSTOM_ELEMENT t2 
+                ON t2.CUSTOM_ELEMENT_NAME = 'Reimbursed Cost'
+            LEFT JOIN FB_COMP_CUSTOM_ELEMENT_ANSWER t3 
+                ON t3.CUSTOM_DATA_ELEMENTS_ID = t2.CUSTOM_DATA_ELEMENTS_ID
+                AND t3.MODULE_ITEM_CODE = 24 
+                AND t3.MODULE_ITEM_KEY = t1.TRAVEL_DISCLOSURE_ID
+            INNER JOIN COI_TRAVEL_DESTINATIONS t4 
+                ON t4.TRAVEL_DISCLOSURE_ID = t1.TRAVEL_DISCLOSURE_ID
+            WHERE t1.REVIEW_STATUS_CODE != 1
+                AND t1.PERSON_ENTITY_NUMBER = (
+                    SELECT PERSON_ENTITY_NUMBER 
+                    FROM PERSON_ENTITY 
+                    WHERE PERSON_ENTITY_ID = AV_PERSON_ENTITY_ID
+                )
+                AND t4.STAY_START_DATE >= DATE_SUB(UTC_DATE(), INTERVAL 
+                    (SELECT CAST(VALUE AS UNSIGNED) 
+                     FROM PARAMETER 
+                     WHERE PARAMETER_NAME = 'TRAVEL_REIMBURSED_THRESHOLD_PERIOD') MONTH)
+            GROUP BY t1.PERSON_ENTITY_NUMBER
+        ) tr 
+            ON tr.PERSON_ENTITY_NUMBER = pe.PERSON_ENTITY_NUMBER
+    ) AS combined_check
+    WHERE TOTAL_AMOUNT > (
+        SELECT CAST(VALUE AS DECIMAL(14,2)) 
+        FROM PARAMETER 
+        WHERE PARAMETER_NAME = 'SIGNIFICANT_FIN_INTEREST_THRESHOLD'
+    );
+
+    -- Final result: if any of the individual checks passed
+    SET LI_RESULT = 
+        CASE 
+            WHEN LI_QUESTIONS_6_8_9 > 0 THEN 1
+            WHEN LI_QUESTIONS_1_TO_5 > 0 THEN 1
+            WHEN LI_TRAVEL_COMP_THRESHOLD > 0 THEN 1
+            ELSE 0
+        END;
+
+    IF LI_QUESTIONS_6_8_9 > 0 THEN
+        SET LS_SFI_REASON = CONCAT(LS_SFI_REASON, 'a "Yes" response to Stock/Equity/Options questions');
+    END IF;
+
+    IF LI_QUESTIONS_1_TO_5 > 0 THEN
+        SET LS_SFI_REASON = CONCAT(
+            LS_SFI_REASON,
+            CASE WHEN LS_SFI_REASON <> '' THEN ', ' ELSE '' END,
+            'compensation exceeding $5,000'
+        );
+    END IF;
+
+    IF LI_TRAVEL_COMP_THRESHOLD > 0 THEN
+        SET LS_SFI_REASON = CONCAT(
+            LS_SFI_REASON,
+            CASE WHEN LS_SFI_REASON <> '' THEN ', ' ELSE '' END,
+            'combined travel reimbursement and compensation exceeding $5,000'
+        );
+    END IF;
+    
+    IF LI_RESULT = 1 THEN
+        SET LS_SFI_REASON = CONCAT('This engagement qualifies as a Significant Financial Interest due to ', LS_SFI_REASON, '.');
+    END IF;
+    
+    -- Update PERSON_ENTITY accordingly
+    UPDATE PERSON_ENTITY 
+    SET 
+        IS_SIGNIFICANT_FIN_INTEREST = CASE WHEN LI_RESULT = 1 THEN 'Y' ELSE 'N' END,
+        SFI_REASON = CASE WHEN LI_RESULT = 1 THEN LS_SFI_REASON ELSE NULL END
+    WHERE PERSON_ENTITY_ID = AV_PERSON_ENTITY_ID;
+
+
+    -- Return detailed results
+    SELECT 
+        "Y" AS EVALUATION_ENABLED,
+        CASE WHEN LI_QUESTIONS_6_8_9 > 0 THEN 1 ELSE 0 END AS QUESTIONS_6_8_9_YES,
+        CASE WHEN LI_QUESTIONS_1_TO_5 > 0 THEN 1 ELSE 0 END AS QUESTIONS_1_TO_5_OVER_5K,
+        CASE WHEN LI_TRAVEL_COMP_THRESHOLD > 0 THEN 1 ELSE 0 END AS TRAVEL_COMP_OVER_THRESHOLD,
+        LI_RESULT AS LI_RESULT;
+END
+//

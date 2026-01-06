@@ -1,0 +1,168 @@
+<!-- Last updated by Harshith on 16-01-2019 -->
+<div class="card mb-3" id="Award122" [ngClass]="{'item-highlighted': isHighlighted}">
+  <div class="card-header"
+  [ngClass]="isEditable ? 'px-4 py-2' : ''">
+    <h4 class="card-title d-flex align-items-center"><span>Key Performance Indicator</span>
+      <span class="ml-auto">
+      <button class="btn btn-primary-sub btn-sm mr-2" (click)="saveOrUpdateKpiAward(kpiList, false, null)"
+      title="Click here to save KPI" *ngIf="isEditable  && kpiList?.length > 0">Save KPI</button>
+      <button class="btn btn-primary-sub btn-sm mr-5" data-toggle="modal" data-target="#addkpimodal"
+        title="Click here to add KPI" *ngIf="isEditable">Add/Remove KPI</button>
+      <button class="updown-arrow" (click)="isShowCollapse=!isShowCollapse" title="Click here to view KPI">
+        <i [ngClass]="isShowCollapse?'fa fa-angle-double-up':'fa fa-angle-double-down'" class="fa-large" aria-hidden="true"></i>
+      </button>
+      </span>
+    </h4>
+  </div>
+  <div class="kpi-scroll" *ngIf="isShowCollapse">
+    <ng-container *ngIf="kpiList != null">
+      <ng-container *ngFor="let kpis of kpiList; let index = index;">
+      <div class="card m-4" >
+        <div  class="card-content">
+          <div class="card-body p-0">
+            <div class="card-inner">
+              <div class="card-header px-3">
+                <h4 class="card-title">
+                  <span class="kpi-font">
+                    {{kpis?.kpiType?.description}}
+                  </span>
+                  <button title="Click here to view criteria" class="updown-arrow"
+                    (click)="isCollapse[index] =!isCollapse[index]">
+                    <i [ngClass]="isCollapse[index] ? 'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                      class="fa-large" aria-hidden="true"></i>
+                  </button>
+                </h4>
+              </div>
+              <div class="card-content">
+                <table class="tableSkin grid2 bg-light">
+                    <caption class="sr-only">KPI</caption>
+                    <thead class="d-none"><tr><th scope="col"></th></tr></thead>
+                  <tbody *ngIf="isCollapse[index]">
+                    <tr *ngFor="let criteriaList of kpis.awardKPICriterias;let criteriaIndex = index">
+                      <td>
+                        <div class="row m-0">
+                          <div class="col-11">
+                            {{criteriaList?.kpiCriteriaType?.description}}
+                          </div>
+                          <input type="number" class="col-1 form-control" (keypress)="scoreValidation($event)" min="0"
+                            *ngIf="isEditable" [(ngModel)]="criteriaList.target">
+                          <span *ngIf="!isEditable">{{criteriaList.target}}</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+    </ng-container>
+    <div class="noDataExists p-4" *ngIf="kpiList?.length <= 0">
+      <ng-container i18n="@@AWARD_NO_KPI_ADDED_ERR">There are no KPI's added in this Award.</ng-container>
+    </div>
+  </div>
+</div>
+<!--Modal For Add new KPI -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="addkpimodal" tabindex="-1" role="dialog"
+  aria-labelledby="kpiModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Key Performance Indicator</h5>
+        <button type="button" id="ip-dismiss" class="close" data-dismiss="modal" aria-label="Close"
+          (click)="closeKpiModal()">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="col-12 kpi-scroll">
+          <ng-container *ngIf="kpiLookupList != null">
+            <ng-container *ngFor="let kpis of kpiLookupList; let index = index;">
+              <div *ngIf="kpis.isActive || kpiSelectedList[index]?.kpiSelected" class="card m-4">
+                <div class="card-content">
+                  <div class="card-body p-0">
+                    <div class="card-inner">
+                      <div class="card-header p-2">
+                        <h4 class="card-title pr-5">
+                          <div class="align-items-center d-flex justify-content-center m-0 row">
+                            <div class="col">
+                              {{kpis?.description}}
+                            </div>
+                            <div class="col-auto">
+                              <a *ngIf="kpiSelectedList[index]?.kpiSelected == false;">
+                                <label class="switch px-0">
+                                  <input type="checkbox" [disabled]="disabled" (click)="addKpiToList(kpis,index)">
+                                  <span class="slider round"><small class="deactivate-text">No</small></span>
+                                </label>
+                              </a>
+                              <a *ngIf="kpiSelectedList[index]?.kpiSelected == true;">
+                                <label class="switch px-0">
+                                  <input type="checkbox" [disabled]="disabled" (click)="deleteKpiFromList(kpis,index)" checked>
+                                  <span class="slider round"><small>Yes</small></span>
+                                </label>
+                              </a>
+                            </div>
+                          </div>
+                          <button title="Click here to view criteria" class="updown-arrow"
+                            (click)="isCollapse[index] =!isCollapse[index]">
+                            <i [ngClass]="isCollapse[index] ? 'fa fa-angle-double-up':'fa fa-angle-double-down'" class="fa-large"
+                              aria-hidden="true"></i>
+                          </button>
+                        </h4>
+                      </div>
+                      <div *ngIf="isCollapse[index]" class="card-content">
+                        <table class="tableSkin grid2 bg-light">
+                          <caption class="sr-only">KPI</caption>
+                          <thead class="d-none">
+                            <tr>
+                              <th scope="col"></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr *ngFor="let criteriaList of kpis?.kpiCriteriaType;let criteriaIndex = index">
+                              <td *ngIf="criteriaList.isActive || kpiSelectedList[index]?.criteriaSelected[criteriaIndex].criteriaSelected">
+                                <div class="row m-0">
+                                  <div class="col">
+                                    {{criteriaList?.description}}
+                                  </div>
+                                  <div class="col-auto">
+                                    <a *ngIf="kpiSelectedList[index]?.criteriaSelected[criteriaIndex].criteriaSelected == false">
+                                      <label class="switch px-0">
+                                        <input type="checkbox" [disabled]="disabled"
+                                          (click)="addCriteriaToList(criteriaList,kpis,index,criteriaIndex)">
+                                        <span class="slider round"><small class="deactivate-text">No</small></span>
+                                      </label>
+                                    </a>
+                                    <a *ngIf="kpiSelectedList[index]?.criteriaSelected[criteriaIndex].criteriaSelected == true">
+                                      <label class="switch px-0">
+                                        <input type="checkbox" [disabled]="disabled"
+                                          (click)="deleteKpiCriteriaFromList(criteriaList,kpis,index, criteriaIndex)" checked>
+                                        <span class="slider round"><small>Yes</small></span>
+                                      </label>
+                                    </a>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+          </ng-container>
+        </div>
+        <div class="row mt-2">
+          <div class="col-12 mt-3">
+            <button class="btn btn-primary-sub btn-sm float-right" (click)="closeKpiModal()"
+              title="Click here to Close Modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

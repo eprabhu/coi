@@ -1,0 +1,152 @@
+<app-common-modal [modalConfig]="defineRelationshipService.modalConfig" (modalAction)="applyToAllModalAction($event)">
+    <!-- header -->
+    <ng-container modal-header>
+        <span>Apply Conflict Status to All {{ isShowingProjSwitch ? 'Engagements' : 'Projects' }}</span>
+        <app-common-help-text [subSectionId]="803" [elementId]="'apply_to_all_header'"></app-common-help-text>
+    </ng-container>
+
+    <ng-container modal-body>
+        <div class="d-flex flex-column gap-3">
+            <!-- selected project card -->
+            <div *ngIf="defineRelationshipService.applyToAllModal?.selectedProject?.projectId">
+                <app-shared-project-details-card [projectDetails]="defineRelationshipService.applyToAllModal?.selectedProject"
+                    customClass="card-header-border-none overflow-hidden coi-card-highlight"
+                    columnClass="col-12 col-sm-6 col-md-6 col-lg-3 col-xl-3 col-xxl-3"
+                    [needReporterRole]="true" [isOpenSlider]="true"
+                    [uniqueId]="'coi-project-create-modal-' + defineRelationshipService.applyToAllModal?.selectedProject?.projectId">
+                </app-shared-project-details-card>
+            </div>
+            <!-- selected engagement card -->
+            <div *ngIf="defineRelationshipService.applyToAllModal?.selectedEngagement?.personEntityId">
+                <div class="card coi-card-regular coi-card-highlight mt-0">
+                    <div class="card-body">
+                        <!-- badge, conflict and comment -->
+                        <div class="d-flex align-items-center col gap-2">
+                            <h4 class="d-flex align-items-center col mb-0 coi-text-darker">
+                                <!-- icon -->
+                                <span class="coi-icon-bg me-2 fs-14 d-inline-flex"><mat-icon aria-hidden="true" class="coi-entity-icon-size coi-coloured-icons">domain</mat-icon></span>
+                                <!-- Entity Name -->
+                                <div class="d-flex flex-column">
+                                    <div class="d-flex align-items-center">
+                                        <a class="fs-6 link-primary" tabindex="0"
+                                            id="rel-eng-entity-{{defineRelationshipService.applyToAllModal?.selectedEngagement.entityId}}"
+                                            (click)="viewEntityDetails()" (keyup.enter)="viewEntityDetails()"
+                                            [attr.aria-label]="'Click here to view details of ' + defineRelationshipService.applyToAllModal?.selectedEngagement?.entityName"
+                                            [title]="'Click here to view details of ' + defineRelationshipService.applyToAllModal?.selectedEngagement?.entityName">
+                                            <span class="text-slice">{{ defineRelationshipService.applyToAllModal?.selectedEngagement?.entityName }}</span>
+                                        </a>
+                                        <ng-container *ngIf="defineRelationshipService.applyToAllModal?.selectedEngagement?.entityIsForeign">
+                                            <app-common-foreign-flag [entityName]="defineRelationshipService.applyToAllModal?.selectedEngagement?.entityName"></app-common-foreign-flag>
+                                        </ng-container>
+                                    </div>
+                                </div>
+                            </h4>
+                        </div>
+                        <div class="row row-gap-2 pt-2">
+                            <!-- Country -->
+                            <div class="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-3 col-xxl-3"
+                                [attr.aria-label]="'Country is ' + (defineRelationshipService.applyToAllModal?.selectedEngagement?.countryName
+                                    ? defineRelationshipService.applyToAllModal?.selectedEngagement?.countryName : 'empty')">
+                                <span class="coi-text-dark d-block text-nowrap">Country</span>
+                                <span class="text-slice"
+                                    [title]="defineRelationshipService.applyToAllModal?.selectedEngagement?.countryName">
+                                    <app-no-data-label [valueToShow]="defineRelationshipService.applyToAllModal?.selectedEngagement?.countryName"></app-no-data-label>
+                                </span>
+                            </div>
+                            <!-- Involvement Start Date -->
+                            <div class="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-3 col-xxl-3"
+                                [attr.aria-label]="'Involvement Start Date is ' + (defineRelationshipService.applyToAllModal?.selectedEngagement?.involvementStartDate
+                                    ? defineRelationshipService.applyToAllModal?.selectedEngagement?.involvementStartDate : 'empty')">
+                                <span class="coi-text-dark d-block text-nowrap">Involvement Start Date</span>
+                                <span class="text-slice"
+                                    [title]="defineRelationshipService.applyToAllModal?.selectedEngagement?.involvementStartDate">
+                                    <app-no-data-label [valueToShow]="defineRelationshipService.applyToAllModal?.selectedEngagement?.involvementStartDate"></app-no-data-label>
+                                </span>
+                            </div>
+                            <!-- Involvement Start Date -->
+                            <div class="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-3 col-xxl-3"
+                                [attr.aria-label]="'Involvement End Date is ' + (defineRelationshipService.applyToAllModal?.selectedEngagement?.involvementEndDate
+                                    ? defineRelationshipService.applyToAllModal?.selectedEngagement?.involvementEndDate : 'empty')">
+                                <span class="coi-text-dark d-block text-nowrap">Involvement End Date</span>
+                                <span class="text-slice"
+                                    [title]="defineRelationshipService.applyToAllModal?.selectedEngagement?.involvementEndDate">
+                                    <app-no-data-label [valueToShow]="defineRelationshipService.applyToAllModal?.selectedEngagement?.involvementEndDate"></app-no-data-label>
+                                </span>
+                            </div>
+                            <!-- Relationship -->
+                            <div class="col-12 d-flex align-items-center">
+                                <span class="d-block coi-text-dark me-2">Relationship</span>
+                                <div *ngIf="defineRelationshipService.applyToAllModal?.selectedEngagement?.personEntityRelations?.length; else showNoData">
+                                    <div class="coi-relationship-pill-container">
+                                        <ng-container *ngFor="let sfiRelations of defineRelationshipService.applyToAllModal?.selectedEngagement?.personEntityRelations; let isFirst = first; let outerIndex = index;">
+                                            <span class="coi-relationship-pill">
+                                                <span class="d-flex align-items-center coi-relationship-pill-text fs-14">
+                                                    <mat-icon aria-hidden="true" class="flex-shrink-0 me-1">{{ ENGAGEMENT_TYPE_ICONS[sfiRelations?.relationshipType] }}</mat-icon>
+                                                    <span>{{ sfiRelations?.relationshipType }}</span>
+                                                    <ng-container *ngIf="!commonService?.isCompensatedFlow && sfiRelations?.relations?.length">
+                                                        <span class="me-1 coi-text-light fs-14">:</span>
+                                                        <ng-container *ngFor="let relation of sfiRelations.relations; let isLastRelation = last;">
+                                                            <span class="fw-normal fs-14">{{ relation }}</span>
+                                                            <span *ngIf="!isLastRelation" class="px-1 fs-14">/</span>
+                                                        </ng-container>
+                                                    </ng-container>
+                                                </span>
+                                            </span>
+                                            <span *ngIf="commonService.isSfiEvaluationEnabled && defineRelationshipService.applyToAllModal?.selectedEngagement?.isSignificantFinInterest && ENGAGEMENT_LOCALIZE.TERM_FINANCIAL_FOR_REL_PILLS === sfiRelations?.relationshipType"
+                                                class="coi-relationship-pill">
+                                                <span class="d-flex coi-relationship-pill-text lh-sm fs-14">
+                                                    <img src="{{deployMap}}assets/images/sfi.svg" alt="{{ ENGAGEMENT_LOCALIZE.TERM_SFI_FOR_REL_PILLS }} Image" class="coi-sfi-icon me-2" aria-hidden="true">
+                                                    <span>{{ ENGAGEMENT_LOCALIZE.TERM_SFI_FOR_REL_PILLS }}</span>
+                                                </span>
+                                            </span>
+                                        </ng-container>
+                                    </div>
+                                </div>
+                                <ng-template #showNoData>--</ng-template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- conflict status -->
+            <div>
+                <label for="apply_to_all_select" class="coi-text-dark d-block mb-1">
+                    <span class="mandatory me-1" aria-label="Mandatory field">*</span>
+                    <span>Conflict Status</span>
+                    <app-common-help-text [subSectionId]="803" [elementId]="'apply_to_all_select'"></app-common-help-text>
+                </label>
+                <!-- do not change the class for app-dynamic-select -->
+                <app-dynamic-select class="d-flex align-items-center gap-3"
+                    [lookupList]="defineRelationshipService.conflictStatusLookup"
+                    [uniqueId]="'apply_to_all_select'" [label]="'conflict status'"
+                    [selectedValue]="{ code: defineRelationshipService.applyToAllModal.projectConflictStatusCode, description: '' }"
+                    [isError]="mandatoryList.has('CONFLICT_STATUS')"
+                    (selectedValueChange)="conflictStatusChanged($event)">
+                </app-dynamic-select>
+                <!-- conflict status error -->
+                <span *ngIf="mandatoryList.has('CONFLICT_STATUS')" class="d-block invalid-feedback">{{ mandatoryList.get('CONFLICT_STATUS') }}</span>
+            </div>
+
+            <!-- description -->
+            <div>
+                <label for="apply_to_all_description" class="coi-text-dark d-block mb-1">
+                    <span class="mandatory me-1" aria-label="Mandatory field">*</span>
+                    <span>Define Project - Engagement Relation</span>
+                    <app-common-help-text [subSectionId]="803" [elementId]="'apply_to_all_description'"></app-common-help-text>
+                </label>
+                <textarea class="form-control" id="apply_to_all_description" rows="5"
+                    name="apply_to_all_description"
+                    [(ngModel)]="defineRelationshipService.applyToAllModal.comment"
+                    appLengthValidator [limit]=2000 spellcheck="false"
+                    (ngModelChange)="defineRelationshipService.applyToAllModal.comment = defineRelationshipService.applyToAllModal.comment.trim(); validateDescription()"
+                    title="Click here to provide the project - engagement relation"
+                    placeholder="Please provide the project - engagement relation here."
+                    [attr.aria-label]="defineRelationshipService.applyToAllModal.comment"
+                    [class.is-invalid]="mandatoryList.has('CONFLICT_COMMENT')">
+                </textarea>
+                <!-- description error -->
+                <span *ngIf="mandatoryList.has('CONFLICT_COMMENT')" class="invalid-feedback">{{ mandatoryList.get('CONFLICT_COMMENT') }}</span>
+            </div>
+        </div>
+    </ng-container>
+</app-common-modal>

@@ -1,0 +1,558 @@
+<ng-container *ngIf="_commonData.claimSectionConfig['1405']?.isActive">
+    <div *ngFor="let category of claimBreakDownDetails?.claimSummaryDetails;let categoryIndex =index; first as isFirst"
+         class="card" [ngClass]="isFirst ? 'mt-2' : 'mt-5'">
+        <div class="card-header">
+            <h4 class="card-title justify-content-between d-flex align-items-center">
+            <span class="mr-auto">
+                {{category?.budgetCategory?.description}}
+                {{category?.budgetCategory?.code}}
+                <span *ngIf="category?.internalOrderCode">({{category?.internalOrderCode}})</span>
+            </span>
+                <div class=" d-flex mr-2">
+                    <ng-container *ngIf="category?.budgetCategory?.code =='EOM'">
+                        <span class="mr-5">Approved Head Count : {{category?.approvedHeadCount}}</span>
+                        <span class="mr-5">Actual Head Count : {{category?.actualHeadCount}}</span>
+                    </ng-container>
+                    <span class="mr-5">Approved Budget:
+                        {{category?.approvedBudget | currency: _commonService.currencyFormat}}</span>
+                </div>
+                <div class=" d-flex mr-2">
+                    <label class="f-14 mr-3 ">
+                        <span class="fa fa-square exclude-data shadow-sm"></span> Excluded</label>
+                    <span class="mr-5 font-weight-normal">
+                    <input type="checkbox" class="mr-2" [checked]="category.showExcluded"
+                           (change)="togglePreviouslyExcluded(categoryIndex, category)">Show previous excluded
+                </span>
+                    <button id="person-expand-btn" class="updown-arrow mr-1"
+                            (click)="isCategoryViewData[categoryIndex] = !isCategoryViewData[categoryIndex]">
+                        <i [ngClass]="!isCategoryViewData[categoryIndex]?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                           class="fa-large" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </h4>
+        </div>
+        <ng-container *ngIf="!isCategoryViewData[categoryIndex]">
+            <ng-container *ngIf="category.groupedTransactions.length > 0">
+                <div class="card-content">
+                    <div class="card-body p-0">
+                        <div class="table-responsive custom-overflow">
+                            <table class="table mb-0 tableSkin grid2 breakdown-table "
+                                   aria-describedby="reimbursement-summary">
+                                <thead>
+                                <tr>
+                                    <th scope="col">Invoice Date</th>
+                                    <th scope="col">Date of Budget Approval</th>
+                                    <th scope="col">Document No</th>
+                                    <th scope="col">Posting Date</th>
+                                    <th scope="col">Payment Date</th>
+                                    <th *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='MAC'
+                                ||category?.budgetCategory?.code =='EQT'" scope="col">Date of Delivery</th>
+                                    <th scope="col">Vendor Name</th>
+                                    <th *ngIf="category?.budgetCategory?.code =='EOM'" scope="col"> Associated EOM Expense Code</th>
+                                    <th scope="col">Description of Expenditure Items</th>
+                                    <th *ngIf="category?.budgetCategory?.code =='EOM' || category?.budgetCategory?.code =='RSS'"
+                                        scope="col">Involvement Period</th>
+                                    <th scope="col">Indicate Description of Original/Revised Line Item </th>
+                                    <th class="px-5" *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='MAC'
+                                    ||category?.budgetCategory?.code =='EQT'"
+                                        scope="col">Description(Brand Model of equipment)</th>
+                                    <th class="px-5" *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='MAC'
+                                    ||category?.budgetCategory?.code =='EQT'"
+                                        scope="col">Unit Price</th>
+                                    <th *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='OST'"
+                                        scope="col">Country</th>
+                                    <th *ngIf="category?.budgetCategory?.code =='OST'"
+                                        scope="col">City</th>
+                                    <th *ngIf="category?.budgetCategory?.code =='OST'"
+                                        scope="col">Name of Conference/Organization for Visit</th>
+                                    <th *ngIf="category?.budgetCategory?.code =='OST'"
+                                        scope="col">COLA rate/day</th>
+                                    <th *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='OST'"
+                                        scope="col">Travel Type</th>
+                                    <th class="px-5" *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='OST'"
+                                        scope="col">Period of Visit </th>
+                                    <th *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='OST'"
+                                        scope="col">No. of Days of Visit</th>
+                                    <th class="px-5" *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='OST'"
+                                        scope="col">Period of Official Visit </th>
+                                    <th *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='OST'"
+                                        scope="col">No. of Days of Official Visit</th>
+                                    <!-- <th *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='OST'"
+                                        scope="col">Airfare({{_commonService.currencyFormat}})</th>
+                                    <th *ngIf="category?.budgetCategory?.code =='OOE'"
+                                        scope="col">Local Claim reimbursement</th>
+                                    <th *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='OST'"
+                                        scope="col">Accommodation/ Subsistence/ Other Expenses({{_commonService.currencyFormat}})</th> -->
+                                    <th *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='OST'"
+                                        scope="col">Total Cost of Trip ({{_commonService.currencyFormat}})</th>
+                                    <th scope="col">Expenses Capped
+                                        ({{_commonService.currencyFormat}})
+                                    </th>
+                                    <th scope="col">Qualifying Costs
+                                        ({{_commonService.currencyFormat}})
+                                    </th>
+                                    <!-- <th scope="col">Level of Support(%)</th> -->
+                                    <th style="width: 6%;" scope="col">Total Amount ({{_commonService.currencyFormat}})
+                                    </th>
+                                    <th scope="col">Adjusted Total
+                                        ({{_commonService.currencyFormat}})
+                                    </th>
+                                    <th *ngIf="isEditMode" scope="col">Exclude</th>
+                                    <th style="width: 8%;" scope="col">Action</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <ng-container
+                                        *ngFor="let groupedTransaction of category?.groupedTransactions;let groupedIndex = index; let last = last;">
+                                    <ng-container
+                                            *ngIf="(category?.budgetCategory?.code == 'EOM' || category?.budgetCategory?.code == 'RSS') && groupedTransaction?.manpowerFullName">
+                                        <tr class="tr-head">
+                                            <td class="fw-700"
+                                                [class.text-black-50]="!groupedTransaction?.manpowerFullName"
+                                                [attr.colspan]="category.colspanFull">
+                                                {{groupedTransaction?.manpowerFullName}}</td>
+                                        </tr>
+                                    </ng-container>
+                                    <ng-container
+                                            *ngFor="let transaction of groupedTransaction?.transactions;let editIndex = index;">
+                                        <tr *ngIf="transaction.awardExpenseTransId" [ngClass]="transaction.isExcludedFlag? 'exclude-bckgnd': ''">
+                                            <td>{{transaction?.invoiceDate | dateFormatter}}</td>
+                                            <td>{{transaction?.budgetApprovalDate | dateFormatter}}</td>
+                                            <td>{{transaction?.documentNumber}}</td>
+                                            <td>{{transaction?.postingDate | dateFormatter}}</td>
+                                            <td>{{transaction?.paymentDate | dateFormatter}}
+                                            </td>
+                                            <td *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='MAC'
+                                        ||category?.budgetCategory?.code =='EQT'" scope="col">
+                                                <span class="text-right"
+                                                      *ngIf="selectedDetailId !== transaction.claimDetailsId">{{transaction?.deliveryDate}}
+                                                </span>
+                                                <span *ngIf="selectedDetailId == transaction.claimDetailsId"
+                                                      class="dateField">
+                                                    <input matInput [matDatepicker]="deliveryDate" id="user-activity-start-date"
+                                                           [(ngModel)]="transaction.deliveryDate" (click)="deliveryDate.open()"
+                                                           class="form-control d-inline-block" autocomplete="off"
+                                                           (keypress)="_commonService._keyPress($event, 'date')"
+                                                           [ngClass]="(mandatoryList.get('dueDateWarningText')) ? 'is-invalid d-block' : ''" />
+                                                    <span
+                                                            class="fa fa-calendar fa-large pointer insidePicker hand-cursor"
+                                                            title="open calendar"
+                                                            (click)="deliveryDate.open()"></span>
+                                                    <mat-datepicker #deliveryDate (opened)="setFocusToElement('user-activity-start-date')">
+                                                    </mat-datepicker>
+                                                </span>
+                                            </td>
+                                            <td>{{transaction?.vendorName}}</td>
+                                            <td *ngIf="category?.budgetCategory?.code =='EOM'">{{transaction?.expenseCode}}</td>
+
+                                            <td>{{transaction?.descriptionOfExpenditure}}</td>
+                                            <td  *ngIf="category?.budgetCategory?.code =='EOM' || category?.budgetCategory?.code =='RSS'">{{transaction?.involvementPeriod}}</td>
+                                            <td [title]="transaction?.orginalLineItemDescription">{{(transaction?.orginalLineItemDescription && transaction?.orginalLineItemDescription.length > 100) ?
+                                                (transaction?.orginalLineItemDescription|slice:0:100) + '...'
+                                                : transaction?.orginalLineItemDescription}}
+                                            </td>
+                                            <td *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='MAC'
+                                            ||category?.budgetCategory?.code =='EQT'"
+                                                [ngClass]="selectedDetailId !== transaction.claimDetailsId ? 'text-right': ''">
+                                                <span
+                                                        *ngIf="selectedDetailId !== transaction.claimDetailsId">{{transaction?.descriptionOfEquipment}}
+                                                </span>
+                                                <input *ngIf="selectedDetailId == transaction.claimDetailsId"
+                                                       type="text" autocomplete="off" class="form-control"
+                                                       [(ngModel)]="transaction.descriptionOfEquipment" />
+                                            </td>
+                                            <td *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='MAC'
+                                            ||category?.budgetCategory?.code =='EQT'"
+                                                [ngClass]="selectedDetailId !== transaction.claimDetailsId ? 'text-right': ''">
+                                                <span
+                                                        *ngIf="selectedDetailId !== transaction.claimDetailsId">{{transaction?.unitPrice
+                                                    | currency: _commonService.currencyFormat}}
+                                                </span>
+                                                <input *ngIf="selectedDetailId == transaction.claimDetailsId"
+                                                       type="text" autocomplete="off"
+                                                       [ngClass]="mandatoryList?.get('unitPrice') ? 'is-invalid d-block' : ''"
+                                                       id="adjusted-total-unitPrice" class="form-control"
+                                                       [(ngModel)]="transaction.unitPrice"
+                                                       (ngModelChange)="amountValidation(transaction.unitPrice ,'unitPrice');"
+                                                       allowNegative="true" appCurrencyFormat
+                                                       [initialValue]="transaction.unitPrice" />
+                                                <div class="invalid-feedback d-block font-weight-normal"
+                                                     *ngIf="mandatoryList?.get('unitPrice') && selectedDetailId == transaction.claimDetailsId">
+                                                    {{mandatoryList.get('unitPrice')}}</div>
+                                            </td>
+                                            <td
+                                                    *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='OST'">
+                                                {{transaction?.country}}</td>
+                                            <td *ngIf="category?.budgetCategory?.code =='OST'">{{transaction?.city}}</td>
+                                            <td *ngIf="category?.budgetCategory?.code =='OST'">{{transaction?.organizationOrConferenceName}}</td>
+                                            <td *ngIf="category?.budgetCategory?.code =='OST'">{{transaction?.colaRatePerDay}}</td>
+                                            <td
+                                                    *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='OST'">
+                                                {{transaction?.travelType}}</td>
+                                            <td
+                                                    *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='OST'">
+                                                {{transaction?.periodOfVisit}}</td>
+                                            <td
+                                                    *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='OST'">
+                                                {{transaction?.numberOfDaysOfVisit}}</td>
+                                            <td
+                                                    *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='OST'">
+                                                {{transaction?.periodOfOfficialVisit}}</td>
+                                            <td
+                                                    *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='OST'">
+                                                {{transaction?.numberOfDaysOfOfficialVisit}}</td>
+                                            <!-- <td class="text-right"
+                                                *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='OST'">
+                                                {{transaction?.airFareAmount| currency: _commonService.currencyFormat}}</td>
+                                            <td *ngIf="category?.budgetCategory?.code =='OOE'">{{transaction?.localClaimReimbursment}}</td>
+                                            <td class="text-right"
+                                                *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='OST'">
+                                                {{transaction?.otherExpenseAmount| currency: _commonService.currencyFormat}}</td> -->
+                                            <td class="text-right"
+                                                *ngIf="category?.budgetCategory?.code =='OOE' || category?.budgetCategory?.code =='OST'">
+                                                {{transaction?.tripTotalCost| currency: _commonService.currencyFormat}}</td>
+
+                                            <td class="text-right">
+                                                <span class="text-right"
+                                                      *ngIf="selectedDetailId !== transaction.claimDetailsId">{{transaction?.expenseCaped
+                                                    | currency: _commonService.currencyFormat}}
+                                                </span>
+                                                <input *ngIf="selectedDetailId == transaction.claimDetailsId"
+                                                       type="text" autocomplete="off"
+                                                       [ngClass]="mandatoryList?.get('expenseCaped') ? 'is-invalid d-block' : ''"
+                                                       id="expense-capped" class="form-control"
+                                                       [(ngModel)]="transaction.expenseCaped"
+                                                       (ngModelChange)="amountValidation(transaction.expenseCaped ,'expenseCaped');"
+                                                       allowNegative="true" appCurrencyFormat
+                                                       [initialValue]="transaction.expenseCaped" />
+                                                <div class="invalid-feedback d-block font-weight-normal"
+                                                     *ngIf="mandatoryList?.get('expenseCaped') && selectedDetailId == transaction.claimDetailsId">
+                                                    {{mandatoryList.get('expenseCaped')}}</div>
+                                            </td>
+                                            <td class="text-right">
+                                                {{transaction?.qualifyingCost | currency:
+                                                _commonService.currencyFormat}}
+                                            </td>
+                                            <!-- <td
+                                                [ngClass]="selectedDetailId !== transaction.claimDetailsId ? 'text-right': ''">
+                                                <span
+                                                    *ngIf="selectedDetailId !== transaction.claimDetailsId">{{transaction?.levelOfSupportPercentage}}
+                                                </span>
+                                                <input *ngIf="selectedDetailId == transaction.claimDetailsId"
+                                                    class="form-control" type="number"
+                                                    [(ngModel)]="transaction.levelOfSupportPercentage"
+                                                    (ngModelChange)="updateTotalAmount(transaction)" step="any"
+                                                    placeholder="eg: 100, 99.99, 10.22, 25 etc"
+                                                    (keyup)="limitKeypress(transaction.levelOfSupportPercentage,'percentageOfEffort',mandatoryList)"
+                                                    [ngClass]="mandatoryList?.has('percentageOfEffort') ? 'is-invalid d-block' : ''">
+                                                <div
+                                                    *ngIf="(mandatoryList?.has('percentageOfEffort')) && selectedDetailId == transaction.claimDetailsId">
+                                                    <span
+                                                        class="mandatory font">{{mandatoryList?.get('percentageOfEffort')}}</span>
+                                                </div>
+                                            </td> -->
+                                            <td class="text-right">
+                                                {{transaction?.totalAmount | currency: _commonService.currencyFormat}}
+                                            </td>
+                                            <td
+                                                    [ngClass]="selectedDetailId !== transaction.claimDetailsId ? 'text-right': ''">
+                                                <span
+                                                        *ngIf="selectedDetailId !== transaction.claimDetailsId">{{transaction?.adjustedTotal
+                                                    | currency: _commonService.currencyFormat}}
+                                                </span>
+                                                <input *ngIf="selectedDetailId == transaction.claimDetailsId"
+                                                       type="text" autocomplete="off"
+                                                       [ngClass]="mandatoryList?.get('amount') ? 'is-invalid d-block' : ''"
+                                                       id="adjusted-total-amount" class="form-control"
+                                                       [(ngModel)]="transaction.adjustedTotal"
+                                                       (ngModelChange)="amountValidation(transaction.adjustedTotal ,'amount');"
+                                                       allowNegative="true" appCurrencyFormat
+                                                       [initialValue]="transaction.adjustedTotal" />
+                                                <div class="invalid-feedback d-block font-weight-normal"
+                                                     *ngIf="mandatoryList?.get('amount') && selectedDetailId == transaction.claimDetailsId">
+                                                    {{mandatoryList.get('amount')}}</div>
+                                            </td>
+                                            <td *ngIf="isEditMode">
+                                                <a *ngIf="!transaction?.isExcludedFlag">
+                                                    <label class="switch toggle-inactive">
+                                                        <input type="checkbox"
+                                                               (click)="transaction.isExcludedFlag = true ;updateClaimSummaryExcludeFlag(transaction)">
+                                                        <span class="slider round"><small
+                                                                class="deactivate-text">No</small></span>
+                                                    </label>
+                                                </a>
+                                                <a *ngIf="transaction?.isExcludedFlag">
+                                                    <label class="switch toggle-active">
+                                                        <input type="checkbox"
+                                                               [disabled]="transaction?.prevAdjustedSummaryDetId"
+                                                               (click)="transaction.isExcludedFlag = false;updateClaimSummaryExcludeFlag(transaction)"
+                                                               checked>
+                                                        <span
+                                                                [ngClass]="transaction?.prevAdjustedSummaryDetId ? 'cursor-none' : ''"
+                                                                class="slider round"><small>Yes</small></span>
+                                                    </label>
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <ul class="actionButtonGroup icon">
+                                                    <li>
+                                                        <a title="comments">
+                                                            <i aria-hidden="true" (click)="commentAction(transaction);"
+                                                               class="fa fa-commenting-o hand-cursor" [class.red-notification]="transaction?.description?.trim()?.length > 0"></i>
+                                                        </a>
+                                                    </li>
+                                                    <li *ngIf="isEditMode && !transaction?.isExcludedFlag">
+                                                        <ul class="actionButtonGroup icon">
+                                                            <li>
+                                                                <a *ngIf="selectedDetailId !== transaction.claimDetailsId"
+                                                                   class="hand-cursor"><i class="fa fa-pencil"
+                                                                                          (click)="editTransaction(transaction, categoryIndex, groupedIndex, editIndex)"
+                                                                                          aria-hidden="true"></i></a>
+                                                                <a *ngIf="selectedDetailId == transaction.claimDetailsId"
+                                                                   class="hand-cursor"
+                                                                   (click)="updateDetailBreakDown(transaction)"><i
+                                                                        class="fa fa-save mr-2"
+                                                                        aria-hidden="true"></i></a>
+                                                                <a *ngIf="selectedDetailId == transaction.claimDetailsId"
+                                                                   class="hand-cursor"> <i class="fa fa-remove"
+                                                                                           (click)="setEditFlag();mandatoryList.clear();tempTransaction={};"
+                                                                                           aria-hidden="true"></i></a>
+                                                            </li>
+                                                        </ul>
+                                                    </li>
+                                                </ul>
+                                            </td>
+                                        </tr>
+                                        <tr
+                                                *ngIf="selectedDetailId == transaction.claimDetailsId || selectedCommentDetailId == transaction.claimDetailsId">
+                                            <td class="no-border">
+                                                <label>Comments</label>
+                                            </td>
+                                            <td [attr.colspan]="category.colspanComment" class="no-border">
+                                                <div class="row">
+                                                    <div class="col-lg-12 col-md-12 col-sm-12 col-12">
+                                                        <textarea [(ngModel)]="transaction.description"
+                                                                  [disabled]="selectedCommentDetailId == transaction.claimDetailsId"
+                                                                  [isShowLimiter]=" (!isEditMode ||  selectedCommentDetailId == transaction.claimDetailsId) ? false :true"
+                                                                  appLengthValidator class="form-control" limit=4000>
+                                            </textarea>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </ng-container>
+                                    <ng-container *ngIf="category.showExcluded && last">
+                                        <tr class="tr-head">
+                                            <td [attr.colspan]="category.colspanFull" class="fw-500">
+                                                Previous excluded
+                                            </td>
+                                        </tr>
+                                        <ng-container
+                                                *ngFor="let excludedTransaction of previouslyExcluded[categoryIndex].transactions; let excludeIndex = index">
+                                            <tr (selectedTransactions)="updateClaimSummaryExcludeFlag($event, excludeIndex, categoryIndex)"
+                                                [category]="category" [excludedTransaction]="excludedTransaction"
+                                                [isEditMode]="isEditMode" app-previous-excluded></tr>
+                                            <tr *ngIf="excludedTransaction.isCommentEnable">
+                                                <td class="no-border">
+                                                    <label>Comments</label>
+                                                </td>
+                                                <td [attr.colspan]="category.colspanComment" class="no-border">
+                                                    <div class="row">
+                                                        <div class="col-lg-12 col-md-12 col-sm-12 col-12">
+                                                            <textarea [(ngModel)]="excludedTransaction.description"
+                                                                      [disabled]="true" class="form-control">
+                                                    </textarea>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </ng-container>
+                                        <ng-container
+                                                *ngIf="previouslyExcluded[categoryIndex].transactions && previouslyExcluded[categoryIndex].transactions.length === 0">
+                                            <tr class="fw-500">
+                                                <td [attr.colspan]="category.colspanFull">No
+                                                    previous excluded transactions found
+                                                </td>
+                                            </tr>
+                                        </ng-container>
+                                    </ng-container>
+                                    <tr class="fw-700 border-style" *ngIf="last">
+                                        <td [attr.colspan]="category.colspanQuarter" class="text-right">Total
+                                            for this Period
+                                        </td>
+                                        <td class="text-right">
+                                            {{category?.quarterTotalAmount | currency: _commonService.currencyFormat}}
+                                        </td>
+                                        <td class="text-right">
+                                            {{category?.quarterAdjustedTotal | currency: _commonService.currencyFormat}}
+                                        </td>
+                                        <td *ngIf="isEditMode"></td>
+                                        <td></td>
+                                    </tr>
+                                </ng-container>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+        </ng-container>
+    </div>
+    <div *ngIf="claimBreakDownDetails?.claimSummaryDetails?.length" class="card mt-2">
+        <table class="table table-bordered" aria-describedby="reimbursement-summary">
+            <thead>
+            <tr>
+                <th scope="col">
+                    <span class="pl-2"> Particulars</span>
+                </th>
+                <th scope="col" style="width: 13%;">Total Amount ({{_commonService.currencyFormat}})
+                </th>
+                <th scope="col" style="width: 13%;">Adjusted Total
+                    ({{_commonService.currencyFormat}})</th>
+            </tr>
+            </thead>
+            <tbody>
+            <ng-container *ngFor="let category of claimBreakDownDetails?.claimSummaryDetails">
+                <tr>
+                    <td class="fw-600">
+                        <span class="pl-4">
+                            {{category?.budgetCategory?.description}}
+                            {{category?.budgetCategory?.code}}
+                            <span *ngIf="category?.internalOrderCode">({{category?.internalOrderCode}})</span>
+                        </span>
+                    </td>
+                    <td class="text-right">
+                        {{category?.quarterTotalAmount | currency: _commonService.currencyFormat}}
+                    </td>
+                    <td class="text-right">
+                        {{category?.quarterAdjustedTotal | currency: _commonService.currencyFormat}}
+                    </td>
+                </tr>
+            </ng-container>
+            <ng-container>
+                <tr class="border-style">
+                    <td class="fw-600 ">
+                        <span class="pl-4">A. Sub total for direct costs</span>
+                        <span class="float-right">A = Sum of Total Amount or Adjusted Total</span>
+
+                    </td>
+                    <td class="text-right">
+                        {{claimBreakDownDetails?.claimSummaryCalculations?.subTotalDirectCost?.subTotalDirectTotalAmount
+                        | currency: _commonService.currencyFormat}}
+                    </td>
+                    <td class="text-right">
+                        {{claimBreakDownDetails?.claimSummaryCalculations?.subTotalDirectCost?.subTotalDirectAdjTotalAmount
+                        | currency: _commonService.currencyFormat}}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="fw-600 ">
+                        <span class="pl-4">B. Overhead (%)</span>
+                    </td>
+                    <td class="text-right">
+                        {{claimBreakDownDetails?.overHeadPercentage}}
+                    </td>
+                    <td> </td>
+                </tr>
+                <tr>
+                    <td class="fw-600 ">
+                        <span class="pl-4">C. Indirect Cost</span>
+                        <span class="float-right">C = (A * B) /100</span>
+                    </td>
+                    <td class="text-right">
+                        {{claimBreakDownDetails?.claimSummaryCalculations?.inDirectCost?.inDirectTotalAmount | currency:
+                        _commonService.currencyFormat}}
+                    </td>
+                    <td class="text-right" [ngClass]="!isIndirectCostEdit? 'text-right': ''">
+                        <div>
+                            <span *ngIf="!isIndirectCostEdit">
+                                {{claimBreakDownDetails?.claimSummaryCalculations?.inDirectCost?.inDirectAdjTotalAmount |
+                                currency: _commonService.currencyFormat}}
+                            </span>
+                            <input *ngIf="isIndirectCostEdit" class="form-control d-inline-block set-width" type="text" autocomplete="off"
+                                   [(ngModel)]="claimBreakDownDetails.claimSummaryCalculations.inDirectCost.inDirectAdjTotalAmount"
+                                   allowNegative="true" appCurrencyFormat
+                                   (ngModelChange)="indirectCostValidation(claimBreakDownDetails.claimSummaryCalculations.inDirectCost.inDirectAdjTotalAmount ,'indrectCost');"
+                                   [initialValue]="claimBreakDownDetails.claimSummaryCalculations.inDirectCost.inDirectAdjTotalAmount"
+                                   [ngClass]="indirectCostWarning?.has('indrectCost') ? 'is-invalid' : ''">
+                            <ul class="actionButtonGroup d-inline-block icon">
+                                <li *ngIf="isEditMode">
+                                    <a *ngIf="!isIndirectCostEdit" class="hand-cursor">
+                                        <i class="fa fa-pencil"
+                                           (click)="isIndirectCostEdit = true;
+                                              tempIndirectCost = claimBreakDownDetails.claimSummaryCalculations.inDirectCost.inDirectAdjTotalAmount"
+                                           aria-hidden="true"></i></a>
+                                    <a *ngIf="isIndirectCostEdit"
+                                       (click)="saveIndirectCost(claimBreakDownDetails?.claimSummaryCalculations?.inDirectCost?.inDirectAdjTotalAmount)"
+                                       class="hand-cursor"><i class="fa fa-save mr-2" aria-hidden="true"></i></a>
+                                    <a *ngIf="isIndirectCostEdit" class="hand-cursor">
+                                        <i class="fa fa-remove"
+                                           (click)="isIndirectCostEdit = false;
+                                              claimBreakDownDetails.claimSummaryCalculations.inDirectCost.inDirectAdjTotalAmount = tempIndirectCost;
+                                              indirectCostWarning.clear()"
+                                           aria-hidden="true"></i></a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div *ngIf="(indirectCostWarning?.has('indrectCost'))">
+                            <span class="mandatory font-weight-normal font">{{indirectCostWarning?.get('indrectCost')}}</span>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class=" fw-600">
+                        <span class="pl-4 ">D. Total Expenditure</span>
+                        <span class="float-right">D = A + C</span>
+
+                    </td>
+                    <td class="text-right fw-700">
+                        {{claimBreakDownDetails?.claimSummaryCalculations?.totalExpenditure?.expenditureTotalAmount |
+                        currency: _commonService.currencyFormat}}
+                    </td>
+                    <td class="text-right fw-700">
+                        {{claimBreakDownDetails?.claimSummaryCalculations?.totalExpenditure?.expenditureAdjTotalAmount |
+                        currency: _commonService.currencyFormat}}
+                    </td>
+                </tr>
+            </ng-container>
+            </tbody>
+        </table>
+    </div>
+    <div *ngIf="!claimBreakDownDetails?.claimSummaryDetails?.length" class="card mt-2">
+        <div class="d-flex align-items-center justify-content-center height-adjust">
+            <div class="no-data-container">
+            <span class="no-data-icon-outer">
+                <div class="no-data-icon">
+                    <i aria-hidden="true" class="fa fa-file-o"></i>
+                    <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                </div>
+            </span>
+                <h4>There is no information in this section.</h4>
+            </div>
+        </div>
+    </div>
+
+</ng-container>
+    <!-- Alert Modal -->
+    <div class="modal fade mySkinDialog" id="alertClaimModal" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header ct-footer-padding">
+                    <h4 class="modal-title">Alert</h4>
+                </div>
+                <div class="modal-body ct-modal-padding">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <p> This transaction is already included in the subsequent claim.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer ct-footer-padding">
+                    <button class="btn btn-secondary btn-sm" data-dismiss="modal" id="claim-sumbit-no-btn"
+                        type="button">Ok</button>
+                </div>
+            </div>
+        </div>
+    </div>

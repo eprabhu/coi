@@ -1,0 +1,12 @@
+UPDATE coi_int_stage_dev_proposal_status SET DESCRIPTION = 'Approval Pending' WHERE (STATUS_CODE = '2');
+UPDATE coi_int_stage_dev_proposal_status SET DESCRIPTION = 'Approval Granted' WHERE (STATUS_CODE = '3');
+UPDATE coi_int_stage_dev_proposal_status SET DESCRIPTION = 'Approval Not Initiated - Submitted' WHERE (STATUS_CODE = '4');
+UPDATE coi_int_stage_dev_proposal_status SET DESCRIPTION = 'Approval Pending - Submitted' WHERE (STATUS_CODE = '5');
+UPDATE coi_int_stage_dev_proposal_status SET DESCRIPTION = 'Approved and Submitted' WHERE (STATUS_CODE = '6');
+UPDATE coi_int_stage_dev_proposal_status SET DESCRIPTION = 'Disapproved' WHERE (STATUS_CODE = '7');
+UPDATE coi_int_stage_dev_proposal_status SET DESCRIPTION = 'Approved Post-Submission' WHERE (STATUS_CODE = '8');
+INSERT INTO coi_int_stage_dev_proposal_status (STATUS_CODE, DESCRIPTION, UPDATE_TIMESTAMP, UPDATED_BY, IS_ACTIVE) VALUES ('9', 'Disapproved Post-Submission', now(), 'quickstart', 'Y');
+INSERT INTO coi_int_stage_dev_proposal_status (STATUS_CODE, DESCRIPTION, UPDATE_TIMESTAMP, UPDATED_BY, IS_ACTIVE) VALUES ('10', 'Cancelled', now(), 'quickstart', 'Y');
+INSERT INTO coi_int_stage_dev_proposal_status (STATUS_CODE, DESCRIPTION, UPDATE_TIMESTAMP, UPDATED_BY, IS_ACTIVE) VALUES ('11', 'Document Error Occurred', now(), 'quickstart', 'Y');
+INSERT INTO coi_int_stage_dev_proposal_status (STATUS_CODE, DESCRIPTION, UPDATE_TIMESTAMP, UPDATED_BY, IS_ACTIVE) VALUES ('12', 'Revisions Requested', now(), 'quickstart', 'Y');
+INSERT INTO coi_int_stage_dev_proposal_status (STATUS_CODE, DESCRIPTION, UPDATE_TIMESTAMP, UPDATED_BY, IS_ACTIVE) VALUES ('13', 'Approved', now(), 'quickstart', 'Y');

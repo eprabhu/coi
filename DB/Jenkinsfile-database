@@ -1,0 +1,215 @@
+pipeline {
+    agent any 
+    
+    stages {
+
+        stage ('Read Yaml file') {
+
+            steps {
+                script {
+
+                    def yamlData = readYaml file: 'release-database.yml'
+                    def multibranchFolder = env.JOB_NAME.split("/")[0]
+
+                    env.BRANCH = yamlData.config.branch
+                    env.IP = yamlData.config.ip
+                    env.MAIL_ID = yamlData.config.mail_id
+                    env.CREDENTIAL_ID = yamlData.config.credential_id
+                    env.SCHEMA_NAME = yamlData.config.schema_name
+                    env.JOBNAME_UNIQUE_ID = yamlData.config.jobname_uniqueid
+		            env.BUILD_PATH = "${env.JENKINS_HOME}/jobs/${multibranchFolder}/branches/${env.JOBNAME_UNIQUE_ID}/builds/${env.BUILD_NUMBER}"
+                
+                    echo "Branch = ${env.BRANCH}"
+                    echo "IP = ${env.IP}"
+                    echo "Mail Id = ${MAIL_ID}"
+                    echo "Credential Id = ${CREDENTIAL_ID}"
+                    echo "Schema Name = ${SCHEMA_NAME}"
+		            echo "Build path = ${BUILD_PATH}"
+                    echo "Job name unique id = ${JOBNAME_UNIQUE_ID}"
+                }
+            }
+        }
+
+	
+
+        stage ('Git Checkout') {
+
+	    steps {
+                git branch: "${env.BRANCH}",
+                    url: 'git@github.com:Polus-Software/Fibi.git'
+            }
+        }
+
+	    stage ('Check the script changes') {
+
+            steps {
+                script {
+                    def changedFiles = sh(
+                    script: "git diff --name-only HEAD^1 HEAD",
+                    returnStdout: true
+                    ).trim()
+
+                    echo "Changed Files: ${changedFiles}"
+
+                    // Determine if there are relevant changes
+                    def relevantChanges = changedFiles.split('\n').findAll { it != 'Jenkinsfile-database' && it != 'release-database.yml' && it.startsWith('DB/') }
+                   
+                    echo "Relevant Changes: ${relevantChanges}" 
+
+                    if (relevantChanges.isEmpty()) {
+                    echo "Only Jenkinsfile and release.yml are changed. Stopping the pipeline."
+                    currentBuild.result = 'NOT_BUILT' // Mark the build as not built
+                    //error("Pipeline stopped: No relevant changes detected or only changes to Jenkinsfile and release.yml.") // Halt the pipeline
+                    return
+		            } else {
+                        echo "Changes are in DB directory, Proceeding with next stage (Mysql Script Execution)"
+                    }
+                }
+            }
+        }
+
+        stage ('Mysql Script Execution') {
+
+	    when {
+                expression { currentBuild.result != 'NOT_BUILT' }
+            }
+
+            steps {
+                script {
+
+                    dir ('DB') {
+
+                        def credentialId = "${CREDENTIAL_ID}"
+
+                        // Use withCredentials to get the password
+                        withCredentials([usernamePassword(credentialsId: credentialId, usernameVariable: 'DB_USER', passwordVariable: 'DB_PASSWORD')]) {
+
+                            sh """
+
+                            echo "Build Path : ${env.BUILD_PATH} "
+
+                            mysql -u '${DB_USER}' -p'${DB_PASSWORD}' -h ${env.IP} -f ${env.SCHEMA_NAME} < automation.sql > ${env.JOBNAME_UNIQUE_ID}.log 2>&1 || true
+
+                            cp ${env.JOBNAME_UNIQUE_ID}.log  ${env.BUILD_PATH}
+
+                            """
+
+                        }
+
+                    }
+
+                }
+                
+            }
+
+        }
+
+        stage ('Error Checking') {
+
+	    when {
+                expression { currentBuild.result != 'NOT_BUILT' }
+            }
+
+            steps {
+
+                script {
+
+                    sh """
+                        if grep -R ERROR  ${env.BUILD_PATH}/${env.JOBNAME_UNIQUE_ID}.log
+                        then
+                            echo "error occurred"
+                            echo "$BUILD_NUMBER"
+                            cd ${env.BUILD_PATH}
+                            mv log $BUILD_NUMBER
+                            sudo mv ${env.JOBNAME_UNIQUE_ID}.log log
+                            exit 1
+                        else
+                            cd ${env.BUILD_PATH}
+                            mv log $BUILD_NUMBER
+                            echo "Script execution success" > log
+                        fi
+
+                    """
+                }
+            }
+
+        }
+    }
+    
+    post {
+        always {
+            script {
+                multibranchFolder = env.JOB_NAME.split("/")[0]
+                encodedBranchName = java.net.URLEncoder.encode(env.BRANCH_NAME, "UTF-8")
+                consoleUrl = "http://192.168.1.253:8080/job/${multibranchFolder}/job/${encodedBranchName}/${env.BUILD_NUMBER}/console"
+                buildUrl = "http://192.168.1.253:8080/job/${multibranchFolder}/job/${encodedBranchName}/${env.BUILD_NUMBER}/"
+                echo "Build result: ${currentBuild.result}"
+            }
+        }
+        success {
+            emailext attachLog: true, 
+                body: '<h1 style="color:green;">Build Success</h1>', 
+                subject: "Mysql Script Execution ${env.BRANCH} Success", 
+                to: "${env.MAIL_ID}"
+            
+            office365ConnectorSend(
+                webhookUrl: 'https://polussoftware0.webhook.office.com/webhookb2/4b5bab47-7e0c-4f1a-a301-ab5f41c615f9@74324cf0-bf2f-47cc-bdc3-b8d07890b569/JenkinsCI/a30626b683af4b7bbcc7d4183489f900/96535c2e-42d9-4a97-adec-bf6c28ac4a8f/V2UI5F1Lfm--kvgGUsD5o3orM4ceEgX7HM4P-ihrZj-eM1',
+                message: """
+                <html>
+                    <body>
+                        <p><strong>Execution Status:</strong> SUCCESS</p>
+                        <p><strong>Branch:</strong> ${env.BRANCH}</p>
+                        <p><strong>Console Output:</strong> <a href="${consoleUrl}">View Log</a></p>
+                        <p><strong>Build Detail Output:</strong> <a href="${buildUrl}">View Build</a></p>
+                    </body>
+                </html>
+                """
+            )
+        }
+
+        notBuilt {
+            emailext attachLog: true, 
+                body: '<h1 style="color:red;">Not Builded</h1><p>Please check the attached log for more details.</p>', 
+                subject: "Frontend Build ${env.BRANCH} Not Built", 
+                to: "${env.MAIL_ID}"
+                
+            office365ConnectorSend(
+                webhookUrl: 'https://polussoftware0.webhook.office.com/webhookb2/4b5bab47-7e0c-4f1a-a301-ab5f41c615f9@74324cf0-bf2f-47cc-bdc3-b8d07890b569/JenkinsCI/a30626b683af4b7bbcc7d4183489f900/96535c2e-42d9-4a97-adec-bf6c28ac4a8f/V2UI5F1Lfm--kvgGUsD5o3orM4ceEgX7HM4P-ihrZj-eM1',
+                message: """
+                <html>
+                    <body>
+                        <p><strong>Build Status:</strong> NOT BUILT</p>
+                        <p><strong>Branch:</strong> ${env.BRANCH}</p>
+                        <p><strong>Console Output:</strong> <a href="${consoleUrl}">View Log</a></p>
+                        <p><strong>Build Detail Output:</strong> <a href="${buildUrl}">View Build</a></p>
+                    </body>
+                </html>
+                """
+            )
+        }
+
+
+        failure {
+                    emailext attachLog: true, 
+                        body: '<h1 style="color:red;">Build Failed</h1><p>Please check the attached log for more details.</p>', 
+                        subject: "Mysql Script Execution ${env.BRANCH} Failure", 
+                        to: "${env.MAIL_ID}"
+                
+                    office365ConnectorSend(
+                        webhookUrl: 'https://polussoftware0.webhook.office.com/webhookb2/4b5bab47-7e0c-4f1a-a301-ab5f41c615f9@74324cf0-bf2f-47cc-bdc3-b8d07890b569/JenkinsCI/a30626b683af4b7bbcc7d4183489f900/96535c2e-42d9-4a97-adec-bf6c28ac4a8f/V2UI5F1Lfm--kvgGUsD5o3orM4ceEgX7HM4P-ihrZj-eM1',
+                        message: """
+                        <html>
+                            <body>
+                                <p><strong>Execution Status:</strong> FAILURE</p>
+                                <p><strong>Branch:</strong> ${env.BRANCH}</p>
+                                <p><strong>Console Output:</strong> <a href="${consoleUrl}">View Log</a></p>
+                                <p><strong>Build Detail Output:</strong> <a href="${buildUrl}">View Build</a></p>
+                            </body>
+                        </html>
+                        """
+                    )     
+            
+        }
+    }
+
+}

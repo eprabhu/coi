@@ -1,0 +1,135 @@
+<!--Created by saranya t pillai : 15/09/2020-->
+<div *ngIf="budgetData.isBudgetVersionEnabled" class="card my-3">
+  <div class="card-content">
+
+    <div [ngClass]="isCreateApprovedBudget || isCreateBudgetVersion ? 'card-header px-4 py-2' : 'card-header'">
+      <h4 class="card-title align-items-center d-flex" id="proposal-budget-versions">
+          <span  class="mr-auto"> Budget Versions </span>
+        <a *ngIf="isCreateBudgetVersion" id="budget-version-create-btn" data-target="#budgetCreateModalProposal"
+        class="btn btn-sm btn-tertiary mt-0 mr-5" data-toggle="modal" tabindex="0">
+          <span title="Create New Budget Version">Create New
+            <span class="d-none d-md-inline-block">Budget Version</span>
+          </span>
+        </a>
+        <a id="aprooved-budget-create-btn" data-target="#budgetCreateModalProposal" class="btn btn-sm btn-tertiary mt-0 mr-5"
+          *ngIf="isCreateApprovedBudget" data-toggle="modal">
+          <span title="Create Approved Budget">Create Approved Budget</span>
+        </a>
+        <button id="budgetExpandBtn" class="updown-arrow"
+          (click)="isBudgetVersionWdgtOpen = !isBudgetVersionWdgtOpen"
+          *ngIf="budgetData?.budgetHeaderDetails?.length > 0">
+          <i [ngClass]="isBudgetVersionWdgtOpen?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+            class="fa-large" aria-hidden="true"></i>
+        </button>
+      </h4>
+    </div>
+
+    <div class="card-body" *ngIf="isBudgetVersionWdgtOpen">
+      <table id="periodTable" aria-describedby="proposal-budget-versions"
+        class="table tableSkin mb-0 tablealign tbl-padding table-type-head">
+        <thead class="thead-light">
+          <th scope="col" width="6%" class="headeralign  irb-table-hdcolor ct-border-btm">Version</th>
+          <th scope="col" width="9.5%" class="headeralign  irb-table-hdcolor ct-border-btm">Duration</th>
+          <th scope="col" width="9%" class="headeralign  irb-table-hdcolor ct-border-btm">Direct Cost</th>
+          <th scope="col" width="10%" class="headeralign  irb-table-hdcolor ct-border-btm" *ngIf="budgetData?.isShowModifiedDirectCost">Modified Direct Cost</th>
+          <th scope="col" width="10%" class="headeralign  irb-table-hdcolor ct-border-btm">Indirect Cost</th>
+          <th scope="col" width="8%" class="headeralign  irb-table-hdcolor ct-border-btm" *ngIf="budgetData?.isShowCostShareAndUnderrecovery">Under Recovery</th>
+          <th scope="col" width="8%" class="headeralign  irb-table-hdcolor ct-border-btm" *ngIf="budgetData?.isShowCostShareAndUnderrecovery">Cost Share</th>
+          <th scope="col" width="10%" class="headeralign  irb-table-hdcolor ct-border-btm"  *ngIf="budgetData?.isShowInKind">Total Requested Cost</th>
+          <th scope="col" width="8%" class="headeralign  irb-table-hdcolor ct-border-btm" *ngIf="budgetData?.isShowInKind">Total In-Kind</th>
+          <th scope="col" width="10%"  class="headeralign  irb-table-hdcolor ct-border-btm">Total Cost</th>
+          <th scope="col" width="5%" class="headeralign  irb-table-hdcolor ct-border-btm">Final</th>
+          <th scope="col" width="6.5%" class="headeralign  irb-table-hdcolor ct-border-btm">Actions</th>
+        </thead>
+        <tbody>
+          <tr *ngFor="let budget of budgetData?.budgetHeaderDetails; let i = index"
+            [ngClass]="budget.budgetId === (budgetData?.budgetHeader?.budgetId)?'version-highlight':''">
+            <td>{{budget?.versionNumber}}</td>
+            <td>{{budget?.startDate | dateFormatterWithTimeZone}} - {{budget?.endDate | dateFormatterWithTimeZone}}</td>
+            <td>{{budget?.totalDirectCost|customCurrency}}</td>
+            <td *ngIf="budgetData?.isShowModifiedDirectCost">{{budget?.totalModifiedDirectCost|customCurrency}}</td>
+            <td>{{budget?.totalIndirectCost|customCurrency}}</td>
+            <td *ngIf="budgetData?.isShowCostShareAndUnderrecovery">{{budget?.underrecoveryAmount|customCurrency}}</td>
+            <td *ngIf="budgetData?.isShowCostShareAndUnderrecovery">{{budget?.costSharingAmount|customCurrency}}</td>
+            <td *ngIf="budgetData?.isShowInKind">{{budget?.totalInKind|customCurrency}}</td>
+            <td *ngIf="budgetData?.isShowInKind">{{budget?.totalCost|customCurrency}}</td>
+            <td>{{budget?.totalOfTotalCost|customCurrency}}</td>
+            <td><input type="checkbox" [checked]="budget?.isFinalBudget" disabled></td>
+            <td>
+              <ul class="actionButtonGroup">
+                <li>
+                  <a title="View Budget Version {{budget?.versionNumber}}" id="open-budget-btn" (click)="loadBudgetByBudgetId(budget)">
+                    <i class="fa fa-eye pointer" aria-hidden="true"></i>
+                  </a>
+                </li>
+                <li *ngIf="(!budget.isApprovedBudget && !_budgetDataService.isBudgetViewMode) || isCopyDeleteAllowed">
+                  <a title="Copy Budget Version {{budget?.versionNumber}}" data-target="#copyProposalBudgetVersion" data-toggle="modal" (click)="tempVersion = budget">
+                    <i class="fa fa-copy" aria-hidden="true"></i>
+                  </a>
+                </li>
+                <li *ngIf="(!budget.isApprovedBudget && !_budgetDataService.isBudgetViewMode) || isCopyDeleteAllowed">
+                  <a title="Delete Budget Version {{budget?.versionNumber}}" data-target="#deleteProposalBudgetVersions"
+                    data-toggle="modal" (click)="tempVersion = budget">
+                    <i  aria-hidden="true" class="fa fa-trash"></i>
+                   </a>
+                </li>
+              </ul>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!--COPY BUDGET VERSION MODAL-->
+<div class="modal fade mySkinDialog modal-opacity" id="copyProposalBudgetVersion" tabindex="-1" role="dialog"
+  aria-labelledby="copyProposalBudgetVersion" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+  <div class="modal-dialog modal-md" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Copy Budget Version</h5>
+        <button id="budget-version-close-btn" type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to copy budget version {{tempVersion.versionNumber}} ?</p>
+      </div>
+      <div class="modal-footer px-4">
+        <button id="prop-cancel-create-bgt" type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button id="prop-create-bgt" type="button" class="btn btn-primary-sub" data-dismiss="modal" (click)="copyBudgetVersion()">Copy</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!--COPY BUDGET VERSION MODAL ENDS-->
+
+<!--DELETE BUDGET VERSION MODAL-->
+<div class="modal fade mySkinDialog modal-opacity" id="deleteProposalBudgetVersions" tabindex="-1" role="dialog"
+  aria-labelledby="deleteProposalBudgetVersions" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+  <div class="modal-dialog modal-md" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete Budget Version</h5>
+        <button id="budget-version-close-btn" type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" *ngIf="budgetData?.budgetHeaderDetails?.length > 1">
+        <p>Are you sure you want to delete budget version {{tempVersion.versionNumber}} ?</p>
+      </div>
+      <div class="modal-body" *ngIf="budgetData?.budgetHeaderDetails?.length == 1">
+        <p>Cannot delete the only version of budget.</p>
+      </div>
+      <div class="modal-footer px-4">
+        <button id="prop-cancel-create-bgt" type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button id="prop-create-bgt" type="button" class="btn btn-primary-sub" data-dismiss="modal"
+          *ngIf="budgetData?.budgetHeaderDetails?.length > 1" (click)="deleteBudgetVersion()">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!--DELETE BUDGET VERSION MODAL ENDS-->
+
+<app-period-update *ngIf="budgetData && isShowPeriodsChangeModal" [budgetData]="budgetData" (closeModal)="closeModal($event)"></app-period-update>

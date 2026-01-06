@@ -1,0 +1,142 @@
+<div id="Award107" class="card mb-3 mt-3">
+    <div class="mgtop-7">
+        <div class="card-content">
+            <div class="card-body" id="accordionSearch">
+                <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 ct-mb10" id="collapseSearch"
+                    class="collapse show" aria-labelledby="headingOne" data-parent="#accordionSearch">
+                    <div class="form-row">
+                        <div class="col-xl-5 col-sm-6 col-12 position-relative">
+                            <label><span class="mandatory">*</span> Person</label>
+                            <app-elastic [options]="elasticPersonSearchOptions"
+                                [isError]="(map.get('person')) ? true : false" [clearField]="clearField"
+                                [placeHolder]="'Search a person to assign a role'"
+                                (selectedResult)="selectedPerson($event)">
+                            </app-elastic>
+                            <div class="position-absolute" *ngIf="map.get('person')">
+                                <span class="mandatory">{{map.get('person')}}</span>
+                            </div>
+                            <div class="position-absolute" *ngIf="map.get('repeat')">
+                                <span class="mandatory">{{map.get('repeat')}}</span>
+                            </div>
+
+
+                        </div>
+                        <div class="col-xl-5 col-sm-6 col-12 position-relative">
+                            <label for="role-select"><span class="mandatory">*</span> <ng-container i18n="@@COMMON_ROLES">Roles</ng-container></label>
+                            <div class="position-relative">
+                                <select id="role-select" class="form-control"
+                                    [ngClass]="(map.get('role'))? 'is-invalid d-block' : ''" [(ngModel)]="selectRole"
+                                    (ngModelChange)="_commonData.isAwardDataChange = true;">
+                                    <option [value]={}>--Select--</option>
+                                    <option *ngFor="let role of roleList" [ngValue]="role" [hidden]="role.isActive != true">
+                                        {{role.roleName}}</option>
+                                </select>
+                                <div class="position-absolute" *ngIf="map.get('role')">
+                                    <span class="mandatory">{{map.get('role')}}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div
+                            class="col-xl-2 col-12 d-flex flex-column flex-sm-row justify-content-md-end justify-content-center align-items-end">
+                            <button class="btn btn-secondary btn-xs mr-0 mr-sm-2"
+                                (click)="resetObject()">Cancel</button>
+                            <button class="btn btn-primary-sub btn-xs" (click)="savePersonRoles()"><ng-container i18n="@@COMMON_ASSIGN_ROLES">Assign Roles</ng-container></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<ng-container *ngFor="let role of roleList;let index=index">
+    <div class="card mb-3" *ngIf="filterPersonPerRole(role.roleId)?.length > 0"
+        [ngClass]="{'pb-0': isCollapseList[role.roleName]==false}">
+        <div class="card-header px-4">
+            <h4 class="card-title">{{role.roleName}}
+                <button class="updown-arrow float-right" id="budgetExpandBtn">
+                    <i aria-hidden="true" class="fa-large fa fa-angle-double-up"
+                        [ngClass]="(isCollapseList[role.roleName]!=true)?'fa fa-angle-double-down':'fa fa-angle-double-up'"
+                        (click)="collapseRoleTables(role.roleName)"></i>
+                </button>
+            </h4>
+        </div>
+        <div class="hiddenRow"
+            *ngIf="isCollapseList[role.roleName]==true && filterPersonPerRole(role.roleId)?.length > 0">
+            <div class="card-content">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table tableSkin grid2">
+                            <caption class="sr-only"> <ng-container i18n="@@AWARD_ROLES_DETAILS">Roles Details</ng-container></caption>
+                            <thead>
+                                <th scope="col" style="width:30%">User ID</th>
+                                <th scope="col" style="width:30%">Full Name</th>
+                                <th scope="col" style="width:30%">Home Unit</th>
+                                <th scope="col" style="width:10%">Actions</th>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let personRole of filterPersonPerRole(role.roleId)"
+                                    id="{{personRole.awardPersonRoleId}}">
+                                    <ng-container *ngIf="personRole?.person">
+                                        <td>{{personRole?.person?.principalName}}</td>
+                                        <td>{{personRole?.person?.fullName}}</td>
+                                        <td>{{personRole?.person?.unit?.unitName}}</td>
+                                        <td>
+                                            <ul class="actionButtonGroup">
+                                                <!-- SMU Specific change.
+                                                *ngIf="awardData?.piPersonId != personRole?.personId"-->
+                                                <li *ngIf="!personRole.isSystemGenerated">
+                                                    <a data-toggle="modal" data-target="#deletePersonRole"
+                                                        id="award-role-delete-btn" tabindex="0">
+                                                        <i aria-hidden="true" class="fa fa-trash-o pointer"
+                                                            aria-hidden="true"
+                                                            title="Click here to delete {{personRole?.person?.fullName}}"
+                                                            (click)="deletePersonRole=personRole;roleName=role?.roleName"></i>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </td>
+                                    </ng-container>
+                                </tr>
+                                <tr *ngIf="filterPersonPerRole(role.roleId)?.length==0">
+                                    <td colspan="4" class="text-center">
+                                        No person is assigned under {{role.roleName}}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</ng-container>
+<!-- delete Modal -->
+<div class="modal fade mySkinDialog" id="deletePersonRole" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header ct-footer-padding">
+                <h4 class="modal-title">Delete</h4>
+                <button id="prop-role-close" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body ct-modal-padding">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <p>This action will delete the <strong>{{roleName}}</strong> role for
+                            <strong>{{deletePersonRole?.person?.fullName}}</strong> in this award. Are you sure you want
+                            to delete
+                            <strong>{{deletePersonRole?.person?.fullName}}</strong> ?</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer ct-footer-padding">
+                <button id="deleterolepersonId" type="button" class="btn btn-secondary btn-sm"
+                    data-dismiss="modal">Cancel</button>
+                <button (click)="deletePersonRoles(deletePersonRole.awardPersonRoleId)" type="button"
+                    class="btn btn-primary-sub btn-sm" data-dismiss="modal">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>

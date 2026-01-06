@@ -1,0 +1,306 @@
+<!--PROPOSAL-->
+<div class="row" *ngIf="researchSummaryIndex != 'AWARDSACTIVE' && researchSummaryIndex != 'RESEARCH_SUMMARY_BY_DEADLINE_DATE' && (researchSummaryIndex !=='PROPOSAL_APPROVAL_IN_PROGRESS_BY_DEADLINE_DATE')&& (researchSummaryIndex !=='PROPOSAL_INPROGRESS_BY_DEADLINE_DATE')&& (researchSummaryIndex !=='PROPOSAL_SUBMITTED_BY_DEADLINE_DATE')&& (researchSummaryIndex !=='PROPOSAL_RESEARCH_SUMMARY_BY_DEADLINE_DATE')">
+  <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 padding-tbx">
+    <div class="card mb-3">
+      <div class="card-header py-2">
+        <h5 class="card-title d-flex align-items-center">{{researchSummaryHeading}}
+          <span class="mx-2" *ngIf="fromDate && toDate">for </span>
+          <span class="mx-2" *ngIf="fromDate && !toDate">after </span>
+          <span class="mx-2" *ngIf="!fromDate && toDate">before </span>
+          <span> {{fromDate | dateFormatter}}<span *ngIf="fromDate && toDate"> - </span> {{toDate | dateFormatter}}</span>
+          <div class="ml-auto">
+            <span *ngIf="serviceRequestResult?.length">
+              <span class="mr-2">Export as:</span>
+              <a title="Export data to Excel sheet" (click)="exportAsTypeDoc('excel')"><i aria-hidden="true"
+                  class="fa fa-file-excel-o hand-cursor mr-2"></i></a>
+              <a class="mr-2">|</a>
+              <a title="Export data to PDF Document" (click)="exportAsTypeDoc('pdf')"><i aria-hidden="true"
+                  class="fa fa-file-pdf-o hand-cursor"></i></a>
+            </span>
+            <span>
+              <button class="btn more-btn" title="Back to My Dashboard" type="button" [routerLink]="['fibi/dashboard']">
+                <i class="fa fa-reply" aria-hidden="true"></i></button>
+            </span>
+          </div>
+        </h5>
+      </div>
+      <div class="card-content">
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table tableSkin" *ngIf="serviceRequestResult?.length > 0">
+              <caption class="sr-only">submitted & inprogress proposals</caption>
+              <thead>
+                <th scope="col" width="10%" (click)="isDesc =!isDesc;sortBy(0)">Proposal #
+                  <i [ngClass]="((column == 0) ? (isDesc ? 'fa fa-sort-numeric-asc sortIcon' : 'fa fa-sort-numeric-desc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"
+                  aria-hidden="true"></i>    
+                </th>
+                <th scope="col" width="30%" (click)="isDesc =!isDesc;sortBy(1)">Title
+                  <i [ngClass]="((column == 1) ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                  aria-hidden="true"></i>    
+                </th>
+                <th scope="col" width="20%" (click)="isDesc =!isDesc;sortBy(2)">Sponsor
+                  <i [ngClass]="((column == 2) ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                  aria-hidden="true"></i>    
+                </th>
+                <th scope="col" width="15%" *ngIf = "_commonService.isMapRouting && ['APPROVAL_INPROGRESS_PROPOSALS','APPROVAL_INPROGRESS_PROPOSALS_COUNT'].includes(researchSummaryIndex)" (click)="isDesc =!isDesc;sortBy(5)">Current Reviewers
+                  <i [ngClass]="((column == 5) ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                  aria-hidden="true"></i>    
+                </th>
+                <th scope="col" width="13%" (click)="isDesc =!isDesc;sortBy(3)">Budget
+                  <i [ngClass]="((column == 3) ? (isDesc ? 'fa fa-sort-numeric-asc sortIcon' : 'fa fa-sort-numeric-desc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"
+                  aria-hidden="true"></i>    
+                </th>
+                <th scope="col" width="15%" (click)="isDesc =!isDesc;sortBy(4)">Principal Investigator
+                  <i [ngClass]="((column == 4) ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                  aria-hidden="true"></i>    
+                </th>
+                <th scope="col" width="20%" *ngIf = "_commonService.isMapRouting && ['INPROGRESS_PROPOSALS','INPROGRESS_PROPOSALS_COUNT'].includes(researchSummaryIndex)" (click)="isDesc =!isDesc;sortBy(5)">Status
+                  <i [ngClass]="((column == 5) ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                  aria-hidden="true"></i>
+                </th>
+                <th scope="col" width="5%">Actions</th>
+              </thead>
+              <tbody>
+                <tr *ngFor="let proposalDetails of serviceRequestResult | orderByIndex: {property: column, direction: direction}">
+                  <td>{{proposalDetails[0]}}</td>
+                  <td class="text-break">{{proposalDetails[1]}}</td>
+                  <td>{{proposalDetails[2]}}</td>
+                  <td *ngIf = "_commonService.isMapRouting && ['APPROVAL_INPROGRESS_PROPOSALS','APPROVAL_INPROGRESS_PROPOSALS_COUNT'].includes(researchSummaryIndex)">{{proposalDetails[5]}}</td>
+                  <td>{{proposalDetails[3] | customCurrency}}</td>
+                  <td>{{proposalDetails[4]}}</td>
+                  <td *ngIf = "_commonService.isMapRouting && ['INPROGRESS_PROPOSALS','INPROGRESS_PROPOSALS_COUNT'].includes(researchSummaryIndex)">{{proposalDetails[5]}}</td>
+                  <td>
+                    <ul class="actionButtonGroup">
+                      <li>
+                        <a title="Open {{proposalDetails[0]}}" (click)="setCurrentProposalTab()"
+                          [routerLink]="['/fibi/proposal/summary']"
+                          [queryParams]="{proposalId :proposalDetails[0]}">
+                          <i aria-hidden="true" class="fa fa-eye"></i> </a>
+                      </li>
+                    </ul>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="no-data-container ng-star-inserted"
+            *ngIf="serviceRequestResult === null || serviceRequestResult?.length === 0">
+            <span class="no-data-icon-outer">
+              <div class="no-data-icon">
+                <i class="fa fa-file-o"></i>
+                <i class="fa fa-times-circle-o"></i>
+              </div>
+            </span>
+            <h4>There is no information in this section.</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!--PROPOSAL ENDS-->
+
+<!--AWARD-->
+<div class="row" *ngIf="researchSummaryIndex == 'AWARDSACTIVE'">
+  <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 padding-tbx">
+    <div class="card mb-3">
+      <div class="card-header py-2">
+        <h5 class="card-title d-flex align-items-center">{{researchSummaryHeading}}
+          <div class="ml-auto">
+            <!-- <span *ngIf="serviceRequestResult?.length > 0">
+              <span class="mr-2">Export as:</span>
+              <a title="Export data to Excel sheet" (click)="exportAsTypeDoc('excel')"><i aria-hidden="true"
+                  class="fa fa-file-excel-o hand-cursor mr-2"></i></a>
+              <a class="mr-2">|</a>
+              <a title="Export data to PDF Document" (click)="exportAsTypeDoc('pdf')"><i aria-hidden="true"
+                  class="fa fa-file-pdf-o hand-cursor"></i></a>
+            </span> -->
+            <span>
+              <button class="btn more-btn" title="Back to My Dashboard" type="button" [routerLink]="['fibi/dashboard']">
+                <i class="fa fa-reply" aria-hidden="true"></i>
+              </button>
+            </span>
+          </div>
+        </h5>
+      </div>
+      <div class="card-content">
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table tableSkin" *ngIf="serviceRequestResult?.length">
+              <caption class="sr-only">Active Awards</caption>
+              <thead>
+                <tr>
+                  <th scope="col" width="8%">Award #</th>
+                  <th scope="col" width="12%">Account</th>
+                  <th scope="col" width="25%">Title</th>
+                  <th scope="col" width="20%">Sponsor</th>
+                  <th scope="col" width="15%">Principal Investigator</th>
+                  <th scope="col" width="15%">Budget</th>
+                  <th scope="col" width="5%">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let awardDetails of serviceRequestResult">
+                  <td>{{awardDetails.awardNumber}}</td>
+                  <td>{{awardDetails?.accountNumber}}</td>
+                  <td class="text-break">{{awardDetails?.title}}</td>
+                  <td>{{awardDetails?.sponsor}}</td>
+                  <td>{{awardDetails?.fullName}}</td>
+                  <td>{{awardDetails?.total_cost}}</td>
+                  <td>
+                    <ul class="actionButtonGroup">
+                      <li><a title="Open {{awardDetails?.awardNumber}}" [routerLink]="'/fibi/award'"
+                          [queryParams]="{awardId:awardDetails?.awardId}"><i aria-hidden="true" class="fa fa-eye"></i>
+                        </a>
+                      </li>
+                    </ul>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="no-data-container ng-star-inserted"
+            *ngIf="serviceRequestResult?.length === 0">
+            <span class="no-data-icon-outer">
+              <div class="no-data-icon">
+                <i class="fa fa-file-o"></i>
+                <i class="fa fa-times-circle-o"></i>
+              </div>
+            </span>
+            <h4>There is no information in this section.</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!--AWARD ENDS-->
+
+<!-- RESEARCH SUMMARY BY DEADLINE DATE -->
+<div class="row" *ngIf="researchSummaryIndex == 'RESEARCH_SUMMARY_BY_DEADLINE_DATE' || researchSummaryIndex =='PROPOSAL_APPROVAL_IN_PROGRESS_BY_DEADLINE_DATE'|| researchSummaryIndex =='PROPOSAL_INPROGRESS_BY_DEADLINE_DATE' || researchSummaryIndex =='PROPOSAL_SUBMITTED_BY_DEADLINE_DATE'|| researchSummaryIndex =='PROPOSAL_RESEARCH_SUMMARY_BY_DEADLINE_DATE'">
+  <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 padding-tbx">
+    <div class="card mb-3">
+      <div class="card-header py-2">
+        <h5 class="card-title d-flex align-items-center">{{researchSummaryHeading}}
+          <span class="pl-2"> ({{fromDate | dateFormatter}}<span *ngIf="fromDate && toDate"> - </span> {{toDate | dateFormatter}}) </span>
+          <div class="ml-auto">
+            <span *ngIf="serviceRequestResult?.length">
+              <span class="mr-2">Export as:</span>
+              <a title="Export data to Excel sheet" (click)="exportAsTypeDoc('excel')"><i aria-hidden="true"
+                  class="fa fa-file-excel-o hand-cursor mr-2"></i></a>
+              <a class="mr-2">|</a>
+              <a title="Export data to PDF Document" (click)="exportAsTypeDoc('pdf')"><i aria-hidden="true"
+                  class="fa fa-file-pdf-o hand-cursor"></i></a>
+            </span>
+            <span>
+              <button class="btn more-btn" title="Back to My Dashboard" type="button" [routerLink]="['fibi/dashboard']">
+                <i class="fa fa-reply" aria-hidden="true"></i></button>
+            </span>
+          </div>
+        </h5>
+      </div>
+      <div class="card-content">
+        <div class="card-body p-1">
+          <div class="table-responsive fixed-header-table custom-overflow">
+            <table class="table tableSkin" *ngIf="serviceRequestResult?.length > 0">
+              <caption class="sr-only">submitted & inprogress proposals</caption>
+              <thead>
+                <th scope="col" style="min-width: 8rem;" (click)="isDesc =!isDesc;sortBy(0)">PD #
+                  <i [ngClass]="((column == 0) ? (isDesc ? 'fa fa-sort-numeric-asc sortIcon' : 'fa fa-sort-numeric-desc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"
+                  aria-hidden="true"></i>    
+                </th>
+                <th scope="col" style="min-width: 5rem;" (click)="isDesc =!isDesc;sortBy(1)">Proposal Type
+                  <i [ngClass]="((column == 1) ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                  aria-hidden="true"></i>    
+                </th>
+                <th scope="col" style="min-width: 8rem;" (click)="isDesc =!isDesc;sortBy(2)">Status
+                  <i [ngClass]="((column == 2) ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                  aria-hidden="true"></i>    
+                </th>
+                <th scope="col" style="min-width: 8rem;" (click)="isDesc =!isDesc;sortBy(3)">Title
+                  <i [ngClass]="((column == 3) ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                  aria-hidden="true"></i>    
+                </th>
+                <th scope="col" style="min-width: 15rem;"  (click)="isDesc =!isDesc;sortBy(4)">Lead Unit Name - (Abbreviation)
+                  <i [ngClass]="((column == 4) ? (isDesc ? 'fa fa-sort-numeric-asc sortIcon' : 'fa fa-sort-numeric-desc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"
+                  aria-hidden="true"></i>    
+                </th>
+                <th scope="col" style="min-width: 10rem;"  (click)="isDesc =!isDesc;sortBy(6)">Lead PI
+                  <i [ngClass]="((column == 6) ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                  aria-hidden="true"></i>    
+                </th>
+                <th scope="col" style="min-width: 13rem;" (click)="isDesc =!isDesc;sortBy(7)">Deadline Date
+                  <i [ngClass]="((column == 7) ? (isDesc ? 'fa fa-sort-numeric-asc sortIcon' : 'fa fa-sort-numeric-desc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"
+                  aria-hidden="true"></i>    
+                </th>
+                <th scope="col" style="min-width: 10rem;" (click)="isDesc =!isDesc;sortBy(8)">Sponsor
+                  <i [ngClass]="((column == 8) ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                  aria-hidden="true"></i>    
+                </th>
+                <th scope="col" style="min-width: 15rem;" (click)="isDesc =!isDesc;sortBy(9)">Prime Sponsor
+                  <i [ngClass]="((column == 9) ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                  aria-hidden="true"></i>    
+                </th>
+                <th scope="col" style="min-width: 10rem;"  (click)="isDesc =!isDesc;sortBy(10)">Activity Type
+                  <i [ngClass]="((column == 10) ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                  aria-hidden="true"></i>    
+                </th>
+                <th scope="col" style="min-width: 12rem;" (click)="isDesc =!isDesc;sortBy(11)">Anticipated Award Type
+                  <i [ngClass]="((column == 11) ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                  aria-hidden="true"></i>    
+                </th>
+                <th scope="col" style="min-width: 15rem;"  (click)="isDesc =!isDesc;sortBy(12)">Announcement #
+                  <i [ngClass]="((column == 12) ? (isDesc ? 'fa fa-sort-numeric-asc sortIcon' : 'fa fa-sort-numeric-desc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"
+                  aria-hidden="true"></i>    
+                </th>               
+                <th scope="col" style="min-width: 10rem;"  (click)="isDesc =!isDesc;sortBy(13)">Proposal Contact
+                  <i [ngClass]="((column == 13) ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                  aria-hidden="true"></i>    
+                </th>               
+                <th scope="col" style="min-width: 3rem;" >Actions</th>
+              </thead>
+              <tbody>
+                <tr *ngFor="let proposalDetails of serviceRequestResult | orderByIndex: {property: column, direction: direction}">
+                  <td>{{proposalDetails[0]}}</td>
+                  <td>{{proposalDetails[1]}}</td>
+                  <td>{{proposalDetails[2]}}</td>
+                  <td>{{proposalDetails[3]}}</td>
+                  <td>{{proposalDetails[4]}} - {{proposalDetails[5]}} <span *ngIf="proposalDetails[14]"> ( {{proposalDetails[14]}} ) </span> </td>
+                  <td>{{proposalDetails[6]}}</td>
+                  <td>{{proposalDetails[7] | dateFormatter}}</td>
+                  <td>{{proposalDetails[8]}}</td>
+                  <td>{{proposalDetails[9]}}</td>
+                  <td>{{proposalDetails[10]}}</td>
+                  <td>{{proposalDetails[11]}}</td>
+                  <td>{{proposalDetails[12]}}</td>
+                  <td>{{proposalDetails[13]}}</td>
+                  <td>
+                    <ul class="actionButtonGroup">
+                      <li>
+                        <a title="Open {{proposalDetails[0]}}" (click)="setCurrentProposalTab()"
+                          [routerLink]="['/fibi/proposal/summary']"
+                          [queryParams]="{proposalId :proposalDetails[0]}">
+                          <i aria-hidden="true" class="fa fa-eye"></i> </a>
+                      </li>
+                    </ul>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="no-data-container ng-star-inserted"
+            *ngIf="serviceRequestResult === null || serviceRequestResult?.length === 0">
+            <span class="no-data-icon-outer">
+              <div class="no-data-icon">
+                <i class="fa fa-file-o"></i>
+                <i class="fa fa-times-circle-o"></i>
+              </div>
+            </span>
+            <h4>There is no information in this section.</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- RESEARCH SUMMARY BY DEADLINE DATE -->

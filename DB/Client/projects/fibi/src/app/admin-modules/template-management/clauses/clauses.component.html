@@ -1,0 +1,249 @@
+<div class="row">
+   <div class="col-md-6 col-12">
+      <div class="card">
+         <div class="card-header py-2 px-4">
+            <p class="card-title align-items-center d-flex">
+               <span>Agreement Clauses Group</span>
+            </p>
+         </div>
+         <div class="card-body card1">
+            <div class="form-row">
+               <div class="col">
+                  <label class="d-block">Clauses group</label>
+                  <input type="text" class="form-control" id="clauseGroup" [(ngModel)]="clauseGroup" placeHolder="Type here for adding new clauses group">
+               </div>
+               <div class="col-auto d-flex align-items-end">
+                  <button class="btn btn-primary-sub" type="button" *ngIf="!isEditClauseGroup"
+                  title="Add Clause Group" (click)="addClausesGroup()">
+                   Add
+                  </button>
+                  <button class="btn btn-secondary mr-2" type="button" *ngIf="isEditClauseGroup"
+                  title="Cancel Edit" (click)="cancelClauseGroupEdit()">
+                   Cancel
+                  </button>
+                  <button class="btn btn-primary-sub" type="button" *ngIf="isEditClauseGroup"
+                  title="Update Clause Group" (click)="saveClauseGroupEdit()">
+                   Update
+                  </button>
+               </div>
+            </div>
+            <div class="card">
+               <table class="table tableSkin grid2 mt-2 clausesGroupList" *ngIf="clausesGroupList.length >0">
+                  <tbody>
+                     <tr [ngClass]="(clauseGroupIndex == i)?'active border':''"
+                        *ngFor="let clauseGroup of clausesGroupList; let i=index"
+                        class="pointer"
+                        (click)="selectClausesGroup(clauseGroup, i)">
+                        <td style="width:92%">{{clauseGroup?.description}}</td>
+                        <td style="width:8%">
+                           <ul class="actionButtonGroup text-center">
+                              <li class="d-flex">	
+                                 <a *ngIf="!(clauseGroupEditIndex == i)" class="mr-2"
+                                    (click)="editClauseGroup(clauseGroup.description, i, $event)">
+                                   <i class="fa fa-pencil p-0" aria-hidden="true" title="Edit Clause Group"></i>
+                                 </a>
+                                 <a data-toggle="modal" (click)="deleteGroupIndex = i" class="ml-2 mr-3"	
+                                    data-target="#deleteClauseGroup">	
+                                       <i class="fa fa-trash-o pointer fa-sm p-0" aria-hidden="true" title="Remove Clause Group">	
+                                       </i>	
+                                  </a>
+                              </li>
+                           </ul>
+                        </td>
+                     </tr>
+                  </tbody>
+               </table>
+            </div>
+         </div>
+      </div>
+   </div>
+   <div class="col-md-6 col-12">
+      <div class="card" *ngIf="(clauseGroupIndex >= 0)">
+         <div class="card-header py-2 px-4">
+            <p class="card-title align-items-center d-flex">
+               <span> Clauses Group (<span class="p-file-name">{{clausesGroupList[clauseGroupIndex]?.description}}</span>)applied for Agreement Types </span>
+            </p>
+         </div>
+         <div class="card-body align-items-center card2">
+            <div class="form-row" id="searchType">
+               <div class="col">
+                  <label class="d-block">Agreement Types</label>
+                  <app-autocompleter [completerOptions]="completerAgreementTypeListOptions" [clearField]="clearField"
+                     [placeHolder]="'Search Agreement Types'" (onSelect)="onAgreementTypeSelect($event)">
+                  </app-autocompleter>
+               </div>
+               <div class="col-auto btn-aligner-21" *ngIf="agreementTypeSelected">
+                  <button class="btn btn-secondary" type="button" 
+                   (click)="addAgreementTypes()">
+                   Add
+                  </button>
+               </div>
+            </div>
+            <div class="fileChips d-inline-block mb-2" style="word-break: break-all;">
+               <span
+                  *ngFor="let agreementType of clausesGroupList[currentClausesGroupIndex].agreementTypes; let i=index">
+                  {{agreementType?.description}}
+                  <i aria-hidden="true" class="fa fa-close hand-cursor ng-star-inserted"
+                     (click)="setDeleteAgreementTypeObject(agreementType.agreementTypeCode,clausesGroupList[currentClausesGroupIndex].clauseGroupCode, i)"
+                     title="Remove this agreement type" data-toggle="modal" data-target="#deleteTemplate"></i>
+               </span>
+            </div>
+         </div>
+      </div>
+      <div class="card mt-3" *ngIf="(clauseGroupIndex >= 0)">
+         <div class="card-header py-2 px-4">
+            <p class="card-title align-items-center d-flex">
+               <span> Clauses under  Clauses Group (<span class="p-file-name">{{clausesGroupList[clauseGroupIndex]?.description}}</span>)</span>
+            </p>
+         </div>
+         <div class="card-body card3">
+            <!-- <div class="row">
+               <div class="col-lg-10">
+                  <textarea rows="1" class="form-control" id="clauses" [(ngModel)]="clauses" placeHolder="Type here for adding new clause"></textarea>
+               </div>
+               <div class="col-lg-2">
+                  <a class="btn btn-outline-secondary p-2 btn-color" role="button" *ngIf="!isEditClause"
+                     title="Add clause" (click)="addClauses()">
+                     <i class="fas fa-plus" aria-hidden="true"></i>
+                  </a>
+                  <a class="btn btn-outline-secondary p-2 btn-color" role="button" *ngIf="isEditClause"
+                     title="Update Clause" (click)="saveClauseEdit()">
+                     <i class="fa fa-floppy-o px-2 py-0 font-half-size" aria-hidden="true"></i>
+                  </a>
+                  <a class="btn btn-outline-secondary p-2 btn-color" role="button" *ngIf="isEditClause"
+                     title="Cancel Edit" (click)="cancelClauseEdit()">
+                     <i class="fa fa-times px-2 py-0 font-half-size" aria-hidden="true"></i>
+                  </a>
+               </div>
+            </div> -->
+            <div class="form-row">
+               <div class="col">
+                  <label class="d-block">Clauses name</label>
+
+                  <app-endpoint-search [httpOptions]="clausesSearchOptions" [clearField]="clearClausesField"
+                     [placeHolder]="'Type here for Clauses Name'" (onSelect)="selectClauses($event);"
+                     (searchValue)="setClauses($event)">
+                  </app-endpoint-search>
+               </div>
+               <div class="col-auto d-flex align-items-end">
+                  <button class="btn btn-primary-sub" type="button" *ngIf="!isEditClause"
+                  title="Add clause" (click)="addClauses()">
+                   Add
+                  </button>
+               </div>
+            </div>
+            <div class="card ">
+               <div class="table-responsive" *ngIf="clausesList.length>0">
+               <table class="table tableSkin grid2 mt-2 clausesGroupList" width="100%">
+
+                  <tbody>
+                     <tr [ngClass]="(clauseEditIndex == i)?'active border':''"
+                        *ngFor="let clause of clausesList; let i=index">
+                        <td>
+                           <span class="d-inline-block text-justify" *ngIf="!(isEditClause && (clauseEditIndex == i))">{{clause.description}}</span>
+                           <span *ngIf="(isEditClause && (clauseEditIndex == i))">
+                              <textarea appAutoGrow rows="1" class="form-control" id="clauses" [(ngModel)]="clauses"
+                                 placeHolder="Type here for adding new clause"></textarea>
+                           </span>
+                        </td>
+                        <td style="width: 15%;">
+                           <ul class="actionButtonGroup text-center">
+                              <li>
+                                 <a *ngIf="!(clauseEditIndex == i)" (click)="editClause(clause.description, i)">
+                                    <i class="fa fa-pencil p-0" aria-hidden="true"
+                                       title="Edit clause">
+                                    </i>
+                                 </a>
+                                 <a *ngIf="(isEditClause && (clauseEditIndex == i))" (click)="saveClauseEdit()">
+                                    <i class="fa fa-floppy-o pointer fa-sm p-0" aria-hidden="true"
+                                       title="Update Clause">
+                                    </i>
+                                 </a>
+                                 <a class="ml-2" *ngIf="(isEditClause && (clauseEditIndex == i))"
+                                    (click)="cancelClauseEdit()">
+                                    <i class="fa fa-times pointer fa-sm p-0" aria-hidden="true" title="Cancel Edit">
+                                    </i>
+                                 </a>
+                                 <a class="ml-2" (click)="setDeleteClause(clause.clauseCode, i)" data-toggle="modal"
+                                    data-target="#deleteClause">
+                                    <i class="fa fa-trash-o pointer p-0" aria-hidden="true" title="Remove clause">
+                                    </i>
+                                 </a>
+                              </li>
+                           </ul>
+                        </td>
+                     </tr>
+                  </tbody>
+               </table>
+            </div>
+            </div>
+         </div>
+      </div>
+      <div class="card h-100 align" *ngIf="(clauseGroupIndex < 0)">
+         <p>Please select a Clauses Group</p>
+      </div>
+   </div>
+</div>
+<div class="modal fade mySkinDialog" id="deleteTemplate" role="dialog">
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title">Delete</h5>
+            <button aria-label="Close" class="close" data-dismiss="modal" id="prop-dlt-member-dismiss" type="button">
+               <span aria-hidden="true">×</span>
+            </button>
+         </div>
+         <div class="modal-body">
+            <p>Are you sure you want to delete this Agreement Type?</p>
+         </div>
+         <div class="modal-footer">
+            <button class="btn btn-secondary btn-sm" data-dismiss="modal" data-toggle="modal"
+               type="button">Cancel</button>
+            <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button"
+               (click)="deleteAgreementType(deleteAgreementTypeObject.agreementType,deleteAgreementTypeObject.clausesGroupCode,deleteAgreementTypeObject.index)">Delete</button>
+         </div>
+      </div>
+   </div>
+</div>
+<div class="modal fade mySkinDialog" id="deleteClause" role="dialog">
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title">Delete</h5>
+            <button aria-label="Close" class="close" data-dismiss="modal" id="prop-dlt-member-dismiss" type="button">
+               <span aria-hidden="true">×</span>
+            </button>
+         </div>
+         <div class="modal-body">
+            <p>Are you sure you want to delete this Clause?</p>
+         </div>
+         <div class="modal-footer">
+            <button class="btn btn-secondary btn-sm" data-dismiss="modal" data-toggle="modal"
+               type="button">Cancel</button>
+            <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button"
+               (click)="deleteClause(deleteClauseObj.clausesCode,deleteClauseObj.index)">Delete</button>
+         </div>
+      </div>
+   </div>
+</div>
+<div class="modal fade mySkinDialog" id="deleteClauseGroup" role="dialog">	
+   <div class="modal-dialog">	
+      <div class="modal-content">	
+         <div class="modal-header">	
+            <h5 class="modal-title">Delete</h5>	
+            <button aria-label="Close" class="close" data-dismiss="modal" id="prop-dlt-member-dismiss" type="button">	
+               <span aria-hidden="true">×</span>	
+            </button>	
+         </div>	
+         <div class="modal-body">	
+            <p>Are you sure you want to delete this Clause Group?</p>	
+         </div>	
+         <div class="modal-footer">	
+            <button class="btn btn-secondary btn-sm" data-dismiss="modal" data-toggle="modal"	
+               type="button">Cancel</button>	
+            <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button"	
+               (click)="deleteClauseGroup()">Delete</button>	
+         </div>	
+      </div>	
+   </div>	
+</div>	

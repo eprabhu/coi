@@ -1,0 +1,41 @@
+<div class="elastic-outer">
+  <label for="" class="d-none">hidden label to mislead chrome autocomplete</label>
+  <input id="searchBox" #searchField type="text" placeholder="{{placeHolder}}" [disabled]="isDisabled"
+    [(ngModel)]="searchText" (keypress)="getElasticResult()" (paste)="getElasticResult()" (keydown.backspace)="backSpaceEvent()"
+    (keydown.esc)="hideSearchResults();" (keyup.enter)="elasticOptionSelect(searchText)" (blur)="emitText()"
+    class = "app-elastic-search form-control pe-4" autocomplete="off" [matAutocomplete]="elastic"
+    [isShowLimiter]="searchLimiterOptions.isShowLimiter" appLengthValidator
+    [position]="searchLimiterOptions.position" [elementId]="searchLimiterOptions.elementId"
+    [limit]="searchLimiterOptions.limit" [styleList]="searchLimiterOptions.limiterStyle"/>
+  <a class="searchButton" [title]="searchText ? 'Click here to clear the search' : 'Search'" [class.pe-4]="isError" [class.pe-none]="searchText == ''">
+    <i aria-hidden="true" *ngIf="!searchText" class="fa fa-search fa-med"></i>
+    <i aria-hidden="true"  *ngIf="searchText != '' && !isDisabled" class="fa fa-times fa-med" (click)="emitSelectedObject(null);"></i>
+  </a>
+  <mat-autocomplete #elastic="matAutocomplete" (closed)="hideSearchResults()"
+    (optionSelected)="elasticOptionSelect($event)">
+    <ng-container *ngIf="isLoading">
+        <mat-option>
+            <div appCustomPreloader [spinnerWidth]="1.3" [spinnerHeight]="1.3" [isLoadingNeeded]="false"></div>
+        </mat-option>
+    </ng-container>
+    <ng-container *ngIf="!isLoading">
+    <mat-option *ngFor="let result of results" [value]="result">
+      <span *ngIf="!isAPIFailed" [innerHTML]="result.label"></span>
+      <span *ngIf="isAPIFailed" class="d-flex align-items-center fw-600 gap-1 text-danger" role="alert">
+        <mat-icon class="coi-mat-icon-size mx-0" aria-hidden="true">error</mat-icon>
+        <span [innerHTML]="result.label"></span>
+      </span>
+    </mat-option>
+    <mat-option *ngIf="isShowAddNewValueOption" class="px-3 add-new-value-option border-secondary-subtle border-top"
+        id="ADD_NEW_VALUE" (onKeyDown)="emitNewAdd()" [value]="searchText">
+        <div>
+          <i class="text-break">Select your {{searchType}} from the dropdown.
+            If no match is found, Click here to add <span class="fw-500 text-primary">"<span
+              [innerHTML]="searchText"></span>"</span> as a new {{searchType}}.
+          </i>
+        </div>
+    </mat-option>
+    </ng-container>
+  </mat-autocomplete>
+</div>
+<div class="invalid-feedback" *ngIf="isError">{{options.errorMessage}}</div>

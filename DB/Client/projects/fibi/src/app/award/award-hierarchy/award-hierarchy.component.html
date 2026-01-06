@@ -1,0 +1,345 @@
+<ng-container *ngIf="_commonData.awardSectionConfig['116']?.isActive">
+    <div class="no-data-container  mt-3" *ngIf="treeData.length == 0" id="Award116">
+	<span class="no-data-icon-outer">
+		<div class="no-data-icon">
+			<i class="fa fa-file-o" aria-hidden="true"></i>
+			<i class="fa fa-times-circle-o" aria-hidden="true"></i>
+		</div>
+	</span>
+        <h4>There is no information in this section.</h4>
+    </div>
+<section id="award-hierarchy-section" class="row mt-3">
+	<div *ngIf="treeData.length > 0" id="Award116" class="col-lg-12">
+		<div class="row">
+			<div class="col-lg-7">
+				<div class="card mt-4">
+					<div class="card-content">
+						<div class="card-body">
+							<div class="row">
+								<div class="col-lg-12">
+									<div class="searchBox mb-15" id="searchElastic">
+										<app-autocompleter [completerOptions]="completerAwardOptions"
+											[placeHolder]="'Search Award'" (onSelect)="onSelectAward($event)">
+										</app-autocompleter>
+									</div>
+								</div>
+							</div>
+							<div class="award-tree-outer" (scroll)="onWindowScroll($event);">
+								<ul class="unit-tree ui-tree">
+									<ng-template #recursiveList let-treeData>
+										<li *ngFor="let node of treeData; let i=index" class="child-li pointer">
+											<div class="container-fluid unit-tree-blocks" data-toggle="modal"
+												title="Click to view {{node?.name}}">
+												<div class="row justify-content-between " id="{{node?.awardId}}">
+													<div class="col">
+														<div class="u-content-middle unit-no"
+															*ngIf="node?.children?.length > 0"
+															(click)="viewAwardDetails(node?.awardId)">
+															<span><i aria-hidden="true"
+                                                                     [ngClass]="(node?.visible)?'fa fa-chevron-down u-down-arrow':'fa fa-chevron-right u-left-arrow'"
+                                                                     (click)="listClick($event, node)"></i><span
+                                                                    class="uh-ml f-13 pl-3">{{node?.awardNumber}}</span></span>:<span
+                                                                    class="uh-ml f-13 pl-2 ">{{node.principalInvestigator}}</span>
+                                                                <span class="float-right">
+																	<span class="badge-title bg-transparent px-1"
+                                   										*ngIf="node?.awardStatus.statusCode">
+                                   	 								<span class="d-none d-md-inline-block fs-12"><ng-container i18n="@@AWARD_AWARD_STATUS">Award Status : </ng-container></span>
+                                    								<span class="status-badge-{{getBadgeByAwardStatusCode(node?.awardStatus.statusCode)}} fs-12 px-0 bg-transparent">
+                                        								{{node?.awardStatus.description}}</span>
+																	</span>
+																	<i class="fa u-action-icon dropdown-toggle"></i>
+																	<span class="d-none d-md-inline-block fs-12 fw-600">Version Status : </span>
+																	<span
+																		class="status-badge-{{getBadgeByStatusCode(node?.awardSequenceStatus)}} px-2 py-0 fs-12 bg-transparent">{{node?.awardSequenceStatus}}</span>
+																</span>
+                                                            </div>
+                                                            <div class="u-content-middle unit-no col pr-0"
+                                                                 *ngIf="node?.children?.length <= 0"
+                                                                 (click)="viewAwardDetails(node?.awardId)">
+															<span
+                                                                    class="uh-ml f-13 pl-3 pr-1">{{node?.awardNumber}}</span>:<span
+                                                                    class="uh-ml f-13 pl-2">{{node.principalInvestigator}}</span>
+                                                                <span class="float-right">
+																	<span class="badge-title bg-transparent px-1 fs-14-nav"
+                                   										*ngIf="node?.awardStatus.statusCode">
+                                   	 								<span class="d-none d-md-inline-block fs-12"><ng-container i18n="@@AWARD_AWARD_STATUS">Award Status : </ng-container></span>
+                                    								<span
+                                                                            class="status-badge-{{getBadgeByAwardStatusCode(node?.awardStatus.statusCode)}} fs-12 px-0 bg-transparent">
+																		{{node?.awardStatus.description}}</span>
+																	</span>
+																	<i class="fa u-action-icon dropdown-toggle"></i>
+																	<span class="d-none d-md-inline-block fs-12 fw-600">Version Status : </span>
+																	<span
+																		class="status-badge-{{getBadgeByStatusCode(node?.awardSequenceStatus)}} bg-transparent px-2 py-0 fs-12">{{node?.awardSequenceStatus}}</span>
+																</span>
+															</div>
+													</div>
+													<div>
+														<div class="u-icons dropdown text-right p-0 mr-3">
+															<div class="action-bar dropdown-icons">
+																<div class="dropdown-menu hierarchy-d-patch" [attr.aria-labelledby]="'dropdownMenuButton'+ i">
+																	<a class="dropdown-item hand-cursor" (click)="parentName = node" data-toggle="modal"
+																		data-target="#addChildModal"><i class="fa fa-plus" aria-hidden="true"></i>
+																		<ng-container i18n="@@AWARD_ADD_CHILD_AWARD">Add Child Award</ng-container>
+																	</a>
+																</div>
+															</div>
+															<i *ngIf="(isCreateAward || isModifyAward)  && awardData?.award?.awardSequenceStatus !== 'ARCHIVE' 
+															   && awardData?.award?.awardSequenceStatus !== 'CANCELLED'" class="fa fa-ellipsis-h u-action-icon dropdown-toggle btn-dropdown-xs pointer"
+																id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Actions"
+																aria-hidden="true"></i>
+														</div>
+													</div>
+												</div>
+											</div>
+											<ul *ngIf="node?.children?.length > 0 && node?.visible"
+												[ngClass]="{ 'subfolder': selectedNode == node }">
+												<ng-container
+													*ngTemplateOutlet="recursiveList; context:{ $implicit: node?.children }">
+												</ng-container>
+											</ul>
+										</li>
+									</ng-template>
+									<ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: treeData }">
+									</ng-container>
+									<button (click)="scrollToTop()" id="scrollUpBtn" title="Go to top">
+										<i class="fa fa-angle-double-up top-arrow" aria-hidden="true"></i>
+									</button>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-5">
+				<div class="row">
+					<div class="col-lg-12 uh-mgntp">
+						<div class="card card-inner mb-3 mt-4">
+							<div class="card-header">
+								<h4 class="card-title"><ng-container i18n="@@AWARD_OVERVIEW">Award Overview</ng-container>
+									(#{{awardProperties?.award_number}})
+									<ul *ngIf="awardProperties?.award_id && awardId != awardProperties?.award_id"
+										class="actionButtonGroup float-right">
+										<li>
+											<a (click)="navigateToAward(awardProperties)">
+												<i class="fa fa-eye" aria-hidden="true"
+													title="view award #{{awardProperties?.award_number}}"
+													i18n-title="'@@VIEW_AWARD + `# ${award?.awardNumber}`"></i>
+											</a>
+										</li>
+									</ul>
+								</h4>
+							</div>
+							<div class="card-content">
+								<div class="card-body">
+									<table class="table tableSkin grid2">
+										<caption class="sr-only"><ng-container i18n="@@AWARD_AWARD_DETAILS">Award Details</ng-container></caption>
+										<thead class="d-none">
+											<tr>
+												<th scope="col"></th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td><label class="d-block"><ng-container i18n="@@AWARD_ACCOUNT_NUMBER">Account Number</ng-container></label>
+													{{awardProperties?.account_number ? awardProperties?.account_number : 'Not Available'}}
+												</td>
+												<td><label
+														class="d-block">Status</label>{{awardProperties?.award_status}}
+												</td>
+											</tr>
+											<tr>
+												<td colspan="2"><label
+														class="d-block">Title</label>{{awardProperties?.title}}
+												</td>
+											</tr>
+											<tr>
+												<td><label class="d-block">Principal
+														Investigator</label>{{awardProperties?.full_name}}
+												</td>
+												<td><label class="d-block">Lead
+														Unit</label>{{awardProperties?.lead_unit_name}}
+												</td>
+											</tr>
+											<tr>
+												<td colspan="2"><label
+														class="d-block"><ng-container i18n="@@COMMON_SPONSOR">Sponsor</ng-container></label>{{awardProperties?.sponsor_name}}
+												</td>
+											</tr>
+											<tr>
+												<td><label class="d-block"><ng-container i18n="@@AWARD_AWARD_NOTICE_DATE">Award Notice Date</ng-container></label>
+													{{awardProperties?.notice_date ? (awardProperties?.notice_date | dateFormatter) : 'Not Available'}}
+												</td>
+												<td><label class="d-block"><ng-container i18n="@@AWARD_ACTIVITY_TYPE">Activity Type</ng-container></label>{{awardProperties?.activity_type}}
+												</td>
+											</tr>
+											<tr>
+												<td><label class="d-block">Obligation Start
+														Date</label>													
+														{{awardProperties?.obligation_start ? (awardProperties?.obligation_start | dateFormatter) : 'Not Available'}}
+												</td>
+												<td><label class="d-block">Obligation End
+														Date</label>
+														{{awardProperties?.obligation_end ? (awardProperties?.obligation_end | dateFormatter) : 'Not Available'}}
+												</td>
+											</tr>
+											<tr>
+												<td><label class="d-block">Obligated
+														Total</label>{{awardProperties?.obligated_amount | customCurrency}}
+												</td>
+												<td><label class="d-block">Anticipated
+														Total</label>{{awardProperties?.anticipated_amount | customCurrency}}
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+<!-- Award child add confirmation modal -->
+<div class="modal fade mySkinDialog modal-opacity" tabindex="-1" id="addChildModal" tabindex="-1" role="dialog" data-backdrop="static"
+	aria-labelledby="addChildAwardModal" aria-hidden="true">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Confirmation</h5>
+				<button id="prop-dlt-member-dismiss" type="button" class="close" data-dismiss="modal"
+					aria-label="Close" (click)="clearModalFlags()">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+            <div class="success-banner px-2 my-1 mx-2 d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i>
+                    <em>All other sections of the award will be copied to the child award by default
+                    </em>
+                </div>
+            </div>
+			<div class="modal-body">
+                    <label class="mb-2 text-muted">
+                        Check the boxes below to copy the corresponding sections to the child award.
+                    </label>
+                    <div class="ml-4">
+                        <div class="form-check">
+                            <input class="form-check-input mt-2" type="checkbox" id="copyQuestionnaire"
+                                [(ngModel)]="copyQuestionnaire">
+                            <label class="form-check-label ml-2" for="copyQuestionnaire">
+                                Questionnaire
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input mt-2" type="checkbox" id="copyOtherInformation"
+                                [(ngModel)]="copyOtherInformation">
+                            <label class="form-check-label ml-2" for="copyOtherInformation">
+                                Other Information
+                            </label>
+                        </div>
+                    </div>
+			</div>
+			<div class="modal-footer">
+				<button id="coi-award--hierarchy-child-conformation-modal-cancel-btn" type="button" class="btn btn-secondary" data-dismiss="modal" (click)="clearModalFlags()"
+					data-toggle="modal">Cancel</button>
+				<button id="coi-award--hierarchy-child-conformation-modal-create-btn" type="button" class="btn btn-primary-sub"
+					(click)="addChildAward(parentName)" data-dismiss="modal">Create Child Award</button>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- Newer Version of Award Exist Modal -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="newAwardVersionAleradyExist" role="dialog"
+	aria-hidden="true">
+	<div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+				<h5 class="modal-title"><ng-container i18n="@@AWARD_NEWER_VERSION_TITLE_ERR">There are In Progress Variation Request(s) for this award.</ng-container></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+			<div class="modal-body px-3 py-2">
+                <div class="gridSkin">
+                    <div class="row mb-3">
+                        <!-- Award Number -->
+                        <div class="col-xl-2 col-lg-9 col-md-6 col-sm-12 col-9">
+                            <label><ng-container i18n="@@COMMON_AWARD_NUMBER">Award Number</ng-container></label>
+                            <span class="d-block"
+                                [ngClass]="awardVersionObject?.awardNumber ? '' : 'noDataExists'">
+                                {{awardVersionObject?.awardNumber ? awardVersionObject?.awardNumber: 'Not Available'}}</span>
+                        </div>
+                        <!-- Account Number -->
+                        <div class="col-xl-4 col-lg-3 col-md-6 col-sm-12 col-3">
+                            <label>Title</label>
+                            <span class="d-block"
+                                [ngClass]="awardProperties?.title ? '' : 'noDataExists'">
+                                {{awardProperties?.title ? awardProperties?.title: 'Not Available'}}</span>
+                        </div>
+                        <!-- Principal Investigator -->
+                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-3">
+                            <label>Principal Investigator</label>
+                            <span class="d-block"
+                                [ngClass]="awardProperties?.full_name ? '' : 'noDataExists'">
+                                {{awardProperties?.full_name ? awardProperties?.full_name: 'Not Available'}}</span>
+                        </div>
+                        <!-- Lead Unit -->
+                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-3">
+                            <label>Lead Unit</label>
+                            <span class="d-block"
+                                [ngClass]="awardProperties?.lead_unit_name ? '' : 'noDataExists'">
+                                {{awardProperties?.lead_unit_name ? awardProperties?.lead_unit_name: 'Not Available'}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="awardVersionObject?.activeAward">
+                    <div class="my-2 py-2 pl-3 pr-2 align-items-center d-flex border-bottom">
+                        <div class="mr-auto">
+                            <span>Open <strong>Active </strong><ng-container i18n="@@COMMON_AWARD">Award</ng-container> Version.</span>
+                        </div>
+                        <div>
+                            <a class="anchor-link mr-4"
+                                title="View Award#{{awardVersionObject?.activeAward?.awardNumber}}"
+								i18n-title="'@@VIEW_AWARD + `# ${awardVersionObject?.activeAward?.awardNumber}`"
+                                (click)="routeToAwardId(awardVersionObject?.activeAward?.awardId)"> Open
+                                <i aria-hidden="true" class="fa fa-external-link-square mr-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="my-2 py-2 pl-3 pr-2 ">
+                        <span><ng-container i18n="@@AWARD_INPROGRESS_VARIATION_REQUEST">In Progress variation request(s) for this award</ng-container></span>                    
+                    </div>
+                    <div class="inner-scroll">
+                        <div *ngFor="let award of awardVersionObject?.pendingAwards; let index=index">
+                            <div class="p-2 pl-4 mb-2">
+                                <span class="fw-600">{{index + 1}}.
+                                    <span *ngIf="award?.awardVariationName">{{award?.awardVariationName}}</span>
+                                    <span *ngIf="!award?.awardVariationName"><ng-container i18n="@@AWARD_AWARD_SETUP">Award Setup </ng-container></span> 
+                                </span>
+                                <span class="float-right mr-4">
+                                    <a class="anchor-link ml-2" title="View Award#{{award?.awardNumber}}"
+										i18n-title="'@@VIEW_AWARD + `# ${award?.awardNumber}`"
+                                        (click)="routeToAwardId(award?.awardId)"> Open
+                                        <i aria-hidden="true" class="fa fa-external-link-square mr-1"></i>
+                                    </a>
+                                </span>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary mr-2" data-dismiss="modal">Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</ng-container>
+

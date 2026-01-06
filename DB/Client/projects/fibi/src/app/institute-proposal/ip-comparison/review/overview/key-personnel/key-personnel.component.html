@@ -1,0 +1,118 @@
+<div id="Proposal202" class="card mb-3">
+	<div class="card-header px-4">
+		<h4 class="card-title" id="proposal-keyperson-details-view">
+			<ng-container i18n="@@COMMON_KEY_PERSONNEL">Key Personnel</ng-container>
+			<span class="float-right font-weight-normal mr-5">
+				<i aria-hidden="true" class="fa fa-user-o mr-2 pl-sm-2"></i>Employee |
+				<i aria-hidden="true" class="fa fa-user-circle text-danger mr-2"></i>Non-Employee |
+				<i aria-hidden="true" class="fa fa-home text-primary mr-2"></i>Lead Unit |
+				<i aria-hidden="true" class="fa fa-home text-grey mr-2"></i>Department |
+				<img class="mr-2" src="{{deployMap}}assets/images/org-icon-4.svg" alt="Organization icon">Organization |
+				<i aria-hidden="true" class="fa fa-users text-primary mr-2"></i>Multi-PI
+			</span>
+			<button id="projectExpandBtn" class="updown-arrow" (click)="isKeyPersonWidgetOpen = !isKeyPersonWidgetOpen">
+				<i aria-hidden="true"
+					[ngClass]="isKeyPersonWidgetOpen?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+					class="fa-large"></i>
+			</button>
+		</h4>
+	</div>
+	<div class="card-content" *ngIf="isKeyPersonWidgetOpen">
+		<div class="card-body">
+			<div *ngIf="proposalPersons?.length == 0" class="noDataExists px-2">
+				<ng-container i18n="@@COMMON_NO_KEY_PERSONNELS_ERR">There are no key personnels added in this proposal
+				</ng-container>
+			</div>
+			<div class="table-responsive">
+				<table *ngIf="proposalPersons?.length > 0 && isKeyPersonWidgetOpen" class="table tableSkin grid2"
+					aria-describedby="proposal-keyperson-details-view">
+					<thead>
+						<th scope="col" style="width: 15%;">Name</th>
+						<th scope="col">Role</th>
+						<th scope="col" style="width:25%">Department(s) / Organization(s)</th>
+						<th scope="col">Designation</th>
+						<th scope="col">% of Effort
+							<span *ngIf="helpText?.keyPersons && helpText?.keyPersons['percentOfEffort']?.helpTextInfo"
+								class="d-inline-block icon-hover hand-cursor">
+								<a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med"
+										aria-hidden="true"></i>
+									<div class="tooltiptext-right card card-inner p-15 text-left">
+										<span
+											class="font-cv">{{helpText?.keyPersons['percentOfEffort']?.helpTextInfo}}</span>
+									</div>
+								</a>
+							</span>
+						</th>
+						<th scope="col">CV</th>
+						<th>Actions</th>
+					</thead>
+					<tbody>
+						<tr *ngFor="let person of proposalPersons; let i = index" [ngClass]="{ 'delete-background': person.status == -1,
+                      'add-background': person.status == 1}">
+							<td class="text-nowrap"><i class="mr-2"
+									[ngClass]="person.rolodexId ? 'fa fa-user-circle text-danger':'fa fa-user-o'"
+									aria-hidden="true"></i>
+								<ng-container *ngIf="person?.isMultiPi"><i class="fa fa-users text-primary mr-2"
+										aria-hidden="true"></i>
+								</ng-container>
+								<span [innerHTML]=" person?.fullName | customTagRemover: currentMethod"></span>
+							</td>
+							<td>
+								<span [innerHTML]="(person?.proposalPersonRole?.description + 
+                                               (person?.proposalPersonRole?.showProjectRole ?
+                                               (person?.projectRole ? ' (' + person?.projectRole +')' :''):'')) | customTagRemover: currentMethod">
+								</span>
+							</td>
+							<td>
+								<ng-container *ngIf="person?.units?.length != 0 ">
+									<ul class="p-0 ruleList-1" *ngFor="let dept of person?.units">
+										<li class="p-0" [ngClass]="{ 'delete-background': (dept.status == -1 || person.status == -1),
+                                    'add-background': (dept.status == 1 || person.status == 1)}"><i class="fa fa-home"
+												aria-hidden="true"
+												[ngClass]="dept?.leadUnit ? 'text-primary' : 'text-grey'"></i>
+											<span [innerHTML]='dept?.unit?.unitName | customTagRemover: currentMethod'></span>
+										</li>
+									</ul>
+								</ng-container>
+								<p><img *ngIf="person?.department" class="mr-1"
+										src="{{deployMap}}assets/images/org-icon-4.svg" alt="Organization icon">
+									<span [innerHTML]=" person?.department | customTagRemover: currentMethod"></span>
+								</p>
+							</td>
+							<td><span *ngIf="person?.designation != null else nodesignation">
+									<span [innerHTML]=" person?.designation | customTagRemover: currentMethod"></span></span>
+								<ng-template #nodesignation>
+									<span class="noDataExists">No designation specified</span>
+								</ng-template>
+							</td>
+							<td>
+								<span [innerHTML]=" person?.percentageOfEffort | customTagRemover: currentMethod"></span>
+							</td>
+							<td>
+								<span *ngIf="person?.proposalPersonAttachment?.length>0 else nocvattached" class="filechip-cv">
+									<span [ngClass]="{ 'delete-background': (person?.proposalPersonAttachment[0]?.status == -1),
+									'add-background': (person?.proposalPersonAttachment[0]?.status == 1)}"
+									  [innerHTML]="getFileName(person?.proposalPersonAttachment[0]?.fileName) | customTagRemover: currentMethod"
+									  [title]="person?.proposalPersonAttachment[0]?.fileName">
+									</span>
+								</span>
+								<ng-template #nocvattached>
+									<span class="noDataExists">No CV uploaded</span>
+								</ng-template>
+							</td>
+							<td>
+								<ul class="actionButtonGroup">
+									<li *ngIf="person?.proposalPersonAttachment?.length>0">
+											<i class="fa fa-download pointer" aria-hidden="true"
+												title="Click here to download {{(person?.proposalPersonAttachment[0]?.fileName > 20)?(person?.proposalPersonAttachment[0]?.fileName | slice:0:20)+'...':(person?.proposalPersonAttachment[0]?.fileName)}}"
+												(click)="downloadProposalPersonCV(person?.proposalPersonAttachment[0])"></i>
+									</li>
+								</ul>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>

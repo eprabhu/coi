@@ -1,0 +1,291 @@
+<ng-container>
+    <app-coi-slider (closeSlider)="validateSliderClose()" [elementId]="'coi-project-overview-slider'" [isHeaderNeeded]="true" [sliderWidth]="'w-50 w-md-75 w-xl-50'">
+        <ng-container header>
+            <mat-icon aria-hidden="true" class="coi-text-lighter me-1 align-middle">rate_review</mat-icon>
+            <span id="coi-disclosure-risk-header">Administrative Comments</span><app-common-help-text [subSectionId]="809" [elementId]="'project-comments-slider-title'"></app-common-help-text>
+        </ng-container>
+
+        <ng-container content-sticky>
+            <app-shared-project-details-card [projectDetails]="projectDetails" [uniqueId]="'project-overview-comments'"
+                customClass="coi-box-red shadow-medium"></app-shared-project-details-card>
+        </ng-container>
+
+        <ng-container content>
+            <div class="text-end mt-3">
+                <button *ngIf="!showAddComment && dataForCommentSlider?.projectDetails?.commentCount > 0 && !isReplyCommentOpen && !isEditParentComment" class="btn btn-sm btn-tertiary d-inline-flex position-relative"
+                    id="coi-add-comment-btn" (click)="toggleAddCommentBox()" title="Click here to add new comments" aria-label="Click here to add new comments">
+                    <mat-icon aria-hidden="true" class="hyper-link me-1">add</mat-icon>Add Comment</button>
+            </div>
+
+            <!-- add new comment text editor -->
+            <div *ngIf="(showAddComment || dataForCommentSlider?.projectDetails?.commentCount === 0) && !isReplyCommentOpen && !isEditParentComment" class="card shadow-medium p-3 mb-3">
+                <div class="col-12">
+                    <div [ngClass]="mandatoryMap.has('comment') ? 'coi-invalid-feedback-border' : ''">
+                        <ckeditor [(ngModel)]="projectOverviewCommentDetails.comment" [editor]="Editor" [config]="editorConfig" (ready)="onReady($event)"
+                        (focus)="onEditorFocus()"
+                        (blur)="onEditorBlur()"
+                        placeholder="Comment" row="1" maxlength="2000"></ckeditor>
+                    </div>
+                    <div *ngIf="mandatoryMap.has('comment')" class="invalid-feedback d-block fs-12">
+                        {{mandatoryMap?.get('comment')}}</div>
+                </div>
+                <div class="col-12 d-flex align-items-center justify-content-end gap-2 mt-3">
+                    <button class="btn btn-outline-secondary px-4 fs-14" id="coi-new-comment-cancel-btn"
+                    title="Click here to cancel" aria-label="Click here to cancel" (click)="cancelOrClearCommentsDetails(); toggleAddCommentBox()">
+                        Cancel
+                    </button>
+                    <button class="btn btn-primary fs-14" id="coi-new-comment-add-btn" (click)="addCommentsDetails()"
+                    title="Click here to add comment" aria-label="Click here to add comment">{{isEditComment ? 'Save Comment' : 'Add Comment'}}</button>
+                </div>
+            </div>
+
+            <!-- parent comment section -->
+            <div *ngFor="let data of commentsData ; let index=index" class="coi-card-regular p-3 coi-border-grey">
+                <div class="row position-relative">
+                    <div class="d-flex justify-content-center person-icon-container p-0">
+                        <span class="d-inline-flex justify-content-center align-items-center comments-person-info rounded-circle">
+                            <mat-icon aria-hidden="true" class="person-icon flex-shrink-0 fs-24">person</mat-icon>
+                        </span>
+                    </div>
+                    <div class="comment-section-right-container ps-0">
+                        <div>
+                            <div class="col-12 d-flex gap-2 align-items-center">
+                                <span id="coi-parent-commment-updateduser">
+                                    <app-no-data-label [valueToShow]="data?.updateUserFullName">
+                                        <span class="coi-text-light text-slice fw-700 fs-15"
+                                            [title]="data?.updateUserFullName">{{data?.updateUserFullName}}</span>
+                                    </app-no-data-label>
+                                </span>
+                                <span id="coi-parent-commment-updated-time">
+                                    <app-no-data-label [valueToShow]="(data?.updateTimestamp)">
+                                        <span class="coi-text-light text-slice fs-13">
+                                            {{data?.updateTimestamp | dateFormatterWithTimeZone: 'long'}}</span>
+                                    </app-no-data-label>
+                                </span>
+                                <div *ngIf="editParentCommentId != data?.commentId && currentUserId == data?.commentBy && !showAddComment && !isReplyCommentOpen && !data.isResolved" class="ms-auto col-auto">
+                                    <button [matMenuTriggerFor]="beforeMenu" aria-label="Click here for more action" title="Click here for more action"
+                                        class="btn-none more-info-icon rounded-circle d-inline-flex justify-content-center align-items-center">
+                                        <mat-icon aria-hidden="true" class="moreActionIcon">more_vert</mat-icon>
+                                    </button>
+
+                                    <mat-menu #beforeMenu="matMenu" xPosition="before">
+                                        <ng-container>
+                                            <button mat-menu-item title="Click here to edit comment" aria-label="Click here to edit comment" id="coi-parent-commment-edit-btn" (click)="editParentComment(data)"
+                                                area-describedby="Click here to edit comment"
+                                                class="text-nowrap border-0 rounded-0 btn-primary-icon fs-14 d-flex justify-content-start w-100 align-items-center more-action">
+                                                <mat-icon class="me-0 coi-text-lighter" aria-hidden="true">edit</mat-icon>
+                                                <span class="ms-2 fw-medium fs-14">Edit</span>
+                                            </button>
+                                        </ng-container>
+
+                                        <ng-container>
+                                            <button *ngIf="!data?.childComments || data.childComments.length === 0" id="coi-parent-commment-delete-btn" mat-menu-item title="Click here to delete comment" (click)="triggerDeleteConfirmationModal(data)"
+                                                area-describedby="Click here to delete comment"
+                                                class="text-nowrap border-0 rounded-0 btn-primary-icon fs-14 d-flex justify-content-start w-100 align-items-center more-action">
+                                                <mat-icon aria-hidden="true"
+                                                    class="material-icons-round me-0 coi-text-lighter">delete</mat-icon>
+                                                <span class="ms-2 mt-1 fw-medium fs-14">Delete</span>
+                                            </button>
+                                        </ng-container>
+                                    </mat-menu>
+                                </div>
+                            </div>
+
+                            <!-- parent comment edit text editor -->
+                            <ng-container *ngIf="editParentCommentId == data?.commentId && isEditParentComment">
+                                <div class="col p-0 mt-3">
+                                    <div [ngClass]="mandatoryMap.has('comment') ? 'coi-invalid-feedback-border' : ''">
+                                        <ckeditor [(ngModel)]="data.comment" [editor]="Editor" [config]="editorConfig" (ready)="onReady($event)"
+                                        (focus)="onEditorFocus()"
+                                        (blur)="onEditorBlur()"
+                                            placeholder="Comment" row="1" maxlength="2000"></ckeditor>
+                                    </div>
+                                    <div *ngIf="mandatoryMap.has('comment')" class="invalid-feedback d-block fs-12">
+                                        {{mandatoryMap?.get('comment')}}</div>
+                                </div>
+                                <div class="col-12 d-flex align-items-center justify-content-end gap-2 mt-2 p-0">
+                                    <button class="btn btn-outline-secondary px-4 fs-14" id="coi-parent-commment-edit-cancle-btn"
+                                        title="Click here to cancel edit" aria-label="Click here to cancel edit" (click)="cancelOrClearCommentsDetails(true)">
+                                        Cancel
+                                    </button>
+                                    <button class="btn btn-primary fs-14" id="coi-parent-commment-edit-add-btn"
+                                        title="Click here to save edited comment" aria-label="Click here to save edited comment" (click)="addEditedComment(data,index)">Save
+                                        Comment
+                                    </button>
+                                </div>
+                            </ng-container>
+
+                            <div *ngIf="editParentCommentId != data?.commentId;" class="col-12 d-flex align-items-baseline">
+                                <app-no-data-label [valueToShow]="(data?.comment)">
+                                    <span class="fs-13 word-break-all"
+                                    [innerHTML]="data?.comment | safe"></span>
+                                </app-no-data-label>
+                            </div>
+
+                            <div  *ngIf="!data?.isResolved" class="col-12 d-flex gap-2 align-items-center mt-3">
+                                <!-- Resolve Button -->
+                                <button *ngIf="isShowResolveComment || loggedInPersonId === data?.commentBy" id="project-comment-resolve-btn"
+                                    class="d-flex align-items-center btn btn-sm btn-tertiary gap-1 fs-14" title="Click here to resolve comment"
+                                    aria-label="Click here to resolve comment" (click)="resolveComment(data)">
+                                    <mat-icon aria-hidden="true" class="flex-shrink-0">mark_chat_read</mat-icon>
+                                    <span class="me-1">Resolve</span>
+                                </button>
+
+                                <!-- Reply Button -->
+                                <button *ngIf="editParentCommentId !== data?.commentId && !showAddComment" id="coi-commment-reply-btn"
+                                    class="align-items-baseline btn btn-sm btn-tertiary d-inline-flex position-relative"
+                                    title="Click here to add reply comment" aria-label="Click here to add reply comment" (click)="replyComment(data)">
+                                    <i aria-hidden="true" class="fa fa-reply me-1"></i>
+                                    <span class="me-2">Reply</span>
+                                </button>
+                            </div>
+
+                            <div *ngIf="data?.isResolved && !showAddComment" class="d-flex align-items-center col-12 pt-2 gap-2">
+                                <span class="badge text-bg-success fs-14">Resolved</span>
+                                <span id="last-updated" class="coi-text-dark fs-13 fw-normal"
+                                    [attr.aria-label]="data?.resolvedUserFullName + ' on ' + (data?.resolvedTimestamp | dateFormatterWithTimeZone: 'long')">
+                                    <span class="coi-text-lighter fs-13 fw-medium"> by </span>
+                                    {{data?.resolvedUserFullName}}<span class="coi-text-lighter fs-13 fw-medium"> On </span>{{data?.resolvedTimestamp | dateFormatterWithTimeZone: 'long'}} </span>
+                            </div>
+
+                        </div>
+
+                        <!-- reply comment text editor -->
+                        <div *ngIf="projectOverviewCommentDetails?.parentCommentId === data?.commentId && isReplyCommentOpen" class="row m-0">
+                            <div class="col-12 p-0 mt-3" id="person-main-commment-editor">
+                                <div [ngClass]="mandatoryMap.has('comment') ? 'coi-invalid-feedback-border' : ''">
+                                    <ckeditor [(ngModel)]="projectOverviewCommentDetails.comment" [editor]="Editor" [config]="editorConfig" (ready)="onReady($event)"
+                                    (focus)="onEditorFocus()"
+                                    (blur)="onEditorBlur()"
+                                        placeholder="Comment" row="1" maxlength="2000"></ckeditor>
+                                </div>
+                                <div *ngIf="mandatoryMap.has('comment')" class="invalid-feedback d-block fs-12">
+                                    {{mandatoryMap?.get('comment')}}</div>
+                            </div>
+                            <div class="col-12 d-flex align-items-center justify-content-end gap-2 mt-2 p-0">
+                                <button class="btn btn-outline-secondary px-4 fs-14" id="coi-reply-commment-cancle-btn"
+                                title="Click here to cancel reply comment"  aria-label="Click here to cancel reply comment" (click)="cancelOrClearCommentsDetails()">
+                                    Cancel
+                                </button>
+                                <button class="btn btn-primary fs-14" id="coi-reply-commment-add-btn"
+                                title="Click here to add reply comments"  aria-label="Click here to add reply comments" (click)="addReplayCommentsDetails()">Reply
+                                    Comment
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- child comment section -->
+                        <div  *ngFor="let childComment of visibleCommentsMap[index] || [] ; let replyIndex = index" class="comments-reply-card coi-card-regular p-3 shadow-none">
+                            <div class="row">
+                                <div class="d-flex justify-content-center person-icon-container p-0">
+                                    <span
+                                        class="material-icons comments-person-info rounded-circle d-inline-flex justify-content-center align-items-center">
+                                        <mat-icon aria-hidden="true"
+                                            class="person-icon flex-shrink-0 fs-24">person</mat-icon>
+                                    </span>
+                                </div>
+                                <div class="comment-section-right-container ps-0">
+                                    <div class="row">
+                                        <div class="col d-flex gap-2 align-items-center">
+                                            <span id="coi-child-commment-updated-user">
+                                                <app-no-data-label [valueToShow]="childComment?.updateUserFullName">
+                                                    <span class="coi-text-light text-slice fw-700 fs-15"
+                                                        [title]="childComment?.updateUserFullName">{{childComment?.updateUserFullName}}</span>
+                                                </app-no-data-label>
+                                            </span>
+                                            <span id="coi-child-commment-updated-time">
+                                                <app-no-data-label
+                                                    [valueToShow]="(childComment?.updateTimestamp)">
+                                                    <span class="coi-text-light text-slice fs-13">
+                                                        {{childComment?.updateTimestamp | dateFormatterWithTimeZone: 'long'}}</span>
+                                                </app-no-data-label>
+                                            </span>
+                                        </div>
+                                        <div *ngIf="projectOverviewCommentDetails.commentId != childComment.commentId && currentUserId == childComment?.commentBy && !showAddComment && !isReplyCommentOpen && !data.isResolved" class="col-auto">
+                                            <button [matMenuTriggerFor]="beforeMenu" aria-label="Click here for more action" title="Click here for more action"
+                                                class="btn-none more-info-icon rounded-circle d-inline-flex justify-content-center align-items-center">
+                                                <mat-icon aria-hidden="true" class="moreActionIcon">more_vert</mat-icon>
+                                            </button>
+
+                                            <mat-menu #beforeMenu="matMenu" xPosition="before">
+                                                <ng-container>
+                                                    <button id="coi-child-commment-edit-btn" mat-menu-item title="Click here to edit comment" (click)="editReplyComment(childComment)"
+                                                        area-describedby="Click here to edit comment"
+                                                        class="text-nowrap border-0 rounded-0 btn-primary-icon fs-14 d-flex justify-content-start w-100 align-items-center more-action">
+                                                        <mat-icon class="me-0 coi-text-lighter" aria-hidden="true">edit</mat-icon>
+                                                        <span class="ms-2 fw-medium fs-14">Edit</span>
+                                                    </button>
+                                                </ng-container>
+
+                                                <ng-container>
+                                                    <button id="coi-child-commment-delete-btn" mat-menu-item title="Click here to delete comment" (click)="triggerDeleteConfirmationModal(childComment,replyIndex)"
+                                                        area-describedby="Click here to delete comment"
+                                                        class="text-nowrap border-0 rounded-0 btn-primary-icon fs-14 d-flex justify-content-start w-100 align-items-center more-action">
+                                                        <mat-icon aria-hidden="true"
+                                                            class="material-icons-round me-0 coi-text-lighter">delete</mat-icon>
+                                                        <span class="ms-2 mt-1 fw-medium fs-14">Delete</span>
+                                                    </button>
+                                                </ng-container>
+                                            </mat-menu>
+                                        </div>
+                                        <div *ngIf="projectOverviewCommentDetails.commentId != childComment.commentId" class="col-12 d-flex align-items-baseline">
+                                            <app-no-data-label [valueToShow]="(childComment?.comment)">
+                                                <span class="fs-13 word-break-all no-margin"
+                                                [innerHTML]="childComment?.comment | safe"></span>
+                                            </app-no-data-label>
+                                        </div>
+
+                                        <!-- edit child comment text editor -->
+                                        <ng-container *ngIf="projectOverviewCommentDetails.commentId == childComment.commentId && isEditComment">
+                                            <div class="col-12 mt-3">
+                                                <div [ngClass]="mandatoryMap.has('comment') ? 'coi-invalid-feedback-border' : ''">
+                                                    <ckeditor [(ngModel)]="childComment.comment" [editor]="Editor" [config]="editorConfig" (ready)="onReady($event)"
+                                                    (focus)="onEditorFocus()"
+                                                    (blur)="onEditorBlur()"
+                                                        placeholder="Comment" row="1" maxlength="2000"></ckeditor>
+                                                </div>
+                                                <div *ngIf="mandatoryMap.has('comment')" class="invalid-feedback d-block fs-12">
+                                                    {{mandatoryMap?.get('comment')}}</div>
+                                            </div>
+                                            <div class="col-12 d-flex align-items-center justify-content-end gap-2 mt-2">
+                                                <button id="coi-child-commment-edit-cancel-btn" class="btn btn-outline-secondary px-4 fs-14"
+                                                title="Click here to cancel edited comments"  aria-label="Click here to cancel edited comments" (click)="cancelOrClearCommentsDetails(true)">
+                                                    Cancel
+                                                </button>
+                                                <button class="btn btn-primary fs-14" id="coi-child-commment-edit-add-btn"
+                                                title="Click here to add edited comments"  aria-label="Click here to cancel edited comments" (click)="addReplyEditedComments(childComment)">Save
+                                                    Comment
+                                                </button>
+                                            </div>
+                                        </ng-container>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- view more -->
+                        <div *ngIf="data.childComments && (visibleCommentsMap[index]?.length || 0) < data.childComments.length" class="mt-2">
+                            <span class="link-primary cursor-pointer view-btn-hover" (click)="viewMore(index)" (keyup.enter)="viewMore(index)"
+                            (keyup.space)="viewMore(index)">View {{ data.childComments.length - (visibleCommentsMap[index]?.length || 0) }} more replies...
+                        </span>
+                        </div>
+                        <!-- view less -->
+                        <div *ngIf="data.childComments && (visibleCommentsMap[index]?.length || 0) > initialVisibleComments" class="mt-2">
+                            <span class="link-primary cursor-pointer view-btn-hover" (click)="viewLess(index)" (keyup.enter)="viewLess(index)"
+                            (keyup.space)="viewLess(index)">View Less...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- comment delete conformation modal -->
+            <app-common-modal [modalConfig]="modalConfig" (modalAction)="postConfirmation($event)" >
+                <ng-container modal-header>
+                    <span>Confirmation</span>
+                </ng-container>
+                <ng-container modal-body>
+                    <p>Are you sure you want to delete this comment?</p>
+                </ng-container>
+            </app-common-modal>
+        </ng-container>
+    </app-coi-slider>
+</ng-container>

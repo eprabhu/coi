@@ -1,0 +1,338 @@
+<div class="card mt-3">
+    <div class="card-header px-4">
+        <h4 class="card-title">Latest Invoice
+            <button (click)="isInvoiceWidgetOpen = !isInvoiceWidgetOpen" class="updown-arrow" id="invoiceExpandBtn">
+                <i [ngClass]="!isInvoiceWidgetOpen?'fa fa-angle-double-down':'fa fa-angle-double-up'" aria-hidden="true"
+                    class="fa-large"></i>
+            </button>
+        </h4>
+    </div>
+    <!-- Edit Mode -->
+    <div *ngIf="isEditMode && isInvoiceWidgetOpen" class="card-content">
+        <div class="card-body">
+            <div class="form-row mb-2">
+                <div class="col-2">
+                    <label for="documentHeaderText"><span class="mandatory">*</span>Doc Header Text:</label>
+                    <input (ngModelChange)="_commonData.isClaimDataChange = true"
+                        [(ngModel)]="claimInvoiceDetails.documentHeaderText"
+                        [ngClass]="(invoiceValidationMap.get('documentHeaderText')) ? 'is-invalid d-block' : ''"
+                        class="form-control" id="documentHeaderText" placeholder="Doc Header Text" maxlength="25"
+                        type="text">
+                    <div *ngIf="(invoiceValidationMap.get('documentHeaderText'))" class="invalid-feedback d-block">
+                        Please enter doc header text.
+                    </div>
+                </div>
+                <div class="col-3">
+                    <label for="documentTypeCode"><span class="mandatory">*</span>Document Type:</label>
+                    <select (change)="updatePostingKeys()" (ngModelChange)="_commonData.isClaimDataChange = true;"
+                        [(ngModel)]="documentType" [compareWith]="compareByTypeCode"
+                        [ngClass]="(invoiceValidationMap.get('documentTypeCode')) ? 'is-invalid d-block' : ''"
+                        class="form-control" id="documentTypeCode">
+                        <option [ngValue]="{documentTypeCode: null}" disabled>--Select--</option>
+                        <option *ngFor="let docType of documentTypeLookup" [hidden]="!docType.isActive"
+                            [ngValue]="docType">{{docType.documentTypeDesc}}</option>
+                    </select>
+                    <div *ngIf="(invoiceValidationMap.get('documentTypeCode'))" class="invalid-feedback d-block">
+                        Please select document type.
+                    </div>
+                </div>
+                <div class="col-2">
+                    <label for="glAccountCode"><span class="mandatory">*</span>GL Account:</label>
+                    <!--Only isControlledGL TRUE values should be shown in this dropdown-->
+                    <select (change)="updateControlledGlAccount()"
+                        (ngModelChange)="_commonData.isClaimDataChange = true;" [(ngModel)]="glAccountCode"
+                        [compareWith]="compareByGlAccount"
+                        [ngClass]="(invoiceValidationMap.get('glAccountCode')) ? 'is-invalid d-block' : ''"
+                        class="form-control" id="glAccountCode">
+                        <option [ngValue]="{glAccountCode: null}" disabled>--Select--</option>
+                        <ng-container *ngFor="let glAccount of lookupData.glAccountCode">
+                            <option *ngIf="glAccount.isControlledGl" [hidden]="!glAccount.isActive"
+                                [ngValue]="glAccount">{{glAccount.glAccountCode}} - {{glAccount.description}}</option>
+                        </ng-container>
+                    </select>
+                    <div *ngIf="(invoiceValidationMap.get('glAccountCode'))" class="invalid-feedback d-block">
+                        Please select gl account.
+                    </div>
+                </div>
+
+                <div class="col-3">
+                    <label for="companyCode"><span class="mandatory">*</span>Company Code:</label>
+                    <input (ngModelChange)="_commonData.isClaimDataChange = true"
+                        [(ngModel)]="claimInvoiceDetails.companyCode" disabled="true"
+                        [ngClass]="(invoiceValidationMap.get('companyCode')) ? 'is-invalid d-block' : ''"
+                        class="form-control" id="companyCode" placeholder="Company Code" maxlength="4" type="text">
+                    <div *ngIf="(invoiceValidationMap.get('companyCode'))" class="invalid-feedback d-block">
+                        Please enter company code.
+                    </div>
+                </div>
+                <div class="col-2">
+                    <label for="currencyCode"><span class="mandatory">*</span>Currency Code:</label>
+                    <input (ngModelChange)="_commonData.isClaimDataChange = true"
+                        [(ngModel)]="claimInvoiceDetails.currencyCode"
+                        [ngClass]="(invoiceValidationMap.get('currencyCode')) ? 'is-invalid d-block' : ''"
+                        class="form-control" id="currencyCode" placeholder="Currency Code" maxlength="4" type="text">
+                    <div *ngIf="(invoiceValidationMap.get('currencyCode'))" class="invalid-feedback d-block">
+                        Please enter currency code.
+                    </div>
+                </div>
+            </div>
+            <div class="form-row mb-2">
+                <div class="col-2">
+                    <label for="grantCode">Grant Code:</label>
+                    <input (ngModelChange)="_commonData.isClaimDataChange = true"
+                        [ngModel]="claimInvoiceDetails.grantCode" disabled="true"
+                        [ngClass]="(invoiceValidationMap.get('grantCode')) ? 'is-invalid d-block' : ''"
+                        class="form-control" id="grantCode" placeholder="Grant Code" maxlength="25" type="text">
+                    <div *ngIf="(invoiceValidationMap.get('grantCode'))" class="invalid-feedback d-block">
+                        Please enter grant code.
+                    </div>
+                </div>
+                <div class="col-3">
+                    <label for="profitCentre">Profit Centre:</label>
+                    <input (ngModelChange)="_commonData.isClaimDataChange = true"
+                        [ngModel]="claimInvoiceDetails.profitCentre" disabled="true"
+                        [ngClass]="(invoiceValidationMap.get('profitCentre')) ? 'is-invalid d-block' : ''"
+                        class="form-control" id="profitCentre" placeholder="Profit Centre" maxlength="25" type="text">
+                    <div *ngIf="(invoiceValidationMap.get('profitCentre'))" class="invalid-feedback d-block">
+                        Please enter profit centre.
+                    </div>
+                </div>
+                <div class="col-2">
+                    <label for="customerEmailAddress"><span class="mandatory">*</span>Customer Email Address:</label>
+                    <input (ngModelChange)="_commonData.isClaimDataChange = true"
+                        [(ngModel)]="claimInvoiceDetails.customerEmailAddress"
+                        [ngClass]="(invoiceValidationMap.get('customerEmailAddress')) ? 'is-invalid d-block' : ''"
+                        class="form-control" id="customerEmailAddress" maxlength="60"
+                        placeholder="Customer Email Address" type="text" />
+                    <div *ngIf="(invoiceValidationMap.get('customerEmailAddress'))" class="invalid-feedback d-block">
+                        Please enter a valid customer email address.
+                    </div>
+                </div>
+                <div class="col-3">
+                    <label for="requesterEmailAddress"><span class="mandatory">*</span>Requester Email Address:</label>
+                    <input (ngModelChange)="_commonData.isClaimDataChange = true"
+                        [(ngModel)]="claimInvoiceDetails.requesterEmailAddress"
+                        [ngClass]="(invoiceValidationMap.get('requesterEmailAddress')) ? 'is-invalid d-block' : ''"
+                        class="form-control" id="requesterEmailAddress" maxlength="60"
+                        placeholder="Requester Email Address" type="text" />
+                    <div *ngIf="(invoiceValidationMap.get('requesterEmailAddress'))" class="invalid-feedback d-block">
+                        Please enter a valid requester email address.
+                    </div>
+                </div>
+                <div class="col-2">
+                    <label for="assignmentField"><span class="mandatory">*</span>Assignment Field:</label>
+                    <input (ngModelChange)="_commonData.isClaimDataChange = true"
+                        [(ngModel)]="claimInvoiceDetails.assignmentField"
+                        [ngClass]="(invoiceValidationMap.get('assignmentField')) ? 'is-invalid d-block' : ''"
+                        class="form-control" id="assignmentField" maxlength="18"
+                        [disabled]="!(['01', '11'].includes(documentType?.headerPostingKey))"
+                        placeholder="Assignment Field" type="text" />
+                    <div *ngIf="(invoiceValidationMap.get('assignmentField'))" class="invalid-feedback d-block">
+                        Please enter assignment field.
+                    </div>
+                </div>
+            </div>
+            <div class="form-row mb-2">
+                <div class="col-2">
+                    <label for="contactTelephoneNo"><span class="mandatory">*</span>Contact / Telephone:</label>
+                    <input (ngModelChange)="_commonData.isClaimDataChange = true"
+                        [(ngModel)]="claimInvoiceDetails.contactTelephoneNo"
+                        [ngClass]="(invoiceValidationMap.get('contactTelephoneNo')) ? 'is-invalid d-block' : ''"
+                        class="form-control" id="contactTelephoneNo" placeholder="Contact / Telephone" maxlength="50"
+                        type="text">
+                    <div *ngIf="(invoiceValidationMap.get('contactTelephoneNo'))" class="invalid-feedback d-block">
+                        Please enter contact / telephone.
+                    </div>
+                </div>
+                <div class="col-3">
+                    <label for="particulars1">Particulars 1:</label>
+                    <input (ngModelChange)="_commonData.isClaimDataChange = true"
+                        [(ngModel)]="claimInvoiceDetails.particulars1"
+                        [ngClass]="(invoiceValidationMap.get('particulars1')) ? 'is-invalid d-block' : ''"
+                        class="form-control" placeholder="Particulars 1" id="particulars1" maxlength="50" type="text">
+                    <div *ngIf="(invoiceValidationMap.get('particulars1'))" class="invalid-feedback d-block">
+                        Please enter particulars 1.
+                    </div>
+                </div>
+                <div class="col-2">
+                    <label for="particulars2">Particulars 2:</label>
+                    <input (ngModelChange)="_commonData.isClaimDataChange = true"
+                        [(ngModel)]="claimInvoiceDetails.particulars2"
+                        [ngClass]="(invoiceValidationMap.get('particulars2')) ? 'is-invalid d-block' : ''"
+                        class="form-control" placeholder="Particulars 2" id="particulars2" maxlength="50" type="text">
+                    <div *ngIf="(invoiceValidationMap.get('particulars2'))" class="invalid-feedback d-block">
+                        Please enter particulars 2.
+                    </div>
+                </div>
+                <div class="col-3">
+                    <label for="particulars3">Particulars 3:</label>
+                    <input (ngModelChange)="_commonData.isClaimDataChange = true"
+                        [(ngModel)]="claimInvoiceDetails.particulars3"
+                        [ngClass]="(invoiceValidationMap.get('particulars3')) ? 'is-invalid d-block' : ''"
+                        class="form-control" placeholder="Particulars 3" id="particulars3" maxlength="50" type="text">
+                    <div *ngIf="(invoiceValidationMap.get('particulars3'))" class="invalid-feedback d-block">
+                        Please enter particulars 3.
+                    </div>
+                </div>
+                <div class="col-2">
+                    <label for="particulars4">Particulars 4:</label>
+                    <input (ngModelChange)="_commonData.isClaimDataChange = true"
+                        [(ngModel)]="claimInvoiceDetails.particulars4"
+                        [ngClass]="(invoiceValidationMap.get('particulars4')) ? 'is-invalid d-block' : ''"
+                        class="form-control" placeholder="Particulars 4" id="particulars4" maxlength="50" type="text">
+                    <div *ngIf="(invoiceValidationMap.get('particulars4'))" class="invalid-feedback d-block">
+                        Please enter particulars 4.
+                    </div>
+                </div>
+                <div class="col-2">
+                    <label for="customerNumber">Customer Number:</label>
+                    <input (ngModelChange)="_commonData.isClaimDataChange = true"
+                        [ngClass]="(invoiceWarningMap.get('customerNumber')) ? 'is-warning d-block' : ''"
+                        [(ngModel)]="claimInvoiceDetails.customerNumber"
+                        class="form-control" placeholder="Customer Number" id="customerNumber" 
+                        type="number" (keypress) = "filterNumbers($event)"> 
+                    <div *ngIf="(invoiceWarningMap.get('customerNumber'))" class="invalid-warning d-block">
+                        {{invoiceWarningMap.get('customerNumber')}}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="col-12">
+                    <label for="description">Description:</label>
+                    <textarea (ngModelChange)="_commonData.isClaimDataChange = true"
+                        [(ngModel)]="claimInvoiceDetails.description"
+                        [ngClass]="(invoiceValidationMap.get('description')) ? 'is-invalid d-block' : ''"
+                        class="form-control" id="description" appLengthValidator [limit]="50"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- View Mode -->
+    <div *ngIf="!isEditMode && isInvoiceWidgetOpen" class="card-content">
+        <div class="card-body">
+            <div class="gridSkin">
+                <div class="row">
+                    <div class="col-2">
+                        <label class="d-sm-block">Doc Header Text:</label>
+                        <span
+                            *ngIf="claimInvoiceDetails?.documentHeaderText">{{claimInvoiceDetails.documentHeaderText}}</span>
+                        <span *ngIf="!claimInvoiceDetails?.documentHeaderText" class="noDataExists">No Doc Header Text
+                            Specified</span>
+                    </div>
+                    <div class="col-3">
+                        <label class="d-sm-block">Document Type:</label>
+                        <span
+                            *ngIf="claimInvoiceDetails?.documentTypeCode">{{claimInvoiceDetails.documentTypeCode}}</span>
+                        <span *ngIf="!claimInvoiceDetails?.documentTypeCode" class="noDataExists">No Document Type
+                            Specified</span>
+                    </div>
+                    <div class="col-2">
+                        <label class="d-sm-block">GL Account:</label>
+                        <span *ngIf="claimInvoiceDetails?.glAccountCode">
+                            {{claimInvoiceDetails?.claimGlAccount?.glAccountCode}}
+                            - {{claimInvoiceDetails?.claimGlAccount?.description}}</span>
+                        <span *ngIf="!claimInvoiceDetails?.glAccountCode" class="noDataExists">No GL Account
+                            Specified</span>
+                    </div>
+                    <div class="col-3">
+                        <label class="d-sm-block">Company Code:</label>
+                        <span *ngIf="claimInvoiceDetails?.companyCode">{{claimInvoiceDetails.companyCode}}</span>
+                        <span *ngIf="!claimInvoiceDetails?.companyCode" class="noDataExists">No Company Code
+                            Specified</span>
+                    </div>
+                    <div class="col-2">
+                        <label class="d-sm-block">Currency Code:</label>
+                        <span *ngIf="claimInvoiceDetails?.currencyCode">{{claimInvoiceDetails.currencyCode}}</span>
+                        <span *ngIf="!claimInvoiceDetails?.currencyCode" class="noDataExists">No Currency Code
+                            Specified</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-2">
+                        <label class="d-sm-block">Grant Code:</label>
+                        <span *ngIf="claimInvoiceDetails?.grantCode">{{claimInvoiceDetails.grantCode}}</span>
+                        <span *ngIf="!claimInvoiceDetails?.grantCode" class="noDataExists">No Grant Code
+                            Specified</span>
+                    </div>
+                    <div class="col-3">
+                        <label class="d-sm-block">Profit Centre:</label>
+                        <span *ngIf="claimInvoiceDetails?.profitCentre">{{claimInvoiceDetails.profitCentre}}</span>
+                        <span *ngIf="!claimInvoiceDetails?.profitCentre" class="noDataExists">No Profit Centre
+                            Specified</span>
+                    </div>
+                    <div class="col-2">
+                        <label class="d-sm-block">Customer Email Address:</label>
+                        <span
+                            *ngIf="claimInvoiceDetails?.customerEmailAddress">{{claimInvoiceDetails.customerEmailAddress}}</span>
+                        <span *ngIf="!claimInvoiceDetails?.customerEmailAddress" class="noDataExists">No Customer Email
+                            Address Specified</span>
+                    </div>
+                    <div class="col-3">
+                        <label class="d-sm-block">Requester Email Address:</label>
+                        <span
+                            *ngIf="claimInvoiceDetails?.requesterEmailAddress">{{claimInvoiceDetails.requesterEmailAddress}}</span>
+                        <span *ngIf="!claimInvoiceDetails?.requesterEmailAddress" class="noDataExists">No Requester
+                            Email Address Specified</span>
+                    </div>
+                    <div class="col-2">
+                        <label class="d-sm-block">Assignment Field:</label>
+                        <span
+                            *ngIf="claimInvoiceDetails?.assignmentField">{{claimInvoiceDetails.assignmentField}}</span>
+                        <span *ngIf="!claimInvoiceDetails?.assignmentField" class="noDataExists">No Assignment Field
+                            Specified</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-2">
+                        <label class="d-sm-block">Contact / Telephone:</label>
+                        <span
+                            *ngIf="claimInvoiceDetails?.contactTelephoneNo">{{claimInvoiceDetails.contactTelephoneNo}}</span>
+                        <span *ngIf="!claimInvoiceDetails?.contactTelephoneNo" class="noDataExists">No Contact /
+                            Telephone Specified</span>
+                    </div>
+
+                    <div class="col-3">
+                        <label class="d-sm-block">Particulars 1:</label>
+                        <span *ngIf="claimInvoiceDetails?.particulars1">{{claimInvoiceDetails.particulars1}}</span>
+                        <span *ngIf="!claimInvoiceDetails?.particulars1" class="noDataExists">No Particulars 1
+                            Specified</span>
+                    </div>
+                    <div class="col-2">
+                        <label class="d-sm-block">Particulars 2:</label>
+                        <span *ngIf="claimInvoiceDetails?.particulars2">{{claimInvoiceDetails.particulars2}}</span>
+                        <span *ngIf="!claimInvoiceDetails?.particulars2" class="noDataExists">No Particulars 2
+                            Specified</span>
+                    </div>
+                    <div class="col-3">
+                        <label class="d-sm-block">Particulars 3:</label>
+                        <span *ngIf="claimInvoiceDetails?.particulars3">{{claimInvoiceDetails.particulars3}}</span>
+                        <span *ngIf="!claimInvoiceDetails?.particulars3" class="noDataExists">No Particulars 3
+                            Specified</span>
+                    </div>
+                    <div class="col-2">
+                        <label class="d-sm-block">Particulars 4:</label>
+                        <span *ngIf="claimInvoiceDetails?.particulars4">{{claimInvoiceDetails.particulars4}}</span>
+                        <span *ngIf="!claimInvoiceDetails?.particulars4" class="noDataExists">No Particulars 4
+                            Specified</span>
+                    </div>
+                    <div class="col-2">
+                        <label class="d-sm-block">Customer Number:</label>
+                        <span *ngIf="claimInvoiceDetails?.customerNumber">{{claimInvoiceDetails.customerNumber}}</span>
+                        <span *ngIf="!claimInvoiceDetails?.customerNumber" class="noDataExists">No Customer Number Specified</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <label class="d-sm-block">Description:</label>
+                        <span *ngIf="claimInvoiceDetails?.description"
+                            class="new-line-property">{{claimInvoiceDetails.description}}</span>
+                        <span *ngIf="!claimInvoiceDetails?.description" class="noDataExists">No Description
+                            Specified</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<app-invoice-line-item [config]="invoiceLineItemConfig"></app-invoice-line-item>

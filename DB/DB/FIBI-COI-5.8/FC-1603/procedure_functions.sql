@@ -1,0 +1,1 @@
+\. ./FIBI-COI-5.8/FC-1603/Procedures/GET_PERSON_HAS_PERMISSION.sql

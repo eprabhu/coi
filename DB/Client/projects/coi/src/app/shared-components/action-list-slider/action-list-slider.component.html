@@ -1,0 +1,289 @@
+<app-coi-slider *ngIf="showSlider" (closeSlider)="closeActionListSlider()" [elementId]="COI_ACTION_LIST_SLIDER_ID" [isHeaderNeeded]="true" [sliderWidth]="'w-100 w-md-75 w-lg-70'">
+  <ng-container header>
+        <span class="coi-text-darker fs-20" id="coi-disclosure-comments-header">Action List</span>
+</ng-container>
+<ng-container content-sticky>
+  <div class="bg-white">
+  <div class="row">
+    <div class="d-flex justify-content-between flex-sm-wrap">
+      <div class="coi-actionlist-filters d-flex justify-content-end align-items-center bg-white">
+        <span class="fs-14 text-secondary">Filter By :</span>
+        <!-- Pending -->
+        <button id="coi-action-list-filter-pending" (click)="changeTab('PENDING')"
+          title="Click here to filter by pending action list" aria-label="Click here to filter by pending action list"
+          [ngClass]="{active:(inboxTab == 'PENDING')}" class="btn-none filter-pills coi-text-light">
+          Pending
+        </button>
+        <!-- Processed -->
+        <button id="coi-action-list-filter-processed" (click)="changeTab('PROCESSED')"
+          title="Click here to filter by processed action list" aria-label="Click here to filter by pending action list"
+          [ngClass]="{active:(inboxTab == 'PROCESSED')}" class="btn-none filter-pills coi-text-light">
+          Processed
+        </button>
+        <!-- Sort By section: Displayed only when the IS_ACTION_LIST_SORTING_ENABLED parameter is set to 'Y' -->
+        <ng-container *ngIf="isActionListSortingEnabled">
+          <span class="fs-14 fw-medium me-2 text-secondary">Sort By :</span>
+          <button id="coi-action-list-sort-btn-{{index}}" *ngFor="let sortSection of sortSectionsList; let index = index"
+          attr.aria-label="Click here to sort by {{sortSection?.fieldName}}" (click)="sortResult(sortSection?.variableName)"
+            [class.filter-active]="['ASC', 'DESC'].includes(actionListSliderConfig.inboxObject.orderByFields[sortSection?.variableName])"
+            title="Click here to sort by {{sortSection?.fieldName}}"
+            class="shadow-sm fw-medium py-1 px-3 fs-13 border rounded-5 bg-white px-8 coi-sort-filter-btn">
+            <div class="d-inline-flex align-items-center">
+              <span>{{sortSection?.fieldName}}</span>
+              <mat-icon *ngIf="actionListSliderConfig.inboxObject.orderByFields[sortSection?.variableName] === 'ASC'"
+                aria-hidden="true" class="arrow selected-arrow" [@slideDown]>arrow_downward</mat-icon>
+              <mat-icon *ngIf="actionListSliderConfig.inboxObject.orderByFields[sortSection?.variableName] === 'DESC'"
+                aria-hidden="true" class="arrow selected-arrow" [@slideUp] [@scaleOut]>arrow_upward</mat-icon>
+            </div>
+          </button>
+        </ng-container>
+      </div>
+      <div class="mt-1">
+        <button (click)="clearInboxSearchField();getInboxTab()"
+          class="align-items-center btn btn-secondary btn-sm d-inline-flex" title="Click here to search action list"
+          aria-label="Click here to search action list"><mat-icon role="img" aria-hidden="true"
+            class="mat-icon mat-icon-no-color mat-ligature-font material-icons me-1 notranslate"
+            data-mat-icon-type="font">sync</mat-icon><span class="">Refresh</span></button>
+        <button (click)="viewInboxSearch = !viewInboxSearch;"
+          class="align-items-center btn btn-primary btn-sm d-inline-flex ms-2"
+          [attr.title]="isSearchFilterApplied ? 'Search filters applied' : 'Click here to search action list'"
+          aria-label="Click here to search action list"><mat-icon role="img" aria-hidden="true"
+            class="mat-icon mat-icon-no-color mat-ligature-font material-icons me-1 notranslate"
+            data-mat-icon-type="font">search</mat-icon><span class="">Search</span><span *ngIf="isSearchFilterApplied"
+            class="sr-filter-Applied position-absolute"></span></button>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="isInboxInfo && inboxDetails?.length > 0"
+    class="alert alert-primary d-flex justify-content-between align-items-center mt-2 py-2">
+    <div class="d-flex align-items-center">
+        <mat-icon class="mat-icon material-icons flex-shrink-0 me-2" aria-hidden="true">info</mat-icon>
+        <span *ngIf="inboxTab == 'PENDING'" class="fs-14">Tasks awaiting your attention.</span>
+        <span *ngIf="inboxTab == 'PROCESSED'" class="fs-14">Processed list of last 6 months.</span>
+    </div>
+    <button type="button" id="modal-close" class="btn close close-button border-0 p-0" data-dismiss="modal"
+        (click)="isInboxInfo = false" aria-label="Click to close">
+        <span class="d-block" aria-hidden="true">&times;</span>
+    </button>
+</div>
+</div>
+<div *ngIf="viewInboxSearch" class="card inbox-card">
+    <button type="button" id="modal-close" class="position-absolute end-0 m-1 btn-close coi-scale-8"
+        (click)="viewInboxSearch = false" aria-label="Click here to close" title="Click here to close">
+    </button>
+    <div class="card-content">
+        <div class="card-body">
+            <div class="form-row">
+                <div class="col-12">
+                    <div class="row">
+                      <!-- From Date Field -->
+                      <div class="col-6">
+                        <span class="coi-text-dark">From date<app-common-help-text [helpTextHardCoded]="'Select a start date to filter and search the action list'"></app-common-help-text></span>
+                        <div class="d-flex align-items-center">
+                          <span class="dateField col">
+                            <input #fromDateInput matInput [matDatepicker]="fromDt" class="form-control action-fromdate" [(ngModel)]="actionListSearchDates.fromDate"
+                              (ngModelChange)="validateDateFormat()" (dateChange)="validateDateFormat()" (blur)="validateDateFormat()" placeholder="{{datePlaceHolder}}" id="from-date" (click)="fromDt.open()"/>
+                            <span 
+                              class="fa fa-calendar fa-large pointer insidePicker hand-cursor ms-2" 
+                              title="Open calendar"
+                              (click)="fromDt.open()">
+                            </span>
+                            <mat-datepicker 
+                              #fromDt 
+                              (opened)="setFocusToElement('from-date')">
+                            </mat-datepicker>
+                          </span>
+                        </div>
+                      </div>
+                    
+                      <!-- To Date Field -->
+                      <div class="col-6">
+                        <span class="coi-text-dark">To date<app-common-help-text [helpTextHardCoded]="'Select an end date to filter and search the action list'"></app-common-help-text></span>
+                        <div class="d-flex align-items-center">
+                          <span class="dateField col">
+                            <input #toDateInput matInput [matDatepicker]="toDt" class="form-control action-enddate" [(ngModel)]="actionListSearchDates.toDate"
+                              (ngModelChange)="validateDateFormat()" (dateChange)="validateDateFormat()" (blur)="validateDateFormat()" placeholder="{{datePlaceHolder}}" id="to-date" (click)="toDt.open()"/>
+                            <span 
+                              class="fa fa-calendar fa-large pointer insidePicker hand-cursor ms-2" 
+                              title="Open calendar"
+                              (click)="toDt.open()">
+                            </span>
+                            <mat-datepicker 
+                              #toDt 
+                              (opened)="setFocusToElement('to-date')">
+                            </mat-datepicker>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-6">
+                        <span class="invalid-feedback d-block" *ngIf="fromDateValidationMap">
+                          <span>Entered date format is invalid.<br>Please use {{datePlaceHolder}} format.</span>
+                        </span>
+                      </div>
+                      <div class="col-6">
+                        <span class="invalid-feedback d-block" *ngIf="toDateValidationMap">
+                          <span>Entered date format is invalid.<br>Please use {{datePlaceHolder}} format.</span>
+                        </span>
+                      </div>
+                      <span class="invalid-feedback d-block" *ngIf="dateValidationMap.get('endDate')">
+                        {{dateValidationMap.get('endDate')}}
+                      </span>
+                    </div>
+                </div>
+                <div class="col-12 mt-3 d-flex justify-content-end">
+                    <div>
+                        <button id="action-list-clear-btn" class="btn btn-secondary btn-sm mr-sm-2 me-2"
+                            (click)="clearInboxSearchField();getInboxTab()">Clear</button>
+                        <button id="action-list-search-btn" class="btn btn-primary btn-sm"
+                            (click)="getInboxTab()" [disabled]="fromDateValidationMap || toDateValidationMap">Search</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</ng-container>
+  <ng-container content>
+    <div *ngIf="inboxDetails?.length && !isLoading">
+    <div class="col-12 border-bottom border-light mb-2 p-2 coi-actionlist-wrapper"
+      *ngFor="let inboxData of inboxDetails; let inboxIndex= index">
+      <div class="row">
+        <div class=" notifications col">
+          <div class="d-flex gap-2">
+            <div class="actionList-icon-wrapper mt-1 flex-shrink-0" >
+              <!-- mat-icon -->
+              <mat-icon *ngIf="!ACTION_LIST_ICON[inboxData?.moduleCode]?.svg" class="mat-icon material-icons" aria-hidden="true">
+                {{ACTION_LIST_ICON[inboxData?.moduleCode] ? ACTION_LIST_ICON[inboxData.moduleCode].icon : DEFAULT_ACTION_ICON.icon }}
+              </mat-icon>
+              <!-- svg icon -->
+              <img *ngIf="ACTION_LIST_ICON[inboxData?.moduleCode]?.svg"
+                [src]="ACTION_LIST_ICON[inboxData?.moduleCode].svg" alt="certifications icon" aria-hidden="true" class="coi-size-20 coi-svg-royal-blue">
+            </div>
+            <div>
+              <span class="coi-text-darker" [innerHTML]="inboxData?.message?.description"></span>
+              <br>
+              <span>
+                <ng-container *ngIf="inboxData?.moduleName.moduleCode === 8">
+                  <div class="fs-14"><span class="coi-text-light me-1 text-slice"
+                      title="{{inboxData?.userMessage}}">{{inboxData?.userMessage}}</span></div>
+                </ng-container>
+                <ng-container *ngIf="inboxData?.moduleName.moduleCode === 22">
+                  <div class="fs-14">OPA Disclosure by
+                    <span class="coi-text-lighter text-capitalize ms-1">{{inboxData?.updateUser}}</span>
+                  </div>
+                </ng-container>
+                <ng-container *ngIf="inboxData?.moduleName.moduleCode !== 8 && inboxData?.moduleName.moduleCode !== 22">
+                  <div class="coi-text-light"><span class="coi-text-light me-1 text-slice"
+                      title="{{inboxData?.userMessage}}">{{inboxData?.userMessage}}</span></div>
+                </ng-container>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="col-auto d-flex flex-column">
+          <div *ngIf="actionListSliderConfig?.actionListOptions?.includes('UPDATE_DATE')" class="d-flex flex-column h-100 text-right">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="arrival-time me-2 coi-text-dark f-13 fw-500">
+                <span class="fa fa-clock-o me-1" title="message-arrival-time"></span>
+                {{ getTimeInterval(inboxData.arrivalDate) }}
+              </span>
+              <div class="float-right arrival-time fs-14 text-end mt-auto"
+              [ngClass]="getModuleCodeClass(inboxData?.moduleName.moduleCode)">
+              {{ inboxData?.moduleName.description }}
+            </div>
+            </div>
+            <div class="float-right mt-1">
+              <span class="{{inboxData?.inbox?.class}}">{{ inboxData?.inbox?.name }}</span>
+            </div>
+          </div>
+          <div *ngIf="actionListSliderConfig?.actionListOptions?.includes('ACTION_BTN')"
+            class="d-flex flex-column align-items-end h-100 text-right">
+                <button
+                    *ngIf="canShowFCOIView(inboxData)"
+                    (click)="goToActionPath(inboxData, 'VIEW')"
+                    class="btn btn-sm btn-outline-grey d-inline-flex align-items-center ms-2"
+                    [title]="'Click here to view' + (inboxData?.moduleCode === '8' ? ' disclosure' : '')"
+                    [attr.aria-label]="'Click here to view' + (inboxData?.moduleCode === '8' ? ' disclosure' : '')">
+                    <mat-icon aria-hidden="true" class="me-1">visibility</mat-icon>
+                    <span>View</span>
+                </button>
+
+            <ng-container *ngIf="inboxTab == 'PENDING'">
+
+            <!-- FCOI CREATE BUTTON -->
+                <button
+                    *ngIf="(coiCreateReviseBtnArr.includes(inboxData?.messageTypeCode) && isCreateDisclosure) || [ACTION_LIST_MSG_TYPE_CODE.FCOI_ENGAGEMENT_CREATE].includes(inboxData?.messageTypeCode) "
+                    (click)="goToActionPath(inboxData, 'CREATE')"
+                    class="btn btn-sm btn-outline-grey d-inline-flex align-items-center ms-2"
+                    title="Click here to create disclosure" aria-label="Click here to create disclosure">
+                    <mat-icon aria-hidden="true" class="me-1">add_circle</mat-icon>
+                    <span>Create</span>
+                </button>
+
+            <!-- OPA initial -->
+                <button *ngIf="commonService.canCreateOPA && headerService.opaCreationType === 'INITIAL' && [ACTION_LIST_MSG_TYPE_CODE.OPA_ENGAGEMENT_CREATE].includes(inboxData?.messageTypeCode)"
+                    (click)="goToActionPath(inboxData, 'CREATE_OPA_INITIAL')" id="coi-action-list-opa-create"
+                    class="d-inline-flex align-items-center btn btn-sm btn-outline-grey ms-2"
+                    title="Click here to create opa disclosure" aria-label="Click here to create opa disclosure">
+                    <mat-icon aria-hidden="true" class="me-1">add_circle</mat-icon>
+                    <span>Create</span>
+                </button>
+
+            <!-- Travel CREATE BUTTON -->
+                <button *ngIf="[ACTION_LIST_MSG_TYPE_CODE.TRAVEL_ENGAGEMENT_CREATE].includes(inboxData?.messageTypeCode)"
+                    (click)="goToActionPath(inboxData, 'CREATE_TRAVEL')"
+                    class="btn btn-sm btn-outline-grey d-inline-flex align-items-center ms-2"
+                    title="Click here to create disclosure" aria-label="Click here to create disclosure">
+                    <mat-icon aria-hidden="true" class="me-1">add_circle</mat-icon>
+                    <span>Create</span>
+                </button>
+
+            <!-- FCOI Revise -->
+                <button *ngIf="(coiCreateReviseBtnArr.includes(inboxData?.messageTypeCode) &&
+                               (isRevise || viewDisclosure)) || [ACTION_LIST_MSG_TYPE_CODE.FCOI_ENGAGEMENT_REVISE, ACTION_LIST_MSG_TYPE_CODE.FCOI_ENGAGEMENT_WITHDRAW].includes(inboxData?.messageTypeCode)"
+                   (click)="goToActionPath(inboxData, 'REVISE')"
+                  class="btn btn-sm btn-outline-grey d-inline-flex align-items-center ms-2" title="Click here to revise disclosure"
+                  aria-label="Click here to revise disclosure">
+                  <mat-icon aria-hidden="true" class="me-1">restart_alt</mat-icon>
+                  <span>Revise</span>
+                </button>
+
+                <!-- OPA Revision-->
+                <button *ngIf="commonService.canCreateOPA && headerService.opaCreationType !== 'INITIAL' && [ACTION_LIST_MSG_TYPE_CODE.OPA_ENGAGEMENT_CREATE, ACTION_LIST_MSG_TYPE_CODE.OPA_RENEWAL_REQUIRED].includes(inboxData?.messageTypeCode)"
+                    (click)="goToActionPath(inboxData, 'CREATE_OPA_REVISION')" id="coi-action-list-opa-revise"
+                    class="d-inline-flex align-items-center btn btn-sm btn-outline-grey ms-2"
+                    title="Click here to revise opa disclosure" aria-label="Click here to revise opa disclosure">
+                    <mat-icon aria-hidden="true" class="me-1">restart_alt</mat-icon>
+                    <span>Revise</span>
+                </button>
+
+                <!-- Declaration Revise -->
+                <button *ngIf="[ACTION_LIST_MSG_TYPE_CODE.REVISE_EXPIRED_DECLARATION].includes(inboxData?.messageTypeCode)"
+                    (click)="goToActionPath(inboxData, 'DECLARATION_REVISE')"
+                    id="declaration-revise-button-{{inboxIndex}}"
+                    class="btn btn-sm btn-outline-grey d-inline-flex align-items-center ms-2"
+                    title="Click here to revise {{declarationLocalize.TERM}}"
+                    attr.aria-label="Click here to revise {{declarationLocalize.TERM}}">
+                    <mat-icon aria-hidden="true" class="me-1">restart_alt</mat-icon>
+                    <span>Revise</span>
+                </button>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="actionListSliderConfig?.actionListOptions?.includes('PAGINATION')" class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 mt-4">
+      <nav class="pagination justify-content-end">
+        <app-pagination [totalCount]="totalCount" [defaultCurrentPage]="pageNumber"
+          (pageChangeEvent)="actionsOnPageChange($event)">
+        </app-pagination>
+      </nav>
+    </div>
+  </div>
+  <div *ngIf="!inboxDetails?.length && !isLoading">
+    <app-no-information [isBorderNeeded]="true"></app-no-information>
+  </div>
+  </ng-container>
+</app-coi-slider>

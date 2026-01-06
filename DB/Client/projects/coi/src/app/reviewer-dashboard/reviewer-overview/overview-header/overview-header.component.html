@@ -1,0 +1,115 @@
+<section class="card coi-card-regular mt-0 coi-dashboard-tab-sticky" id="coi-reviewer-dash-overview-card">
+    <div class="card-body">
+        <div class="row row-gap-2 align-items-center pb-3">
+            <h3 class="col-auto fs-18 fw-bold mb-0">{{ REVIEWER_DASHBOARD_LOCALIZE.TERM_OVERVIEW }}</h3>
+            <fieldset
+                class="d-flex align-items-center justify-content-end col-12 col-md flex-wrap column-gap-3 row-gap-2">
+                <legend class="visually-hidden">Overview Department Search</legend>
+                <!-- department search -->
+                <div class="col-6 col-xxxl-5 flex-grow-1 flex-md-grow-0">
+                    <app-endpoint-search (onSelect)="onUnitChange($event)" [canEmitSearchText]="false"
+                        [httpOptions]="leadUnitSearchOptions" placeHolder="Search by Department"
+                        [uniqueId]="'coi-review-dash-overview-dept'">
+                    </app-endpoint-search>
+                </div>
+                <!-- check box -->
+                <div *ngIf="isShowIncludeChildUnit" class="d-flex gap-2 align-items-center">
+                    <input type="checkbox" id="coi-rev-overview-include-checkbox"
+                        [(ngModel)]="selectedUnit.isIncludeChildUnits"
+                        (ngModelChange)="onIncludeChildUnitChange($event)" class="coi-certify-box cursor-pointer"
+                        aria-label="Please check here to include child unit">
+                    <label for="coi-rev-overview-include-checkbox"
+                        class="coi-text-light fw-700 text-nowrap cursor-pointer">Include Child Unit</label>
+                </div>
+                <!-- Configure btn -->
+                <button id="configure-modal-btn" (click)="openConfigureModal()"
+                    title="Click here to open configure modal" aria-label="Click here to open configure modal"
+                    class="btn btn-outline-secondary d-flex align-items-center fs-14 gap-2">
+                    <mat-icon aria-hidden="true" class="coi-mat-icon-size">settings</mat-icon>
+                    <span>Configure</span>
+                </button>
+            </fieldset>
+        </div>
+        <!-- loader -->
+        <div *ngIf="isLoading" class="row">
+            <div *ngFor="let loader of skeletonLoaderList; let i = index" [class]="loader.class">
+                <app-shared-discl-review-overview-card
+                    [loaderConfig]="{ isShowLoader: true, columnClassArray: loader.columnClassArray }">
+                </app-shared-discl-review-overview-card>
+            </div>
+        </div>
+        <!-- no data information -->
+        <div *ngIf="!isLoading && !reviewStatDetails?.length && !isAPIFailed" class="row">
+            <app-no-information [isBorderNeeded]="true"></app-no-information>
+        </div>
+        <!-- API failed Retry -->
+        <div *ngIf="!isLoading && !reviewStatDetails?.length && isAPIFailed"
+            class="w-100 h-100 coi-custom-shadow rounded-3 overflow-hidden">
+            <app-skeleton-loader [viewMode]="'RETRY'" (emitRetry)="fetchOverviewHeader()"></app-skeleton-loader>
+        </div>
+        <!-- list -->
+        <ng-container *ngIf="!isLoading && reviewStatDetails?.length">
+            <!-- Normal Grid for cards less than or equal to cardsPerView -->
+            <ul *ngIf="reviewStatDetails?.length <= cardsPerView" class="row list-unstyled mb-0"
+                [@listAnimation]="reviewStatDetails?.length">
+                <ng-container *ngFor="let data of reviewStatDetails">
+                    <li [class]="customWidgetLayoutClass">
+                        <app-shared-discl-review-overview-card [reviewStatDetails]="data"
+                            [triggeredFrom]="'OVERVIEW_HEADER'" (cardActions)="overviewCardActions($event)">
+                        </app-shared-discl-review-overview-card>
+                    </li>
+                </ng-container>
+            </ul>
+            <!-- Carousel for more cards than cardsPerView -->
+            <div *ngIf="reviewStatDetails?.length > cardsPerView" class="multi-card-carousel-container"
+                [@listAnimation]="reviewStatDetails?.length">
+                <!-- Carousel Container -->
+                <div class="carousel-wrapper">
+                    <!-- Previous Button -->
+                    <button *ngIf="currentSlideIndex > 0"
+                        class="btn btn-primary rounded-circle carousel-nav-btn carousel-nav-prev"
+                        title="Click here to move to previous slide" aria-label="Click here to move to previous slide"
+                        (click)="previousSlide()">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0">chevron_left</mat-icon>
+                    </button>
+                    <!-- carousel body -->
+                    <div class="carousel-viewport">
+                        <ul class="carousel-track list-unstyled mb-0"
+                            [style.transform]="'translateX(' + transformValue + '%)'">
+                            <!-- Single continuous track with all cards -->
+                            <li *ngFor="let data of reviewStatDetails; let i = index" class="carousel-card">
+                                <app-shared-discl-review-overview-card [reviewStatDetails]="data"
+                                    [triggeredFrom]="'OVERVIEW_HEADER'" (cardActions)="overviewCardActions($event)">
+                                </app-shared-discl-review-overview-card>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- Next Button -->
+                    <button *ngIf="currentSlideIndex !== (totalSlides - 1)"
+                        class="btn btn-primary rounded-circle carousel-nav-btn carousel-nav-next"
+                        title="Click here to move to next slide" aria-label="Click here to move to next slide"
+                        (click)="nextSlide()">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0">chevron_right</mat-icon>
+                    </button>
+                </div>
+                <!-- Carousel Indicators -->
+                <div *ngIf="totalSlides > 1" class="carousel-indicators gap-2 m-0">
+                    <button *ngFor="let indicator of indicators; let i = index" [class.active]="i === currentSlideIndex"
+                        (click)="goToSlide(i)" class="btn-none carousel-indicator" title="click here to move slide"
+                        aria-label="click here to move slide">
+                    </button>
+                </div>
+            </div>
+        </ng-container>
+    </div>
+</section>
+
+<!-- Disclosure Configuration modal starts -->
+<ng-container *ngIf="reviewerDashboardService.disclosureConfigurationModalConfig?.isOpenDiscConfigModal">
+    <app-configuration-modal
+        [disclosureConfigurationModalConfig]="reviewerDashboardService.disclosureConfigurationModalConfig"
+        [preferredUnit]="personPreferenceForUnit" [personPreferenceForChildUnit]="personPreferenceForChildUnit"
+        [defaultUnitName]="defaultUnitName">
+    </app-configuration-modal>
+</ng-container>
+<!-- Disclosure Configuration modal ends -->

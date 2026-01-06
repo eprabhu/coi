@@ -1,0 +1,152 @@
+<div class="card coi-card-regular" [ngClass]="{'coi-card-highlight' : hasSameDeclaration}">
+    <div class="card-body">
+        <div class="row row-gap-2">
+            <!-- header -->
+            <div class="col-12 align-items-end coi-card-body-notch-container">
+                <!-- badge -->
+                <div class="d-flex">
+                    <span [style.backgroundColor]="declarationDetails?.badgeColor"
+                        class="coi-card-notch-ribbon shadow-sm">{{ declarationDetails?.declarationType }} - {{ declarationDetails?.versionNumber === initialVersionNumber ? 'Initial' : 'Revision' }}</span>
+                    <h4 *ngIf="!isHistoryCard" class="d-flex ms-1 mt-1 mb-0">
+                        <!-- Person Name -->
+                        <span class="d-inline-flex">
+                            <mat-icon aria-hidden="true" class="coi-text-light me-1">person</mat-icon>
+                            <a [title]="'Click here to view the details of ' + declarationDetails?.personFullName"
+                                class="coi-text-light fs-6 text-nowrap link-primary cursor-pointer" tabindex="0"
+                                (click)="openPersonDetailsModal()"
+                                (keyup.enter)="openPersonDetailsModal()"
+                                [attr.aria-label]="'Click here to view details of ' + declarationDetails?.personFullName"
+                                id="person-{{ declarationDetails?.declarationId }}">
+                                {{ declarationDetails?.personFullName }}
+                            </a>
+                        </span>
+                    </h4>
+                </div>
+            </div>
+            <div class="col-lg">
+                <div class="row row-gap-2">
+                    <ng-container *ngFor="let fieldOrder of cardOrder">
+                        <!-- Department Date -->
+                        <div *ngIf="fieldOrder === 'DEPARTMENT'"
+                            [attr.aria-label]="'Department' + declarationDetails?.unitDisplayName"
+                            class="col-lg-4 col-md-6" id="declaration-card-expire-date-{{ declarationDetails?.declarationId }}">
+                            <span class="d-block coi-text-dark"><ng-container i18n="@@COMMON_DEPARTMENT">Department</ng-container></span>
+                            <span class="coi-text-light text-slice" [title]="declarationDetails?.unitDisplayName">
+                                <app-no-data-label [valueToShow]="declarationDetails?.unitDisplayName"></app-no-data-label>
+                            </span>
+                        </div>
+                        <!-- Submission Date -->
+                        <div *ngIf="fieldOrder === 'CERTIFICATION_DATE'"
+                            class="col-lg-4 col-md-6" id="declaration-card-cerify-date-{{ declarationDetails?.declarationId }}">
+                            <span class="d-block coi-text-dark">{{ declarationLocalize.SUBMISSION }} Date</span>
+                            <span class="coi-text-light text-slice" [title]="declarationDetails?.submissionDate | dateFormatterWithTimeZone">
+                                <app-no-data-label
+                                    [valueToShow]="declarationDetails?.submissionDate | dateFormatterWithTimeZone"></app-no-data-label>
+                            </span>
+                        </div>
+                        <!-- Expiration Date -->
+                        <div *ngIf="fieldOrder === 'EXPIRATION_DATE'"
+                            class="col-lg-4 col-md-6" id="declaration-card-expire-date-{{ declarationDetails?.declarationId }}">
+                            <span class="d-block coi-text-dark">Expiration Date</span>
+                            <span class="coi-text-light text-slice" [title]="declarationDetails?.expirationDate | dateFormatterWithTimeZone">
+                                <app-no-data-label
+                                    [valueToShow]="declarationDetails?.expirationDate | dateFormatterWithTimeZone"></app-no-data-label>
+                            </span>
+                        </div>
+                        <!-- Administrator -->
+                        <div *ngIf="fieldOrder === 'ADMINISTRATOR'"
+                            class="col-lg-4 col-md-6" id="declaration-card-admin-person-{{ declarationDetails?.declarationId }}">
+                            <span class="d-block coi-text-dark">Administrator</span>
+                            <span class="coi-text-light text-slice" [title]="declarationDetails?.adminPersonName">
+                                <app-no-data-label [valueToShow]="declarationDetails?.adminPersonName"></app-no-data-label>
+                            </span>
+                        </div>
+                        <!-- Admin Group -->
+                        <div *ngIf="fieldOrder === 'ADMIN_GROUP'"
+                            class="col-lg-4 col-md-6" id="declaration-card-admin-group-{{ declarationDetails?.declarationId }}">
+                            <span class="d-block coi-text-dark">Admin Group</span>
+                            <span class="coi-text-light text-slice" [title]="declarationDetails?.adminGroupName">
+                                <app-no-data-label [valueToShow]="declarationDetails?.adminGroupName"></app-no-data-label>
+                            </span>
+                        </div>
+                    </ng-container>
+                </div>
+            </div>
+            <!-- status -->
+            <div class="col-lg-3 col-xxl-2">
+                <div class="d-flex flex-lg-column gap-2 coi-box-purple p-2">
+                    <!-- Review Status -->
+                    <div class="flex-grow-1 lh-sm">
+                        <span class="d-block coi-text-lighter">{{ declarationLocalize.TERM_REVIEW_STATUS }}</span>
+                        <app-no-data-label [valueToShow]="declarationDetails?.reviewStatus">
+                            <span class="{{ reviewStatusBadgeClass[declarationDetails?.reviewStatusCode] }}"></span>
+                            <span class="coi-text-dark ms-1" [title]="declarationDetails?.reviewStatus">{{ declarationDetails?.reviewStatus }}</span>
+                        </app-no-data-label>
+                    </div>
+                      
+                    <!-- Declaration Status -->
+                    <div class="flex-grow-1 lh-sm">
+                        <span class="d-block coi-text-lighter">{{ declarationLocalize.TERM_DISPOSITION_STATUS }}</span>
+                        <app-no-data-label [valueToShow]="declarationDetails?.declarationStatus">
+                            <span class="{{ declarationStatusBadgeClass[declarationDetails?.declarationStatusCode] }}"></span>
+                            <span class="coi-text-dark ms-1" [title]="declarationDetails?.declarationStatus">{{ declarationDetails?.declarationStatus }}</span>
+                        </app-no-data-label>
+                    </div>
+
+                    <!-- Version Status -->
+                    <div *ngIf="isHistoryCard" class="flex-grow-1 lh-sm">
+                        <span class="d-block coi-text-lighter">Version Status</span>
+                        <app-no-data-label [valueToShow]="declarationDetails?.versionStatus">
+                            <span class="{{ versionStatusBadgeClass[declarationDetails?.versionStatus] }}"></span>
+                            <span class="coi-text-dark ms-1 text-capitalize"
+                                [title]="declarationDetails?.versionStatus">{{ declarationDetails?.versionStatus?.toLowerCase() }}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="!hasSameDeclaration && isHistoryCard && isShowViewBtn" class="d-flex align-items-center justify-content-end ms-auto col-auto">
+                <button (click)="redirectToDeclaration()"
+                    id="declaration-card-view-hist-btn-{{ declarationDetails?.declarationId }}"
+                    class="d-flex align-items-center btn btn-outline-secondary fs-14"
+                    title="Click here to view {{ declarationDetails?.declarationType }} {{declarationLocalize.TERM}}"
+                    attr.aria-label="Click here to view the {{ declarationDetails?.declarationType }} {{declarationLocalize.TERM}}">
+                    <mat-icon aria-hidden="true" class="me-1">visibility</mat-icon>
+                    <span>View</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Footer -->
+    <div *ngIf="!isHistoryCard" class="d-flex justify-content-between align-items-center card-footer flex-wrap gap-2">
+        <!-- Last Updated -->
+        <div class="d-flex flex-column">
+            <span class="coi-text-lighter fs-13 mb-0">Last Updated By</span>
+            <span class="coi-text-dark fs-13 fw-normal"
+                [attr.aria-label]="declarationDetails?.updateUserFullName + ' on ' + (declarationDetails?.updateTimeStamp | dateFormatterWithTimeZone: 'long')">
+                <span>{{ declarationDetails?.updateUserFullName }}</span>
+                <span class="coi-text-lighter"> On </span>
+                <span>{{ declarationDetails?.updateTimeStamp | dateFormatterWithTimeZone: 'long' }}</span>
+            </span>
+        </div>
+        <!-- actions -->
+        <div class="d-flex align-items-center gap-2">
+            <!-- Assign Admin -->
+            <button *ngIf="isShowAssignAdmin" (click)="openAssignAdminModal()"
+                id="declaration-card-assign-admin-btn-{{ declarationDetails?.declarationId }}"
+                title="Click here to {{declarationDetails?.adminPersonId ? 'reassign' : 'assign'}} administrator/admin group"
+                attr.aria-label="Click here to {{declarationDetails?.adminPersonId ? 'reassign' : 'assign'}} administrator/admin group"
+                class="btn btn-outline-secondary d-flex align-items-center fs-14">
+                <mat-icon aria-hidden="true" class="flex-shrink-0">group_add</mat-icon>
+                <span class="ms-2 text-nowrap">{{ declarationDetails?.adminPersonId ? 'Reassign' : 'Assign' }} Admin</span>
+            </button>
+            <button (click)="redirectToDeclaration()"
+                id="declaration-card-view-btn-{{ declarationDetails?.declarationId }}"
+                class="btn btn-outline-secondary d-flex align-items-center fs-14"
+                title="Click here to view {{ declarationDetails?.declarationType }} {{declarationLocalize.TERM}}"
+                attr.aria-label="Click here to view the {{ declarationDetails?.declarationType }} {{declarationLocalize.TERM}}">
+                <mat-icon aria-hidden="true" class="me-1">visibility</mat-icon>
+                <span>View</span>
+            </button>
+        </div>
+    </div>
+</div>

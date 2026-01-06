@@ -1,0 +1,2 @@
+\. ./FIBI-COI-5.7.9/FC-1564/Procedures/GET_MIG_ENG_DETAILS.sql
+\. ./FIBI-COI-5.7.9/FC-1564/Procedures/GET_MIG_ENG_DASHBOARD.sql

@@ -1,0 +1,116 @@
+<app-coi-slider (closeSlider)="closeConflictSlider()" [elementId]="'risk-conflict-slider'" [isHeaderNeeded]="true" [isChangedFieldValue]="isFieldValueChanges()">
+    <!-- slider header -->
+    <ng-container header>
+        <span id="coi-entity-risk-header">Modify Entity Risk</span><app-common-help-text [subSectionId]="2601" [elementId]="'coi-entity-risk-header'"></app-common-help-text>
+    </ng-container>
+
+    <!-- slider header card -->
+    <ng-container content-sticky>
+        <div class="mt-1">
+            <app-shared-entity-info-card [entityDetails]="entityDetails" [triggeredFrom]="'ENTITY_RISK_SLIDER'"></app-shared-entity-info-card>
+        </div>
+    </ng-container>
+
+    <!-- modal content -->
+    <ng-container content>
+
+         <!-- risk edit section -->
+        <div class="card mt-2">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-lg-4 align-items-center">
+                        <label class="fs-14 fw-500">Risk<app-common-help-text [subSectionId]="2601" [elementId]="'coi-manage-entity-risk'"></app-common-help-text>
+                        </label>
+                        <span>
+                            <select class="form-control form-select" [(ngModel)]="currentRiskCategorycode" id="coi-manage-entity-risk"
+                                [ngClass]="riskValidationMap?.has('riskLevelCode') || riskValidationMap?.has('duplicateRisk')  ? 'is-invalid d-block' : ''"
+                                (ngModelChange)="removeValidationMap('LEVEL'); setCoiProjConflictStatusType();">
+                                <option [value]=null>--Select--</option>
+                                <option *ngFor="let riskLevel of riskLevelLookup" [value]="riskLevel.riskCategoryCode">
+                                    {{riskLevel?.description}}</option>
+                            </select>
+                            <div *ngIf="riskValidationMap?.has('riskLevelCode')" class="invalid-feedback d-block fs-12">
+                                {{riskValidationMap?.get('riskLevelCode')}}
+                            </div>
+                            <div *ngIf="riskValidationMap?.has('duplicateRisk')" class="d-block fs-12 invalid-feedback">
+                                {{riskValidationMap?.get('duplicateRisk')}}
+                            </div>
+                        </span>
+                        <app-common-information [elementId]="'coi-manage-entity-risk'" [subSectionId]="2601"></app-common-information>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <label for="coi-manage-entity-risk-desc" class="fs-14 fw-500">Describe the reason for Risk level change<app-common-help-text [subSectionId]="2601" [elementId]="'coi-manage-entity-risk-desc'"></app-common-help-text>
+                        </label>
+                        <textarea id="coi-manage-entity-risk-desc" class="form-control fs-14" placeholder="Description" row="1" id="coi-manage-entity-reason"
+                            [(ngModel)]="revisionComment" appAutoGrow appLengthValidator rows="1" [limit]="2000"
+                            [isShowLimiter]="true" [ngClass]="riskValidationMap?.has('comment') ? 'is-invalid d-block' : ''"
+                            (ngModelChange)="removeValidationMap('COMMENT'); revisionComment = revisionComment.trim()">
+                        </textarea>
+                            <app-common-information [elementId]="'coi-manage-entity-risk-desc'" [subSectionId]="2601"></app-common-information>
+                        <div *ngIf="riskValidationMap?.has('comment')" class="invalid-feedback d-block fs-12">
+                            {{riskValidationMap?.get('comment')}}
+                        </div>
+                    </div>
+                   
+                </div>
+                <div class="mt-2 text-end">
+                    <button type="button" class="btn btn-outline-secondary fs-14 me-2"
+                        (click)="clearConflictModal()">Clear</button>
+                    <button type="button" class="btn btn-primary fs-14" (click)="checkForModification()">Save</button>
+                </div>
+            </div>
+        </div>
+
+         <!-- risk history heading -->
+         <div class="main-title mt-3 mb-2" id="" tabindex="0">
+            <h3 class="d-flex align-items-center fs-18"><strong>Risk History</strong>
+                <span class="d-inline-block" data-bs-toggle="tooltip"
+                    data-bs-placement="top">
+                </span>
+            </h3>
+        </div>
+          <!-- risk history log -->
+          <div class="card" id="risk-history">
+            <div class="card-content">
+                <div class="card-body">
+                            <ul class="timeline">
+                                <ng-container *ngFor="let risk of riskHistoryLogs | keyvalue: sortNull">
+                                <li *ngFor="let historyEntry of risk.value; let index=index">
+                                    <span class="fs-14" [innerHTML]="historyEntry?.description" tabindex="0"></span>
+                                    <p class="coi-text-lighter fs-13" tabindex="0">{{risk.key}} {{historyEntry?.updateTimestamp | dateFormatterWithTimeZone:'time'}}</p>
+                                    <p *ngIf="historyEntry?.description" class="coi-text-light" tabindex="0">
+                                        <span *ngIf="historyEntry?.comment" class="fs-14">
+                                            <mat-icon class="format_quote">format_quote</mat-icon>
+                                            <span *ngIf="!isReadMore[index] && historyEntry?.comment?.length > 170; else showFullInfo" class="fst-italic mx-2" 
+                                                [attr.aria-label]="historyEntry?.comment">
+                                                <span class="coi-text-light mt-2">{{(historyEntry?.comment | slice:0:170)}}</span>
+                                                <span (click)="isReadMore[index] = !isReadMore[index]" class="hand-cursor" title="Read More"><span class="fw-medium">... <u>Read More</u>
+                                                        <i aria-hidden="true"></i></span>
+                                                </span>
+                                            </span>
+                                            <ng-template #showFullInfo>
+                                                <span tabindex='0' [attr.aria-label]="historyEntry?.comment" class="fst-italic mx-2 coi-text-light">{{historyEntry?.comment}}</span>
+                                                <span *ngIf="historyEntry?.comment?.length > 170" class="hand-cursor mt-2 fw-medium" title="Read Less"
+                                                    (click)="isReadMore[index] = !isReadMore[index]" aria-hidden="true">
+                                                    <span class="fw-medium"><u>Read Less</u>
+                                                        <i aria-hidden="true"></i></span>
+                                                </span>
+                                            </ng-template>
+                                        </span>
+                                    </p>
+                                </li>
+                            </ng-container>
+                            </ul>
+                      <div *ngIf="isEmptyObject(riskHistoryLogs)" class="noDataExists p-2">
+                            <app-no-information [isBorderNeeded]="false"> </app-no-information>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </ng-container>
+    <ng-container confirmation-content>
+        Are you sure you want to leave the <strong>Manage Risk Status</strong> page without saving?
+    </ng-container>
+</app-coi-slider>
+
+<app-concurrency-warning-modal *ngIf="isConcurrency" [sectionName]="'Entity Risk Status'" (closePage)="isConcurrency = false"></app-concurrency-warning-modal>

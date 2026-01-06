@@ -1,0 +1,367 @@
+<!--SPECIAL REVIEW CODE STARTS-->
+<div id="Award113" class="card mb-3" *ngIf="result?.award?.awardId" [ngClass]="{'item-highlighted': isHighlighted}">
+    <div class="card-header px-4">
+        <h4 class="card-title"><span><ng-container i18n="@@COMMON_SPECIAL_REVIEW">Special Review</ng-container>
+                <span *ngIf="helpText?.specialReview?.helpTextInfo" class="d-inline-block icon-hover">
+                    <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med hand-cursor"
+                            aria-hidden="true"></i>
+                        <div class="tooltiptext-left card card-inner p-15 text-left">
+                            <span class="font-cv">{{helpText?.specialReview?.helpTextInfo}}</span>
+                        </div>
+                    </a>
+                </span>
+            </span>
+            <div class="float-right">
+                <button type="button" id="prop-special-revw-add-btn"
+                    class="btn btn-tertiary btn-sm mr-5 mt-0 button-right" data-toggle="modal"
+                    data-target="#add-review-modal">Add Special Review</button>
+
+                <button id="specialReviewExpandBtn" class="updown-arrow mt-1"
+                    (click)="isShowCollapse = !isShowCollapse">
+                    <i [ngClass]="isShowCollapse?'fa fa-angle-double-up':'fa fa-angle-double-down'" class="fa-large"
+                        aria-hidden="true"></i>
+                </button>
+            </div>
+
+        </h4>
+    </div>
+    <!--Special Review Details-->
+    <div class="card-content" *ngIf="isShowCollapse">
+        <div class="card-body">
+            <div class="noDataOnChart noDataExists p-2" *ngIf="specialReviewData?.length == 0">
+                <div class="no-data-container">
+                    <span class="no-data-icon-outer">
+                        <div class="no-data-icon">
+                            <i aria-hidden="true" class="fa fa-file-o"></i>
+                            <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                        </div>
+                    </span>
+                    <h4>There is no information in this section.</h4>
+                </div>
+            </div>
+            <div class="table-responsive" *ngIf="(isShowCollapse) && (specialReviewData?.length > 0)">
+                <table class="table tableSkin grid2">
+                    <caption class="sr-only">Special Review</caption>
+                    <thead class="d-none">
+                        <tr>
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="thead-light">
+                            <th scope="col"><ng-container i18n="@@REVIEW_TYPE">Review Type</ng-container></th>
+                            <th scope="col"><ng-container i18n="@@PROTOCOL_STATUS">Protocol Status</ng-container></th>
+                            <th scope="col">Protocol Number</th>
+                            <th scope="col">Application Date</th>
+                            <th scope="col">Approval Date</th>
+                            <th scope="col">Expiration Date</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                        <tr *ngFor="let specialReview of specialReviewData;let i = index">
+                            <td>{{ specialReview?.specialReview?.description }}</td>
+                            <td>{{ specialReview?.specialReviewApprovalType?.description }}</td>
+                            <td>{{ specialReview?.protocolNumber }}</td>
+                            <td>{{ specialReview?.applicationDate | dateFormatter }}</td>
+                            <td>{{ specialReview?.approvalDate | dateFormatter }}</td>
+                            <td>{{ specialReview?.expirationDate | dateFormatter }}</td>
+                            <td>
+                                <ul class="actionButtonGroup">
+                                    <li>
+                                        <a data-toggle="modal" data-target="#award-special-review-comment-modal"
+                                            id="prop-special-revw-view-cmt-btn">
+                                            <i class="fa fa-commenting-o" aria-hidden="true" title="View Comments"
+                                                (click)="showSpecialReviewComment(specialReview)"></i>
+                                        </a>
+                                    </li>
+                                    <li *ngIf="specialReview.awardSpecailReviewId != null">
+                                        <a data-toggle="modal" data-target="#add-review-modal"
+                                            id="prop-special-revw-update-btn" tabindex="0">
+                                            <i class="fa fa-pencil hand-cursor hoverColor" aria-hidden="true"
+                                                title="Click here to edit this Special Review"
+                                                (click)="editSpecialReview(i)"></i>
+                                        </a>
+                                    </li>
+                                    <li *ngIf="isSpecialReview || (!isSpecialReview && index !== i)">
+                                        <a data-toggle="modal" data-target="#deleteSpecialReview"
+                                            id="award-special-review-delete-btn"
+                                            (click)=" this.removeSpecialReviewId = specialReview.awardSpecailReviewId;  this.index = i;"
+                                            tabindex="0">
+                                            <i class="fa fa-trash-o pointer" aria-hidden="true"
+                                                title="Click here to  delete this Special Review"></i>
+                                        </a>
+                                    </li>
+                                    <li *ngIf="specialReview?.isProtocolIntegrated">
+                                        <a (click)="viewProtocolDetails(specialReview);" id="award-key-view-btn"
+                                            tabindex="0">
+                                            <i class="fa fa-eye" aria-hidden="true" title="Click here to view"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div *ngIf="isViewProtocolDetails">
+    <app-link-compliance-view
+        [viewProtocolDetails]="specialReviewViewObject?.acProtocol ? specialReviewViewObject?.acProtocol : specialReviewViewObject?.irbProtocol"
+        (closeModal)="closeViewModal($event)"></app-link-compliance-view>
+</div>
+
+<!--DELETE SPECIAL REVIEW MODAL-->
+<div class="modal fade mySkinDialog modal-opacity" tabindex="-1" id="deleteSpecialReview" tabindex="-1" role="dialog"
+    aria-labelledby="deleteModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete</h5>
+                <button type="button" class="close" id="award-special-review-dlt-dismiss-btn" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this special review?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="award-special-review-dlt-no-btn" class="btn-secondary btn-sm"
+                    data-dismiss="modal" data-toggle="modal">Cancel</button>
+                <button type="button" id="award-special-review-dlt-yes-btn" class="btn btn-primary-sub btn-sm"
+                    data-dismiss="modal" (click)="deleteSpecialReview()">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SHOW SPECIAL REVIEW COMMENTS -->
+<div class="modal fade mySkinDialog modal-opacity" tabindex="-1" id="award-special-review-comment-modal" tabindex="-1"
+    role="dialog" aria-labelledby="showCommentModalTitle" aria-hidden="true">
+    <div class="modal-dialog  modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Comments - {{savedSpecialReviewObject.title}}</h5>
+                <button type="button" class="close" id="prop-special-revw-cmt-dismiss-btn" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-inner-scroll">
+                <p class="new-line-property" *ngIf="savedSpecialReviewObject.comment">
+                    {{savedSpecialReviewObject.comment}}</p>
+                <div class="no-data-container" *ngIf="!savedSpecialReviewObject.comment">
+                    <span class="no-data-icon-outer">
+                        <div class="no-data-icon">
+                            <i class="fa fa-file-o" aria-hidden="true"></i>
+                            <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                        </div>
+                    </span>
+                    <h4>There is no comment.</h4>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="prop-special-revw-dlt-no-btn" class="btn btn-secondary" data-dismiss="modal"
+                    data-toggle="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Special Review Modal -->
+
+<div class="modal fade mySkinDialog" id="add-review-modal" role="dialog" aria-labelledby="skippedSchedulesTitle"
+    aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{index == null ? 'Add' : 'Update'}} Special Review</h5>
+                <button type="button" class="close" (click)="cancelSpecialReviewUpdate()" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body py-1 px-3">
+                <app-award-overview-modal-card></app-award-overview-modal-card>
+                <div class="w-100">
+                    <div class="form-row">
+                        <div class="col-lg-4 col-sm-3 col-12">
+                            <label for="prop-special-revw-type"><span class="mandatory">*</span>Review Type</label>
+                            <select class="form-control" id="award-special-review-type"
+                                [ngClass]="(map.get('specialReviewCode')) ? 'is-invalid d-block' : ''"
+                                [(ngModel)]="specialReviews.specialReviewCode"
+                                [disabled]="index != null && specialReviews.isProtocolIntegrated"
+                                (change)="specialReviewTypeChange(specialReviews.specialReviewCode);">
+                                <option [value]=null>--Select--</option>
+                                <option [value]="type.specialReviewTypeCode"
+                                    *ngFor="let type of lookupData?.reviewTypes" [hidden]="type.isActive != true">
+                                    {{type.description}}</option>
+                            </select>
+                            <div *ngIf="(map.get('specialReviewCode'))" class="invalid-feedback d-block">
+                                Please select an approval type.
+                            </div>
+                        </div>
+                        <div class="col-sm-3 col-12"
+                            [ngClass]="specialReviews?.specialReview?.isIntegrated ? 'col-lg' : 'col-lg-4'">
+                            <label for="award-special-review-protocolnumber">Protocol Number</label>
+                            <input type="text" id="award-special-review-protocolnumber"
+                                [(ngModel)]="specialReviews.protocolNumber"
+                                [disabled]="specialReviews?.isProtocolIntegrated" step="any" class="form-control"
+                                maxlength="20" />
+                        </div>
+                        <div *ngIf="specialReviews?.specialReview?.isIntegrated && index == null"
+                            class="col-auto d-flex pt-5 mt-1">
+                            <button id="show-advcance-search-special-review"
+                                class="btn btn-sm btn-tertiary float-right mr-2 " role="button" aria-expanded="false"
+                                aria-controls="collapsespecialreview" (click)="addNewReview();">
+                                Search Protocol
+                            </button>
+                        </div>
+                        <div class="col-lg-4 col-sm-3 col-12">
+                            <label for="prop-special-revw-appovaltyp"><span class="mandatory">*</span>
+                                <ng-container i18n="@@PROTOCOL_STATUS">Protocol Status</ng-container>
+                            </label>
+                            <select *ngIf="!specialReviews.isProtocolIntegrated; else integrationProtocolStatus"
+                                class="form-control" id="award-special-review-appovaltyp"
+                                [ngClass]="(map.get('specialApprovalType')) ? 'is-invalid d-block' : ''"
+                                [(ngModel)]="specialReviews.approvalTypeCode"
+                                (change)="specialReviewApprovalStatusChange(specialReviews.approvalTypeCode);">
+                                <option [value]=null>--Select--</option>
+                                <option *ngFor="let type of lookupData.approvalStatusTypes"
+                                    [value]="type.approvalTypeCode" [hidden]="type.isActive != true">
+                                    {{type.description}} </option>
+                            </select>
+                            <ng-template #integrationProtocolStatus>
+                                <select class="form-control" id="prop-special-revw-appovaltype"
+                                    [(ngModel)]="specialReviews.approvalTypeCode" disabled>
+                                    <option [value]=null>--Select--</option>
+                                    <option *ngFor="let type of integrationApprovalStatusDropdown"
+                                        [ngValue]="type.protocolStatusCode" [hidden]="type.isActive != true">
+                                        {{type.description}}
+                                    </option>
+                                </select>
+                            </ng-template>
+                            <div *ngIf="(map.get('specialApprovalType'))" class="invalid-feedback d-block">
+                                Please select an approval status.
+                            </div>
+                        </div>
+                        <div class="col-lg-12 col-12 mb-4 mt-2 viewMode resultCard" *ngIf="isShowReviewResultCard">
+                            <button *ngIf="index == null" class="closeResultCard ontop" id="close-elastic-person"
+                                (click)="resetSpecialReviewCard();">
+                                <i class="fa fa-times" aria-hidden="true"></i>
+                            </button>
+                            <div class="row shadow-lg bg-light">
+                                <div class="col-lg col-md-6 col-12">
+                                    <label>Protocol Number</label>
+                                    <span><a>{{selectedReviewObject?.protocolNumber}}</a></span>
+                                </div>
+                                <div class="col-lg col-md-6 col-12">
+                                    <label>Protocol Title</label>
+                                    <span>{{selectedReviewObject?.title}}</span>
+                                </div>
+                                <div class="col-lg col-md-6 col-12">
+                                    <label><ng-container i18n="@@PROTOCOL_STATUS">Protocol Status</ng-container></label>
+                                    <span>
+                                        {{selectedReviewObject?.acProtocolStatus?.description ||
+                                        selectedReviewObject?.irbProtocolStatus?.description}}
+                                    </span>
+                                </div>
+                                <div class="col-lg col-md-6 col-12">
+                                    <label>Funding Source</label>
+                                    <span>{{selectedReviewObject?.fundingSource}}</span>
+                                </div>
+                                <div class="col-lg col-md-6 col-12">
+                                    <label>Investigator</label>
+                                    <span>{{selectedReviewObject?.fullName}}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- <div class="form-row"> -->
+                        <div class="col-lg-4 col-sm-3 col-12">
+                            <label> Application Date</label>
+                            <span class="dateField">
+                                <input matInput [matDatepicker]="appliDt" id="award-special-review-appldt"
+                                    autocomplete="off" placeholder="{{datePlaceHolder}}"
+                                    [(ngModel)]="specialReviews.applicationDate" class="form-control"
+                                    (ngModelChange)="validateSpecialReviewDates()"
+                                    [disabled]="specialReviews?.isProtocolIntegrated"
+                                    (keypress)="_commonService._keyPress($event, 'date')" (click)="appliDt.open()" />
+                                <span class="fa fa-calendar fa-large hand-cursor insidePicker" title="Open Calendar"
+                                    (click)="appliDt.open()"></span>
+                                <mat-datepicker #appliDt
+                                    (opened)="setFocusToElement('award-special-review-appldt')"></mat-datepicker>
+                            </span>
+                        </div>
+                        <div class="col-lg-4 col-sm-3 col-12">
+                            <label for="award-special-review-appovaldt"> Approval Date</label>
+                            <span class="dateField">
+                                <input matInput [matDatepicker]="approvDt" id="award-special-review-appovaldt"
+                                    placeholder="{{datePlaceHolder}}" [(ngModel)]="specialReviews.approvalDate"
+                                    class="form-control" autocomplete="off"
+                                    (ngModelChange)="validateSpecialReviewDates()"
+                                    [ngClass]="warningMsgObj.approvalDate?'is-invalid':''"
+                                    [disabled]="specialReviews?.isProtocolIntegrated"
+                                    (keypress)="_commonService._keyPress($event, 'date')" (click)="approvDt.open()" />
+                                <i class="fa fa-calendar fa-large  hand-cursor  insidePicker" title="Open Calendar"
+                                    (click)="approvDt.open()" aria-hidden="true" tabindex="0"></i>
+                                <mat-datepicker #approvDt
+                                    (opened)="setFocusToElement('award-special-review-appovaldt')"></mat-datepicker>
+                            </span>
+                            <div class="invalid-feedback d-block" *ngIf="warningMsgObj?.approvalDate">
+                                {{warningMsgObj?.approvalDate}}
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-sm-3 col-12">
+                            <label for="award-special-review-expdt"> Expiration Date</label>
+                            <span class="dateField">
+                                <input matInput [matDatepicker]="expDt" id="award-special-review-expdt"
+                                    placeholder="{{datePlaceHolder}}" [(ngModel)]="specialReviews.expirationDate"
+                                    class="form-control" autocomplete="off"
+                                    (ngModelChange)="validateSpecialReviewDates()"
+                                    [ngClass]="warningMsgObj.expirationDate?'is-invalid':''"
+                                    [disabled]="specialReviews?.isProtocolIntegrated"
+                                    (keypress)="_commonService._keyPress($event, 'date')" (click)="expDt.open()" />
+                                <i class="fa fa-calendar fa-large hand-cursor  insidePicker" title="Open Calendar"
+                                    (click)="expDt.open()" aria-hidden="true"></i>
+                                <mat-datepicker #expDt
+                                    (opened)="setFocusToElement('award-special-review-expdt')"></mat-datepicker>
+                            </span>
+                            <div class="invalid-feedback d-block" *ngIf="warningMsgObj?.expirationDate">
+                                {{warningMsgObj?.expirationDate}}
+                            </div>
+                        </div>
+                        <!-- </div> -->
+                        <!-- <div class="form-row"> -->
+                        <div class="form-group col-12">
+                            <label for="award-special-review-comnt">Comment</label>
+                            <textarea appAutoGrow id="award-special-review-comnt" class="form-control auto-grow-height"
+                                [(ngModel)]="specialReviews.comments" appLengthValidator [isShowLimiter]='true'
+                                [limit]=4000></textarea>
+                        </div>
+                        <!-- </div> -->
+                    </div>
+                    <div class="modal-footer">
+                        <div class="text-center text-md-right">
+                            <button class="btn btn btn-secondary btn-xs mx-2" id="prop-special-revw-close-btn"
+                                data-dismiss="modal" (click)="cancelSpecialReviewUpdate();">Cancel</button>
+                            <button *ngIf="index == null" class="btn btn-primary-sub btn-xs"
+                                id="prop-special-revw-add-btn" (click)="addSpecialReview()">Add Special
+                                Review</button>
+                            <button class="btn btn-primary-sub btn-xs" *ngIf="index != null"
+                                id="prop-special-revw-updt-btn" (click)="addSpecialReview()">Update Special
+                                Review</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<app-link-compliance-special-review *ngIf="isShowLinkComplianceModal" [reviewTypes]="lookupData.reviewTypes"
+    [specialReviewApprovalTypes]="integrationApprovalStatusDropdown" [specialReviewBindObject]="specialReviews"
+    [reviewType]="specialReviews.specialReview" (linkProtocol)="specialReviewAdvSearchClick($event)">
+</app-link-compliance-special-review>
+

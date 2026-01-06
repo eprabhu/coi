@@ -1,0 +1,554 @@
+<div class="card my-3" id="grantcall-general-section">
+  <div class="card-header px-4">
+    <h4 class="card-title">
+      <div class="row">
+        <div class="col">Grant Call Details</div>
+        <div class="flex-end mr-3 icon-hover" *ngIf="result?.grantCall?.grantCallId">
+          <a class="tooltip "><i class="fa fa-info-circle fa-med hand-cursor" aria-hidden="true"></i>
+            <div class="tooltiptext-right card card-inner p-15 text-left">
+              <span class="font-cv">Last Updated By</span><span
+                class="font-cv font-weight-bold">{{result?.grantCall?.lastUpdateUserFullName}}
+                on {{result?.grantCall?.updateTimeStamp | dateFormatterWithTimeZone: 'long'}}</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </h4>
+  </div>
+  <div class="card-content">
+    <div class="card-body">
+      <div class="gridSkin">
+        <div class="form-row section-highlight py-3">
+          <div class="col-lg col-sm-6 col-12 mb-md-0">
+            <!-- Type of Grant -->
+            <label for="grant-type" class="d-block"><span class="mandatory">*</span>Type
+              of Grant</label>
+              <select id="grant-type" class="form-control" [(ngModel)]="selectedGrantCallType"
+                [ngClass]="map.get('grantCallType') ? 'is-invalid d-block' : ''"
+                (ngModelChange)="grantCallTypeChange();setUnsavedChanges(true);">
+                <option [ngValue]=null>--Select--</option>
+                <option *ngFor="let type of result?.grantCallTypes" [ngValue]="type.description" [hidden]="type.isActive != true">
+                  {{type.description}}</option>
+              </select>
+            <div class="invalid-feedback d-block font-weight-normal" *ngIf="map.get('grantCallType')">Please select type
+              of grant</div>
+          </div>
+          <!-- Status -->
+          <div class="col-lg col-sm-6 col-12 mb-md-0">
+            <label for="grant-status" class="d-block"><span class="mandatory">*</span>Status</label>
+            <select *ngIf="!result?.grantCall?.grantCallId &&
+                ((result?.grantCall?.grantCallType?.categoryCode != 1 && commonService.isGrantCallStatusAutomated)
+                || !commonService.isGrantCallStatusAutomated)"
+                  id="grant-status" class="form-control" [ngClass]="map.get('grantCallStatus') ? 'is-invalid d-block' : ''"
+                  [(ngModel)]="grantCallObject.selectedGrantStatus">
+                  <option *ngFor="let type of result?.grantCallStatus" [ngValue]="type.description" [hidden]="type.isActive != true">
+                  {{type.description}}</option>
+            </select>
+            <select
+              *ngIf=" result?.grantCall?.grantCallId && mode && !result.grantCall.isPublished &&
+                ((result?.grantCall?.grantCallType?.categoryCode != 1 && commonService.isGrantCallStatusAutomated)
+              || !commonService.isGrantCallStatusAutomated)"
+              id="grant-status" class="form-control" [ngClass]="map.get('grantCallStatus') ? 'is-invalid d-block' : ''"
+              [(ngModel)]="grantCallObject.selectedGrantStatus"
+              (ngModelChange)="checkOpenStatusChanged();setUnsavedChanges(true)">
+              <option *ngFor="let type of result?.grantCallStatus" [ngValue]="type.description" [hidden]="type.isActive != true">
+                {{type.description}}</option>
+            </select>
+            <select
+              *ngIf="result?.grantCall?.grantCallId && mode && result.grantCall.isPublished &&
+              ((result?.grantCall?.grantCallType?.categoryCode != 1 && commonService.isGrantCallStatusAutomated)
+              || !commonService.isGrantCallStatusAutomated)"
+              id="grant-status" class="form-control" [ngClass]="map.get('grantCallStatus') ? 'is-invalid d-block' : ''"
+              [(ngModel)]="grantCallObject.selectedGrantStatus"
+              (ngModelChange)="checkOpenStatusChanged();setUnsavedChanges(true)">
+              <option *ngFor="let type of result?.grantCallStatus" [disabled]="type.grantStatusCode === 1"
+              [value]="type.description">{{type.description}}</option>
+            </select>
+            <input class="form-control" *ngIf="result?.grantCall?.grantCallType?.categoryCode == 1 && commonService.isGrantCallStatusAutomated"
+              id="grant-status" type="text" value="{{result?.grantCall?.grantCallStatus?.description}}" disabled>
+
+            <div class="invalid-feedback d-block" *ngIf="map.get('grantCallStatus')">Please specify Status for grant
+              call
+            </div>
+          </div>
+          <!-- Abbreviation -->
+          <div class="col-lg col-sm-6 col-12 mb-md-0">
+            <label for="grant-abbrevation" class="d-block"><span class="mandatory">*</span>Abbreviation</label>
+            <input id="grant-abbrevation" type="text" autocomplete="off" placeholder="" class="form-control"
+              [ngClass]="map.get('abbrevation') || map.get('abbrevationLength') ? 'is-invalid d-block' : ''"
+               [(ngModel)]="result.grantCall.abbrevation" [(ngModel)]="commonData.grantCallTitle.abbrevation"
+              (ngModelChange)="validateAbbreviation();setUnsavedChanges(true)" />
+            <div class="invalid-feedback d-block" *ngIf="map.get('abbrevation')">Please specify the abbreviation for
+              grant call</div>
+            <div class="invalid-feedback d-block" *ngIf="map.get('abbrevationLength')">Abbreviation should not exceed 100 characters</div>
+          </div>
+          <div class="col-lg-4 col-sm-6 col-12 mb-md-0">
+            <label for="grantcall-lead-unit" class="d-block"><span class="mandatory">*</span>Grant Call Unit</label>
+            <app-endpoint-search id="grantcall-lead-unit" [clearField]="clearLeadUnitField"
+              [httpOptions]="unitHttpOptions" [placeHolder]="'Type here for Grant Call Unit'"
+              (onSelect)="leadUnitSelectFunction($event)" (onEmpty)="clearLeadUnit($event)"
+              [isError]="(map.get('leadUnit')) ? true : false"></app-endpoint-search>
+            <div class="invalid-feedback d-block" *ngIf="map.get('leadUnit')">Please specify grant call unit</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="col-12">
+            <label for="grant-title"><span class="mandatory">*</span>Title of Grant Call</label>
+            <textarea rows="1" appAutoGrow id="grant-title" type="text" placeholder="Type here for Title of Grant Call" autocomplete="off" class="form-control"
+              [ngClass]="map.get('grantCallName') ? 'is-invalid d-block' : ''"
+              [(ngModel)]="commonData.grantCallTitle.title" [(ngModel)]="result.grantCall.grantCallName"
+              (ngModelChange)="setUnsavedChanges(true)" appLengthValidator
+              [isShowLimiter]='true' [limit]=1000></textarea>
+            <div class="invalid-feedback d-block" *ngIf="map.get('grantCallName')">Please specify the title of grant
+              call</div>
+          </div>
+          <!-- Opening Date -->
+          <div class="col-md col-sm-6 col-12">
+            <label><span class="mandatory">*</span>Opening Date</label>
+            <span class="dateField">
+              <input matInput [matDatepicker]="openingDt" id="grant-opng-date" placeholder="{{datePlaceHolder}}" autocomplete="off"
+                [(ngModel)]="grantCallObject.openingDate" (keypress)="commonService._keyPress($event, 'date')"
+                (ngModelChange)="commonData.isGrantCallDataChange = true;dateValidation();internalSubmissionDateValidation();
+                dateValidationBeforeAction(grantCallObject.openingDate, 'grantCallOpeningdate', 'Please specify an opening date')"
+                class="d-inline-block form-control"
+                [ngClass]="map.get('grantCallOpeningdate') ? 'is-invalid d-block' : ''"
+                (click)="openingDt.open()">
+              <i aria-hidden="true" class="fa fa-calendar fa-large pointer hand-cursor insidePicker"
+                title="open calendar" (click)="openingDt.open()"></i>
+              <mat-datepicker #openingDt
+                (opened)="setFocusToElement('grant-opng-date')"
+                (closed)="dateValidation();internalSubmissionDateValidation();commonData.isGrantCallDataChange = true">
+              </mat-datepicker>
+            </span>
+            <div class="invalid-feedback d-block" *ngIf="map.get('grantCallOpeningdate')">* Please specify opening date
+              for grant call</div>
+          </div>
+          <!-- Closing Date -->
+          <div class="col-md col-sm-6 col-12">
+            <label><span class="mandatory">*</span>Closing Date</label>
+            <span class="dateField">
+              <input matInput [matDatepicker]="closingDt" id="grant-closing-date" placeholder="{{datePlaceHolder}}" autocomplete="off"
+                [(ngModel)]="grantCallObject.closingDate" (click)="closingDt.open()"
+                (keypress)="commonService._keyPress($event, 'date')"
+                (ngModelChange)="commonData.isGrantCallDataChange = true;checkClosingDatePassed();dateValidation();internalSubmissionDateValidation();
+                grantCallObject.isGrantClosingDateChange = true;dateValidationBeforeAction(grantCallObject.closingDate, 'grantCallClosingdate', 'Please specify a closing date')"
+                class="d-inline-block form-control"
+                [ngClass]="map.get('grantCallClosingdate') ? 'is-invalid d-block' : ''">
+              <i aria-hidden="true" class="fa fa-calendar fa-large pointer hand-cursor insidePicker"
+                title="open calendar" (click)="closingDt.open()"></i>
+              <mat-datepicker #closingDt (opened)="setFocusToElement('grant-closing-date')"
+                (closed)="dateValidation();internalSubmissionDateValidation();checkClosingDatePassed();commonData.isGrantCallDataChange = true ;dateValidationBeforeAction(grantCallObject.closingDate, 'grantCallClosingdate', 'Please specify a closing date');
+                grantCallObject.isGrantClosingDateChange = true;">
+              </mat-datepicker>
+            </span>
+            <div class="invalid-feedback d-block" *ngIf="map.get('grantCallClosingdate') ">* Please specify closing date
+              for grant call</div>
+            <div class="invalid-feedback d-block" *ngIf="warningMsg.dateWarningText != null">
+                {{warningMsg.dateWarningText}}</div>
+            <div class="invalid-feedback d-block" *ngIf="warningMsg.closingDateWarning != null">
+              {{warningMsg.closingDateWarning}}</div>
+          </div>
+          <!-- Closing Time  -->
+          <div class="col-md col-sm-6 col-12">
+            <label><span class="mandatory">*</span>Closing Time
+              {{result.timeZone ? "(" + result.timeZone + ")" : null}}</label>
+            <app-time-picker [dateValue]="result.grantCall.closingTime" [timeFormat] = "'24HR'"
+              (onSelectTime)="selectedTime($event)"></app-time-picker>
+          </div>
+          <!-- Internal Submission Deadline -->
+          <div class="col-md col-sm-6 col-12" *ngIf="result?.grantCall?.grantCallType?.categoryCode === 2">
+            <label><span class="mandatory">*</span>Internal Submission Deadline</label>
+            <span class="dateField">
+              <input matInput [matDatepicker]="submissionDeadlineDt" id="grant-internal-submission-date" placeholder="{{datePlaceHolder}}"
+                autocomplete="off" [(ngModel)]="grantCallObject.internalSubmissionDeadlineDate"
+                (blur)="internalSubmissionDateValidation()"
+                (click)="submissionDeadlineDt.open()" (keypress)="commonService._keyPress($event, 'date')"
+                (ngModelChange)=" commonData.isGrantCallDataChange = true;internalSubmissionDateValidation()"
+                class="d-inline-block form-control"
+                (click)="submissionDeadlineDt.open()" [ngClass]="map.get('internalSubmissionDate') || (commonData.$isMandatoryFilled | async)
+                &&!grantCallObject.internalSubmissionDeadlineDate ? 'is-invalid d-block' : ''" />
+              <i aria-hidden="true" class="fa fa-calendar fa-large pointer hand-cursor insidePicker"
+                title="open calendar" (click)="submissionDeadlineDt.open()"></i>
+              <mat-datepicker #submissionDeadlineDt
+                (opened)="setFocusToElement('grant-internal-submission-date')"
+                (closed)="internalSubmissionDateValidation();setUnsavedChanges(true)">
+              </mat-datepicker>
+            </span>
+            <div class="invalid-feedback d-block" *ngIf="(map.get('internalSubmissionDate') && submissionDateWarningText !== true)
+              || ((commonData.$isMandatoryFilled | async ) && !grantCallObject.internalSubmissionDeadlineDate)">*
+              Please specify internal
+              closing date for grant call.</div>
+            <div class="invalid-feedback d-block" *ngIf="submissionDateWarningText === true">
+              *Please select an internal submission date between opening date and closing date</div>
+          </div>
+          <!-- Description -->
+          <div class="col-12 rich-editor">
+            <label><span class="mandatory">*</span>Description</label>
+            <ng-container *ngIf="!commonService.isIE">
+              <div class="alert alert-warning p-1 f-15 mb-2 d-flex align-items-center">
+                <i class="fa fa-info-circle info-icon mx-2 mt-1" aria-hidden="true"></i>
+                <em>The editor does not support images.</em>
+              </div>
+              <div [ngClass]="map.get('grantCallDescription') ? 'invalid-editor' : ''">
+                <ckeditor [(ngModel)]="result.grantCall.description"
+                  (ngModelChange)="setUnsavedChanges(true)"
+                  [editor]="Editor" [config]="editorConfig"(ready)="onReady($event)"></ckeditor>
+              </div>
+            </ng-container>
+            <textarea *ngIf="commonService.isIE" class="ngx-textarea form-control"
+              [ngClass]="map.get('grantCallDescription') ? 'invalid-editor' : ''"
+              [(ngModel)]="result.grantCall.description" (ngModelChange)="setUnsavedChanges(true)"
+              rows="10"></textarea>
+            <div class="invalid-feedback d-block" *ngIf="map.get('grantCallDescription')">Please fill description
+            </div>
+          </div>
+          <div class="invalid-feedback d-block" *ngIf="editorValidate.get('grantDescription')">
+            {{editorValidate.get('grantDescription')}}
+          </div>
+          <div class="col-12 rich-editor">
+            <label>Grant Call Theme</label>
+            <ng-container *ngIf="!commonService.isIE">
+              <div class="alert alert-warning p-1 f-15 mb-2 d-flex align-items-center">
+                <i class="fa fa-info-circle info-icon mx-2 mt-1" aria-hidden="true"></i>
+                <em>The editor does not support images.</em>
+              </div>
+            <ckeditor [(ngModel)]="result.grantCall.grantTheme"(ngModelChange)="setUnsavedChanges(true)"
+               [editor]="Editor" [config]="editorConfig" (ready)="onReady($event)"></ckeditor>
+            </ng-container>
+            <textarea *ngIf="commonService.isIE" class="ngx-textarea form-control"  [(ngModel)]="result.grantCall.grantTheme"
+            (ngModelChange)="setUnsavedChanges(true)" rows="10"></textarea>
+            <div class="invalid-feedback d-block" *ngIf="editorValidate.get('grantTheme')">
+              {{editorValidate.get('grantTheme')}}
+            </div>
+          </div>
+          <!-- Funding Agency -->
+          <div class="col-lg-3 col-sm-6 col-12">
+            <label><span class="mandatory">*</span><ng-container i18n="@@COMMON_FUNDING_AGENCY">Funding Agency</ng-container></label>
+            <app-endpoint-search id="grantcall-funding-agency" [isError]="grantCallObject?.isFundingAgencyError"
+              [httpOptions]="fundingAgencyHttpOptions" [clearField]="clearFundingAgencySearchField"
+              [placeHolder]="'Type here for Name of Funding Agency'" (onSelect)="fundingAgencySelect($event)">
+            </app-endpoint-search>
+            <div class="invalid-feedback d-block" *ngIf="map.get('grantCallSponsor')">
+              <ng-container i18n="@@GRANTCALL_NO_FUNDING_AGENCY_ERR">Please select the name of funding agency</ng-container>
+            </div>
+            <span class="external-link" *ngIf="isEnableUserDefinedFundingAgency">
+              <a data-toggle="modal" data-target="#addFundingAgencyModal" class="anchor-link"
+                (click)="showAddSponsorModal = true;clearAddNewFundingAgencyDetails();">
+                <i class="fa fa-plus" aria-hidden="true"></i><ng-container i18n="@@GRANTCALL_ADD_NEW_FUNDING_AGENCY">Add new Funding Agency</ng-container>
+              </a>
+            </span>
+          </div>
+          <!-- Type of Funding Agency -->
+          <div class="col-lg-3 col-sm-6 col-12">
+            <label for="grant-sponsor-type"><ng-container i18n="@@GRANTCALL_TYPE_OF_FUNDING_AGENCY">Type of Funding Agency</ng-container></label>
+            <select id="grant-sponsor-type" class="form-control" [(ngModel)]="selectedSponsorType"
+              [disabled]="result?.grantCall?.sponsor != null"
+              (change)="fundingAgencyTypeChange($event.target.value);">
+              <option [ngValue]=null>--Select--</option>
+              <option *ngFor="let type of result?.sponsorTypes" [value]="type.code">{{type.description}}
+              </option>
+            </select>
+          </div>
+          <!-- Funding Scheme -->
+          <div class="col-lg-3 col-sm-6 col-12">
+            <label for="grant-funding-type">Funding Scheme</label>
+            <select id="grant-funding-type" class="form-control" [disabled]="result?.grantCall?.sponsor === null"
+              (change)="fundingTypeChange($event.target.value);setUnsavedChanges(true)"
+              [(ngModel)]="selectedFundingType">
+              <option [ngValue]=null>--Select--</option>
+              <option *ngFor="let type of result?.sponsorFundingSchemes" [value]="type.fundingSchemeId">
+                {{type.fundingScheme?.schemeName}}
+              </option>
+            </select>
+          </div>
+           <!-- Prime Sponsor -->
+          <div class="col-lg-3 col-sm-6 col-12">
+            <label>Prime Sponsor</label>
+            <app-endpoint-search id="grant-prime-sponsor" [httpOptions]="primeSponsorHttpOptions"
+                [placeHolder]="'Type here for Prime Sponsor Name'" (onSelect)="primeSponsorSelect($event); setUnsavedChanges(true)">
+            </app-endpoint-search>
+        </div>
+          <!-- Specify Currency -->
+          <div class="col-lg-6 col-sm-6 col-12">
+            <label for="grant-specify-currency" class="d-block">Specify Currency</label>
+            <select id="grant-specify-currency" class="form-control" [(ngModel)]="selectedCurrency"
+              (ngModelChange)="currencyTypeChange(); setUnsavedChanges(true)">
+              <option *ngFor="let type of result?.currencyDetail" [value]="type.currencyCode">
+                {{type.currencyCode}}-{{type.currency}}</option>
+            </select>
+          </div>
+          <!-- Maximum Budget Per Proposal -->
+          <div class="col-lg-3 col-sm-6 col-12">
+            <label for="grant-budget" class="d-block">Maximum Budget Per Proposal</label>
+
+            <input class="d-inline-block form-control" id="grant-budget" type="text" placeholder="" autocomplete="off"
+              [(ngModel)]="result.grantCall.maximumBudget" appCurrencyFormat
+              [initialValue]="result.grantCall.maximumBudget" [ngClass]="mapNonMandatory?.get('maxBudget') ? 'is-invalid d-block' : ''"
+              [customCurrency]="result?.grantCall?.currency?.currencySymbol"
+              (ngModelChange)="setUnsavedChanges(true);inputRestrictionForAmountFields(result.grantCall.maximumBudget, 'maxBudget');" />
+              <div class="invalid-feedback d-block" *ngIf="mapNonMandatory?.get('maxBudget')">Enter a valid Maximum Budget Per Proposal as 10 digits up to 2 decimal places</div>
+          </div>
+          <div class="col-lg-3 col-sm-6 col-12">
+            <ng-container><label for="grant-quantum" class="d-block">Funding Quantum / Budget for Call</label></ng-container>
+
+            <input id="grant-quantum" type="text" class="form-control" autocomplete="off"
+              [(ngModel)]="result.grantCall.quantum" appCurrencyFormat
+              [initialValue]="result.grantCall.quantum"  [ngClass]="mapNonMandatory?.get('quantum') ? 'is-invalid d-block' : ''"
+              [customCurrency]="result?.grantCall?.currency?.currencySymbol"
+              (ngModelChange)="setUnsavedChanges(true);inputRestrictionForAmountFields(result.grantCall.quantum, 'quantum');" placeholder="" />
+              <div class="invalid-feedback d-block" *ngIf="mapNonMandatory?.get('quantum')">Enter a valid Funding Quantum / Budget for Call as 10 digits up to 2 decimal places</div>
+          </div>
+          <!-- Application Procedure -->
+          <div class="col-12 rich-editor rich-editor">
+            <label>Application Procedure</label>
+            <ng-container *ngIf="!commonService.isIE">
+              <div class="alert alert-warning p-1 f-15 mb-2 d-flex align-items-center">
+                <i class="fa fa-info-circle info-icon mx-2 mt-1" aria-hidden="true"></i>
+                <em>The editor does not support images.</em>
+              </div>
+            <ckeditor [(ngModel)]="result.grantCall.applicationProcedure" (ngModelChange)="setUnsavedChanges(true)"
+               [editor]="Editor" [config]="editorConfig" (ready)="onReady($event)"></ckeditor>
+            </ng-container>
+            <textarea  *ngIf="commonService.isIE" class="ngx-textarea form-control"  [(ngModel)]="result.grantCall.applicationProcedure"
+            (ngModelChange)="setUnsavedChanges(true)" rows="10"></textarea>
+            <div class="invalid-feedback d-block" *ngIf="editorValidate.get('applicationProcedure')">
+              {{editorValidate.get('applicationProcedure')}}
+            </div>
+          </div>
+          <!-- Other Information -->
+          <div class="col-12 rich-editor">
+            <label>Other Information</label>
+            <ng-container *ngIf="!commonService.isIE">
+              <div class="alert alert-warning p-1 f-15 mb-2 d-flex align-items-center">
+                <i class="fa fa-info-circle info-icon mx-2 mt-1" aria-hidden="true"></i>
+                <em>The editor does not support images.</em>
+              </div>
+            <ckeditor  [(ngModel)]="result.grantCall.otherInformation" (ngModelChange)="setUnsavedChanges(true)"
+            [editor]="Editor" [config]="editorConfig" (ready)="onReady($event)"></ckeditor>
+            </ng-container>
+            <textarea  *ngIf="commonService.isIE" class="ngx-textarea form-control"  [(ngModel)]="result.grantCall.otherInformation"
+            (ngModelChange)="setUnsavedChanges(true)" rows="10"></textarea>
+            <div class="invalid-feedback d-block" *ngIf="editorValidate.get('otherInformation')">
+              {{editorValidate.get('otherInformation')}}
+            </div>
+          </div>
+          <div class="col-6">
+            <label for="grant-call-weblink-value">Weblink to Grant Call</label>
+            <input id="grant-call-weblink-value" type="text" class="form-control d-block"
+              [(ngModel)]="result.grantCall.externalUrl" (ngModelChange)=" setUnsavedChanges(true)">
+          </div>
+          <div class="col-lg-2 col-md-4">
+            <span><input id="grant-call-overhead" class="p-2" type="checkbox" [(ngModel)]="grantCallObject.isOverHead"
+                (ngModelChange)="clearOnwaiverPercentage(); setUnsavedChanges(true)"></span>
+            <label for="grant-call-overhead" class="font ml-2 text-primary pt-5"> Is Overhead Provided?</label>
+          </div>
+          <div [ngClass]="'col-lg-4 col-md-2 col-sm-3'" *ngIf="grantCallObject.isOverHead">
+            <label for="grant-call-overhead-value"><span class="mandatory">*</span><ng-container i18n="@@PROPOSAL_OVER_HEAD_RATE_TYPE">Over Head Rate Type</ng-container></label>
+            <select id="grant-call-overhead-value" class="form-control"
+              [ngClass]="map.get('grantCallOverWaiver') ? 'is-invalid d-block' : ''"
+              [(ngModel)]="result.grantCall.rateClassCode" (ngModelChange)="setFandAType(result.grantCall.rateClassCode); setUnsavedChanges(true); setUnsavedChanges(true)">
+              <option [ngValue]=null>--Select--</option>
+              <option *ngFor="let type of result?.rateTypes" [value]="type.rateClassCode" [hidden]="type.isActive != true">
+                {{type.rateClassDescription}}</option>
+            </select>
+            <div class="invalid-feedback d-block" *ngIf="map.get('grantCallOverWaiver')">{{map?.get('grantCallOverWaiver')}}</div>
+          </div>
+          <div class="col-12" *ngIf="grantCallObject.isOverHead">
+            <label for="grant-call-overhead-value">Overhead Comment</label>
+            <textarea class="form-control" placeholder="Write your comments here" rows="2" appAutoGrow
+              (ngModelChange)="setUnsavedChanges(true);"
+              [(ngModel)]="result.grantCall.overHeadComment" appLengthValidator [isShowLimiter]='true' [limit] = 400>
+            </textarea>
+          </div>
+        </div>
+        <div class="form-row">
+          <div [ngClass]="grantCallObject.isOverHead ? 'col-md-6 col-12' : 'col-lg col-md-6 col-12'">
+            <label class="margin-r">Relevant Fields</label>
+            <app-autocompleter [completerOptions]="completerOptions" [clearField]="clearField"
+              [isError]=" warningMsg?.relevantFieldWarningMessage ? true : false"
+              [placeHolder]="'Type here for Relevant Fields'"
+              (onSelect)="relevantFieldChange($event); setUnsavedChanges(true)">
+            </app-autocompleter>
+            <span class="mandatory f-13"
+              *ngIf="warningMsg.relevantFieldWarningMessage!=null">*{{warningMsg?.relevantFieldWarningMessage}}</span>
+            <div class="fileChips" *ngIf="result?.grantCall?.grantCallRelevants?.length != 0"
+              style="word-break: break-all;">
+              <span
+                *ngFor="let grantRelevants of result?.grantCall?.grantCallRelevants;let i = index;">{{grantRelevants?.relevantField?.description}}
+                <i aria-hidden="true" class="fa fa-close hand-cursor" id="grant-remove-relevant"
+                  (click)="temperorySaveGrant(grantRelevants.grantCallRelevantId ,i)"
+                  title="Remove this relevant field"></i>
+              </span>
+            </div>
+
+          </div>
+          <div class="col">
+            <label>Keyword(s)</label>
+            <div class="mt-1">
+              <app-endpoint-search id="grantcall-keywords" [httpOptions]="keywordHttpOptions"
+                [isError]=" warningMsg?.keywordWarningText ? 'is-invalid d-block' : ''" [clearField]="clearKeywordField"
+                [placeHolder]="'Type here for Keyword or add your own Keyword'"
+                (onSelect)="keywordSelectFunction($event);setUnsavedChanges(true)"
+                (onEmpty)="showAddKeywordFunction($event)" (searchValue)="getSearchValue($event)"
+                [addSearchText]="true" (onNewValueSelect)="addKeywordToDatabase($event)">
+              </app-endpoint-search>
+            </div>
+            <span class="mandatory f-13"
+              *ngIf="warningMsg?.keywordWarningText != null">{{warningMsg?.keywordWarningText}}</span>
+            <div class="fileChips" *ngIf="result?.grantCall?.grantCallKeywords?.length > 0"
+              style="word-break: break-all;">
+              <ng-container *ngFor="let keyword of result?.grantCall?.grantCallKeywords;let i = index;">
+                <span>{{keyword?.scienceKeyword?.description}}
+                  <i aria-hidden="true" class="fa fa-close hand-cursor" id="grantcall-keywrd-dlt"
+                    (click)="deleteKeyword(keyword.grantKeywordId,i)" title="Remove this keyword"></i>
+                </span>
+              </ng-container>
+            </div>
+          </div>
+          <div class="col-12 mb-0">
+            <div class="row flex-column flex-sm-row justify-content-md-end justify-content-center">
+              <button *ngIf="!result?.grantCall?.grantCallId" class="btn btn-primary-sub" id="grantcall-proceed-btn"
+                (click)="saveGrant()" type="button">Proceed</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!--ADD NEW FUNDING AGENCY MODAL-->
+<div class="modal fade show mySkinDialog modal-opacity bd-example-modal-lg" id="addFundingAgencyModal"
+  *ngIf="showAddSponsorModal == true" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="skippedSchedulesLongTitle"><ng-container i18n="@@GRANTCALL_ADD_NEW_FUNDING_AGENCY">Add New Funding Agency</ng-container></h5>
+        <button type="button" id="grant-sponsor-close-btn" class="close" data-dismiss="modal" aria-label="Close"
+          (click)="showAddSponsorModal = false;clearAddNewFundingAgencyDetails();">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <!-- Funding Agency -->
+          <div class="col-lg-6 col-md-8 col-12">
+            <label class="block-display">
+              <span class="mandatory">*</span><ng-container i18n="@@COMMON_FUNDING_AGENCY">Funding Agency</ng-container></label>
+            <input class="form-control" type="text" [(ngModel)]="sponsorDetails.sponsorName" id="grant-sponsor-name"
+              [ngClass]="(mapSponsor.get('sponsorname')) ? 'is-invalid d-block' : ''" placeholder="" />
+            <div *ngIf="(mapSponsor.get('sponsorname'))" class="invalid-feedback d-block">
+              <ng-container i18n="@@GRANTCALL_PROVIDE_FUNDING_AGENCY_ERR">Please provide funding agency.</ng-container>
+            </div>
+          </div>
+          <!-- Acronym -->
+          <div class="col-lg-3 col-md-4 col-sm-6 col">
+            <label class="block-display">Acronym</label>
+            <input type="text" id="grant-sponsor-id" placeholder="" [(ngModel)]="sponsorDetails.acronym"
+              class="form-control" />
+          </div>
+          <!-- Active -->
+          <div class="col-lg-3 col-md-4 col-sm-6 col">
+            <label class="block-display">Active</label>
+            <div class="form-check form-check-inline">
+              <input class="radio-inline" type="radio" [(ngModel)]="sponsorDetails.active" name="inlineRadioOptions"
+                id="inlineRadio1" [value]="true">
+              <label class="form-check-label ml-2" for="inlineRadio1">Yes</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="radio-inline" type="radio" [(ngModel)]="sponsorDetails.active" name="inlineRadioOptions"
+                id="inlineRadio2" [value]="false">
+              <label class="form-check-label ml-2" for="inlineRadio2">No</label>
+            </div>
+          </div>
+          <!-- Funding Agency Type -->
+          <div class="col-lg-12 col-md-8 col-12">
+            <label><span class="mandatory">*</span><ng-container i18n="@@GRANTCALL_FUNDING_AGENCY_TYPE">Funding Agency Type</ng-container></label>
+            <select [(ngModel)]="sponsorDetails.sponsorTypeCode"
+              class="form-control ng-pristine ng-valid ng-touched wd-100"
+              [ngClass]="(mapSponsor.get('sponsortype')) ? 'is-invalid d-block' : ''">
+              <option value=null>--Select--</option>
+              <option [value]="type.code" *ngFor="let type of result?.sponsorTypes">
+                {{type.description}}
+              </option>
+            </select>
+            <div *ngIf="(mapSponsor.get('sponsortype'))" class="invalid-feedback d-block">
+              <ng-container i18n="@@GRANTCALL_NO_FUNDING_AGENCY_TYPE_ERR">Please select funding agency type.</ng-container>
+            </div>
+          </div>
+          <!-- <div class="col">
+                      <label class="block-display">
+                          <span class="mandatory">*</span>Department</label>
+                      <div class="searchBox mt-1">
+                          <app-endpoint-search [httpOptions]="departmentHttpOptions" [placeHolder]="'Type here for Department with Department Name, Department Id'" [isError]="(mapSponsor.get('sponsorunitnumber')) ? true : false" (onSelect)="departmentSelect($event)">
+                          </app-endpoint-search>
+                          <div *ngIf="(mapSponsor.get('sponsorunitnumber'))" class="invalid-feedback d-block">
+                              Please select a department.
+                          </div>
+                      </div>
+                  </div> -->
+
+          <!-- Address Line 1 -->
+          <div class="col-lg-4 col-sm-6 col-12">
+            <label class="block-display">Address Line 1</label>
+            <input id="grant-sponsor-address1" [(ngModel)]="sponsorDetails.addressLine1" placeholder="" maxlength="80"
+              class="form-control" />
+          </div>
+          <!-- Address Line 2 -->
+          <div class="col-lg-4 col-sm-6 col-12">
+            <label class="block-display">Address Line 2</label>
+            <input rows="1" id="grant-sponsor-address2" [(ngModel)]="sponsorDetails.addressLine2" placeholder=""
+              maxlength="80" class="form-control" />
+          </div>
+          <!-- Address Line 3 -->
+          <div class="col-lg-4 col-sm-6 col-12">
+            <label class="block-display">Address Line 3</label>
+            <input rows="1" id="grant-sponsor-address3" [(ngModel)]="sponsorDetails.addressLine3" placeholder=""
+              maxlength="80" class="form-control" />
+          </div>
+          <!-- Funding Agency Location -->
+          <div class="col-lg-4 col-sm-6 col-12">
+            <label class="block-display"><ng-container i18n="@@GRANTCALL_FUNDING_AGENCY_LOCATION">Funding Agency Location</ng-container></label>
+            <input type="text" id="grant-sponsor-loc" [(ngModel)]="sponsorDetails.sponsorLocation" placeholder=""
+              class="form-control" />
+          </div>
+          <!-- Phone Number -->
+          <div class="col-lg-4 col-sm-6 col-12">
+            <label class="block-display">Phone Number</label>
+            <div>
+              <input type="text" id="grant-sponsor-phn" [(ngModel)]="sponsorDetails.phoneNumber" placeholder=""
+                class="form-control" (keyup)="inputRestriction(sponsorDetails.phoneNumber)"
+                [ngClass]="warningMessage.has('phoneNumberWarning') ?
+              'd-inline-block form-control ng-pristine ng-valid is-invalid d-block ng-touched' :
+              'd-inline-block form-control ng-pristine ng-valid ng-touched'"
+              [ngClass]="warningMessage.has('phoneNumberWarningAlphabets') ?
+              'd-inline-block form-control ng-pristine ng-valid is-invalid d-block ng-touched' :
+              'd-inline-block form-control ng-pristine ng-valid ng-touched'"/>
+            </div>
+            <div class="invalid-feedback block-display" *ngIf="warningMessage.has('phoneNumberWarning')">
+              {{warningMessage.get('phoneNumberWarning')}}
+            </div>
+            <div class="invalid-feedback block-display" *ngIf="warningMessage.has('phoneNumberWarningAlphabets')">
+              {{warningMessage.get('phoneNumberWarningAlphabets')}}
+            </div>
+          </div>
+          <!-- Email Address -->
+          <div class="col-lg-4 col-sm-6 col-12">
+            <label class="block-display">Email Address</label>
+            <input type="text" id="grant-sponsor-email" [(ngModel)]="sponsorDetails.emailAddress" placeholder=""
+              class="form-control" />
+            <div *ngIf="this.warningMsg.sponsorEmail != null">
+              <span class="invalid-feedback d-block">{{this.warningMsg.sponsorEmail}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="grant-sponsoradd-close-btn" class="btn btn-secondary btn-sm" data-dismiss="modal"
+          (click)="showAddSponsorModal = false;clearAddNewFundingAgencyDetails();">Close</button>
+        <button type="button" id="grant-sponsor-add-btn" *ngIf="sponsorDetails.sponsorCode == null"
+          class="btn btn-primary-sub btn-sm mr-2" (click)="maintainSponsor('I');">Add</button>
+      </div>
+    </div>
+  </div>
+</div>

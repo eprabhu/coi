@@ -1,0 +1,208 @@
+<div class="card my-3">
+    <div class="card-header">
+        <h4 class="card-title">Other Information
+        </h4>
+        <div class="text-right ml-5" *ngIf="isShowCollapse">
+            <span>
+                <button class="updown-arrow" (click)="isShowOtherInfo = !isShowOtherInfo">
+                <i [ngClass]="!isShowOtherInfo?'fa-large fa fa-angle-double-down':'fa-large fa fa-angle-double-up'"
+                class="fa-large" aria-hidden="true"></i>
+                </button>
+            </span>
+        </div>
+    </div>
+    <div class="card-content">
+        <div class="no-data-container" *ngIf="(customElements == null || customElements?.length == 0) && isShowOtherInfo;">
+            <span class="no-data-icon-outer">
+                    <div class="no-data-icon">
+                        <i class="fa fa-file-o" aria-hidden="true"></i>
+                        <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                    </div>
+                </span>
+                <h4>There is no information in this section.</h4>
+        </div>
+        <div id="custom-element-body" class="card-body" *ngIf="(customElements != null && customElements?.length != 0 && isShowOtherInfo)">
+            <div class="form-row">
+                <div class="" *ngFor="let list of customElements; let i = index" 
+                    [ngClass]="list.filterType == 'Text'?'col-12':'col-xl-4 col-lg-4 col-sm-12 col-12'">
+                    <div [ngSwitch]="true">
+                        <div *ngSwitchCase="list.filterType == 'String' || list.filterType =='Number'">
+                            <span class="mandatory" *ngIf="list.isRequired == 'Y' && viewMode !== 'view'">*</span>
+                            <label class="f-16">{{ list.columnName }}</label>
+                            <span *ngFor="let answer of list?.answers">
+                                <span *ngIf="viewMode == 'view'">
+                                    <span
+                                        class="d-block">{{answer.value !== null ? answer.value : '-- No Data --'}}</span></span>
+                                <span *ngIf="viewMode != 'view'">
+                                    <input type="text" *ngIf="viewMode !== 'view'" id="adv-search-proposal-no"
+                                        [(ngModel)]="answer.value" placeholder="{{ list.columnName }}"
+                                        class="form-control mb-2" (keyup)="checkValidation(answer,$event,list,i)"
+                                        [ngClass]="!isValueEmpty[i]&&validationId[i]==i ? 'is-invalid d-block' : ''" 
+                                        (ngModelChange)="emitDataChange()" /></span></span>
+                            <!-- <span *ngIf="isLength&&lengthValidationId==i" class="invalid-feedback d-block">
+                                The maximum length is {{ list.dataLength}}
+                            </span> -->
+                            <span *ngIf="!isValueEmpty[i]&&validationId[i]==i" class="invalid-feedback d-block">
+                                This field is missing please check.
+                            </span>
+                            <span *ngIf="isType&&numberValidationId==i" class="invalid-feedback d-block">
+                                Please Enter numbers.
+                            </span>
+                        </div>
+                        <div *ngSwitchCase="list.filterType == 'Text'">
+                            <span class="mandatory" *ngIf="list.isRequired == 'Y' && viewMode !== 'view'">*</span>
+                            <label class="f-16">{{ list.columnName }}</label>
+                            <span *ngFor="let answer of list?.answers" >
+                                <span *ngIf="viewMode == 'view'">
+                                    <span class="d-block" *ngIf="!answer.value">-- No Data --</span>
+                                    <div class="d-flex"
+                                    (click)="collapseViewMoreOption(list?.customDataElementId, collapseViewMore[list?.customDataElementId])">
+                                    <span>
+                                      {{answer.value.length > 480 && !collapseViewMore[list?.customDataElementId] ?
+                                      (answer.value | slice:0:480)+'...' : answer.value}}
+                                      <span *ngIf="answer.value.length > 480" class="collapse-text">
+                                        {{collapseViewMore[list?.customDataElementId] ? "Show Less" : "Read More"}}
+                                      </span>
+                                    </span>
+                                  </div>
+                                </span>
+                                <span *ngIf="viewMode != 'view'">
+                                    <textarea  type="text" appAutoGrow appLengthValidator [isShowLimiter]='true' rows="4"
+                                        *ngIf="viewMode !== 'view'" id="adv-search-proposal-no"
+                                        [(ngModel)]="answer.value" placeholder="{{ list.columnName }}"
+                                        class="form-control" 
+                                        (ngModelChange)="emitDataChange()">
+                                    </textarea></span></span>
+                            <span *ngIf="!isValueEmpty[i]&&validationId[i]==i" class="invalid-feedback d-block">
+                                This field is missing please check.
+                            </span>
+                            <span *ngIf="isType&&numberValidationId==i" class="invalid-feedback d-block">
+                                Please Enter numbers.
+                            </span>
+                        </div>
+                        <div *ngSwitchCase="list.filterType == 'Date' ">
+                            <span class="mandatory" *ngIf="list.isRequired == 'Y' && viewMode !== 'view'">*</span>
+                            <label class="f-16">{{ list.columnName }}</label>
+                            <span *ngFor="let answer of list?.answers">
+                                <span *ngIf="viewMode == 'view'">
+                                    <span
+                                        class="d-block">{{answer.value !== null ? (answer.value | dateFormatter) : '-- No Data --'}}</span></span>
+                                <span *ngIf="viewMode != 'view'">
+                                    <span class="dateField mr-1">
+                                        <input matInput [matDatepicker]="customDt" placeholder="From ({{datePlaceHolder}})"
+                                            id="{{list.columnName}}" class="d-inline-block form-control" autocomplete="off"
+                                            [ngModel]="answer.value ?  answer.value : list.defaultValue"
+                                            [(ngModel)]="answer.value" (ngModelChange)="answer.value = parseDateWithoutTimestamp(answer.value)"
+                                            [ngClass]="!isValueEmpty[i]&&validationId[i]==i ? 'is-invalid d-block' : '' "
+                                            (keypress)="_commonService._keyPress($event, 'date');" 
+                                            (ngModelChange)="emitDataChange()"
+                                            (click)="customDt.open()">
+                                        <i class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                            (click)="customDt.open()" aria-hidden="true"></i>
+                                        <mat-datepicker #customDt (opened)="setFocusToElement(list.columnName)"></mat-datepicker>
+                                    </span>
+                                </span></span>
+                            <span *ngIf="!isValueEmpty[i]&&validationId[i]==i" class="invalid-feedback d-block">
+                                This field is missing please check.
+                            </span>
+                        </div>
+                        <div *ngSwitchCase="list.filterType == 'Check Box'">
+                            <span *ngIf="list.options.length > 0">
+                                <span class="mandatory" *ngIf="list.isRequired == 'Y'">*</span>
+                                <label class="f-16">{{ list.columnName }}</label>
+                                <div class="checkbox-inline col-12" *ngFor="let option of list.options;  let checkBoxIndex=index">
+                                    <input type="checkbox" [disabled]="viewMode == 'view'" 
+                                        [checked] = "checkIsSelected(list.answers, option.customDataOptionId)"
+                                        id="{{option.optionName}}{{i}}"
+                                        (change)="emitDataChange(); setAnswerForCheckBox(list, $event.target.checked, option)" />
+                                    <label for="{{option.optionName}}{{i}}" [ngClass]="{'hand-cursor': viewMode != 'view' }">{{option.optionName}}</label>
+                                </div>
+                            </span>
+                            <span *ngIf="!checkEmpty[i]&&validationId[i]==i" class="invalid-feedback d-block">
+                                This field is missing please check.
+                            </span>
+                        </div>
+                        <div *ngSwitchCase="list.filterType == 'Radio Button'">
+                            <span *ngIf="list.options.length > 0">
+                                <span class="mandatory"
+                                    *ngIf="list.isRequired == 'Y'">*</span><label class="f-16">{{ list.columnName }}</label>
+                                <div class="checkbox-inline col-12" *ngFor="let option of list.options">
+                                    <input type="radio" [disabled]="viewMode == 'view'" [value]="option.optionName"
+                                        name="{{option.optionName}}{{i}}" id="{{option}}{{i}}" [(ngModel)]="list.answers[0].value"  
+                                        (ngModelChange)="emitDataChange()"/>
+                                        <label for="{{option.optionName}}{{i}}" [ngClass]="{'hand-cursor': viewMode != 'view' }">{{option.optionName}}</label> 
+                                </div>
+                            </span>
+                            <span *ngIf="!radioEmpty[i]&&validationId[i]==i" class="invalid-feedback d-block">
+                                This field is missing please check.
+                            </span>
+                        </div>
+                        <div *ngSwitchCase="list.filterType == 'System Dropdown' || list.filterType == 'User Dropdown'">
+                            <span class="mandatory" *ngIf="list.isRequired == 'Y' && viewMode !== 'view'">*</span>
+                            <label class="f-16">{{ list.columnName }}</label>
+                            <span *ngFor="let answer of list?.answers" >
+                                <span *ngIf="viewMode == 'view'">
+                                    <span
+                                        class="d-block">{{answer.description !== null ? answer.description : '-- No Data --'}}</span></span>
+                                <span *ngIf="viewMode != 'view'">
+                                    <app-look-up [options]='list.lookupArgument' [defaultValue]='list.answers[0].description'
+                                        [isError]="(!isValueEmpty[i]&&validationId[i]==i) ? true : false"
+                                        (selectedResult)="onLookupSelect($event,answer)">
+                                    </app-look-up>
+                                </span></span>
+                            <span *ngIf="!isValueEmpty[i]&&validationId[i]==i" class="invalid-feedback d-block">
+                                This field is missing please check.
+                            </span>
+                        </div>
+                        <div *ngSwitchCase="list.filterType == 'Elastic Search'">
+                            <span class="mandatory" *ngIf="list.isRequired == 'Y' && viewMode !== 'view'">*</span>
+                            <label class="f-16">{{ list.columnName }}</label>
+                            <span *ngFor="let answer of list?.answers">
+                                <span *ngIf="viewMode == 'view'">
+                                    <span
+                                        class="d-block">{{answer.description !== null ? answer.description : '-- No Data --'}}</span></span>
+                                <span *ngIf="viewMode != 'view'">
+                                    <div class="position-relative">
+                                        <app-elastic [options]="elasticSearchOptions[list.columnName]"
+                                            [placeHolder]="'Type here for ' + list.columnName"
+                                            (selectedResult)="setSearchFilterValue($event,answer,list)"
+                                            [isError]="(!isValueEmpty[i]&&validationId[i]==i) ? true : false">
+                                        </app-elastic>
+                                    </div>
+                                </span></span>
+                            <span *ngIf="!isValueEmpty[i]&&validationId[i]==i" class="invalid-feedback d-block">
+                                This field is missing please check.
+                            </span>
+                        </div>
+                        <div *ngSwitchCase="list.filterType == 'Autosuggest'">
+                            <span class="mandatory" *ngIf="list.isRequired == 'Y' && viewMode !== 'view'">*</span>
+                            <label class="f-16">{{ list.columnName }}</label>
+                            <span *ngFor="let answer of list?.answers">
+                                <span *ngIf="viewMode == 'view'">
+                                    <span
+                                        class="d-block">{{answer.description !== null ? answer.description: '-- No Data --'}}</span></span>
+                                <span *ngIf="viewMode != 'view'">
+                                    <div class="position-relative">
+                                        <app-endpoint-search [httpOptions]="endPointSearchOptions[list.columnName]"
+                                            [placeHolder]="'Type here for ' + list.columnName"
+                                            (onSelect)="setSearchFilterValue($event,answer,list)"
+                                            [isError]="(!isValueEmpty[i]&&validationId[i]==i) ? true : false">
+                                        </app-endpoint-search>
+                                    </div>
+                                </span></span>
+                            <span *ngIf="!isValueEmpty[i]&&validationId[i]==i" class="invalid-feedback d-block">
+                                This field is missing please check.
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="row flex-column flex-sm-row justify-content-md-end justify-content-center mt-3 px-3"
+                *ngIf="viewMode!=='view' && isShowSave">
+                <button class="btn btn-primary-sub btn-xs" (click)="saveCustomData()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+

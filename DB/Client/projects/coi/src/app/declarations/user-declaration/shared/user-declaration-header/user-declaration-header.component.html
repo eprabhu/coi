@@ -1,0 +1,340 @@
+<header id="coi-declaration-details-header" class="card coi-card-expanded">
+    <div class="row mx-0">
+        <div class="card-header col px-3 border-0">
+            <div class="position-relative flex-grow-1">
+                <!-- title - links - expand / collapse -->
+                <div class="d-flex coi-card-header-notch-container flex-wrap">
+                    <!-- badge -->
+                    <div class="d-flex mb-auto">
+                        <span [style.backgroundColor]="declarationTypeDetails?.badgeColor"
+                            class="coi-card-notch-ribbon shadow-sm">{{ declarationTypeDetails?.declarationType }} - {{ userDeclaration?.declaration?.versionNumber === initialVersionNumber ? 'Initial' : 'Revision' }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between flex-wrap col pe-4">
+                        <!-- person -->
+                        <span class="d-flex align-items-center gap-1 coi-text-light ms-3 ms-md-2 mt-1 text-nowrap">
+                            <mat-icon class="fw-bold coi-text-light flex-shrink-0 coi-mat-icon-size"
+                                aria-hidden="true">person</mat-icon>
+                            <a class="link-primary text-slice" tabindex="0" role="link"
+                                (click)="openPersonDetailsModal()" (keyup.enter)="openPersonDetailsModal()"
+                                attr.aria-label="Click here to view details of {{userDeclaration?.declaration?.person?.fullName}}"
+                                title="Click here to view details of {{userDeclaration?.declaration?.person?.fullName}}">
+                                <span>{{ userDeclaration?.declaration?.person?.fullName }}</span>
+                            </a>
+                        </span>
+                        <!-- links -->
+                        <div class="d-flex justify-content-end align-items-center flex-wrap ms-auto mt-auto pe-4">
+                            <a id="coi-declaration-overall-history" tabIndex="0" role="link"
+                                class="btn-none ms-2 fs-13 link-primary text-nowrap"
+                                title='Click here to view entire disclosure history'
+                                aria-label='Click here to view entire disclosure history'
+                                (click)="openHistorySlider()" (keyup.enter)="openHistorySlider()">
+                                Disclosure History
+                            </a>
+                        </div>
+                    </div>
+                    <!-- expand / collapse -->
+                    <button (click)="collapseHeader()" title="Click here to collapse / expand"
+                        aria-label="Click here to collapse / expand"
+                        class="toggle-btn border btn p-0 rounded-5 shadow-sm toggle-btn-position top-5px">
+                        <mat-icon aria-hidden="true"
+                            [ngClass]="isCardExpanded ? 'coi-rotate-180' : 'coi-rotate-0'">expand_more</mat-icon>
+                    </button>
+                </div>
+                <!-- person details -->
+                <div class="d-flex align-items-center">
+                    <!-- email -->
+                    <span class="d-flex align-items-center gap-1 coi-text-light mt-1"
+                        [title]="userDeclaration?.declaration?.person?.emailAddress">
+                        <mat-icon aria-hidden="true"
+                            class="fw-bolder coi-text-light flex-shrink-0 coi-mat-icon-size">mail</mat-icon>
+                        <span class="text-slice">{{ userDeclaration?.declaration?.person?.emailAddress }}</span>
+                    </span>
+                    <!-- home unit -->
+                    <span class="d-flex align-items-center gap-1 coi-text-light ms-3 mt-1"
+                        [title]="userDeclaration?.declaration?.person?.unit?.displayName">
+                        <mat-icon aria-hidden="true"
+                            class="fw-bolder coi-text-light flex-shrink-0 coi-mat-icon-size">home</mat-icon>
+                        <span class="text-slice">{{ userDeclaration?.declaration?.person?.unit?.displayName }}</span>
+                    </span>
+                    <!-- title -->
+                    <span *ngIf="userDeclaration?.declaration?.person?.primaryTitle"
+                        class="d-flex align-items-center gap-1 coi-text-light ms-3 mt-1"
+                        [title]="userDeclaration?.declaration?.person?.primaryTitle">
+                        <mat-icon aria-hidden="true"
+                            class="fw-bolder coi-text-light flex-shrink-0 coi-mat-icon-size">work</mat-icon>
+                        <span class="text-slice">{{ userDeclaration?.declaration?.person?.primaryTitle }}</span>
+                    </span>
+                </div>
+                <!-- Important Details -->
+                <div *ngIf="isCardExpanded" class="row row-gap-4 pt-4 pb-2">
+                    <!-- Administrator -->
+                    <div *ngIf="isShowAdminDetails" class="col-12 col-md-6 col-xxl-4">
+                        <div class="position-relative coi-box-red border border-secondary border-opacity-50 h-100 p-3 rounded-1">
+                            <span class="coi-text-darker fs-6 coi-field-set">Details</span>
+                            <div class="d-flex flex-wrap column-gap-3 row-gap-1">
+                                <!-- Administrator -->
+                                <div class="col">
+                                    <span class="d-flex align-items-baseline coi-text-dark">
+                                        <i aria-hidden="true" class="fa fa-user-o fw-700 me-1"></i>
+                                        <span>Administrator</span>
+                                    </span>
+                                    <span id="decl-details-administrator" class="d-block coi-text-light">
+                                        <app-no-data-label [valueToShow]="userDeclaration?.declaration?.adminPersonName"></app-no-data-label>
+                                    </span>
+                                </div>
+                                <!-- Admin Group -->
+                                <div class="col">
+                                    <span class="d-flex coi-text-dark">
+                                        <img aria-hidden="true" alt="add-adminGroup icon" class="admin-group-icon-size" src="{{deployMap}}assets/images/multiple-admin-1.svg">
+                                        <span class="text-nowrap">Admin Group</span>
+                                    </span>
+                                    <span id="decl-details-admin-group" class="d-block coi-text-light">
+                                        <app-no-data-label [valueToShow]="userDeclaration?.declaration?.adminGroupName"></app-no-data-label>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Dates -->
+                    <div [ngClass]="isShowAdminDetails ? 'col-12 col-md-6 col-xxl-4' : 'col-12 col-md-6'">
+                        <div class="position-relative coi-box-red border border-secondary border-opacity-50 h-100 p-3 rounded-1">
+                            <span class="coi-text-darker fs-6 coi-field-set">Dates</span>
+                            <div class="d-flex flex-wrap column-gap-3 row-gap-1">
+                                <!-- Create -->
+                                <div class="col">
+                                    <span class="coi-text-dark d-block">Create</span>
+                                    <span id="decl-date-create" class="coi-text-light">
+                                        <app-no-data-label
+                                            [valueToShow]="userDeclaration?.declaration?.createTimestamp | dateFormatterWithTimeZone"></app-no-data-label>
+                                    </span>
+                                </div>
+                                <!-- Submission -->
+                                <div class="col">
+                                    <span class="coi-text-dark d-block">{{ declarationLocalize.SUBMISSION }}</span>
+                                    <span id="decl-date-declaration" class="coi-text-light">
+                                        <app-no-data-label
+                                            [valueToShow]="userDeclaration?.declaration?.submissionDate | dateFormatterWithTimeZone"></app-no-data-label>
+                                    </span>
+                                </div>
+                                <!-- Expiration -->
+                                <div class="col">
+                                    <span class="coi-text-dark d-block">Expiration</span>
+                                    <span id="decl-date-expiration" class="coi-text-light">
+                                        <app-no-data-label
+                                            [valueToShow]="userDeclaration?.declaration?.expirationDate | dateFormatterWithTimeZone"></app-no-data-label>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Status -->
+                    <div [ngClass]="isShowAdminDetails ? 'col-12 col-lg col-xxl-4' : 'col-12 col-md-6'">
+                        <div class="position-relative coi-box-red border border-secondary border-opacity-50 h-100 p-3 rounded-1">
+                            <span class="coi-text-darker fs-6 coi-field-set">Status</span>
+                            <div class="d-flex flex-wrap column-gap-3 row-gap-1">
+                                <!-- Review Status -->
+                                <div class="col">
+                                    <span class="coi-text-lighter d-block">{{ declarationLocalize.TERM_BADGE_REVIEW_STATUS }}</span>
+                                    <span id="decl-status-review" class="d-flex coi-text-light">
+                                        <app-no-data-label [valueToShow]="userDeclaration?.declaration?.declarationReviewStatusType?.description">
+                                            <span class="{{ reviewStatusBadgeClass[userDeclaration?.declaration?.declarationReviewStatusType?.reviewStatusCode] }}"></span>
+                                            <span class="coi-text-dark ms-1 text-nowrap">{{ userDeclaration?.declaration?.declarationReviewStatusType?.description }}</span>
+                                        </app-no-data-label>
+                                    </span>
+                                </div>
+                                <!-- Disposition Status -->
+                                <div class="col">
+                                    <span class="coi-text-lighter d-block">{{ declarationLocalize.TERM_BADGE_DISPOSITION_STATUS }}</span>
+                                    <span id="decl-status-disposition" class="d-flex coi-text-light">
+                                        <app-no-data-label [valueToShow]="userDeclaration?.declaration?.declarationStatus?.description">
+                                            <span class="{{ declarationStatusBadgeClass[userDeclaration?.declaration?.declarationStatus?.declarationStatusCode] }}"></span>
+                                            <span class="coi-text-dark ms-1 text-nowrap">{{ userDeclaration?.declaration?.declarationStatus?.description }}</span>
+                                        </app-no-data-label>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- buttons -->
+        <div class="col-xxl-3 col-xl-4 p-3 action-header-border">
+            <div class="d-flex flex-wrap gap-2">
+                <!-- back button -->
+                <button (click)="closeDeclaration()" id="user-decl-back-btn"
+                    class="btn btn-outline-grey d-inline-flex align-items-center justify-content-center col fs-14"
+                    title="Click here to close" aria-label="Click here to close">
+                    <mat-icon aria-hidden="true" class="flex-shrink-0">close</mat-icon>
+                    <span class="ms-2 text-nowrap">Close</span>
+                </button>
+                <!-- More Option -->
+                <button [matMenuTriggerFor]="beforeMenu" id="user-decl-more-action-btn"
+                    class="btn btn-outline-grey d-inline-flex align-items-center justify-content-center col fs-14"
+                    title="Click here for more actions" aria-label="Click here for more actions">
+                    <mat-icon aria-hidden="true" class="moreActionIcon">more_vert</mat-icon>
+                </button>
+                <!-- Submit -->
+                <button *ngIf="isFormEditable"
+                    id="user-decl-submit-btn" (click)="validateAndSubmit()" [ngClass]="isCardExpanded ? 'col-xl-12 col' : 'col'"
+                    title="Click here to submit {{declarationTypeDetails?.declarationType}} {{declarationLocalize.TERM}}"
+                    attr.aria-label="Click here to submit {{declarationTypeDetails?.declarationType}} {{declarationLocalize.TERM}}"
+                    class="btn btn-primary d-inline-flex align-items-center justify-content-center fs-14">
+                    <mat-icon aria-hidden="true" class="flex-shrink-0">done</mat-icon>
+                    <span class="ms-2 text-nowrap">Submit</span>
+                </button>
+                <!-- Assign Admin -->
+                <button *ngIf="actionBtnConfig.isShowAssignAdminBtn"
+                    id="user-decl-assign-admin-btn" (click)="openAssignAdminModal()"
+                    title="Click here to assign administrator/admin group"
+                    attr.aria-label="Click here to assign administrator/admin group"
+                    class="btn btn-primary col d-inline-flex align-items-center justify-content-center fs-14">
+                    <mat-icon aria-hidden="true" class="flex-shrink-0">group_add</mat-icon>
+                    <span class="ms-2 text-nowrap">Assign Admin</span>
+                </button>
+                <!-- Complete Final Review -->
+                <button *ngIf="actionBtnConfig.isShowCompleteReviewBtn" [ngClass]="isCardExpanded ? 'col-xl-12 col' : 'col'"
+                    id="user-decl-complete-review-btn" (click)="openFinalReviewConfirmationModal()"
+                    title="Click here to complete final review"
+                    attr.aria-label="Click here to complete final review"
+                    class="btn btn-primary d-inline-flex align-items-center justify-content-center fs-14">
+                    <mat-icon aria-hidden="true" class="flex-shrink-0">done</mat-icon>
+                    <span class="ms-2 text-nowrap">Complete Final Review</span>
+                </button>
+                <!-- Revise -->
+                <button *ngIf="actionBtnConfig.isShowReviseBtn"
+                    id="user-decl-revise-btn" (click)="reviseDeclaration()" [ngClass]="isCardExpanded ? 'col-xl-12 col' : 'col'"
+                    title="Click here to revise {{declarationTypeDetails?.declarationType}} {{declarationLocalize.TERM}}"
+                    attr.aria-label="Click here to revise {{declarationTypeDetails?.declarationType}} {{declarationLocalize.TERM}}"
+                    class="btn btn-success d-inline-flex align-items-center justify-content-center fs-14">
+                    <mat-icon aria-hidden="true" class="flex-shrink-0">restart_alt</mat-icon>
+                    <span class="ms-2 text-nowrap">Revise</span>
+                </button>
+                <!-- more actions - mat menu -->
+                <mat-menu #beforeMenu="matMenu" xPosition="before">
+                    <!-- Reassign Admin -->
+                    <button *ngIf="actionBtnConfig.isShowReAssignAdminBtn" mat-menu-item
+                        id="user-decl-reassign-admin-btn" class="more-action" (click)="openAssignAdminModal()"
+                        title="Click here to reassign administrator/admin group"
+                        aria-label="Click here to reassign administrator/admin group">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0">group_add</mat-icon>
+                        <span class="d-inline-flex fs-14 fw-medium ms-1">Reassign Admin</span>
+                    </button>
+            
+                    <!-- Withdraw -->
+                    <button *ngIf="actionBtnConfig.isShowWithdrawBtn" mat-menu-item
+                        id="user-decl-withdraw-btn" class="more-action" (click)="openWithdrawConfirmationModal()"
+                        title="Click here to {{declarationLocalize.TERM_WITHDRAW.toLowerCase()}} {{declarationTypeDetails?.declarationType}} {{declarationLocalize.TERM}}"
+                        attr.aria-label="Click here to {{declarationLocalize.TERM_WITHDRAW.toLowerCase()}} {{declarationTypeDetails?.declarationType}} {{declarationLocalize.TERM}}">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0">logout</mat-icon>
+                        <span class="d-inline-flex fs-14 fw-medium ms-1">{{ declarationLocalize.TERM_WITHDRAW }}</span>
+                    </button>
+            
+                    <!-- return to pi -->
+                    <button *ngIf="actionBtnConfig.isShowReturnBtn" mat-menu-item
+                        id="user-decl-return-btn" class="more-action" (click)="openReturnConfirmationModal()"
+                        title="Click here to return {{declarationTypeDetails?.declarationType}} {{declarationLocalize.TERM}}"
+                        attr.aria-label="Click here to return {{declarationTypeDetails?.declarationType}} {{declarationLocalize.TERM}}">
+                        <mat-icon aria-hidden="true" class="returnIcon">refresh</mat-icon>
+                        <span class="d-inline-flex fs-14 fw-medium ms-1">Return</span>
+                    </button>
+            
+                    <!-- Print -->
+                    <button mat-menu-item 
+                        id="user-decl-print-btn" class="more-action" (click)="openPrintDisclosureModal()"
+                        title="Click here to print {{declarationTypeDetails?.declarationType}} {{declarationLocalize.TERM}}"
+                        attr.aria-label="Click here to print {{declarationTypeDetails?.declarationType}} {{declarationLocalize.TERM}}">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0">print</mat-icon>
+                        <span class="d-inline-flex fs-14 fw-medium ms-1">Print {{ declarationLocalize.TERM }}</span>
+                    </button>
+
+                    <!-- Void Declaration -->
+                    <button *ngIf="actionBtnConfig.isShowVoidBtn" mat-menu-item 
+                        id="user-decl-void-btn" class="more-action" (click)="openVoidDisclosureModal()"
+                        title="Click here to mark {{declarationTypeDetails?.declarationType}} {{declarationLocalize.TERM}} as void"
+                        attr.aria-label="Click here to mark {{declarationTypeDetails?.declarationType}} {{declarationLocalize.TERM}} as void">
+                        <img aria-hidden="true" alt="void declaration icon" class="void-decl-icon-size mat-icon" src="{{deployMap}}assets/images/void-declaration.svg">
+                        <span class="d-inline-flex fs-14 fw-medium ms-1">Void Declaration</span>
+                    </button>
+                </mat-menu>
+                <!-- Last Updated By -->
+                <div *ngIf="isCardExpanded" class="col-12 pt-3">
+                    <span class="coi-text-lighter fs-13 fw-medium d-block">Last Updated By</span>
+                    <span class="coi-text-dark fs-13 fw-normal">
+                        <span>{{ userDeclaration?.declaration?.updateUserFullName }}</span>
+                        <span class="coi-text-lighter fs-13 fw-medium"> On </span>
+                        <span>{{ userDeclaration?.declaration?.updateTimestamp | dateFormatterWithTimeZone:'long' }}</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- confirmation Modal -->
+<app-common-modal [modalConfig]="confirmationModal?.modalConfig" (modalAction)="postConfirmation($event)">
+    <ng-container modal-header>
+        <span>{{ confirmationModal?.modalHeader }}</span>
+        <!-- header help text -->
+        <app-common-help-text *ngIf="confirmationModal?.modalHelpTextConfig?.subSectionId"
+            [elementId]="confirmationModal?.modalHelpTextConfig?.elementId"
+            [subSectionId]="confirmationModal?.modalHelpTextConfig?.subSectionId">
+        </app-common-help-text> 
+    </ng-container>
+    <ng-container modal-body>
+        <div class="d-flex flex-column gap-3">
+            <p *ngIf="confirmationModal?.modalBody" class="fs-14 mb-0" [innerHTML]="confirmationModal?.modalBody | safe"></p>
+    
+            <!-- description -->
+            <div *ngIf="confirmationModal.isShowDescription">
+                <div class="coi-text-dark d-flex pb-1">
+                    <label for="apply_to_all_description" class="coi-text-dark">
+                        <span *ngIf="confirmationModal.isDescriptionMandatory" class="mandatory me-1" aria-label="Mandatory field">*</span>
+                        <span>{{ confirmationModal.descriptionLabel }}</span>
+                    </label>
+                    <!-- header help text -->
+                    <app-common-help-text *ngIf="confirmationModal?.descriptionHelpTextConfig?.subSectionId"
+                        [elementId]="confirmationModal?.descriptionHelpTextConfig?.elementId"
+                        [subSectionId]="confirmationModal?.descriptionHelpTextConfig?.subSectionId">
+                    </app-common-help-text> 
+                </div>
+                <textarea class="form-control" id="apply_to_all_description" rows="5"
+                    name="apply_to_all_description"
+                    [(ngModel)]="confirmationModal.description"
+                    appLengthValidator [limit]="2000" autocomplete="off"
+                    (ngModelChange)="confirmationModal.description = confirmationModal.description.trim(); validateDescription()"
+                    [placeholder]="confirmationModal.textAreaPlaceholder"
+                    [attr.aria-label]="confirmationModal.description" [styleList]="'float-end word-count'"
+                    [class.is-invalid]="confirmationModal.mandatoryList.has('DECLARATION_ACTION_DESCRIPTION')">
+                </textarea>
+                <!-- description error -->
+                <span *ngIf="confirmationModal.mandatoryList.has('DECLARATION_ACTION_DESCRIPTION')"
+                    class="invalid-feedback d-inline fs-13">{{ confirmationModal.mandatoryList.get('DECLARATION_ACTION_DESCRIPTION') }}</span>
+            </div>
+        </div>
+    </ng-container>
+    <!--  modal additional footer buttons -->
+    <ng-container *ngIf="confirmationModal?.additionalFooterBtns?.length" modal-additional-footer-buttons>
+        <ng-container *ngFor="let btnType of confirmationModal?.additionalFooterBtns">
+            <button type="button" class="btn fs-14 {{btnType?.event?.btnClass}}" id="validation-leave-page-modal"
+                (click)="performDeclarationActions(btnType?.action)" title="Click here to {{ btnType?.event?.buttonName }}"
+                aria-label="Click here to {{ btnType?.event?.buttonName }}">
+                {{ btnType?.event?.buttonName }}
+            </button>
+        </ng-container>
+    </ng-container>
+</app-common-modal>
+
+<!-- Assign Admin Modal -->
+<app-assign-administrator-modal *ngIf="assignAdminModalConfig.isOpenAssignAdminModal"
+    [path]="'DECLARATIONS'"
+    (closeModal)="closeAssignAdministratorModal($event)"
+    [disclosureId]="assignAdminModalConfig?.documentId"
+    [disclosureNumber]="assignAdminModalConfig?.documentNumber"
+    [currentAssignedAdminId]="assignAdminModalConfig?.adminPersonId"
+    [defaultAdminDetails]="assignAdminModalConfig.defaultAdminDetails"
+    [actionType]="assignAdminModalConfig?.adminPersonId ? 'R' : 'A'">
+</app-assign-administrator-modal>
+
+<!-- disclosure print  -->
+<app-coi-print-modal *ngIf="printModalConfig.isOpenPrintModal" [printModalConfig]="printModalConfig" (modalClosed)="printModalClosed()"></app-coi-print-modal>

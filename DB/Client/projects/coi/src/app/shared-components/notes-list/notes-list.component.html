@@ -1,0 +1,96 @@
+<ng-container *ngIf="notesList.length">
+    <div class="advance-search coi-search-box {{stickyClass}}">
+        <div class="row m-0">
+            <div class="col py-2 d-flex align-items-center search-area position-relative">
+                <span class="filter-search">
+                    <button tabindex="-1" class="d-flex align-items-center btn-none" name="notes-search-btn"
+                        id="notes-search-btn">
+                        <mat-icon aria-hidden="true" class="fs-25px searchButton">search</mat-icon>
+                    </button>
+                    <input class="form-control ps-5" type="text" id="coi-notes-search-text" name="coi-notes-search-text"
+                        placeholder="Search by title" [(ngModel)]="searchText">
+                </span>
+                <button aria-label="Click here to clear search text" title="Click here to clear search text"
+                    class="d-flex align-items-center btn-none" name="notes-search-clear-btn" id="notes-search-clear-btn"
+                    *ngIf="searchText" (click)="searchText=''">
+                    <mat-icon class="closeButton">close</mat-icon>
+                </button>
+            </div>
+            <div class="col-auto px-3 py-2 border-start" *ngIf="canShowAddButton">
+                <button id="add-note-from-list" class="btn btn-primary fs-14 d-inline-flex" [title]="'Click here to add note'"
+                    [attr.aria-label]="'Click here to add note'" (click)="addNewNote()">
+                    <mat-icon>add</mat-icon>Add New Note
+                </button>
+            </div>
+        </div>
+    </div>
+</ng-container>
+
+<ng-content select="[note-add]"></ng-content>
+
+<div class="d-grid gap-3 {{gridClass}} mt-3">
+    <div *ngFor="let note of notesList | SearchFilter : searchText:['title']; let noteIndex = index">
+        <div class="card h-100 shadow-sm rounded-2" [class.coi-card-regular]="isSliderView">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center pe-2" [isSliderView]="header-bottom">
+                <p class="fs-14 m-0 coi-text-dark text-slice" tabindex="-1" aria-live="assertive" [title]="note?.title">{{note?.title}}</p>
+                <button *ngIf="note.isEditable" [matMenuTriggerFor]="notesMoreAction"
+                    class="btn btn-primary-icon d-flex align-items-center justify-content-center rounded-circle mt-0 p-2"
+                    id="{{noteIndex}}-more-actions-btn" title="Click here for more actions" aria-label="Click here for more actions">
+                    <mat-icon aria-hidden="true">more_vert</mat-icon>
+                </button>
+            </div>
+            <div class="card-body py-1 ps-3 body-content">
+                <div class="my-1 fs-14 d-inline parent-container p-inline-no-margin ck-content" tabindex="-1" aria-live="assertive"
+                    [innerHTML]="note?.content.length > 300 && !note.isExpanded ? note?.content.slice(0, 300) + '...' : note?.content | safe">
+                </div>
+                <button *ngIf="note?.content?.length > 303 && !isShowSlider && !note.isExpanded" class="link-primary fs-14 btn-none"
+                    (click)="viewNote(note, noteIndex)" id="coi-note-read-more-{{noteIndex}}"
+                    title="Click here to read more of {{note.title}}" aria-label="Click here to read more of {{note.title}}">
+                    Read more
+                </button>
+                <button *ngIf="note.isExpanded" class="link-primary fs-14 btn-none"
+                    (click)="collapseText(note, noteIndex)">
+                    Read Less
+                </button>
+            </div>
+            <div class="pe-3 fs-13 mb-2">
+                <p class="m-0 d-flex justify-content-end align-items-baseline" tabindex="-1" aria-live="assertive">
+                    <span class="coi-text-lighter me-1">Last updated by</span>
+                    <span>{{note?.updatedByFullName}}</span>
+                </p>
+                <p class="m-0 d-flex justify-content-end align-items-baseline" tabindex="-1" aria-live="assertive">
+                    <span class="coi-text-lighter me-1">On</span>
+                    <span>{{note?.updateTimestamp | dateFormatterWithTimeZone: 'long'}}</span>
+                </p>
+            </div>
+            <mat-menu #notesMoreAction="matMenu" xPosition="before">
+                <button mat-menu-item id="btn-note-edit {{noteIndex}}"
+                    class="btn-primary-icon fs-14 d-flex justify-content-start w-100 align-items-center more-action"
+                    title="Click here to edit note" (click)="editNote(note, noteIndex)">
+                    <mat-icon aria-hidden="true">edit</mat-icon>
+                    <span class="fs-14 fw-medium">Edit</span>
+                </button>
+                <button mat-menu-item id="btn-note-delete {{noteIndex}}"
+                    class="btn-primary-icon fs-14 d-flex justify-content-start w-100 align-items-center more-action"
+                    title="Click here to delete note" (click)="deleteNote(note, noteIndex)">
+                    <mat-icon aria-hidden="true">delete</mat-icon>
+                    <span class="fs-14 fw-medium">Delete</span>
+                </button>
+            </mat-menu>
+        </div>
+    </div>
+</div>
+
+<ng-container *ngIf="isShowSlider">
+    <app-notes-edit-slider [sliderId]="editSliderId" (emitSliderAction)="updateAndCloseSlider($event)"
+        [notesAPICalls]="notesAPICalls"></app-notes-edit-slider>
+</ng-container>
+
+<app-common-modal [modalConfig]="modalConfig" (modalAction)="postDeleteConfirmation($event)">
+    <ng-container modal-header>
+        <span>Confirmation</span>
+    </ng-container>
+    <ng-container modal-body>
+        <p>Are you sure you want to delete the note titled - <strong>"<span class="mx-1">{{currentNote?.title}}</span>"</strong>?</p>
+    </ng-container>
+</app-common-modal>

@@ -1,0 +1,777 @@
+<!-- last updated by Ramlekshmy I on 16-01-2020 -->
+<div class="card" *ngIf="!result?.proposal?.isRcbfProposal && !dataFlags?.isProposalPerson">
+    <div class="card-content">
+        <div class="card-body">
+            <div class="gridSkin">
+                <div id="proposal-evaluation-form" class="form-row">
+                    <div class="form-group col-3">
+                        <label class="d-block">Recommendation</label>
+                        <select class="form-control dateBox" id="prop-recommendation"
+                            [disabled]="(!result?.hasRecommendation)" [(ngModel)]="recommendationCode"
+                            (ngModelChange)="isChanged=true;setUnsavedChanges(true);setRankValue();"
+                            [ngClass]="mandatoryList?.has('recommendation') ? 'is-invalid d-block' : ''">
+                            <option [ngValue]=null>--Select--</option>
+                            <option *ngFor="let support of result?.evaluationRecommendation"
+                                [ngValue]="support.evaluationRecommendationStatusCode"  [disabled]="!support.isActive" [hidden]="!support.isActive" >{{support?.description}}</option>
+                        </select>
+                        <div *ngIf="mandatoryList?.has('recommendation')" class="invalid-feedback d-block">
+                            {{mandatoryList?.get('recommendation')}}</div>
+                    </div>
+                    <div class="form-group col-2" *ngIf="result?.proposal?.grantCallType?.categoryCode == 1">
+                        <label class="d-block">Proposal Rank</label>
+                        <input id="prop-rank" class="form-control dateBox"
+                            [disabled]="(!result?.hasRank || recommendationCode === 2)" [(ngModel)]="proposalRank"
+                            (ngModelChange)="isChanged=true;setUnsavedChanges(true);"
+                            [ngClass]="mandatoryList?.has('rank') ? 'is-invalid d-block' : ''" type="number">
+                        <div *ngIf="mandatoryList?.has('rank')" class="invalid-feedback d-block">
+                            {{mandatoryList?.get('rank')}}
+                        </div>
+                    </div>
+                    <!-- <div class="form-group col-1 flex-center"
+            [ngClass]="mandatoryList?.has('recommendation') || mandatoryList?.has('rank') ? '' : 'mb-0 mt-3'"
+            *ngIf="(result?.hasRank || result?.hasRecommendation)">
+            <button class="btn btn-primary-sub btn-sm" title="Save" id="proposal-save-rank-btn"
+              (click)="dataFlags.isRankProposal = true;setRankProposalModal()">Save</button>
+            <div></div>
+          </div> -->
+                </div>
+                <div class="form-row">
+                    <div class="form-group col" *ngIf="mandatoryList?.has('endorseWarning')"
+                        class="invalid-feedback d-block">
+                        {{mandatoryList?.get('endorseWarning')}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Review Summary Details-->
+<div class="card mb-3">
+    <div class="card-header py-4">
+        <h4 class="card-title align-items-center d-flex" id="proposal-evaluation-review-summary">
+            <span class="mr-auto"> Review Summary </span>
+            <a title="Request New Review"
+                *ngIf="(result?.proposal.statusCode !== 11 && result?.proposal?.statusCode != 20 && result?.proposal?.statusCode != 9 && result?.proposal.statusCode !== 12 && result?.proposal.statusCode !== 24
+        && result?.proposal.statusCode !== 29 && result?.proposal.statusCode !== 30) && isAssignReview && isShowButtonsForGrantAdmin()"
+                (click)="requestObject = {};dataFlags.isRequestNewReview = true;reviewer = null;fetchReviewDetails();this.elasticSearchOptions.defaultValue = '';"
+                class="btn btn-sm btn-primary float-right mr-5 mt-0" id="prop-evaluation-req-btn">Request New Review
+            </a>
+        </h4>
+    </div>
+    <button id="reviewSummary-ExpandBtn" class="updown-arrow"
+        (click)="dataFlags.isReviewSummaryWidgetOpen = !dataFlags.isReviewSummaryWidgetOpen">
+        <i aria-hidden="true"
+            [ngClass]="dataFlags?.isReviewSummaryWidgetOpen?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+            class="fa-large"></i>
+    </button>
+    <div class="card-content" *ngIf="dataFlags?.isReviewSummaryWidgetOpen">
+        <div class="card-body">
+            <div class="gridSkin block-display-span">
+                <div class="row section-highlight p-2 mb-3" *ngIf="workFlowDetails?.startPersonName">
+                    <div class="align-items-center col-lg-auto float-left d-flex padding-left-important">
+                        <label class="mb-0 mr-2 " for="proposal-version">Version:</label>
+                        <select class="form-control w-50 d-block h-auto" id="proposal-version"
+                            [(ngModel)]="versionSelected" (ngModelChange)="versionChange()">
+                            <option *ngFor="let version of workflowList" [value]="version.workflowSequence">
+                                {{version.workflowSequence}}</option>
+                        </select>
+                    </div>
+                    <div class="align-items-center col-lg-auto d-flex border-left-bg">
+                        <label class="mb-0 mr-2">Submitted By: </label>
+                        <span>{{workFlowDetails?.startPersonName}} on {{workFlowDetails?.workflowStartDate|
+                            dateFormatterWithTimeZone: 'long'}}</span>
+                    </div>
+                </div>
+                <div class="no-data-container"
+                    *ngIf="result?.proposalReviews?.length == 0 || result?.proposalReviews == null">
+                    <span class="no-data-icon-outer">
+                        <div class="no-data-icon">
+                            <i class="fa fa-file-o" aria-hidden="true"></i>
+                            <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                        </div>
+                    </span>
+                    <h4>There is no information in this section.</h4>
+                </div>
+                <ng-container *ngIf="(result?.proposalReviews?.length > 0)">
+                    <div>
+                        <table class="table tableSkin grid2" aria-describedby="proposal-evaluation-review-summary">
+                            <thead>
+                                <tr>
+                                    <th scope="col" class="hand-cursor" id="sort-by-review-type"
+                                        title="Click to sort by Type"
+                                        (click)="dataFlags.isReverse = !dataFlags.isReverse;sortReviewTable('roleId')">
+                                        Type<i aria-hidden="true"
+                                            [ngClass]="((sortBy == 'roleId')  ? (dataFlags?.isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                                    </th>
+                                    <th scope="col" class="hand-cursor" id="sort-by-review-name"
+                                        title="Click to sort by Name"
+                                        (click)="dataFlags.isReverse = !dataFlags.isReverse;sortReviewTable('reviewerFullName')">
+                                        Reviewer<i aria-hidden="true"
+                                            [ngClass]="((sortBy == 'reviewerFullName')  ? (dataFlags?.isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                                    </th>
+                                    <th scope="col" class="hand-cursor" id="sort-by-review-status"
+                                        title="Click to sort by Status"
+                                        (click)="dataFlags.isReverse = !dataFlags.isReverse;sortReviewTable('reviewStatusCode')">
+                                        Status<i aria-hidden="true"
+                                            [ngClass]="((sortBy == 'reviewStatusCode')  ? (dataFlags?.isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                                    </th>
+                                    <th scope="col" class="hand-cursor" id="sort-by-review-startdate"
+                                        title="Click to sort by Start Date"
+                                        (click)="dataFlags.isReverse = !dataFlags.isReverse;sortReviewTable('reviewStartDate')">
+                                        Start Date<i aria-hidden="true"
+                                            [ngClass]="((sortBy == 'reviewStartDate')  ? (dataFlags?.isReverse ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                                    </th>
+                                    <th class="hand-cursor" id="sort-by-review-deadlinedate"
+                                        title="Click to sort by Review Deadline"
+                                        (click)="dataFlags.isReverse = !dataFlags.isReverse;sortReviewTable('reviewDeadLineDate')">
+                                        Review Deadline<i
+                                            [ngClass]="((sortBy == 'reviewDeadLineDate')  ? (dataFlags?.isReverse ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                                    </th>
+                                    <th class="hand-cursor" id="sort-by-review-deadlinedate"
+                                        title="Click to sort by Revision Deadline"
+                                        (click)="dataFlags.isReverse = !dataFlags.isReverse;sortReviewTable('piReviewDeadLineDate')">
+                                        Revision Deadline<i
+                                            [ngClass]="((sortBy == 'piReviewDeadLineDate')  ? (dataFlags?.isReverse ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                                    </th>
+                                    <th scope="col" class="hand-cursor" id="sort-by-review-enddate"
+                                        title="Click to sort by Completion Date"
+                                        (click)="dataFlags.isReverse = !dataFlags.isReverse;sortReviewTable('reviewEndDate')">
+                                        Completion Date<i aria-hidden="true"
+                                            [ngClass]="((sortBy == 'reviewEndDate')  ? (dataFlags?.isReverse ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let review of result?.proposalReviews;let i = index"
+                                    id="review-details-expand"
+                                    [ngClass]="highlight[i] && !dataFlags?.isShowAllReviews?'review-summary-in-progress':''"
+                                    (click)="selectedIndex = i;selectedReview = review;filterReviewDetails(); dataFlags.isShowAllReviews = false;">
+                                    <td>{{review?.evaluationStop?.description}}</td>
+                                    <td>
+                                        <ng-container *ngIf="review?.reviewerFullName != null">
+                                            {{review?.reviewerFullName}}</ng-container>
+                                        <ng-container
+                                            *ngIf="review?.reviewerFullName == null && review?.reviewStatus?.reviewStatusCode == 1 && isAssignReview && isShowButtonsForGrantAdmin()">
+                                            <a class="anchor-link" (click)="requestObject = {};dataFlags.isError = false;assignType = 1;proposalReviewerReview = review;
+                        changeAssignee(); getDateObject();getUserList(proposalReviewerReview?.evaluationStop);"
+                                                data-toggle="modal" data-target="#link-reviewer-modal">Assign a
+                                                Reviewer</a>
+                                        </ng-container>
+                                    </td>
+                                    <td><span
+                                            [ngClass]="review?.reviewStatus?.reviewStatusCode == 1?'table-in-progress':''">{{review?.reviewStatus?.description}}</span>
+                                    </td>
+                                    <td>{{review?.reviewStartDate | dateFormatter}}</td>
+                                    <td>{{review?.reviewDeadLineDate | dateFormatter}}</td>
+                                    <td>
+                                        <ng-container
+                                            *ngIf="review?.reviewStatus?.reviewStatusCode == 3 || review?.reviewStatus?.reviewStatusCode == 4; then revisionDeadline else noData">
+                                        </ng-container>
+                                        <ng-template #revisionDeadline>{{review?.piReviewDeadLineDate | dateFormatter}}
+                                        </ng-template>
+                                        <ng-template #noData>{{null}}</ng-template>
+                                    </td>
+                                    <td>{{review?.reviewEndDate | dateFormatter}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row" *ngIf="(result?.proposalReviews?.length > 0)">
+    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 show-all-review">
+        <button title="Show All Reviews" class="addBtn font attachBtn" id="prop-show-all-review-btn"
+            (click)="showAllReviews();">
+            <i aria-hidden="true"
+                [ngClass]="dataFlags?.isShowAllReviews?'fa fa-angle-double-up':'fa fa-angle-double-down'"></i>&nbsp;<span>Show
+                All Reviews</span>
+        </button>
+    </div>
+</div>
+<!--review log-->
+<ng-container *ngIf="result?.proposalReviews?.length >0">
+    <ng-container *ngFor="let reviewers of result?.proposalReviews; let reviewIndex = index">
+        <div class="card mb-3" *ngIf="highlight[reviewIndex]">
+            <div class="card-header" [ngClass]="isReviewTypeOpen[reviewIndex]?'':'pb-0'">
+                <h4 class="card-title" [ngClass]="isReviewTypeOpen[reviewIndex]?'':'mb-0'">
+                    <div class="row">
+                        <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+                            Review Details by<label
+                                class="ml-1">{{reviewers?.reviewerFullName}}({{reviewers?.evaluationStop?.description}})</label>
+                        </div>
+                        <div class="colorBlack"
+                            [ngClass]="reviewers?.reviewStatusCode == 2 || reviewers?.reviewStatusCode == 1 ?'col-xl-6 col-lg-6 col-md-6 col-sm-6 col-6':'col-xl-5 col-lg-5 col-md-5 col-sm-5 col-5'">
+                            <span><label>Started on: </label>
+                                <span>{{reviewers?.reviewStartDate | dateFormatter}}</span></span>
+                            <span class="float-right" *ngIf="reviewers?.reviewStatusCode != 1">
+                                <label *ngIf="reviewers?.reviewStatusCode == 2 else returnUser">Completed on: </label>
+                                <ng-template #returnUser>
+                                    <label>Returned on: </label>
+                                </ng-template>
+                                <span>{{reviewers?.reviewEndDate | dateFormatter}}</span>
+                                <span> by {{reviewers?.completeReviewerFullName}}</span>
+                            </span>
+                        </div>
+                        <div class="align-items-center col text-sm-right">
+                            <span class="py-2 mr-5"
+                                [ngClass]="reviewers?.reviewStatusCode == 2 || reviewers?.reviewStatusCode == 5?'complete':reviewers?.reviewStatusCode == 1?'in-progress':'revision-req'">{{reviewers?.reviewStatus?.description}}</span>
+                            <button id="review-log-expand-btn" class="addBtn font hoverColor top-4"
+                                (click)="isReviewTypeOpen[reviewIndex] = !isReviewTypeOpen[reviewIndex]">
+                                <i aria-hidden="true" class="fa-large  margin-top-5"
+                                    [ngClass]="isReviewTypeOpen[reviewIndex]?'fa fa-angle-double-up':'fa fa-angle-double-down'"></i>
+                            </button>
+                        </div>
+                    </div>
+                </h4>
+            </div>
+
+            <div class="card-content" *ngIf="isReviewTypeOpen[reviewIndex]">
+                <div class="card-body">
+                    <div class="gridSkin block-display-span">
+                        <div class="form-row pb-2"
+                            *ngIf="reviewers?.hasEndorsed && (reviewers?.hasRank && reviewers?.hasRecommendation && reviewers?.reviewStatus?.reviewStatusCode == 1 &&
+          result?.proposal?.grantCallType?.categoryCode == 1 && !result?.proposal?.isRcbfProposal && result?.proposal?.proposalRank == null && recommendationCode !== 2)">
+                            <div class="alert alert-danger pulse" role="alert">Please enter and save proposal rank and
+                                recommendation
+                                to endorse the proposal.</div>
+                        </div>
+                        <div class="form-row pb-2"
+                            *ngIf="reviewers?.hasEndorsed && (!reviewers?.hasRank && reviewers?.hasRecommendation && reviewers?.reviewStatus?.reviewStatusCode == 1 &&
+          (result?.proposal?.grantCallType?.categoryCode == 3 || result?.proposal?.grantCallType?.categoryCode == 2) && !result?.proposal?.isRcbfProposal && result?.proposal?.recommendationCode == null)">
+                            <div class="alert alert-danger pulse" role="alert">Please enter and save proposal
+                                recommendation to
+                                endorse the proposal.</div>
+                        </div>
+                        <div class="form-row pb-2"
+                            *ngIf="!result?.proposal?.isRcbfProposal && reviewers?.reviewStatus?.reviewStatusCode == 1 && reviewers?.evaluationStop?.roleId == 120 && checkRightToShowCompleteBtn(reviewers)">
+                            <div class="alert alert-danger pulse" role="alert"
+                                *ngIf="!checkRightToEnableButtons('Complete') && checkRightToEnableButtons('Return')">To
+                                Complete Grant
+                                Admin Review, all DEC review(s) should be completed.</div>
+                            <div class="alert alert-danger pulse" role="alert"
+                                *ngIf="!checkRightToEnableButtons('Complete') && !checkRightToEnableButtons('Return')">
+                                To Complete or
+                                Return Grant Admin Review, all DEC review(s) should be completed.</div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-6 p-0 pl-2"
+                                *ngIf="!reviewers?.hasQuestionnaire; else reviewSubTabs">
+                                <ul class="nav nav-pills bg-none" role="tablist">
+                                    <li class="nav-item hand-cursor">
+                                        <a id="prop-review-comments-tab"
+                                            class="nav-link active thick txt-small button-red-tab rounded-0"
+                                            [ngClass]="{active:(reviewSubTab[reviewIndex] == 'COMMENTS')}"
+                                            title="View Review Comments"
+                                            (click)="reviewSubTab[reviewIndex] = 'COMMENTS'">
+                                            <i class="fa fa-commenting-o txt-large mr-1" aria-hidden="true"></i>Review
+                                            Comments </a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <ng-template #reviewSubTabs>
+                                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-6 p-0"
+                                    *ngIf="reviewers?.hasQuestionnaire">
+                                    <ul class="nav nav-pills bg-none" role="tablist">
+                                        <li class="nav-item hand-cursor">
+                                            <a id="prop-review-comments-tab"
+                                                class="nav-link active thick txt-small button-red-tab rounded-0"
+                                                [ngClass]="{active:(reviewSubTab[reviewIndex] == 'COMMENTS')}"
+                                                title="View Review Comments"
+                                                (click)="changeTab('COMMENTS', reviewIndex)">
+                                                <i class="fa fa-commenting-o txt-large mr-1"
+                                                    aria-hidden="true"></i>Review Comments </a>
+                                        </li>
+                                        <li class="nav-item hand-cursor">
+                                            <a id="prop-evaluation-tab"
+                                                class="nav-link active thick txt-small button-red-tab rounded-0"
+                                                [ngClass]="{active:(reviewSubTab[reviewIndex] == 'EVALUATION')}"
+                                                title="View Evaluation Form"
+                                                (click)="changeTab('EVALUATION', reviewIndex, reviewers)">
+                                                <i class="fa fa-book txt-large mr-1" aria-hidden="true"></i>Evaluation
+                                                Form</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </ng-template>
+                            <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-6 review-actions p-0">
+                                <div class="text-right" *ngIf="reviewers?.reviewStatus?.reviewStatusCode == 1">
+                                    <button title="Write a Review"
+                                        *ngIf="reviewers?.reviewerPersonId === personId || checkIfRoleIdMatches(reviewers) || isWriteReview"
+                                        id="prop-write-review-btn" class="btn btn-primary-sub btn-sm"
+                                        (click)="proposalReviewerReview = reviewers;clearFields();actionType = null;"
+                                        data-toggle="modal" data-target="#addReviewModal">Write a Review</button>
+                                    <button id="prop-return-review-btn" title="Return to Applicant"
+                                        class="btn btn-primary-sub btn-sm"
+                                        *ngIf="checkRightToShowCompleteBtn(reviewers)"
+                                        (click)="proposalReviewerReview = reviewers;clearFields();actionType = 'DISAPPROVE';actionName = 'Return'"
+                                        [disabled]="(reviewers?.evaluationStop?.roleId == 120 && !checkRightToEnableButtons('Return') && !result?.proposal?.isRcbfProposal)"
+                                        data-toggle="modal" data-target="#addReviewModal">Return to Applicant</button>
+                                    <button id="prop-complete-review-btn" title="Complete Review"
+                                        class="btn btn-primary btn-sm" *ngIf="checkRightToShowCompleteBtn(reviewers)"
+                                        [disabled]="(reviewers?.evaluationStop?.roleId == 120 && !checkRightToEnableButtons('Complete') && !result?.proposal?.isRcbfProposal)"
+                                        (click)="proposalReviewerReview = reviewers;actionType = 'APPROVE';actionName = 'Complete';clearFields();setStatusCode();
+                                        triggerValidationModal();filterEvaluationStatus();">Complete Review</button>
+                                    <button id="prop-endorse-review-btn" title="Endorse Review"
+                                        class="btn btn-primary btn-sm" *ngIf="checkRightToShowEndorseBtn(reviewers)"
+                                        [disabled]="(((result?.proposal?.grantCallType?.categoryCode == 1 && reviewers?.hasRecommendation && reviewers?.hasRank && (recommendationCode !== 2 && result?.proposal?.proposalRank == null || result?.proposal?.recommendationCode == null)) ||
+                  (result?.proposal?.grantCallType?.categoryCode == 2 && reviewers?.hasRecommendation && result?.proposal?.recommendationCode == null))
+                   && !result?.proposal?.isRcbfProposal)" (click)="proposalReviewerReview = reviewers;actionType = 'APPROVE';clearFields();actionName = 'Endorse';setStatusCode();
+                  filterEvaluationStatus();" data-toggle="modal" data-target="#addReviewModal">Endorse</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row"
+                            *ngIf="(reviewers?.reviewComments?.length == 0 && reviewSubTab[reviewIndex] == 'COMMENTS')">
+                            <div class="noDataExists">No comments added yet.</div>
+                        </div>
+                        <ng-container *ngFor="let comments of reviewers.reviewComments; let i=index">
+                            <div
+                                *ngIf="(!reviewers?.hasRank && reviewers?.reviewComments?.length>0) || (reviewSubTab[reviewIndex] == 'COMMENTS' && reviewers?.hasRank)">
+                                <div class="row pt-2">
+                                    <div
+                                        class="col-xl-12 col-lg-12 col-md-6 col-sm-12 col-12 colorBlack review-comments">
+                                        <label>{{comments?.fullName}}</label> <span class="comments-font">Added a
+                                            <span *ngIf="comments?.isPrivateComment == true" class="font-bold"><i
+                                                    class="fa fa-lock default-cursor" aria-hidden="true"></i> private
+                                            </span>
+                                            comment on: {{comments?.updateTimestamp | dateFormatterWithTimeZone :
+                                            'long'}} </span>
+                                        <a title="Delete comment" class="actionbtn"
+                                            *ngIf="reviewers?.reviewStatus?.reviewStatusCode == 1 && (comments?.personId == personId || reviewers?.reviewerPersonId == personId)"
+                                            (click)="proposalReviewerReview = reviewers;deleteCommentId = comments?.commentId;setDeleteReviewWarning()"
+                                            data-toggle="modal" data-target="#evaluation-confirmation-modal">
+                                            <i class="fa fa-trash" aria-hidden="true"></i></a>
+                                    </div>
+                                    <div class="col-xl-12 col-lg-12 col-md-6 col-sm-12 col-12 review-border">
+                                        <span class="comments-font"
+                                            title="{{(comments?.reviewComment?.length>80)?(comments?.reviewComment):''}}">
+                                            {{comments?.reviewComment}}</span>
+                                    </div>
+                                    <div class="col-xl-12 col-lg-12 col-md-6 col-sm-12 col-12"
+                                        *ngIf="comments?.reviewAttachments?.length>0">
+                                        <div class="fileChips regularFont">
+                                            <span
+                                                *ngFor="let attachment of comments?.reviewAttachments;let attachIndex = index">{{attachment.fileName}}
+                                                <i aria-hidden="true" class="fa fa-download hand-cursor"
+                                                    id="prop-review-attach-dwnld" title="Download File"
+                                                    (click)="downloadAttachments($event, attachment.fileName, comments?.reviewAttachments)"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </ng-container>
+                        <div *ngIf="(reviewers?.hasQuestionnaire && reviewSubTab[reviewIndex] == 'EVALUATION')">
+                            <app-questionnaire
+                                [isViewMode]="!result?.dataVisibilityObj?.isEvaluationFormEdittable[proposalReviewerReview?.reviewId]"
+                                [requestObject]="questionnaireObject" [dataVisibilityObj]="result?.dataVisibilityObj">
+                            </app-questionnaire>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+</ng-container>
+<!-- ASSIGN REVIEWER -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="assignProposalReviewerModal" role="dialog"
+    aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Request new Review for the proposal</h5>
+                <button type="button" class="close" data-dismiss="modal" id="prop-assign-reviewer-dissmiss-btn"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                    <div class="form-row">
+                        <div class="form-group col">
+                            <label class="comments-font font-weight-bold"><span class="mandatory">*</span>Review
+                                Stop</label>
+                            <select class="form-control dateBox selectbox-size" id="prop-assign-reviewer-type"
+                                [(ngModel)]="requestObject.evaluationStop"
+                                (ngModelChange)="setPlaceHolder();getUserList(requestObject?.evaluationStop)"
+                                [ngClass]="errorList.has('reviewStop') ? 'is-invalid d-block' : ''">
+                                <option [value]=null>--Select--</option>
+                                <option *ngFor="let evaluationStop of result?.evaluationReviewStop"
+                                    [ngValue]="evaluationStop">
+                                    {{evaluationStop?.description}}</option>
+                            </select>
+                            <div *ngIf="errorList.has('reviewStop')" class="invalid-feedback d-block">
+                                {{errorList.get('reviewStop')}}
+                            </div>
+                        </div>
+                        <div class="form-group col">
+                            <label class="comments-font font-weight-bold">Review Deadline</label>
+                            <span class="dateField"> <input matInput [matDatepicker]="reviewDeadlineDate" placeholder="{{datePlaceHolder}}"
+                                    id="prop-assign-reviewer-deadline"
+                                    [ngClass]="errorList.has('reviewdeadline') ? 'is-invalid d-block' : ''"
+                                    class="d-inline-block form-control"
+                                    [(ngModel)]="requestObject.reviewDeadLineDate"
+                                    (ngModelChange)="dateValidation(requestObject.reviewDeadLineDate, 'Review deadline')"
+                                    (keypress)="_commonService._keyPress($event, 'date');"
+                                    (click)="reviewDeadlineDate.open()" />
+                                <i class="fa fa-calendar fa-large hand-cursor insidePicker"
+                                    id="prop-assign-reviewer-deadline-date-icon"
+                                    (click)="reviewDeadlineDate.open()" aria-hidden="true"></i>
+                                <mat-datepicker #reviewDeadlineDate (opened)="setFocusToElement('prop-assign-reviewer-deadline')"
+                                    (closed)="dateValidation(requestObject.reviewDeadLineDate, 'Review deadline')">
+                                </mat-datepicker>
+                            </span>
+                            <div *ngIf="errorList.has('reviewdeadline')" class="invalid-feedback d-block">
+                                {{errorList.get('reviewdeadline')}}</div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col">
+                            <label class="comments-font font-weight-bold">Reviewer</label>
+                            <app-elastic *ngIf="requestObject?.evaluationStop?.roleId === 200"
+                                [options]="elasticSearchOptions" [clearField]="clearField"
+                                (selectedResult)="selected($event)" [placeHolder]="placeholder"></app-elastic>
+                            <select class="form-control dateBox selectbox-size" id="assign-reviewer-name"
+                                [(ngModel)]="reviewer" (ngModelChange)="setReviewerDetails()"
+                                *ngIf="requestObject?.evaluationStop?.roleId !== 200"
+                                [disabled]="!requestObject.evaluationStop || requestObject.evaluationStop == 'null'">
+                                <option [ngValue]=null>--Select--</option>
+                                <option *ngFor="let user of userList" [ngValue]="user">{{user?.fullName}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div *ngIf="errorList.has('reviewExist')" class="invalid-feedback d-block pl-2">
+                            {{errorList.get('reviewExist')}}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="prop-assign-reviewer-btn" class="btn btn-primary-sub btn-sm"
+                    (click)="addReview()">Add
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Add comments and attachments modal -->
+<div class="modal fade mySkinDialog" id="addReviewModal" tabindex="-1" data-backdrop="static" data-keyboard="false"
+    role="dialog" aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><span>Proposal #{{result?.proposal?.proposalId}} -
+                        {{result?.proposal?.title}}</span>
+                </h5>
+                <button type="button" id="prop-addReview-dismiss-btn" class="close" data-dismiss="modal"
+                    (click)="clearFields()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card mb-3">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-xl-12 col-lg-3 col-md-6 col-sm-6 col-6">
+                                    <label></label><span>Review by {{proposalReviewerReview?.reviewerFullName}}
+                                        ({{proposalReviewerReview?.evaluationStop?.description}}) -
+                                        {{proposalReviewerReview?.reviewStatus?.description}} on
+                                        {{proposalReviewerReview?.reviewStartDate | dateFormatter}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <label><span class="mandatory">*</span>Comments</label>
+                                <textarea id="prop-review-comments" placeholder="Write your comments"
+                                    class="col-12 col-lg-12 commentBox comments-box" rows="2" cols="20"
+                                    [ngClass]="errorList.has('comment') != null ? 'is-invalid d-block' : ''"
+                                    [(ngModel)]="requestObject.reviewComment" appLengthValidator [isShowLimiter]='true'
+                                    [limit]=4000></textarea>
+                                <div *ngIf="errorList.has('comment')"><span
+                                        class="mandatory font">{{errorList.get('comment')}}</span>
+                                </div>
+                            </div>
+                            <app-file-drop [multiple]="true" (filesDropEvent)="fileDrop($event)"></app-file-drop>
+                            <div class="fileChips regularFont">
+                                <span *ngFor="let item of uploadedFile; let i=index">{{item.name}} <i
+                                        class="fa fa-close hand-cursor" title="Remove File"
+                                        id="prop-review-attach-remove" (click)="deleteFromUploadedFileList(item)"
+                                        aria-hidden="true"></i></span>
+                            </div>
+                            <div class="form-row" *ngIf="actionType === 'DISAPPROVE'">
+                                <div class="col-xl-2 col-lg-3 col-md-2 col-sm-6 col-6 pr-0">
+                                    <label class="comments-font font-weight-bold">Revision Deadline:</label>
+                                </div>
+                                <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-6 pl-0">
+                                    <span class="dateField"> <input matInput [matDatepicker]="deadlineDate" placeholder="{{datePlaceHolder}}"
+                                            id="prop-reviewer-deadline"
+                                            class="d-inline-block form-control"
+                                            [ngClass]="errorList.has('reviewdeadline') ? 'is-invalid d-block' : ''"
+                                            [(ngModel)]="reviewRequest.piReviewDeadLineDate"
+                                            (ngModelChange)="dateValidation(reviewRequest?.piReviewDeadLineDate, 'Deadline')"
+                                            (keypress)="_commonService._keyPress($event, 'date');"
+                                            (click)="deadlineDate.open()" />
+                                        <i class="fa fa-calendar fa-large hand-cursor insidePicker"
+                                            id="prop-reviewer-deadline-date-icon" (click)="deadlineDate.open()"
+                                            aria-hidden="true"></i>
+                                        <mat-datepicker #deadlineDate (opened)="setFocusToElement('prop-reviewer-deadline')"
+                                            (closed)="dateValidation(reviewRequest?.piReviewDeadLineDate, 'Deadline');">
+                                        </mat-datepicker>
+                                    </span>
+                                </div>
+                                <div *ngIf="errorList.has('reviewdeadline')" class="pl-2 invalid-feedback d-block">
+                                    {{errorList.get('reviewdeadline')}}</div>
+                            </div>
+                            <ng-container *ngIf="actionType === 'APPROVE' && proposalReviewerReview?.isFinal">
+                                <div class="form-row">
+                                    <div class="form-group col-5">
+                                        <label class="comments-font font-weight-bold">
+                                            <span
+                                                *ngIf="(!result?.proposal?.isRcbfProposal) || (result?.proposal?.isRcbfProposal && proposalReviewerReview?.roleId === 415)"
+                                                class="mandatory">*</span>Proposal Status</label>
+                                        <select
+                                            *ngIf="(!result?.proposal?.isRcbfProposal) || (result?.proposal?.isRcbfProposal && (proposalReviewerReview?.roleId === 415 || proposalReviewerReview?.roleId === 400))"
+                                            class="form-control dateBox selectbox-size" id="prop-status-type"
+                                            [(ngModel)]="reviewRequest.proposalStatusCode"
+                                            [ngClass]="errorList.has('status') ? 'is-invalid d-block' : ''">
+                                            <option [value]=null>--Select--</option>
+                                            <option *ngFor="let status of finalEvaluationStatus"
+                                                [ngValue]="status?.statusCode">{{status?.proposalStatus?.description}}
+                                            </option>
+                                        </select>
+                                        <div *ngIf="errorList.has('status')" class="pl-2 invalid-feedback d-block">
+                                            {{errorList.get('status')}}</div>
+                                    </div>
+                                </div>
+                            </ng-container>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div *ngIf="isMaintainPrivateComments" class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-6"><span><input
+                            type="checkbox" [(ngModel)]='requestObject.isPrivateComment' /></span><label><span
+                            class="font pl-1">Check
+                            here to make
+                            review comment private</span></label></div>
+                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-6 text-right">
+                    <button *ngIf="actionType == null" type="button" id="prop-add-review-btn"
+                        class="btn btn-primary-sub btn-sm" (click)="addReviewComment()">Add</button>
+                    <ng-container *ngIf="actionType != null">
+                        <button type="button" id="prop-completePreReview-cancel-btn" class="btn btn-secondary btn-sm"
+                            (click)="requestObject = {};uploadedFile=[];" data-dismiss="modal">Close</button>
+                        <button type="button" id="prop-completeReview-btn" class="btn btn-primary-sub btn-sm"
+                            (click)="completeReturnReview(actionType)">{{actionName}}</button>
+                    </ng-container>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Confirmation modal-->
+<div class="modal fade mySkinDialog" id="evaluation-confirmation-modal" tabindex="-1" data-backdrop="static"
+    data-keyboard="false" role="dialog" aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><span>{{modalData?.modalHeader}}</span></h5>
+                <button type="button" id="prop-completeReview-dismiss-btn" class="close" data-dismiss="modal"
+                    (click)="clearModalFlags()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>{{modalData?.modalMessage}}</p>
+            </div>
+            <div class="modal-footer" *ngIf="(dataFlags?.isRankProposal && !dataFlags?.isDeleteComment)">
+                <button type="button" id="prop-rank-cancel-btn" class="btn btn-secondary btn-sm rate-float"
+                    (click)="clearModalFlags();dataFlags.isRankProposal = false" data-dismiss="modal">No</button>
+                <button type="button" id="prop-rank-btn" class="btn btn-primary-sub btn-sm rate-float"
+                    (click)="saveProposalRank()" data-dismiss="modal">Yes</button>
+            </div>
+            <div class="modal-footer" *ngIf="!dataFlags?.isRankProposal && dataFlags?.isDeleteComment">
+                <button type="button" id="prop-delete-comment-cancel-btn" class="btn btn-secondary btn-sm rate-float"
+                    (click)="clearModalFlags();dataFlags.isDeleteComment = false" data-dismiss="modal">No</button>
+                <button type="button" id="prop-delete-comment-btn" class="btn btn-primary-sub btn-sm rate-float"
+                    (click)="deleteReviewComment()">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Assign reviewer modal -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="link-reviewer-modal" role="dialog" aria-hidden="true"
+    data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Assign reviewer for Review</h5>
+                <button type="button" class="close" data-dismiss="modal" id="prop-assign-review-reviewer-dissmiss-btn"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="col">
+                        <div class="form-check form-check-inline">
+                            <input type="radio" id="reviewer-assign" class="radio-inline" name='assign_reviewer'
+                                [value]="1" [(ngModel)]="assignType"
+                                (ngModelChange)="requestObject.reviewerPersonId = null;dataFlags.isError = false;changeAssignee();"
+                                checked>
+                            <label class="form-check-label" for="inlineRadio1">Assign</label>
+                        </div>
+                    </div>
+                    <div class="col"
+                        *ngIf="result?.personRoles && (checkIfRoleIdMatches(proposalReviewerReview) || proposalReviewerReview?.roleId === 200)">
+                        <div class="form-check form-check-inline">
+                            <input type="radio" id="reviewer-assign-to-me" class="radio-inline" name='assign_reviewer'
+                                [value]="2" [(ngModel)]="assignType"
+                                (ngModelChange)="requestObject.reviewerPersonId = null;dataFlags.isError = false;changeAssignee()">
+                            <label class="form-check-label">Assign to me</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label class="comments-font font-weight-bold"><span class="mandatory">*</span>Reviewer</label>
+                        <ng-container *ngIf="assignType === 1">
+                            <app-elastic *ngIf="proposalReviewerReview?.evaluationStop?.roleId === 200"
+                                [options]="elasticSearchOptions" [clearField]="clearField"
+                                [isError]="dataFlags?.isError" (selectedResult)="selected($event)"
+                                [placeHolder]="'Choose a reviewer'"></app-elastic>
+                            <select class="form-control dateBox selectbox-size" id="assign-reviewer-name"
+                                [(ngModel)]="reviewer" (ngModelChange)="setReviewerDetails()"
+                                [ngClass]="errorList.has('reviewer') ? 'is-invalid d-block' : ''"
+                                *ngIf="proposalReviewerReview?.evaluationStop?.roleId !== 200">
+                                <option [value]=null>--Select--</option>
+                                <option *ngFor="let user of userList" [ngValue]="user">{{user?.fullName}}</option>
+                            </select>
+                            <div *ngIf="errorList.has('reviewer')" class="invalid-feedback d-block">
+                                {{errorList.get('reviewer')}}
+                            </div>
+                        </ng-container>
+                        <span class="d-block pl-2" *ngIf="assignType === 2">{{requestObject.reviewerFullName}}</span>
+                    </div>
+                    <div class="form-group col" *ngIf="assignType === 1 || assignType === 2">
+                        <label class="comments-font font-weight-bold">Review Deadline</label>
+                        <span class="dateField"> <input matInput [matDatepicker]="reviewDeadLine" placeholder="{{datePlaceHolder}}"
+                                id="prop-assign-reviewer-deadline"
+                                [ngClass]="errorList.has('reviewdeadline') ? 'is-invalid d-block' : ''"
+                                class="d-inline-block form-control"
+                                [(ngModel)]="requestObject.reviewDeadLine"
+                                (ngModelChange)="dateValidation(requestObject.reviewDeadLine, 'Review deadline')"
+                                (keypress)="_commonService._keyPress($event, 'date');"
+                                (click)="reviewDeadLine.open()" />
+                            <i class="fa fa-calendar fa-large hand-cursor insidePicker" aria-hidden="true"
+                                id="prop-assign-reviewer-deadline-date-icon" (click)="reviewDeadLine.open()"></i>
+                            <mat-datepicker #reviewDeadLine (opened)="setFocusToElement('prop-assign-reviewer-deadline')"
+                                (closed)="dateValidation(requestObject.reviewDeadLine, 'Review deadline')">
+                            </mat-datepicker>
+                        </span>
+                        <div *ngIf="errorList.has('reviewdeadline')" class="invalid-feedback d-block">
+                            {{errorList.get('reviewdeadline')}}</div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div *ngIf="errorList.has('reviewExist')" class="invalid-feedback d-block pl-2">
+                        {{errorList.get('reviewExist')}}</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="prop-assign-reviewer-btn" class="btn btn-primary-sub btn-sm"
+                    (click)="addReviewer()">Add Reviewer</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- In MIDDLE OF EDIT WARNING MODAL -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="evaluation-save-modal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="budgetSaveModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Are you sure you want to leave this page?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>There are unsaved change in <strong>{{unsavedChanges?.name}}</strong>.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub" (click)="discardChanges()" data-dismiss="modal">Leave
+                    without saving</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade mySkinDialog" tabindex="-1" id="confirmation-complete-review-modal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="budgetSaveModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>You have unsaved changes in <strong>Proposal Evaluation.</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" (click)="continueWithoutSave()">Continue without saving</button>
+                <button type="button" class="btn btn-primary-sub" data-dismiss="modal" (click)="setRankProposalModal()">Save and continue</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade mySkinDialog" tabindex="-1" id="ValidateApproveBudgetModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Validation</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12 ">
+                        <div *ngIf="validationMessage?.errorList?.length > 0">
+                            <ng-container *ngFor="let msg of validationMessage?.errorMessage">
+                                <div class="alert alert-danger" role="alert">
+                                    <i class="fa fa-exclamation-circle icon text-danger" aria-hidden="true"></i>
+                                    <strong>Error: </strong>
+                                    <span [innerHTML]="msg.validationMessage"></span>
+                                </div>
+                            </ng-container>
+                            <ng-container *ngFor="let msg of validationMessage?.warningMessage">
+                                <div class="alert alert-danger" role="alert">
+                                    <i class="fa fa-exclamation-circle icon text-warning" aria-hidden="true"></i>
+                                    <strong>Warning: </strong>
+                                    <span [innerHTML]="msg.validationMessage"></span>
+                                </div>
+                            </ng-container>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

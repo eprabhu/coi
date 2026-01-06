@@ -1,0 +1,137 @@
+<div class="card p-2 fb-mt-2">
+<div class="d-flex justify-content-between m-2 align-items-center fb-header-div">
+    <p class="fw-500 m-0"> Form Integration</p>
+  <button data-bs-toggle="modal" (click)='openIntegrationModal()' id="FB-add-integration-btn" title="Click here to add integration"
+    aria-label="Click here to add integration" class="btn btn-primary-sub btn-sm"><i aria-hidden="true" class="fa fa-plus fb-pr-2"></i>Add Integration</button>
+</div>
+<div *ngIf="formUsageList?.length != 0" class="table-responsive">
+    <div class="table-responsive">
+  <table class="fs-14  fb-table table table-bordered">
+    <thead class="grey-text table-head fb-table-head fb-mb-0">
+      <tr>
+        <th class="fb-table-head" scope="col">Applied to</th>
+        <th class="fb-table-head" scope="col">Rule</th>
+        <th class="fb-table-head" scope="col">Form label</th>
+        <th class="fb-table-head" scope="col">Action <i class="fa-solid fa-text"></i></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr id="FB-usage-{{i}}" *ngFor=" let usage of formUsageList; let i = index">
+        <td style="width:20%;">{{usage?.moduleName}}</td>
+        <td>Business Rule</td>
+        <td>{{usage?.formLabel}}</td>
+        <td style="width:15%;">
+          <button title="Click here to edit integration" aria-label="Click here to edit integration" data-toggle="modal"
+            class="btns edit-section cursor-pointer" data-target="#FB-add-Integration-Modal" data-bs-toggle="modal"
+            data-bs-target="#FB-add-Integration-Modal" (keydown.enter)="editUsage(usage,'E',i)" (click)="editUsage(usage,'E',i)"
+            id="FB-integration-{{i}}"><i aria-hidden="true" class="fa fa-pencil"></i></button>
+          <button title="Click here to unlink integration" aria-label="Click here to unlink integration" data-bs-toggle="modal" data-toggle="modal"
+            class="btns delete-section cursor-pointer" data-target="#FB-delete-Integration-Modal"
+            data-bs-target="#FB-delete-Integration-Modal"
+            (keydown.enter)="deleteIndex = i; formIntegtion.formUsageId = usage.formUsageId;"
+            (click)="deleteIndex = i; formIntegtion.formUsageId = usage.formUsageId;" id="FB-unlink-{{i}}"><i
+              class="fa fa-trash cursor-pointer" aria-hidden="true"></i></button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+    </div>
+</div>
+
+    <!-- No information Card -->
+    <div class="fb-no-data-container w-100" *ngIf="formUsageList?.length === 0">
+  <span class="fb-no-data-icon-outer">
+    <div class="fb-no-data-icon">
+      <i class="fa fa-file-o" aria-hidden="true"></i>
+      <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+    </div>
+  </span>
+        <h5 class="fs-16 fb-mt-3">
+            <span class="fb-default-content">There is no information in this section.</span>
+        </h5>
+    </div>
+</div>
+
+
+
+<div class="modal fade mySkinDialog" data-bs-backdrop="static" data-backdrop="static" id="FB-add-Integration-Modal" role="dialog">
+  <div class="modal-dialog modal-lg" appModalDrag>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 *ngIf="editStatus ===''" class="modal-title">Add Integration</h4>
+        <h4 *ngIf="editStatus ==='E'" class="modal-title">Update Integration</h4>
+        <button id="FB-dismiss-integrate-modal-btn" type="button" class="close" data-dismiss="modal" title="Click here to close" aria-label="Click here to close" (click)="closeBtn('#FB-add-Integration-Modal');resetUsage()">
+          <span aria-hidden="true">&times;</span>
+      </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-4">
+            <label for="FB-appliedTo" class="form-label"><span class="fb-mandatory">*</span>Applied to</label>
+            <select type="text" id="FB-appliedTo" [ngClass]="(formValidation?.has('moduleCodeValidation')) ? 'is-invalid d-block' : ''"
+              [(ngModel)]="formIntegtion.formModuleCode" class="form-control" (ngModelChange)="findSubModuleList()">
+              <option [ngValue]=null>--Select--</option>
+              <option [ngValue]="option.MODULE_CODE" *ngFor=" let option of moduleList">{{option.DESCRIPTION}}</option>
+            </select>
+            <div *ngIf="formValidation?.has('moduleCodeValidation')">
+              <span class="text-danger fs-14 d-inline-block">*Please select a module</span>
+            </div>
+            <div *ngIf="formValidation?.has('duplicateValidation')">
+              <span class="text-danger fs-14 d-inline-block">*This form can only be integrated with a module once. Please choose a different module</span>
+            </div>
+          </div>
+            <div class="col-4">
+                <label for="FB-rule" class="form-label">Rule</label>
+                <select type="text" id="FB-rule" class="form-control">
+                    <option value="">--Select--</option>
+                </select>
+            </div>
+            <div class="col-4">
+                <label for="FB-label" class="form-label"><span class="fb-mandatory">*</span>Form Label</label>
+                <input type="text" id="FB-label" appTailingSpaceRemover [ngClass]="(formValidation?.has('formLabelValidation')) ? 'is-invalid d-block' : ''" [(ngModel)]="formIntegtion.formLabel" appLengthValidator [limit] = '30' class="form-control" placeholder="Form Label" autocomplete="off">
+                <div *ngIf="formValidation?.has('formLabelValidation')">
+                    <span class="text-danger fs-14 d-inline-block">*Please enter a form label</span>
+                </div>
+            </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" id="FB-cancel-integration-btn" title="Click here to cancel"
+          aria-label="Click here to cancel" (click)="resetUsage();closeBtn('#FB-add-Integration-Modal')" type="button">Cancel
+        </button>
+        <button *ngIf="editStatus === ''" id="FB-add-integration-modal-btn" title="Click here to add integration"
+          aria-label="Click here to add integration" class="btn btn-primary-sub btn-sm" type="button"
+          (click)="saveIntegration()" data-dismiss="">Add Integration</button>
+        <button *ngIf="editStatus ==='E'" id="FB-update-integration-modal-btn" title="Click here to update integration"
+          aria-label="Click here to update integration" class="btn btn-primary-sub btn-sm" type="button"
+          (click)="updateFormUsage()" data-dismiss="">Update Integration</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal fade mySkinDialog" data-bs-backdrop="static" data-backdrop="static" id="FB-delete-Integration-Modal" role="dialog">
+  <div class="modal-dialog" appModalDrag>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Delete Integration</h4>
+        <button id="FB-dismiss-delete-integrate-modal-btn" type="button" class="close" title="Click here to close" aria-label="Click here to close" (click)="closeBtn('#FB-delete-Integration-Modal')">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <span class="fs-14">Are you sure you want to delete this integration? </span>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" id="FB-integration-cancel-btn" data-dismiss="modal"
+          type="button" aria-label="Click here to cancel" title="Click here to cancel" (click)="resetUsage();closeBtn('#FB-delete-Integration-Modal');">Cancel
+        </button>
+        <button data-dismiss="modal" id="FB-delete-integration" title="Click here to delete integration"
+          class="btn btn-primary-sub btn-sm" type="button" aria-label="Click here to delete integration" (click)="deleteUsage();closeBtn('#FB-delete-Integration-Modal');">Delete
+          Integration</button>
+      </div>
+    </div>
+  </div>
+</div>
+

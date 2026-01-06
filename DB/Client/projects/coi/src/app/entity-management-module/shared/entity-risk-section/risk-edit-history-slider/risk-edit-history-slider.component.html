@@ -1,0 +1,88 @@
+<app-coi-slider (closeSlider)="hideConflictNavBar()" [elementId]="'risk-edit-history-slider'"
+    [isHeaderNeeded]="true" [sliderWidth]="'w-50'">
+    <ng-container header id="coi-risk-slider-header">
+        <span>{{isEditRisk ? 'Update ' + sectionName : sectionName + ' History'}}</span>
+        <app-common-help-text *ngIf="isEditRisk" [subSectionId]="subSectionId" [elementId]="'coi-risk-edit-head-' + subSectionId"></app-common-help-text>
+        <app-common-help-text *ngIf="!isEditRisk" [subSectionId]="subSectionId" [elementId]="'coi-risk-history-head-' + subSectionId"></app-common-help-text>
+    </ng-container>
+    <ng-container content>
+        <div class="position-sticky z-2 custom-stickytop">
+            <div class="row align-items-start">
+                <app-shared-entity-details-card *ngIf="entityCardConfig?.sharedEntityDetails?.entityId" [entityCardConfig]="entityCardConfig"></app-shared-entity-details-card>
+            </div>
+        </div>
+
+        <div *ngIf="isEditRisk" class="card shadow-sm p-3 mt-2">
+            <div class="card-body p-1">
+                <div *ngIf="mandatoryList?.has('duplicateStatus')"  class="alert alert-danger fs-14 shadow-sm" role="alert">
+                    <ng-container>
+                        <div class="alert-heading d-flex align-items-center mb-2">
+                            <mat-icon class="fs-4 w-auto h-auto material-icons text-danger me-1" aria-hidden="true">error</mat-icon>
+                            <strong>Error: Existing Risk Type and Risk Description</strong>
+                        </div>
+                        <p class="mb-0">
+                            You are attempting to update the Risk Type and Risk Description using the existing Risk Type and Risk Description.
+                        </p>
+                    </ng-container>
+                </div>
+                <div class="row row-gap-2">
+                    <div class="col-md-12 col-xl-6">
+                        <label class="fs-14 fw-500" for="coi-entity-risk-type">
+                            <span>Risk Type<app-common-help-text [subSectionId]="subSectionId" [elementId]="'coi-risk-edit-type-' + subSectionId"></app-common-help-text></span>
+                        </label>
+                        <input type="text" id="coi-entity-risk-type" title="Sponsor code"
+                            [(ngModel)]="currentRiskDetails.riskType.description" aria-label="Sponsor code" maxlength="60" autocomplete="off"
+                            class="form-control" disabled />
+                        <span class="coi-text-light d-block fw-500">
+                        </span>
+                    </div>
+                    <div class="col-md-12 col-xl-6">
+                        <label class="fs-14 fw-500" for="coi-entity-risk-level">
+                            <span class="mandatory me-1" aria-label="Mandatory field">*</span>
+                            <span>Risk Level<app-common-help-text [subSectionId]="subSectionId" [elementId]="'coi-risk-edit-level-' + subSectionId"></app-common-help-text></span>
+                        </label>
+                        <div>
+                            <app-look-up (selectedResult)="onRiskLevelSelected($event)" [options]="entityRiskLevelOption"
+                            [isExternalArray]="true" [externalArray]="entityRiskLevelList"
+                            [selectedLookUpList]="entityRiskModalDetails?.selectedRiskLevelLookUpList" [defaultValue]="entityRiskModalDetails?.entityRisk?.riskLevel?.description || ''"
+                            [uniqueId]="'coi-entity-risk-level'" [isError]="mandatoryList?.has('riskLevel')"></app-look-up>
+                        <div *ngIf="mandatoryList?.has('riskLevel')" class="invalid-feedback d-block fs-13">
+                            {{mandatoryList?.get('riskLevel')}}
+                        </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12 col-xl-12">
+                        <label class="fs-14 fw-500" for="coi-enityt-risk-desc">
+                            <span class="mandatory me-1" aria-label="Mandatory field">*</span>
+                            <span>Risk Description<app-common-help-text [subSectionId]="subSectionId" [elementId]="'coi-risk-edit-desc-' + subSectionId"></app-common-help-text></span>
+                        </label>
+                        <textarea appAutoGrow class="form-control" id="coi-enityt-risk-desc" rows="1"
+                    [(ngModel)]="entityRiskModalDetails.entityRisk.description" appTailingSpaceRemover [limit]="2000"
+                    appLengthValidator [ngClass]="(mandatoryList?.has('riskDescription')) ? 'is-invalid d-block' : ''"
+                    title="Risk Description" aria-label="Risk Description">
+                </textarea>
+                <div *ngIf="mandatoryList?.has('riskDescription')" class="invalid-feedback d-block fs-13">
+                    {{mandatoryList?.get('riskDescription')}}
+                </div>
+                    </div>
+                    <div class="col-12 d-flex align-items-center justify-content-end gap-2">
+                        <button id="coi-risk-slider-clear-btn" title="Click here to clear" aria-label="Click here to clear" type="button"
+                            class="btn btn-outline-secondary fs-14" (click)="clearRiskSlider()">Clear</button>
+                        <button id="coi-risk-slider-update-btn" title="Click here to update risk" aria-label="Click here to update risk" type="button"
+                            class="btn btn-primary fs-14" (click)="updateEntityRisk()">Update Risk</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+
+    <!-- Conflict History -->
+    <div  class="mt-3" id="" tabindex="-1">
+        <h3 class="d-flex align-items-center fs-16">
+            <strong>Risk History</strong>
+            <span class="d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top"></span>
+        </h3>
+    </div>
+  <app-shared-risk-history [riskHistory]="riskHistory"></app-shared-risk-history>
+    </ng-container>
+</app-coi-slider>

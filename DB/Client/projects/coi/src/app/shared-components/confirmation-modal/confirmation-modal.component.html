@@ -1,0 +1,57 @@
+<button type="button" class="btn btn-primary btn-sm" hidden="true" id="{{modalName}}-trigger-btn"
+    data-bs-toggle="modal" [attr.data-bs-target]="'#'+modalName"></button>
+
+<div tabindex="-1" class="modal fade mySkinDialog modal-md" data-bs-backdrop="static" id="{{modalName}}" role="dialog" [attr.aria-labelledby]="modalName">
+    <div class="modal-dialog modal-dialog-centered {{getModalSize()}}" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title" tabindex="-1" id="modal-header">
+            <ng-content select="[header]"></ng-content>
+          </h4>
+          <button type="button" class="btn-close" title="Click here to close"  id="{{modalName}}-dismiss-close-btn" aria-label="Click here to close" (click)="closeModal('close')"></button>
+          <button type="button" class="btn-close d-none" tabindex="-1" id="{{modalName}}-dismiss-btn" data-bs-dismiss="modal"></button>
+        </div>
+        <ng-content select="[content-sticky]"></ng-content>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-12">
+              <!-- content -->
+              <ng-content select="[content]"></ng-content>
+              <!-- description text area -->
+              <ng-container *ngIf="needDescriptionField">
+                  <label for="common-modal-confirm-reason" class="fw-600 fs-14 col-12 mt-3"
+                      [attr.aria-label]="'please enter the' + textAreaLabelName + (isMandatory? '. It is mandatory' : '')">
+                      <span class="text-danger pe-1" *ngIf="isMandatory">*</span>
+                      <span>{{textAreaLabelName}}</span>
+                      <app-common-help-text *ngIf="helpText" [helpTextHardCoded]="helpText"></app-common-help-text>
+                  </label>
+                  <div class="col-12">
+                      <textarea id="common-modal-confirm-reason" rows="4" appLengthValidator
+                        [isShowLimiter]='true' [limit]=2000 class="form-control fs-14" autocomplete="off"
+                        [(ngModel)]="description" (ngModelChange)="descriptionChangedOrEmpty(); description= description.trim()"
+                        [ngClass]="(mandatoryList?.get('description')) ? 'invalid-border':''" [placeholder]="textAreaPlaceholder">
+                      </textarea>
+                      <span *ngIf="mandatoryList?.has('description')"
+                          class="fs-13 invalid-feedback d-block position-absolute" [ngClass]="{ 'mt-3' : modalSize === 'md'}">
+                          {{mandatoryList?.get('description')}}
+                      </span>
+                  </div>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" type="button" id="coi-conformation-modal-secondary-btn"
+            [attr.aria-label]="'click here to ' + secondaryBtnName" (click)="performSecondaryAction()"
+            title="{{secondaryBtnTooltip ? secondaryBtnTooltip : ('Click here to ' + secondaryBtnName.toLowerCase())}}">
+            {{secondaryBtnName}}
+          </button>
+          <button class="btn btn-primary me-0" type="button" id="coi-conformation-modal-primary-btn"
+            [attr.aria-label]="'click to ' + primaryBtnName" (click)="performPrimaryAction()"
+            title="{{primaryBtnTooltip ? primaryBtnTooltip : ('Click here to ' + primaryBtnName.toLowerCase())}}">
+            {{primaryBtnName}}
+          </button>
+        </div>
+      </div>
+    </div>
+</div>

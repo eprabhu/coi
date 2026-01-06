@@ -1,0 +1,227 @@
+<!-- Last updated by Krishnanunni on 03-12-2019 -->
+<div id="Award105" class="card mb-3" [ngClass]="{'item-highlighted': isHighlighted}">
+  <div class="card-header px-4">
+    <h4 class="card-title"><ng-container i18n="@@AWARD_PROJECT_TEAM">Project Team</ng-container>
+      <span class="d-block d-sm-block float-sm-right font-weight-normal mr-sm-5 fs-14">
+        <i aria-hidden="true" class="fa fa-user-o mr-2"></i>Employee |
+        <i aria-hidden="true" class="fa fa-user-circle text-danger mr-2"></i>Non-Employee
+        <span *ngIf="isEditable">
+          <button class="btn btn-sm btn-tertiary ml-3" data-toggle="modal" data-target="#add-person-modal" (click)="resetTeamFields();showTeamCard=false;"> Add Person</button>
+        </span>
+      </span>
+      <button id="project-expand-btn" class="updown-arrow" (click)="isShowCollapse = !isShowCollapse">
+        <i [ngClass]="isShowCollapse?'fa fa-angle-double-up':'fa fa-angle-double-down'" class="fa-large"
+          aria-hidden="true"></i>
+      </button></h4>
+  </div>
+  <div class="card-content" *ngIf="isShowCollapse">
+    <div class="card-body">
+      <div class="noDataOnChart noDataExists p-2"
+        *ngIf="(result?.awardProjectTeams?.length == 0 || !result?.awardProjectTeams) && isEditable">
+        <div class="no-data-container">
+          <span class="no-data-icon-outer">
+            <div class="no-data-icon">
+              <i aria-hidden="true" class="fa fa-file-o"></i>
+              <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+            </div>
+          </span>
+          <h4>There is no information in this section.</h4>
+        </div>
+      </div>
+      <div *ngIf="(result?.awardProjectTeams?.length == 0 || !result?.awardProjectTeams) && !isEditable"
+        class="noDataExists px-2"><ng-container i18n="@@AWARD_NO_PROJECT_TEAM_ADDED_ERR">There are no project
+        team members added in this Award</ng-container></div>
+      <div class="table-responsive" *ngIf="result?.awardProjectTeams?.length > 0 && isShowCollapse">
+        <table class="table tableSkin grid2" id="coi-project-team-table">
+          <caption class="sr-only">Project Team Details</caption>
+          <thead class="thead-light">
+            <th scope="col">Name</th>
+            <th scope="col">Role</th>
+            <th scope="col">Designation</th>
+            <th scope="col">Start Date</th>
+            <th scope="col">End Date</th>
+            <th scope="col">% Charged</th>
+            <th scope="col" class="w-10">Actions</th>
+          </thead>
+          <tbody>
+            <tr *ngFor="let team of result?.awardProjectTeams; let i = index" id="coi-project-team-table-row">
+              <td><i class="mr-2" aria-hidden="true"
+                  [ngClass]="team?.nonEmployeeFlag == true?'fa fa-user-circle text-danger':'fa fa-user-o'"></i>{{team?.fullName}}
+              </td>
+              <td>{{team?.projectRole}}</td>
+              <td>{{team?.designation}}</td>
+              <td>{{team?.startDate | dateFormatter}}</td>
+              <td>{{team?.endDate | dateFormatter}}</td>
+              <td>{{team?.percentageCharged}}</td>
+              <td>
+                <ul class="actionButtonGroup">
+                  <li>
+                    <a id="award-project-team-view-btn" (click)="fetchProjectTeamMemberDetails(team);"
+                      data-toggle="modal">
+                      <i class="fa fa-eye" aria-hidden="true" title="Click here to view {{team.fullName}}"></i>
+                    </a>
+                  </li>
+                  <ng-container *ngIf="isEditable">
+                    <li>
+                      <a id="award-project-team-edit-btn" data-toggle="modal" data-target="#add-person-modal" (click)="editProjectTeam(i); editIndex = i;isTeamEdit = true">
+                        <i class="fa fa-pencil" aria-hidden="true" title="Click here to edit {{team.fullName}}"></i>
+                      </a>
+                    </li>
+                    <li>
+                      <a *ngIf="!isTeamEdit || (isTeamEdit && editIndex !== i)"
+                        href="#" id="award-project-team-delete-btn" data-toggle="modal"
+                        data-target="#deletePersonTeamModal" (click)="deleteindex = i;map.clear();">
+                        <i class="fa fa-trash-o" aria-hidden="true" title="Click here to delete {{team.fullName}}"></i>
+                      </a>
+                    </li>
+                  </ng-container>
+                </ul>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- DELETE TEAM WARNING MODAL -->
+<div class="modal fade mySkinDialog modal-opacity" tabindex="-1" id="deletePersonTeamModal" role="dialog"
+  aria-labelledby="deleteModalTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete</h5>
+        <button id="prop-dlt-member-dismiss" type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this member?</p>
+      </div>
+      <div class="modal-footer">
+        <button id="coi-project-team-delete-team-modal-cancel-btn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
+          data-toggle="modal">Cancel</button>
+        <button id="coi-project-team-delete-team-modal-delete-btn" type="button" class="btn btn-primary-sub btn-sm"
+          (click)="deleteTeam(deleteindex)" data-dismiss="modal">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<app-address-book *ngIf="isAddNonEmployeeTeamModal" [isAddNonEmployeeModal]="isAddNonEmployeeTeamModal"
+  (rolodexResult)="setRolodexTeamObject($event)"></app-address-book>
+  <app-person-rolodex-view (personRolodexViewModal)="setPersonRolodexModalView($event)" *ngIf="isRolodexViewModal"
+   [personRolodexType]="type" [personRolodexId]="id" [personRolodexIsTraining]="isTraining"
+    [personRolodexPersonDescription]="personDescription" ></app-person-rolodex-view>
+
+<!-- Add Person Modal -->
+<div class="modal fade mySkinDialog" id="add-person-modal" role="dialog" aria-labelledby="skippedSchedulesTitle"
+  aria-hidden="true" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{isTeamEdit ? 'Update' : 'Add'}} Person</h5>
+        <button type="button" class="close" (click)="resetTeamFields()" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body py-1 px-3">
+        <app-award-overview-modal-card></app-award-overview-modal-card>
+        <div class="w-100">
+          <div class="form-row">
+            <div class="col-lg-6 col-md-6 col-sm-12 col-12 mt-3">
+              <div class="form-check form-check-inline">
+                <input id="employee_radio" type="radio" class="radio-inline" name='employee_nonemployee_team'
+                  [value]='true' [(ngModel)]="isProjectTeamEmployee" (ngModelChange)="changeMemberType()">
+                <label for="employee_radio" class="mr-3 ml-1">Employee</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input id="non-employee-radio" type="radio" class="radio-inline" name='employee_nonemployee_team'
+                  [value]='false' [(ngModel)]="isProjectTeamEmployee" (ngModelChange)="changeMemberType()">
+                <label for="non-employee-radio" class="ml-1">Non-Employee</label>
+              </div>
+              <div class="searchBox position-relative mb-0">
+                <app-elastic [options]="projectTeamElasticOptions"
+                  [placeHolder]="awardProjectTeam.nonEmployeeFlag ? 'Search a non-employee' :'Search an employee'"
+                  [isError]="(map.get('projectfullname')) ? true : false"
+                  (selectedResult)="selectProjectTeamPerson($event)" [clearField]="clearField"></app-elastic>
+                <div *ngIf="awardProjectTeam.nonEmployeeFlag && _commonService.isEnableAddtoAddressBook">
+                  <a id="prop-non-employee-add-btn" class="anchor-link" data-toggle="modal"
+                    data-target="#addNonEmployeeProjectTeam"
+                    (click)="isAddNonEmployeeTeamModal = true; showTeamCard = false; switchToNonEmployeeModal()">
+                    <i aria-hidden="true" class="fa fa-user-plus"></i> <ng-container
+                      i18n="@@COMMON_ADD_TO_ADDRESS_BOOK">Add to Address Book</ng-container></a>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6 col-md-6 col-sm-12 col-12 mt-3">
+              <span class="mandatory">*</span><label for="teamrole">Role</label>
+              <input class="form-control" id="teamrole" [(ngModel)]="awardProjectTeam.projectRole"
+                [ngClass]="(map.get('projectrole')) ? 'is-invalid block-display' : ''">
+              <div *ngIf="(map.get('projectrole'))" class="invalid-feedback block-display">{{map.get('projectrole')}}
+              </div>
+            </div>
+            <div class="col-12" *ngIf="showTeamCard">
+              <app-person-rolodex-card (ShowElasticResults)="setShowElasticResults($event)"
+                [personRolodexObject]="selectedMemberObject"></app-person-rolodex-card>
+            </div>
+            <div class="col-lg-4 col-md-4 col-sm-12 col-12">
+              <span class="mandatory">*</span><label>% Charged</label>
+              <input type="number" class="form-control"
+                [ngClass]="(map.get('projectpercentage')) ? 'is-invalid block-display' : ''"
+                [(ngModel)]="awardProjectTeam.percentageCharged" placeholder="eg: 100, 99.99, 10.22, 25 etc"
+                (keyup)="limitKeypress(awardProjectTeam.percentageCharged)">
+              <div *ngIf="(map.get('projectpercentage'))" class="invalid-feedback block-display">
+                {{map.get('projectpercentage')}}</div>
+            </div>
+            <div class="col-lg-4 col-md-4 col-sm-12 col-12">
+              <span class="mandatory">*</span><label>Start Date</label>
+              <span class="dateField">
+                <input matInput [matDatepicker]="openingDt" id="project-start-date" placeholder="Start Date"
+                  [ngClass]="(map.get('projectstartdate'))? 'is-invalid block-display' : ''"
+                  [(ngModel)]="awardProjectTeam.startDate" (keypress)="_commonService._keyPress($event, 'date');"
+                  class="d-inline-block form-control" (click)="openingDt.open()"
+                  (ngModelChange)="validateDate();
+                          dateValidationBeforeAction(awardProjectTeam.startDate, 'projectstartdate', 'Please select start date.')" />
+                <span class="fa fa-calendar fa-large pointer insidePicker position hand-cursor" title="open calendar"
+                  (click)="openingDt.open()"></span>
+                <mat-datepicker #openingDt (opened)="setFocusToElement('project-start-date')" (closed)="validateDate()">
+                </mat-datepicker>
+              </span>
+              <div *ngIf="(map.get('projectstartdate'))" class="invalid-feedback block-display">
+                {{map.get('projectstartdate')}}</div>
+            </div>
+            <div class="col-lg-4 col-md-4 col-sm-12 col-12">
+              <span class="mandatory">*</span><label>End Date</label>
+              <span class="dateField">
+                <input matInput [matDatepicker]="closingDt" closingDt id="project-end-date" placeholder="End Date"
+                  [ngClass]="(map.get('projectenddate')) ? 'is-invalid block-display' : ''"
+                  [(ngModel)]="awardProjectTeam.endDate" (ngModelChange)="validateDate();"
+                  class="d-inline-block form-control" (click)="closingDt.open()"
+                  (ngModelChange)="validateDate();
+                            dateValidationBeforeAction(awardProjectTeam.endDate, 'projectenddate', 'Please select end date.')" />
+                <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor" title="open calendar"
+                  (click)="closingDt.open()"></span>
+                <mat-datepicker #closingDt (opened)="setFocusToElement('project-end-date')" (closed)="validateDate()">
+                </mat-datepicker>
+              </span>
+              <div *ngIf="(map.get('projectenddate'))" class="invalid-feedback block-display">
+                {{map.get('projectenddate')}}</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div class="text-center text-md-right">
+            <button class="btn btn btn-secondary btn-xs mx-2" data-dismiss="modal"
+              (click)="resetTeamFields()">Cancel</button>
+            <button *ngIf="!isTeamEdit" class="btn btn-primary-sub btn-xs" (click)="saveOrUpdateProjectTeam('I')">
+              Add Person
+            </button>
+            <button *ngIf="isTeamEdit" class="btn btn-primary-sub btn-xs" (click)="saveOrUpdateProjectTeam('U')">
+              Update Person
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

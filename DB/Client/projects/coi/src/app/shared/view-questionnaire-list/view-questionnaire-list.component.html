@@ -1,0 +1,220 @@
+<div *ngIf="isShowNoDatacard && questionnaireList.length != 0 && isShowQuestionnaire" class="card">
+    <!-- <div class="card-header" [ngClass]="isShowExportButton ? '' : 'pr-0' ">
+        <h4 class="card-title align-items-center d-flex">
+            <div class="">{{questionnaireHeader}}</div>
+            <div class="text-right ms-auto" *ngIf="this.questionnaireList?.length != 0 && !isShowBackButton">
+                <span class="font-weight-normal mr-5 px-5">
+                    <i aria-hidden="true" class="fa fa-check-circle text-success mr-2 pl-sm-2"></i>Completed |
+                    <i aria-hidden="true" class="fa fa-exclamation-circle text-warning mr-2"></i>Incomplete
+                    <ng-container *ngIf="!isViewMode" ><i  class="fa fa-arrow-circle-up text-primary mr-2" aria-hidden="true"></i>Revised</ng-container>
+                    <ng-container *ngIf="configuration.isDeleteObsoleteQNR && !isViewMode">| <i class="fa fa-times-circle text-danger mr-2" aria-hidden="true"></i>Obsolete</ng-container>
+                </span>
+                <span class="exportButton mb-2" *ngIf="isShowExportButton">
+                    <span class="exportIcon-margin">Export as :</span>
+                    <a title="Export data to Excel sheet" class="exportIcon-margin  hand-cursor"
+                        id="export-prop-excel-btn" (click)="exportAsTypeDoc('excel')" tabindex="0">
+                        <i aria-hidden="true" class="fa fa-file-excel-o" tabindex="0"></i>
+                    </a>
+                    <a class="exportIcon-margin">|</a>
+                    <a title="Export data to PDF document" class="hand-cursor" id="export-prop-pdf-btn"
+                        (click)="exportAsTypeDoc('pdf')"><i aria-hidden="true" class="fa fa-file-pdf-o"
+                            tabindex="0"></i></a>
+                </span>
+            </div>
+            <div class="text-right ml-5" *ngIf="isShowCollapse">
+                <span>
+                    <button class="updown-arrow" [ngClass]="this.questionnaireList?.length != 0 ?'mt-2':''"
+                        (click)="isShowQuestionnaire = !isShowQuestionnaire">
+                        <i [ngClass]="!isShowQuestionnaire?'fa-large fa fa-angle-double-down':'fa-large fa fa-angle-double-up'"
+                            class="fa-large" aria-hidden="true"></i>
+                    </button>
+                </span>
+            </div>
+            <div class="text-right" *ngIf="isShowBackButton">
+                <span>
+                    <button class="btn more-btn" title="Back to Agreement List" type="button">
+                        <i class="fa fa-reply" aria-hidden="true" (click)="backToAgreementList()"></i></button>
+                </span>
+            </div>
+        </h4>
+    </div> -->
+    <div>
+        <div class=" w-100">
+            <div class="px-4">
+                <ul class="nav nav-tabs mb-0">
+                    <li class="nav-item hand-cursor mb-2" *ngFor='let questionnaire of questionnaireList; let i= index'
+                        id="questionnaire-tab{{i}}"
+                        [ngClass]="{'qst-success-nav':(questionnaire.QUESTIONNAIRE_COMPLETED_FLAG == 'Y' && questionnaire.NEW_QUESTIONNAIRE_ID == null) ||
+                                                        (questionnaire.QUESTIONNAIRE_COMPLETED_FLAG == 'Y' && questionnaire.NEW_QUESTIONNAIRE_ID != null &&
+                                                        isViewMode),
+                                        'qst-warning-nav':questionnaire.QUESTIONNAIRE_COMPLETED_FLAG == 'N' ||
+                                                        questionnaire.QUESTIONNAIRE_COMPLETED_FLAG == null || (questionnaire.NEW_QUESTIONNAIRE_ID && !isViewMode) }">
+                        <a (click)="isQuestionnaireChanged(i);"
+                           title="Go to {{ questionnaire?.QUESTIONNAIRE_LABEL || questionnaire?.QUESTIONNAIRE }}"
+                           class=" tab subTabLink nav-item nav-link txt-medium text-black hand-cursor" [ngClass]="{'active':selectedIndex === i,
+                                                'text-success fw-600':(questionnaire.QUESTIONNAIRE_COMPLETED_FLAG == 'Y' && questionnaire.NEW_QUESTIONNAIRE_ID == null) ||
+                                                                    (questionnaire.QUESTIONNAIRE_COMPLETED_FLAG == 'Y' && questionnaire.NEW_QUESTIONNAIRE_ID != null
+                                                                    && isViewMode)}"
+                           id="{{questionnaire?.QUESTIONNAIRE_ID}}">
+                            <i [ngClass]="{'txt-green':questionnaire.QUESTIONNAIRE_COMPLETED_FLAG == 'Y',
+                                                    'txt-red':questionnaire.QUESTIONNAIRE_COMPLETED_FLAG == 'N' ||
+                                                                questionnaire.QUESTIONNAIRE_COMPLETED_FLAG == null}"
+                               aria-hidden="true"></i>
+                            <span class="text-danger" *ngIf="questionnaire.IS_MANDATORY == 'Y'"
+                                  title="Mandatory">*</span>
+                            <span tabindex="0"
+                                  [attr.aria-label]="questionnaire?.QUESTIONNAIRE_LABEL"> {{ questionnaire?.QUESTIONNAIRE_LABEL || questionnaire?.QUESTIONNAIRE }} </span>
+                            <span id="qnr-complete-msg"
+                                  *ngIf="(questionnaire.QUESTIONNAIRE_COMPLETED_FLAG == 'Y' && questionnaire.NEW_QUESTIONNAIRE_ID == null) ||
+                                                    (questionnaire.QUESTIONNAIRE_COMPLETED_FLAG == 'Y' && questionnaire.NEW_QUESTIONNAIRE_ID != null && isViewMode)"
+                                  class="fa fa-check" title="Completed">
+                                    </span>
+                            <span id="qnr-incomplete-msg"
+                                  *ngIf="questionnaire.QUESTIONNAIRE_COMPLETED_FLAG == 'N' ||
+                                                    questionnaire.QUESTIONNAIRE_COMPLETED_FLAG == null || (questionnaire.NEW_QUESTIONNAIRE_ID && !isViewMode)"
+                                  class="fa fa-exclamation-circle text-warning" title="Incomplete">
+                                    </span>
+                            <span
+                                *ngIf="configuration.isDeleteObsoleteQNR && questionnaire?.IS_IRRELEVANT_QNR && !isViewMode"
+                                id="qnr-irrelevant-icon-container" title="Obsolete questionnaire">
+                                <i class="fa fa-times-circle text-danger ms-1" aria-hidden="true"></i>
+                            </span>
+                            <span *ngIf="questionnaire?.IS_NEW_VERSION == 'Y' && !isViewMode"
+                                  id="qnr-new-version-icon-container" title="New questionnaire version">
+                                <i class="fa fa-arrow-circle-up text-primary ms-1" aria-hidden="true"></i>
+                            </span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="tab-pane">
+        <div class=" my-2 mb-3 mx-3">
+            <div class="pt-0">
+                <app-view-questionnaire [isAutoSaveEnabled]="isAutoSaveEnabled"
+                                        [questionnaireDetails]="activeQuestionnaire"
+                                        (questionnaireSaveEvent)="updateParentData($event)"
+                                        (questionnaireEditEvent)="markQuestionnaireAsEdited($event)"
+                                        [isViewMode]="isViewMode"
+                                        [moduleDetails]="requestObject" (flagUpdationEvent)="updateFlag($event)"
+                                        (isAPIRequestPending)="isAPIRequestPendingFlagUpdate($event)"
+                                        [externalSaveEvent]="externalSaveEvent" [isShowSave]="isShowSave"
+                                        [saveButtonLabel]="saveButtonLabel"
+                                        [isShowQuestionnaireDock]="isShowQuestionnaireDock"
+                                        [isQuestionnaireValidateMode]="isQuestionnaireValidateMode"
+                                        (isLoadQuestionnaireDetails)="completedLoadQuestionnaireApiCall($event)"></app-view-questionnaire>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ng-container *ngIf="isShowNoDatacard && questionnaireList.length == 0 && isShowQuestionnaire"
+              class="no-data-container">
+    <div class="no-data-container w-100">
+        <span class="no-data-icon-outer">
+            <div class="no-data-icon">
+                <mat-icon class="no-file form-builder-no-info-card-icon">folder_off</mat-icon>
+            </div>
+        </span>
+        <h5 class="fs-16 mt-3">There is no information in this section.</h5>
+    </div>
+</ng-container>
+
+<div class="modal" id="confirmVersionModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <!-- <button type="button" class="btn-close" (click)="openQuestionnaire(selectedIndex)" data-bs-dismiss="modal"
+                    aria-label="Click to close">
+                </button> -->
+            </div>
+            <div class="modal-body">
+                A new version of questionnaire is available. Please complete it and 'Save' to reflect the changes.
+            </div>
+            <div class="modal-footer">
+                <button type="button" data-bs-dismiss="modal" class="btn btn-outline-primary fs-14"
+                        (click)="updateQuestionnaireVersion(questionnaireList[selectedIndex])">
+                    Continue
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<button tabindex="-1" class="d-none" id="confirmVersionModalButton" data-bs-toggle="modal"
+        data-bs-target="#confirmVersionModal" aria-hidden="true"></button>
+<button type="button" id="unsavedChangeModalButton" style="display: none" data-bs-toggle="modal"
+        data-bs-target="#unsavedChangeModal" aria-hidden="true" tabindex="-1"></button>
+<div tabindex="-1" class="modal fade mySkinDialog" id="unsavedChangeModal"
+     role="dialog" aria-label="Are you sure you want to leave this page?">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    You have unsaved changes
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Click to close">
+                </button>
+            </div>
+            <div class="modal-body title-descriptions">
+                <p> Are you sure you want to leave the page without saving?
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary fs-14" data-bs-dismiss="modal"
+                        id="coi-view-questionnaire-unsavedmodal-stay-btn">Stay on Page
+                </button>
+                <button type="button" class="btn btn-primary fs-14" (click)="checkFornewVersion(tempSelectedIndex)"
+                        data-bs-dismiss="modal" data-bs-toggle="modal"
+                        id="coi-view-questionnaire-unsavedmodal-leave-btn">Leave Page
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button class="d-none" id="questionnaire-info-btn" data-bs-toggle="modal" data-bs-target="#questionnaire-info"></button>
+<div class="modal fade mySkinDialog" data-bs-backdrop="static" data-bs-keyboard="false" id="questionnaire-info"
+     role="dialog" aria-labelledby="questionnaire-info" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document" appModalDrag>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Attention: Changes to Questionnaire(s)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Click to close">
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12 fs-13">
+                        <ng-container *ngIf="configuration.isDeleteObsoleteQNR && obsoleteQNRS.length > 0">
+                            <div role="alert" class="alert alert-warning fs-14">
+                                <i aria-hidden="true" class="fa fa-exclamation-triangle icon text-warning fs-16 me-2"></i>
+                                <span>The following questionnaire(s) associated with this record have become obsolete either due to updates by the administrator or changes in the data. Please confirm their removal to proceed.
+                                        <ol class="pt-3">
+                                            <li *ngFor="let qnr of obsoleteQNRS" >{{qnr.QUESTIONNAIRE}} <i class="fa fa-times-circle text-danger ms-1 fs-16"></i>
+                                            </li>
+                                       </ol>
+                                </span>
+                            </div>
+                        </ng-container>
+                        <ng-container *ngIf="versionedQNRS.length">
+                            <div role="alert" class="alert alert-warning fs-14">
+                                <i aria-hidden="true" class="fa fa-exclamation-triangle icon text-warning fs-16 me-2"></i>
+                                <span>{{questionnaireVersionChangeWarningMsg}}
+                                    <ol class="pt-3">
+                                        <li *ngFor="let qnr of versionedQNRS"> <a
+                                        >{{qnr.QUESTIONNAIRE}} <i class="fa fa-arrow-circle-up text-primary ms-1 fs-16"></i></a> </li>
+                                    </ol>
+                                </span>
+                            </div>
+                        </ng-container>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button  id="questionnaire-info-proceed" type="button" data-bs-dismiss="modal" class="btn btn-primary"
+                         (click)="deleteIrrelaventQNR()" aria-label="Click here to proceed" title="Proceed"> Proceed</button>
+            </div>
+        </div>
+    </div>
+</div>

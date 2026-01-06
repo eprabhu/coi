@@ -1,0 +1,88 @@
+<div tabindex="-1" class="d-flex flex-column w-100 h-100 min-height-200px">
+    <ng-container *ngIf="filteredExtProjRelList.length; else showNoData">
+        <!-- Help Text -->
+        <div class="z-index-3 coi-bg-body">
+            <div *ngIf="extendedProjRelService.isEditMode && helpTexts?.length"
+                class="d-flex align-items-center alert alert-primary mb-2 py-2 gap-2">
+                <div aria-hidden="true" [class.mb-auto]="isExpandInfo" class="d-flex">
+                    <mat-icon data-bs-toggle="tooltip" data-bs-placement="right" data-mat-icon-type="font"
+                        title="Relationship help text" class="mat-icon material-icons flex-shrink-0">info</mat-icon>
+                </div>
+                <div class="d-flex gap-2 flex-column">
+                    <ng-container
+                        *ngFor="let helpText of helpTexts; let isFirstHelpText = first; let lastHelpText = last">
+                        <!-- info -->
+                        <div *ngIf="isFirstHelpText || isExpandInfo" class="d-flex algin-items-start">
+                            <mat-icon aria-hidden="true"
+                                class="fs-14 mt-1 me-1 flex-shrink-0">keyboard_double_arrow_right</mat-icon>
+                            <div class="d-inline">
+                                <span class="fs-14">{{ helpText }}</span>
+                                <ng-container *ngIf="helpTexts?.length > 1">
+                                    <!-- read more for first -->
+                                    <a *ngIf="isFirstHelpText && !isExpandInfo" tabindex="0" role="link"
+                                        id="link-read-more-info" class="fs-14 fw-700 link-primary ms-1"
+                                        (click)="isExpandInfo = true" (keydown.enter)="isExpandInfo = true"
+                                        title="Click here to read more relationship help text"
+                                        aria-label="Click here to read more relationship help text">
+                                        <span class="text-nowrap">...Read More</span>
+                                    </a>
+                                    <!-- read less for last -->
+                                    <a *ngIf="lastHelpText && isExpandInfo" tabindex="0" role="link"
+                                        id="link-read-less-info" class="fs-14 fw-700 link-primary ms-1 text-nowrap"
+                                        (click)="isExpandInfo = false" (keydown.enter)="isExpandInfo = false"
+                                        title="Click here to read less relationship help text"
+                                        aria-label="Click here to read less relationship help text">
+                                        Read Less
+                                    </a>
+                                </ng-container>
+                            </div>
+                        </div>
+                    </ng-container>
+                </div>
+            </div>
+        </div>
+        <ng-container *ngFor="let projectSfiRelation of filteredExtProjRelList; let projectIndex = index; let first = first; let last = last">
+            <!-- loop -->
+            <div tabindex="-1" appVisibleInViewport class="coi-scrollspy-left z-index-2"
+                (focus)="coiService.setActiveSection('COI805')" [id]="'COI_EXT_PROJ_SFI_REL_' + projectIndex"
+                [enableRepeatedLoad]="true" (visibleInViewport)="visibleInViewport($event, projectIndex)"
+                [minHeight]="'auto'"
+                [initialDelayTimeToObserve]="200" [intersectionObserverOptions]="intersectionObserverOptions">
+                <div class="card coi-card-regular mt-0 border-none">
+                    <!-- project/sfi card -->
+                    <div class="card-header p-0 w-100 rounded-top-3 position-sticky top-0 z-index-5"
+                        id="COI_EXT_PROJ_REL_HEADER_{{projectIndex}}"
+                        [class.coi-card-highlight]="defineRelationshipService.scrollSpyConfiguration?.activeCounter === (extendedProjRelService.isEditMode ? projectIndex : (projectIndex + 2 + (coiService.isExpandSummaryBySection['COI803'] ? filteredProjRelList?.length : 0)))">
+                        <app-extended-project-details-card class="w-100" [projectSfiRelation]="projectSfiRelation"
+                            [nextIndex]="last ? null : projectIndex + 1" [isEditMode]="false" 
+                            [previousIndex]="first ? null : projectIndex - 1" (emitProjectCardActions)="emitProjectCardActions($event)"
+                            [isShowPrevNextBtn]="filteredExtProjRelList.length > 1 && defineRelationshipService.scrollSpyConfiguration?.activeCounter === (extendedProjRelService.isEditMode ? projectIndex : (projectIndex + 2 + (coiService.isExpandSummaryBySection['COI803'] ? filteredProjRelList?.length : 0)))">
+                        </app-extended-project-details-card>
+                    </div>
+                    <!-- project/sfi conflict table -->
+                    <div class="card-body w-100">
+                        <app-extended-project-sfi-conflict [projectSfiRelation]="projectSfiRelation"
+                            [isShowEngagementRisk]="isShowEngagementRisk"></app-extended-project-sfi-conflict>
+                    </div>
+                </div>
+            </div>
+            <!-- for refresh not showing through the gap -->
+            <div *ngIf="!last" class="pt-3 coi-bg-body z-index-2 w-100"></div>
+        </ng-container>
+    </ng-container>
+    <ng-template #showNoData>
+        <div class="d-flex align-items-center justify-content-center w-100 h-100 bg-white">
+            <app-no-information customClass="mt-0" [isBorderNeeded]="false">
+                <span *ngIf="!extProjSfiRelationsList.length">{{ RELATIONSHIP_TAB_NO_PROJECT_INFO_MSG }}</span>
+            </app-no-information>
+        </div>
+    </ng-template>
+</div>
+
+<!-- add conflict slider -->
+<ng-container *ngIf="extendedProjRelService.addConflictSlider.isOpenSlider">
+    <app-add-conflict-slider [addConflictSlider]="extendedProjRelService.addConflictSlider"
+        [conflictStatusLookup]="defineRelationshipService.conflictStatusLookup"
+        [coiStatusList]="defineRelationshipService.coiStatusList" (closePage)="closeAddConflictSlider($event)" [isEditMode]="false">
+    </app-add-conflict-slider>
+</ng-container>

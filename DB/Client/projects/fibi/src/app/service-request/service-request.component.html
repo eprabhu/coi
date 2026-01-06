@@ -1,0 +1,575 @@
+<div class="push4slideMenu pageMinHeight" id="scrollToTop">
+    <div class="container-fluid pushFixedHeaderFooter">
+        <div class="headerPush"></div>
+        <section class="row">
+            <div class="col-12">
+                <div class="sticky-top-nav mb-3 header-outline" id="stickyIpHeader">
+                    <div class="row">
+                        <div class="text-left col-12">
+                            <h2 title="{{_serviceRequestService.serviceRequestTitle}}"
+                                class="title-primary fs-20 text-justify">
+                                <span *ngIf="serviceRequest?.serviceRequestId">#{{serviceRequest?.serviceRequestId}}:
+                                </span>
+                                {{_serviceRequestService.serviceRequestTitle}}
+                            </h2>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="float-left d-inline-block">
+                                <span class="badge-title bg-transparent pr-3 pl-0 fs-14-nav"
+                                    *ngIf="serviceRequest?.reporterPersonName">
+                                    <i class="fa fa-user text-primary mr-1" aria-hidden="true"></i>
+                                    Reporter : {{serviceRequest?.reporterPersonName}}
+                                </span>
+                                <span class="badge-title bg-transparent pr-3 pl-0 fs-14-nav"
+                                    *ngIf="serviceRequest?.assigneePersonName">
+                                    <i class="fa fa-user-o text-primary mr-1" aria-hidden="true"></i>
+                                    Assignee : {{serviceRequest?.assigneePersonName}}
+                                </span>
+                                <span class="badge-title bg-transparent pr-3 pl-0 fs-14-nav"
+                                    *ngIf="serviceRequest?.unit?.unitName">
+                                    <i class="fa fa-home text-primary mr-1" aria-hidden="true"></i>
+                                    <span class="d-none d-md-inline-block">Department : </span>
+                                    {{concatUnitNumberAndUnitName(serviceRequest?.unit?.unitNumber, serviceRequest?.unit?.unitName)}}
+                                </span>
+                                <span class="badge-title bg-transparent pr-3 pl-0 fs-14-nav"
+                                    *ngIf="serviceRequest?.serviceRequestPriority">
+                                    <i *ngIf="serviceRequest?.priorityId == '1'"
+                                        class="fa fa-chevron-up text-danger mr-1" aria-hidden="true"></i>
+                                    <i *ngIf="serviceRequest?.priorityId == '2'"
+                                        class="fa fa-minus-circle text-warning mr-1" aria-hidden="true"></i>
+                                    <i *ngIf="serviceRequest?.priorityId == '3'"
+                                        class="fa fa-chevron-down text-primary mr-1" aria-hidden="true"></i>
+                                    <span class="d-none d-md-inline-block">Priority : </span>
+                                    {{serviceRequest?.serviceRequestPriority?.description}}
+                                </span>
+                            </div>
+                            <span *ngIf="serviceRequest?.serviceRequestStatus"
+                                class="badge-title bg-transparent px-1 fs-14-nav  float-right">
+                                <i class="fa fa-bookmark text-primary mr-1" aria-hidden="true"></i>
+                                <span class="d-none d-md-inline-block">Request Status : </span>
+                                <span
+                                    class="status-badge-{{getStatusCode(serviceRequest?.statusCode)}} fs-14-nav px-0 bg-transparent"
+                                    title="{{serviceRequest?.serviceRequestStatus?.description}}">
+                                    {{serviceRequest?.serviceRequestStatus?.description}}
+                                    <ng-container *ngIf="serviceRequest?.statusCode == 4
+                                        && serviceRequest?.adminGroup?.adminGroupId">
+                                        - {{serviceRequest?.adminGroup?.adminGroupName}}
+                                    </ng-container>
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg col-auto pr-0">
+                            <div class="collapse navbar-toggleable-xs mt-5 mt-lg-0 mb-1" id="navbarResponsive">
+                                <ul class="menu-responsive tabs fit-content tabs-collapsed">
+                                    <li *ngIf="_serviceRequestService.sectionConfigurations['SR2001']?.isActive"
+                                        routerLinkActive="active">
+                                        <a [routerLink]="['/fibi/service-request/overview']"
+                                            queryParamsHandling='merge'>
+                                            Overview
+                                        </a>
+                                    </li>
+                                    <li *ngIf="_serviceRequestService.sectionConfigurations['SR2002']?.isActive && serviceRequest?.serviceRequestId"
+                                        routerLinkActive="active">
+                                        <a [routerLink]="['/fibi/service-request/comments']"
+                                            queryParamsHandling='merge'>
+                                            Comments
+                                        </a>
+                                    </li>
+                                    <li *ngIf="_serviceRequestService.sectionConfigurations['SR2005']?.isActive &&
+                                        !serviceRequest.isSystemGenerated && serviceRequest?.serviceRequestId"
+                                        routerLinkActive="active">
+                                        <a [routerLink]="['/fibi/service-request/questionnaire']"
+                                            queryParamsHandling='merge'>
+                                            Questionnaire
+                                        </a>
+                                    </li>
+                                    <li *ngIf="_serviceRequestService.sectionConfigurations['SR2003']?.isActive && serviceRequest?.serviceRequestId"
+                                        routerLinkActive="active">
+                                        <a [routerLink]="['/fibi/service-request/history']"
+                                            queryParamsHandling='merge'>
+                                            History
+                                        </a>
+                                    </li>
+                                    <li *ngIf="_serviceRequestService.sectionConfigurations['SR2004']?.isActive && workflowList?.length"
+                                        routerLinkActive="active">
+                                        <a [routerLink]="['/fibi/service-request/route-log']"
+                                            queryParamsHandling='merge'>
+                                            Route Log
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-lg-auto col-12 my-2">
+                            <button #mainHeaders id="responsiveCollapse"
+                                class="navbar-toggler hidden-sm-up px-0 d-inline-block d-lg-none float-left mt-2"
+                                type="button" data-toggle="collapse" data-target="#navbarResponsive"
+                                aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                                <i class="fa fa-bars f-14 text-muted mx-colr" aria-hidden="true"
+                                    title="Click for more pages"></i>
+                            </button>
+                            <span class="float-right">
+                                <button type="button" title="Validate Service Request" id="validation-btn"
+                                    *ngIf="canModifyServiceRequest"
+                                    (click)="isValidationOnlyFlag = true;validateViaServer()"
+                                    class="btn btn-secondary btn-sm fs-14-nav">Validate</button>
+                                <button type="button" id="service-request-save-btn" title="Save" *ngIf="canShowSave()"
+                                    class="btn btn-primary-sub btn-sm" (click)="initiateSaveInChildComponents()">Save
+                                </button>
+                                <button type="button" id="service-request-submit-btn" title="Submit"
+                                    *ngIf="canSubmitServiceRequest && serviceRequest?.serviceRequestId && [1, 3, 7].includes(serviceRequest?.statusCode)"
+                                    class="btn btn-primary btn-sm"
+                                    (click)="isValidationOnlyFlag = false;validateViaServer()">Submit
+                                </button>
+                                <button type="button" id="service-req-disapprove-btn"
+                                    *ngIf="canRejectServiceRequest && serviceRequest?.serviceRequestId && [4].includes(serviceRequest?.statusCode)"
+                                    class="btn btn-secondary btn-sm fs-14-nav" title="Reject"
+                                    (click)="assignRequest.isReturnServiceRequest = true" data-toggle="modal"
+                                    data-target="#assign-service-request">Reject
+                                </button>
+                                <button type="button" id="service-request-submit-btn" title="Submit"
+                                    *ngIf="canAssignServiceRequest && serviceRequest?.serviceRequestId && [4].includes(serviceRequest?.statusCode)"
+                                    class="btn btn-primary-sub btn-sm" data-toggle="modal" title="Assign"
+                                    (click)="assignRequest.isReturnServiceRequest = false; checkLoggedUserIsWatcher()"
+                                    data-target="#assign-service-request">Assign
+                                </button>
+                                <button type="button" id="resolve-request-submit-btn" title="Submit"
+                                    *ngIf="canResolveServiceRequest && serviceRequest?.serviceRequestId && [4].includes(serviceRequest?.statusCode)"
+                                    class="btn btn-primary btn-sm" data-toggle="modal" title="Resolve"
+                                    data-target="#resolve-service-request">Resolve
+                                </button>
+                                <button type="button" id="service-req-disapprove-btn"
+                                    *ngIf="serviceRequest?.statusCode == 2 && canApproveRouting == '1'"
+                                    class="btn btn-secondary btn-sm fs-14-nav" title="Return"
+                                    (click)="disapproveServiceRequest()"><ng-container i18n="@@COMMON_RETURN">Return</ng-container>
+                                </button>
+                                <button type="button" id="service-req-approve-btn" class="btn btn-primary btn-sm
+                                    fs-14-nav" *ngIf="serviceRequest?.statusCode == 2 && canApproveRouting == '1'"
+                                    title="Approve" i18n-title="@@COMMON_APPROVE"
+                                     (click)="approveServiceRequest()">
+                                    <ng-container i18n="@@COMMON_APPROVE">Approve</ng-container>
+                                </button>
+                                <button title="Back to Service Request Dashboard" class="btn more-btn"
+                                    (click)="navigateToServiceRequestList();" id="prop-go-back-btn">
+                                    <i class="fa fa-reply" aria-hidden="true"></i>
+                                </button>
+                                <button title="More Actions" class="btn more-btn" (click)="isShowMoreOptions = !isShowMoreOptions;"
+                                    *ngIf="serviceRequest?.serviceRequestId">
+                                    <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+                                </button>
+                                <ul id="moreOptions-list" class="more-options-box" *ngIf="isShowMoreOptions">
+                                    <li title="Print Service request">
+                                        <a class="dropdown-item hand-cursor" id="print-btn"
+                                            (click)="isShowMoreOptions = !isShowMoreOptions; getPrintTemplates(); validationMap.clear()">
+                                            <i class="fa fa-print" aria-hidden="true"></i>
+                                            Print Service Request</a>
+                                    </li>
+                                </ul>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <router-outlet></router-outlet>
+            </div>
+        </section>
+        <div class="footerPush"></div>
+    </div>
+</div>
+<!-- Unsaved changes warning navigation -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="service-request-tab-change-confirmation" tabindex="-1"
+    role="dialog" data-backdrop="static" data-keyboard="false" aria-labelledby="GrantTabChange" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>You have unsaved changes in <strong>{{autoSaveService.getUnsavedChanges()}}</strong>.
+                    Do you want to leave the page without saving?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Stay on Page</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="navigateUsingRedirectRoute()"
+                    data-dismiss="modal">Leave Page</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Unsaved changes warning -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="service-request-submit-change-confirmation" tabindex="-1"
+    role="dialog" data-backdrop="static" data-keyboard="false" aria-labelledby="GrantTabChange" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Unsaved Changes Present </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>You have unsaved changes. Do you want to proceed without saving?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm"
+                    (click)="_serviceRequestService.isServiceRequestDataChange = false;validateViaServer()"
+                    data-dismiss="modal">Proceed</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Submit Modal -->
+<div class="modal fade mySkinDialog" id="submit-approve-service-request" tabindex="-1" role="dialog"
+    aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="skippedSchedulesLongTitle">
+                    <ng-container *ngIf="!requestObject?.actionType">Submit Service Request</ng-container>
+                    <ng-container *ngIf="requestObject?.actionType == 'A'">
+                        <ng-container i18n="@@COMMON_APPROVE">Approve</ng-container> Service Request
+                    </ng-container>
+                    <ng-container *ngIf="requestObject?.actionType == 'R'">Return Service Request</ng-container>
+                </h5>
+                <button type="button" id="award-approve-dismiss-btn" class="close" data-dismiss="modal"
+                    aria-label="Close" (click)="closeApproveDisapproveModal()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-inner-scroll">
+                <div class="row">
+                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <label for="service-request-submit-comments" class="mySkinDialog ">
+                            <p class="m-0">
+                                <strong>Comments</strong>
+                            </p>
+                        </label>
+                        <textarea appAutoGrow placeholder="" class="commentBox auto-grow-height form-control" rows="3"
+                            cols="20" appLengthValidator [isShowLimiter]='true' [limit]=2000
+                            [(ngModel)]="submitComment"></textarea>
+                    </div>
+                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <label class="mySkinDialog">
+                            <p class="m-0">
+                                <strong>Add files</strong>
+                            </p>
+                        </label>
+                        <app-file-drop [multiple]="true" (filesDropEvent)="fileDrop($event)"></app-file-drop>
+                    </div>
+                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <div class="fileChips regularFont">
+                            <span *ngFor="let item of uploadedFile; let index=index">{{
+                                item?.name }} <i id="award-approve-attach-delete" class="fa fa-close hand-cursor"
+                                    aria-hidden="true" title="Remove File"
+                                    (click)="deleteFromUploadedFileList(index)"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="award-approve-close" class="btn btn-secondary btn-sm"
+                    (click)="closeApproveDisapproveModal()">Close</button>
+                <button *ngIf="!requestObject?.actionType" type="button" id="award-approve-disapprove-btn"
+                    class="btn btn-primary-sub btn-sm" (click)="submitServiceRequest()">Submit Service Request</button>
+                <button *ngIf="requestObject?.actionType" type="button" id="award-approve-disapprove-btn"
+                    class="btn btn-primary-sub btn-sm" (click)="maintainReportWorkFlow()">
+                    <ng-container *ngIf="requestObject?.actionType == 'A'">
+                        <ng-container i18n="@@COMMON_APPROVE">Approve</ng-container>
+                    </ng-container>
+                    <ng-container *ngIf="requestObject?.actionType == 'R'"><ng-container i18n="@@COMMON_RETURN">Return</ng-container></ng-container>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Validation modals -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="validate-service-request" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Validation</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12 ">
+                        <ng-container *ngFor="let msg of errorList">
+                            <div class="alert alert-danger f-13" role="alert">
+                                <i class="fa fa-exclamation-circle icon text-danger mr-3" aria-hidden="true"></i>
+                                <strong>Error: </strong>
+                                <span [innerHTML]="msg.validationMessage"></span>
+                            </div>
+                        </ng-container>
+                        <ng-container *ngFor="let msg of warningList">
+                            <div class="alert alert-warning f-13" role="alert">
+                                <i class="fa fa-exclamation-triangle icon text-warning mr-3"
+                                    aria-hidden="true"></i><strong>Warning: </strong>
+                                <span [innerHTML]="msg.validationMessage"></span>
+                            </div>
+                        </ng-container>
+                        <div *ngIf="errorList?.length == 0 && warningList?.length == 0" class="w-outer">
+                            <div class="alert alert-info f-13" role="alert">
+                                <i class="fa fa-info-circle icon text-info mr-3" aria-hidden="true"></i>
+                                Service Request has been successfully validated.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="!isValidationOnlyFlag && errorList?.length == 0" class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                <button (click)="submitRequest()" type="button" class="btn btn-primary-sub btn-sm"
+                    data-dismiss="modal">Continue to Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Assign Modal -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="assign-service-request" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <span *ngIf="!assignRequest?.isReturnServiceRequest">Assign Service Request</span>
+                    <span *ngIf="assignRequest?.isReturnServiceRequest">Reject Service Request</span>
+                </h5>
+                <button type="button" (click)="clearAssign()" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body pt-2">
+                <div *ngIf="!assignRequest?.isReturnServiceRequest"
+                    class="success-banner p-2 mb-3 d-flex align-items-center">
+                    <i class="fa fa-info-circle info-icon mr-2" aria-hidden="true"></i>
+                    <em>This action will re-assign this request to the user that you are selecting.</em>
+                </div>
+                <div *ngIf="!assignRequest?.isReturnServiceRequest" class="row">
+                    <div class="col-4">
+                        <label class="d-block">Group</label>
+                        <app-autocompleter [completerOptions]="adminGroupsCompleterOptions"
+                            [clearField]="categoryClearFiled" [placeHolder]="'Search for Admin Groups'"
+                            (onSelect)="groupSelect($event)">
+                        </app-autocompleter>
+                    </div>
+                    <div class="col-5">
+                        <label class="d-block">Person</label>
+                        <app-elastic [options]="personElasticOptions" [placeHolder]="'Type here for an resource name'"
+                            [clearField]="personClearField" (selectedResult)="setPersonDetails($event)">
+                        </app-elastic>
+                        <a class="anchor-link ml-2 float-right" *ngIf="showAssignMe()" (click)="assignToMe()"
+                            tabindex="0" title="Assign to me">
+                            <i class="fa fa-plus mr-2" aria-hidden="true"></i>Assign to me</a>
+                    </div>
+                    <div class="col-3">
+                        <span class="d-flex justify-content-end">
+                            <span>
+                                <label class="d-block">Add me as watcher</label>
+                                <div class="float-right">
+                                    <a class="pl-2" *ngIf="!assignRequest.isAddAsWatcher">
+                                        <label class="switch">
+                                            <input type="checkbox" (click)="assignRequest.isAddAsWatcher = true"
+                                                [disabled]="isWatcherAlreadyAdded">
+                                            <span class="slider round" (click)="showWatcherValidation()"><small
+                                                    class="deactivate-text">No</small></span>
+                                        </label>
+                                    </a>
+                                    <a class="pl-2" *ngIf="assignRequest.isAddAsWatcher">
+                                        <label class="switch">
+                                            <input type="checkbox" (click)="assignRequest.isAddAsWatcher = false"
+                                                checked>
+                                            <span class="slider round"><small>Yes</small></span>
+                                        </label>
+                                    </a>
+                                </div>
+                            </span>
+                        </span>
+                        <div id="watcher-warning" class="invalid-feedback text-right">
+                            Watcher already added
+                        </div>
+                    </div>
+                    <div *ngIf="assignMap.has('assign')" class="invalid-feedback d-block ml-4">
+                        {{assignMap.get('assign')}}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <label for="service-request-submit-comments" class="mySkinDialog ">
+                            <p class="m-0">
+                                <strong>Comments</strong>
+                            </p>
+                        </label>
+                        <textarea appAutoGrow placeholder="" class="commentBox auto-grow-height form-control" rows="3"
+                            cols="20" appLengthValidator [isShowLimiter]='true' [limit]=2000
+                            [(ngModel)]="submitComment"></textarea>
+                    </div>
+                    <div class="col-12">
+                        <label class="mySkinDialog">
+                            <p class="m-0">
+                                <strong>Add files</strong>
+                            </p>
+                        </label>
+                        <app-file-drop [multiple]="true" (filesDropEvent)="fileDrop($event)"></app-file-drop>
+                    </div>
+                    <div class="col-12">
+                        <div class="fileChips regularFont">
+                            <span *ngFor="let item of uploadedFile; let index=index">{{
+                                item?.name }} <i id="approve-attach-delete" class="fa fa-close hand-cursor"
+                                    aria-hidden="true" title="Remove File"
+                                    (click)="deleteFromUploadedFileList(index)"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" (click)="clearAssign()">Cancel</button>
+                <button (click)="assignServiceRequest()" type="button" class="btn btn-primary-sub btn-sm">
+                    <span *ngIf="!assignRequest?.isReturnServiceRequest">Assign</span>
+                    <span *ngIf="assignRequest?.isReturnServiceRequest">Reject</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Resolve Modal -->
+<div class="modal fade mySkinDialog" id="resolve-service-request" tabindex="-1" role="dialog"
+    aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="skippedSchedulesLongTitle">
+                    Resolve Service Request
+                </h5>
+                <button type="button" id="resolve-dismiss-btn" class="close" (click)="clearResolve()"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-inner-scroll">
+                <div class="row">
+                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <label for="service-request-submit-comments" class="mySkinDialog ">
+                            <p class="m-0">
+                                <strong>Comments</strong>
+                            </p>
+                        </label>
+                        <textarea appAutoGrow placeholder="" class="commentBox auto-grow-height form-control" rows="3"
+                            cols="20" appLengthValidator [isShowLimiter]='true' [limit]=2000
+                            [(ngModel)]="submitComment"></textarea>
+                    </div>
+                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <label class="mySkinDialog">
+                            <p class="m-0">
+                                <strong>Add files</strong>
+                            </p>
+                        </label>
+                        <app-file-drop [multiple]="true" (filesDropEvent)="fileDrop($event)"></app-file-drop>
+                    </div>
+                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <div class="fileChips regularFont">
+                            <span *ngFor="let item of uploadedFile; let index=index">{{
+                                item?.name }} <i id="resolve-attach-delete" class="fa fa-close hand-cursor"
+                                    aria-hidden="true" title="Remove File"
+                                    (click)="deleteFromUploadedFileList(index)"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="resolve-close" class="btn btn-secondary btn-sm"
+                    (click)="clearResolve()">Close</button>
+                <button *ngIf="!requestObject?.actionType" type="button" id="resolve-disapprove-btn"
+                    class="btn btn-primary-sub btn-sm" (click)="resolveServiceRequest()">
+                    Resolve Service Request
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- print Service request Modal -->
+<div class="modal fade show mySkinDialog " tabindex="-1" id="printServiceRequestModal" role="dialog" aria-hidden="true"
+    data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Print Service Request #{{serviceRequest?.serviceRequestId}} -
+                    {{serviceRequest?.subject}}</h5>
+                <button type="button" class="close" data-dismiss="modal" (click)="closePrintModal();"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body scrollable-print-template-modal">
+                <div>
+                    <label class="mb-3 text-muted">Choose a template to print the service request </label>
+                    <div *ngFor="let template of printTemplates; let index = index" class="mb-3">
+                        <span class="d-flex align-items-center">
+                            <input class="print-modal-check-box" type="checkbox" id="{{template?.fileName}}"
+                                name="template-{{template?.letterTemplateTypeCode}}"
+                                (ngModelChange)="selectedTemplates($event, template)" [(ngModel)]="isChecked[index]">
+                            <label for={{template?.fileName}} class="ml-3">
+                                <span class="fs-15">{{template?.fileName.split('.')[0]}}</span>
+                                -( <em class="text-primary">{{template?.printFileType}}</em> )
+                            </label>
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-danger small "
+                            *ngIf="validationMap.has('selectTemplate')">{{validationMap.get('selectTemplate')}}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                    (click)="closePrintModal();">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="initiateDownload();">Print</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Concurrency Warning modal -->
+
+<div class="modal fade show mySkinDialog" id="invalidActionModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Invalid Action</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="form-row p-10">
+                <div class="col-1">
+                    <i class="fa fa-2x fa-exclamation-triangle text-warning position-person-inpur-box px-3"
+                        aria-hidden="true"></i>
+                </div>
+                <div class="col-11">
+                    <p>
+                        You have tried to perform an action that is not valid for the current state of this Service Request. The
+                        likely cause is that
+                        somebody has changed the Service Request recently. Please click the Refresh button to proceed further.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button"
+                    (click)="reload()">Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

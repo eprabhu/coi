@@ -1,0 +1,158 @@
+<div class="card card-widget-box my-3">
+    <div class="card-content">
+        <div class="card-body pt-4 mt-2">
+            <div class="pullSide">
+                <div class="topGrid gridSkin">
+                    <div *ngIf="isEditable" class="row">
+                        <div class="col-md-10 col-12 pb-0 no-hover-effect">
+                            <div>
+                                <textarea class="form-control" placeholder="Write your comments here" rows="2"
+                                    [(ngModel)]="newComment" appLengthValidator [isShowLimiter]='true' [limit]=4000
+                                    (ngModelChange)="_serviceRequestService.isServiceRequestDataChange = true"></textarea>
+                            </div>
+                            <div>
+                                <span class="anchor-link fs-1" data-toggle="modal" (click)="newAttachments = []"
+                                    data-target="#requestAttachmentModal"><a tabindex="0">
+                                        <i aria-hidden="true" class="fa fa-paperclip rounded-icon mr-1"
+                                            tabindex="0"></i>
+                                        Add Attachments</a>
+                                </span>
+                            </div>
+                            <div *ngIf="newAttachments?.length > 0" class="fileChips regularFont py-0 mb-3">
+                                <ng-container *ngFor="let attachment of newAttachments; let index = index">
+                                    <span class="px-2">
+                                        {{attachment.fileName}}
+                                        <a (click)="deleteFromCommentList(index)">
+                                            <i data-toggle="modal" data-target="#deleteServiceAttachment"
+                                                aria-hidden="true" class="fa fa-close badge-icon mr-1"
+                                                title="Delete {{attachment.fileName}}"></i>
+                                        </a>
+                                    </span>
+                                </ng-container>
+                            </div>
+                        </div>
+                        <div class="col-2 pb-0 text-center no-hover-effect">
+                            <div class="mb-3">
+                                <input type="checkbox" class="form-check-input mt-2" [(ngModel)]="isPrivateComment"
+                                    id="checkBox">
+                                <label class="form-check-label pl-2 txt-medium" for="checkBox">
+                                    Private Comment</label>
+                            </div>
+                            <div class="float-center bt-align mt-0">
+                                <button class="btn btn-primary-sub btn-sm px-5" (click)="addCommentAndAttachment()">Add
+                                    Comment</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div *ngIf="commentsAndAttachmentsList?.length; else noDataContainer">
+                        <div class="col comment-message"
+                            *ngFor="let listItem of commentsAndAttachmentsList; let lastElement = last">
+
+                            <!-- Comment Logo -->
+                            <div class="comment-message-logo pr-2">
+                                <i class="fa fa-user-circle fa-2x txt-big mr-1 text-secondary" aria-hidden="true"></i>
+                            </div>
+                            <div class="comment-message-body pt-1">
+                                <div class="comment-inner-head">
+                                    <div class="comment-inner-head-left">
+                                        <!-- full name of commenter -->
+                                        <span
+                                            class="text-black font-weight-bold txt-medium">{{listItem.updateUser}}</span>
+                                        <span class="txt-medium">[Action: {{listItem.actionTypeDescription}}]</span>
+                                        &nbsp;&nbsp;
+                                        <!-- Private? -->
+                                        <span *ngIf="listItem.isPrivateComment" class="fw-700 text-primary txt-medium">
+                                            Private</span>
+                                        <!-- time -->
+                                        <p class="d-inline ml-10 txt-medium text-secondary font-weight-light">
+                                            {{listItem.updateTime | dateFormatterWithTimeZone: 'long'}}</p>
+                                    </div>
+                                </div>
+                                <div class="comment-inner-body pt-1">
+                                    <!-- display comment -->
+                                    <div>
+                                        <i *ngIf="listItem?.comment?.comments" aria-hidden="true"
+                                            class="fa fa-quote-left comment-icon"></i>
+                                        <sub> <span class="f-13  text-content-color new-line-property"
+                                                [innerHTML]="listItem?.comment?.comments"></span>
+                                        </sub>
+                                        <hr *ngIf="listItem?.attachment?.length && listItem?.comment?.comments"
+                                            class="mb-0">
+                                        <div *ngIf="listItem?.attachment?.length" class="fileChips regularFont">
+                                            <ng-container *ngFor="let attachment of listItem?.attachment">
+                                                <span class="px-2">
+                                                    {{attachment.fileName}}
+                                                    <i aria-hidden="true"
+                                                        class="fa fa-download badge-icon ml-1 hand-cursor"
+                                                        title="Download {{attachment.fileName}}"
+                                                        (click)="downloadAttachment(attachment)"></i>
+                                                </span>
+                                            </ng-container>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr *ngIf="!lastElement">
+                            </div>
+                        </div>
+                    </div>
+                    <ng-template #noDataContainer>
+                        <div class="no-data-container">
+                            <span class="no-data-icon-outer">
+                                <div class="no-data-icon">
+                                    <i class="fa fa-file-o" aria-hidden="true"></i>
+                                    <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                                </div>
+                            </span>
+                            <h4>There is no information in this section.</h4>
+                        </div>
+                    </ng-template>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ADD ATTACHMENT MODAL -->
+<div class="modal fade mySkinDialog" id="requestAttachmentModal" tabindex="-1" role="dialog"
+    aria-labelledby="skippedSchedulesTitle" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Attachments</h5>
+                <button type="button" class="close" data-dismiss="modal" id="req-doc-popup-dismiss-btn"
+                    aria-label="Close" (click)="closeAttachModal()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="btn-margin">
+                    <app-file-drop [multiple]="true" (filesDropEvent)="fileDrop($event)"></app-file-drop>
+                </div>
+                <div *ngIf="uploadedFile.length > 0">
+                    <div class="gridSkin">
+                        <div class="row">
+                            <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 fileChips pt-0"
+                                style="word-break: break-all;">
+                                <span style="padding:3px 8px;"
+                                    *ngFor="let item of uploadedFile; let i=index">{{item?.name}}
+                                    <i class="fa fa-close hand-cursor" id="req-doc-dlt"
+                                        (click)="deleteFromUploadedFileList(i)" title="Delete attachment"
+                                        aria-hidden="true"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="warningObj.attachment != null">
+                    <span class="mandatory font">{{warningObj.attachment}}</span>
+                </div>
+            </div>
+            <div class="modal-footer" *ngIf="uploadedFile.length > 0">
+                <button type="button" class="btn btn-secondary mr-0" id="req-attachment-close-btn"
+                    (click)="closeAttachModal()" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" id="req-attachment-add-btn"
+                    data-dismiss="modal" (click)="addAttachments()">Add</button>
+            </div>
+        </div>
+    </div>
+</div>

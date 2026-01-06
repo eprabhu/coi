@@ -1,0 +1,245 @@
+/** last updated by Archana R on 04-12-2019 **/
+<div class="push4slideMenu pageMinHeight" id="scrollToTop">
+    <div class="container-fluid pushFixedHeaderFooter">
+        <div class="headerPush"></div>
+        <div class="card mb-15 rounded-0">
+            <div class="card-header card-header-with-btn ">
+                <h4 class="card-title">Map Maintenance
+                    <div class="float-right">
+                        <button class="btn btn-sm btn-primary mr-3" (click)="createMap()">
+                            Create New Map
+                        </button>
+                        <a class="tooltip-helptext"><i class="fa fa-info-circle ct-icon-right float-right hand-cursor mt-3" aria-hidden="true"
+                                (click)="helpInfo = !helpInfo"></i></a>
+                        
+                    </div>
+                </h4>
+            </div>
+
+            <div *ngIf="helpInfo" class="mx-4 mt-3">
+                <div class="col-12">
+                    <div class="p-2 row success-banner">
+                        <div class="col-auto pl-2 pr-3">
+                            <i  aria-hidden="true" class="fa fa-info-circle mr-1 info-icon"></i>
+                        </div>
+                        <div class="col px-0"><em >This module lists the maps that are created. There is also an option to create a new map.</em>
+                        </div>
+                        <div class="col-auto pr-2">
+                            <button  aria-label="Close" class="close close-button " data-dismiss="modal"
+                                id="modal-close" type="button" (click)="helpInfo = false">
+                                <span  aria-hidden="true" class="d-block">×</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="form-group col-lg-6 col-md-9 col-12 searchBox mx-auto">
+                    <input type="text" placeholder="Search by Id, Description, Department "
+                        class="ng-pristine ng-valid ng-touched form-control " [(ngModel)]="searchText ">
+                    <a class="searchButton">
+                        <i class="fa fa-search fa-med mr-4 pt-2 hand-icon" aria-hidden="true"></i>
+                    </a>
+                </div>
+                <div *ngIf="mapList.length > 0" class="table-responsive">
+                    <table class="table tableSkin mb-0">
+                        <caption class="sr-only">Map details</caption>
+                        <thead class="header-border">
+                            <th style="width: 7%" (click)="sortBy('MAP_ID')" class="table-border-bottom hand-icon"
+                                title="Click to sort by Name " scope="col">Map ID
+                                <i aria-hidden="true" class="hand-icon"
+                                    [ngClass]="((column=='MAP_ID' )? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                            </th>
+                            <th style="width: 20%" (click)="sortBy( 'MAP_NAME')" class="table-border-bottom hand-icon"
+                                title="Click to sort by Name " scope="col">Map
+                                Name
+                                <i aria-hidden="true" class="hand-icon"
+                                    [ngClass]="((column=='MAP_NAME' )? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                            </th>
+                            <th style="width: 25%" scope="col" (click)="sortBy( 'DESCRIPTION')"
+                                class="table-border-bottom hand-icon" title="Click to sort by Description ">
+                                Description
+                                <i aria-hidden="true" class="hand-icon"
+                                    [ngClass]="((column=='DESCRIPTION' ) ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                            </th>
+                            <th style="width: 20%" scope="col" (click)="sortBy( 'UNIT_NAME')"
+                                class="table-border-bottom hand-icon" title="Click to sort by Description ">
+                                Department
+                                <i aria-hidden="true" class="hand-icon"
+                                    [ngClass]="((column=='UNIT_NAME' ) ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                            </th>
+                            <th style="width: 20%" scope="col" (click)="sortBy( 'UPDATE_TIMESTAMP')">Last Updated By
+                                <i aria-hidden="true" class="hand-icon"
+                                    [ngClass]="((column=='UPDATE_TIMESTAMP' ) ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                            </th>
+                            <th style="width: 10%" scope="col">Actions</th>
+                        </thead>
+                        <tbody>
+                            <tr
+                                *ngFor="let map of mapList | orderBy: {property: column, direction: direction} | SearchFilter : searchText:
+                                ['MAP_ID', 'MAP_NAME', 'DESCRIPTION', 'UNIT_NAME', 'UNIT_NUMBER'];let index=index">
+                                <td>{{map.MAP_ID}}</td>
+                                <td>{{map.MAP_NAME}}</td>
+                                <td>{{map.DESCRIPTION}}</td>
+                                <td>{{concatUnitNumberAndUnitName(map.UNIT_NUMBER, map.UNIT_NAME)}}</td>
+                                <td>{{map.UPDATE_USER_FULLNAME}} on {{map.UPDATE_TIMESTAMP | dateFormatterWithTimeZone:'long'}}
+                                </td>
+                                <td>
+                                    <ul class="actionButtonGroup">
+                                        <li>
+                                            <a title="View Unit Map {{map.MAP_NAME}}"
+                                                (click)="viewMap(map.MAP_ID, map.UNIT_NAME , map.MAP_NAME, map.UNIT_NUMBER)">
+                                                <i class="fa fa-eye pointer mr-2 hand-icon" aria-hidden="true"
+                                                    data-toggle="modal" data-target="#modal-edit"></i>
+                                            </a>
+                                            <a title="Edit Unit Map {{map.MAP_NAME}}">
+                                                <i class="fa fa-pencil mr-2 hand-icon" [routerLink]="[ 'create']"
+                                                    [queryParams]="{ id: map.MAP_ID }" aria-hidden="true"></i>
+                                            </a>
+                                            <a title="Delete Unit Map {{map.MAP_NAME}}"
+                                                (click)="deleteMap(map.MAP_ID) ">
+                                                <i class="fa fa-trash-o hand-icon" aria-hidden="true"
+                                                    data-toggle="modal" data-target="#myModal"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="no-data-container" *ngIf="mapList.length == 0">
+                        <span class="no-data-icon-outer">
+                                <div class="no-data-icon">
+                                    <i class="fa fa-file-o" aria-hidden="true"></i>
+                                    <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                                </div>
+                            </span>
+                            <h4>There is no information in this section.</h4>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade bd-example-modal-lg mySkinDialog" id="modal-edit">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">#{{mapId}} - {{mapName}} - {{concatUnitNumberAndUnitName(unitNumber, unitName)}}</h5>
+                        <button type="button" class="close " data-dismiss="modal" aria-label="Close ">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="scroll-outer">
+                            <ng-container *ngFor="let item of stopGroupListKeys; let mainIndex=index">
+                                <div class="card card-inner mb-3">
+                                    <div class="card-header">
+                                        <div *ngFor="let stopname of stopGroupList[item];" class="card-title">
+                                            <strong>{{stopname.STOP_NAME}}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="card-content">
+                                        <div class="card-body">
+                                            <table class="table seq-table">
+                                                <caption class="sr-only">Stop Details</caption>
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width: 7%;" scope="col"></th>
+                                                        <th style="width: 31%;" scope="col">Approve By</th>
+                                                        <th style="width: 38%;" scope="col">Description</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <ng-container
+                                                        *ngFor="let approver of stopGroupList[item]; let subIndex=index">
+                                                        <ng-container *ngIf="approver.PRIMARY_APPROVER_FLAG=='Y'">
+                                                            <tr class="apprv-row ">
+                                                                <td style="width: 7%;">
+                                                                    <i class="apr-flag fa fa-flag"
+                                                                        aria-hidden="true"></i>
+                                                                </td>
+                                                                <td style="width: 31%;">
+                                                                    <span> {{approver.APPROVER_NAME}}</span>
+                                                                </td>
+                                                                <td style="width: 38%;">
+                                                                    <span> {{approver.DESCRIPTION}}</span>
+                                                                </td>
+                                                            </tr>
+                                                            <ng-container
+                                                                *ngFor="let alternateApprover of stopGroupList[item]">
+
+                                                                <ng-container
+                                                                    *ngIf="alternateApprover.APPROVER_NUMBER==approver.APPROVER_NUMBER && alternateApprover.PRIMARY_APPROVER_FLAG=='N'">
+                                                                    <tr class="apprv-row">
+                                                                        <td style="width: 7%;">
+                                                                            <i class="float-right fa fa-user userIcon"
+                                                                                aria-hidden="true"></i>
+                                                                        </td>
+                                                                        <td>
+                                                                            <span>{{alternateApprover.APPROVER_NAME}}</span>
+                                                                        </td>
+                                                                        <td>
+                                                                            <span>{{alternateApprover.DESCRIPTION}}</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                </ng-container>
+                                                            </ng-container>
+                                                        </ng-container>
+                                                    </ng-container>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </ng-container>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade bd-example-modal-lg mySkinDialog" tabindex="-1" id="myModal" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete</h5>
+                        <button aria-label="Close" class="close" data-dismiss="modal" type="button" title="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Do you want to delete this map?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">No</button>
+                        <button (click)="delete(mapId)" type="button" class="btn btn-primary-sub btn-sm"
+                            data-dismiss="modal">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button type="button" id="deleteErrorButton" class="displyNone" data-toggle="modal"
+            data-target="#deleteErrorModal"></button>
+        <div class="modal fade bd-example-modal-lg mySkinDialog" tabindex="-1" id="deleteErrorModal" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Warning</h5>
+                        <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>This map cannot be deleted because it is used in a Business Rule.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary-sub" data-dismiss="modal">Ok</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footerPush"></div>
+    </div>
+</div>

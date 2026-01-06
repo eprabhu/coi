@@ -1,0 +1,139 @@
+<app-common-shared-info-text [elementId]="'coi-user-eng-info-text'" [subSectionId]="531" [customClass]="'pb-2 px-0'"></app-common-shared-info-text>
+<div class="advance-search coi-search-box sticky-top-51 sticky-top" *ngIf="!isHideFilterSearchAndShowCreate">
+  <div class="row m-0">
+    <div class="col-lg-auto px-3 py-2">
+      <div>
+        <label class="text-secondary" tabindex="-1">Filter By Status :</label>
+        <span (click)="setFilter('ALL')" id="coi-person-engagement-filter-all" [class.active-filter-pills]="sfiDashboardRequestObject.filterType=='ALL'" tabindex="0" (keyup.enter)="setFilter('ALL')" (keyup.space)="setFilter('ALL')"
+              [attr.aria-label]="sfiDashboardRequestObject.filterType=='ALL' ? 'All' : 'Click here to filter engagements by type: All'"
+              [title]="sfiDashboardRequestObject.filterType=='ALL' ? 'All' : 'Click here to filter engagements by type: All'"
+              class="filter-pills coi-text-light" role="button">All</span>
+        <span (click)="setFilter('COMPLETE')" id="coi-person-engagement-filter-complete" [class.active-filter-pills]="sfiDashboardRequestObject.filterType=='COMPLETE'" tabindex="0" (keyup.enter)="setFilter('COMPLETE')" (keyup.space)="setFilter('COMPLETE')"
+              [attr.aria-label]="sfiDashboardRequestObject.filterType=='COMPLETE' ? 'Complete' : 'Click here to filter engagements by type: Complete'"
+              [title]="sfiDashboardRequestObject.filterType=='COMPLETE' ? 'Complete' : 'Click here to filter engagements by type: Complete'"
+              class="filter-pills coi-text-light" role="button">Complete</span>
+        <span (click)="setFilter('INCOMPLETE')" id="coi-person-engagement-filter-incomplete" [class.active-filter-pills]="sfiDashboardRequestObject.filterType=='INCOMPLETE'" tabindex="0" (keyup.enter)="setFilter('INCOMPLETE')" (keyup.space)="setFilter('INCOMPLETE')"
+              [attr.aria-label]="sfiDashboardRequestObject.filterType=='INCOMPLETE' ? 'Incomplete' : 'Click here to filter engagements by type: Incomplete'"
+              [title]="sfiDashboardRequestObject.filterType=='INCOMPLETE' ? 'Incomplete' : 'Click here to filter engagements by type: Incomplete'"
+              class="filter-pills coi-text-light" role="button">Incomplete</span>
+        <span (click)="setFilter('INACTIVE')" id="coi-person-engagement-filter-inactive" [class.active-filter-pills]="sfiDashboardRequestObject.filterType=='INACTIVE'" tabindex="0" (keyup.enter)="setFilter('INACTIVE')" (keyup.space)="setFilter('INACTIVE')"
+              [attr.aria-label]="sfiDashboardRequestObject.filterType=='INACTIVE' ? 'Inactive' : 'Click here to filter engagements by type: Inactive'"
+              [title]="sfiDashboardRequestObject.filterType=='INACTIVE' ? 'Inactive' : 'Click here to filter engagements by type: Inactive'"
+              class="filter-pills coi-text-light" role="button">Inactive</span>
+    </div>
+  </div>
+    <div class="col-lg py-2 border-start d-flex align-items-center filter-s-outer search-area position-relative">
+    <span class="filter-search">
+        <mat-icon aria-hidden="true" class="fs-25px searchButton">search</mat-icon>
+        <input class="form-control pe-5" type="text" id="searchText" placeholder="Search Engagements" [(ngModel)]="searchText" (ngModelChange)="getEntities()">
+      </span>
+      <span tabindex="0" aria-label="Clear Search Text" class="d-flex align-items-center" *ngIf="searchText" (click)="clearSearchText()" (keyup.enter)="clearSearchText()">
+        <mat-icon class="closeButton" aria-hidden="true">close</mat-icon>
+     </span>
+    </div>
+</div>
+</div>
+<ng-container *ngIf="!isLoading">
+  <div *ngIf="filteredEntityArray.length > 0" [@listAnimation]="filteredEntityArray.length">
+    <ng-container *ngFor="let entities of filteredEntityArray; let engagementIndex = index">
+      <app-shared-sfi-card [reqObject] = 'entities' [referredFrom]="'SFI_EDIT_AND_DASHBOARD'" (activateDeactivateEvent)="activateDeactivateEvent($event)"
+        (deleteEvent)="deleteSFIConfirmation($event)" (viewSlider)="viewSlider($event)" [uniqueId]="'user-entities-' + engagementIndex"
+        (selectTravelEngagement)="selectTravelEngagement($event)" [selectedEngagementId]="selectedEngagementId" >
+      </app-shared-sfi-card>
+    </ng-container>
+  </div>
+  <!-- no data card -->
+  <app-no-information *ngIf="!filteredEntityArray.length && !isHideFilterSearchAndShowCreate">
+    <span>
+      {{ searchText ? noDataMessage?.['NO_SEARCH_RESULT'] : noDataMessage?.[sfiDashboardRequestObject?.filterType]}}
+    </span>
+  </app-no-information>
+ <!-- Pagination -->
+ <div [hidden]="isLoading" *ngIf="filteredEntityArray.length > 0" class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 mt-3">
+  <nav aria-label="pagination section" class="pagination justify-content-end">
+      <app-pagination (pageChangeEvent)="actionsOnPageChangeEvent($event)"
+          [totalCount]="result.count" [defaultCurrentPage]="sfiDashboardRequestObject.currentPage">
+      </app-pagination>
+  </nav>
+</div>
+<ng-container *ngIf="isHideFilterSearchAndShowCreate">
+  <!-- <div class="card">
+    <div class="border pi-info-text p-3 mx-4 mt-4 rounded-1">
+      <p class="fs-14">
+        <span title="Expand Policy Text" aria-describedby="Expand Policy Text">
+          You do not have any added entities. To add any personal entities, click on the <strong>Create Entity</strong>
+          button or the quick link provided.
+        </span>
+      </p>
+    </div>
+    <span class="create-button">
+      <button class="btn btn-primary btn-sm d-block mt-4 fs-15 mb-3" (click)="addSFI()" title="Click to create entity" aria-label="Click to create entity">
+        Create Entity
+      </button>
+    </span>
+  </div> -->
+  <app-no-information [isBorderNeeded]="false" [canShowAddButton]="true" [buttonName]="'Create Engagement'"
+            (buttonAction)="addSFI()"><span>{{ noDataMessage?.['NO_ENGAGEMENT_CREATED'] }}</span></app-no-information>
+</ng-container>
+
+<ng-container *ngIf="showSlider">
+	<app-coi-slider (closeSlider)="hideSfiNavBar()" [elementId]="sliderElementId">
+		<ng-container content>
+			<app-entity-details [entityId]="entityId"></app-entity-details>
+		</ng-container>
+	</app-coi-slider>
+</ng-container>
+
+    <app-activate-inactivate-sfi-modal *ngIf="isEnableActivateInactivateSfiModal" [entityName]="entityName"
+      [personEntityId]="personEntityId" [updatedRelationshipStatus]="updatedRelationshipStatus" (closeModal)="closeActivateInactivateSfiModal($event)"
+      [personEntityNumber]="personEntityNumber" [relationshipDetails]="relationshipDetails" [isSignificantFinInterest]="isSignificantFinInterest">
+    </app-activate-inactivate-sfi-modal>
+    <button type="button" class="btn btn-primary btn-sm" hidden=true id="hidden-delete-button" data-bs-toggle="modal" data-bs-target="#deleteSFIConfirmationModal"></button>
+    <div class="modal fade" id="deleteSFIConfirmationModal" tabindex="-1" aria-labelledby="exampleModalLabel" data-bs-dismiss="static" data-bs-keyboard="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title fs-16" id="exampleModalLabel">Confirmation</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" title="Click here to delete" aria-label="Click here to close" id="coi-user-entities-conformation-modal-close-btn"></button>
+          </div>
+          <div class="modal-body fs-14">
+            <p>Are you sure you want to delete the engagement <strong>"{{entityName}}"</strong>?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" title="Click here to cancel" aria-label="Click here to cancel"
+            id="coi-user-entities-conformation-modal-cancel-btn">Cancel</button>
+            <button type="button" class="btn btn-primary fs-14" (click)="deleteSFI()" data-bs-dismiss="modal" title="Click here to delete" aria-label="Click here to delete"
+            id="coi-user-entities-conformation-modal-delete-btn">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+<app-concurrency-warning-modal *ngIf="isConcurrency" [sectionName]="'Delete Engagements'" (closePage)="isConcurrency = false"></app-concurrency-warning-modal>
+
+<!-- Commenting out the travel disclosure confirmation modal after selecting an engagement. This can be re-enabled in the future if user confirmation is required before proceeding with the selected engagement. -->
+<!-- Create Travel Disclosure Confirmation Modal -->
+<!-- <button type="button" class="btn btn-primary btn-sm" hidden=true id="travel-create-confirmation-modal"
+  data-bs-toggle="modal" data-bs-target="#travelCreateConfirmationModal"></button>
+<div class="modal fade" id="travelCreateConfirmationModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+  data-bs-dismiss="static" data-bs-keyboard="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fs-16" id="exampleModalLabel">Confirmation</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" title="Click here to delete"
+          aria-label="Click here to close" id="coi-user-entities-conformation-modal-close-btn"></button>
+      </div>
+      <div class="modal-body fs-14">
+        <p>Are you sure you want to proceed with this engagement -
+          <strong>{{selectedEngagement?.coiEntity?.entityName}}</strong>?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" title="Click here to cancel"
+          aria-label="Click here to cancel" id="coi-create-travel-modal-cancel-btn">Cancel</button>
+        <button type="button" class="btn btn-primary fs-14" (click)="confirmTravelEngagement()" data-bs-dismiss="modal"
+          title="Click here to Proceed" aria-label="Click here to Proceed"
+          id="coi-create-travel-modal-proceed-btn">Proceed</button>
+      </div>
+    </div>
+  </div>
+</div> -->

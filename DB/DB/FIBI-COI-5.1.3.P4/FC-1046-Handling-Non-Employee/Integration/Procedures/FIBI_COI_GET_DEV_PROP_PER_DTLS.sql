@@ -1,0 +1,34 @@
+DELIMITER //
+create or replace PROCEDURE FIBI_COI_GET_DEV_PROP_PER_DTLS(
+    AV_PROPOSAL_NUMBER IN EPS_PROPOSAL.PROPOSAL_NUMBER%TYPE,
+    cur_generic OUT SYS_REFCURSOR
+) IS
+BEGIN
+
+	
+
+OPEN cur_generic FOR
+	SELECT DISTINCT EP.proposal_number,
+	EPPr.prop_person_role_id         AS PROP_PERSON_ROLE_CODE,
+	EPPR.DESCRIPTION                AS KEY_PERSON_ROLE,
+    NVL(EPP.person_id, EPP.rolodex_id) AS person_id,
+	NVL(P.full_name,(COALESCE(R.first_name, '') || ' ' || COALESCE(R.middle_name, '') || ' ' || COALESCE(R.last_name, ''))) AS FULL_NAME,
+	EPP.calendar_year_effort          AS PERCENTAGE_OF_EFFORT,
+	FIBI_COI_DEV_PER_CERT_FLAG(EPP.proposal_number, EPP.person_id,EPP.PROP_PERSON_NUMBER, EPP.prop_person_role_id,EPP.PROJECT_ROLE) AS CERTIFICATION_FLAG,
+	FIBI_COI_DEV_PER_COI_DISC_FLAG(EPP.proposal_number,EPP.person_id,EPP.PROP_PERSON_NUMBER,EPP.prop_person_role_id,EPP.PROJECT_ROLE) AS DISCLOSURE_REQUIRED_FLAG,
+	'NON_EMPLOYEE_FLAG' AS  ATTRIBUTE_1_LABEL ,
+	CASE WHEN EPP.person_id IS NULL THEN 'Y' ELSE 'N' END AS  ATTRIBUTE_1_VALUE ,
+	NULL AS   ATTRIBUTE_2_LABEL ,
+	NULL AS   ATTRIBUTE_2_VALUE ,
+	NULL AS   ATTRIBUTE_3_LABEL ,
+	NULL AS   ATTRIBUTE_3_VALUE
+	FROM   eps_proposal EP
+	INNER JOIN eps_prop_person EPP ON EPP.proposal_number = EP.proposal_number
+	INNER JOIN EPS_PROP_PERSON_ROLE EPPR ON EPPR.PROP_PERSON_ROLE_CODE = EPP.PROP_PERSON_ROLE_ID AND EPPR.SPONSOR_HIERARCHY_NAME='DEFAULT'      
+	LEFT JOIN person P ON P.person_id = EPP.person_id
+	LEFT JOIN rolodex R ON R.rolodex_id = EPP.rolodex_id
+	WHERE  EP.proposal_number = AV_PROPOSAL_NUMBER; 
+	
+
+END;
+//

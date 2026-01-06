@@ -1,0 +1,119 @@
+<app-header></app-header>
+<router-outlet></router-outlet>
+<app-footer></app-footer>
+<div [ngClass]="{'overlay':_commonService.isShowOverlay}" *ngIf="isShowLoader">
+    <div class="grid">
+        <div class="loader">
+            <div id="ld2">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+        </div>
+        <div class="loading-text"><span>{{_commonService.appLoaderContent}}</span></div>
+    </div>
+</div>
+<div id="app-toast" class="invisible"> {{_commonService.appToastContent}}
+    <i aria-hidden="true" (click)="closeToast()" class="fa fa-times ml-3 pointer"></i>
+</div>
+
+<div class="wrapper">
+    <div class="toast">
+        <div class="content">
+            <div class="icon"><i class="uil uil-wifi"></i></div>
+            <div class="details">
+                <span>{{_commonService.appToastContent}}</span>
+            </div>
+        </div>
+        <div class="close-icon"><i class="uil uil-times"></i>(click)="closeToast()"</div>
+    </div>
+</div>
+<ng-container *ngIf="_autoSaveService.isShowErrorToast | async">
+    <div class="app-toast visible alert-warning px-3" id="last-saved-toast"
+        *ngIf="_autoSaveService.errors.length || _autoSaveService.getShowableUnsavedSections().length">
+        <ng-container *ngIf="_autoSaveService.errors.length">
+            Last saved at {{_autoSaveService.lastSavedTime}}.
+            Error occurred in <span class="hand-cursor" *ngFor="let error of _autoSaveService.errors"
+                (click)="_autoSaveService.navigateToError(error)">{{error.name}}</span>
+        </ng-container>
+        <ng-container *ngIf="_autoSaveService.getShowableUnsavedSections().length"> <ng-container i18n="@@COMMON_UNSAVED_CHANGES">Unsaved changes</ng-container> in
+            <span class="hand-cursor text-info p-0"
+                *ngFor="let warning of _autoSaveService.getShowableUnsavedSections(); let isLast = last"
+                (click)="_autoSaveService.navigateToError(warning)">{{warning.name}}{{!isLast?',':''}}
+            </span>
+        </ng-container>
+    </div>
+</ng-container>
+
+<button type="button" id="timeoutModalButton" style="display: none" data-toggle="modal"
+    data-target="#sessionTimeoutModal"></button>
+<div class="modal fade mySkinDialog" id="sessionTimeoutModal" tabindex="-1" role="dialog"
+    aria-labelledby="sessionTimeoutModal" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Session Expired</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" id="prop-dlt-member-dismiss"
+                    type="button">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>{{errorMessage}}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="agreement-doc-popup-close-btn" data-dismiss="modal"
+                    (click)="redirectToLogoutPage()">Continue</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade mySkinDialog" id="LockModal" tabindex="-1" role="dialog" aria-labelledby="sessionTimeoutModal"
+    aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" *ngIf = "webSocket.currentModuleDescription">This {{webSocket.currentModuleDescription}} #{{webSocket.currentModuleId}} is
+                    opened in read-only mode.</h5>
+                    <h5 class="modal-title" *ngIf = "!webSocket.currentModuleDescription">Lock Removed Manually</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" id="prop-dlt-member-dismiss"
+                    type="button" *ngIf = "webSocket.currentModuleDescription">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <ng-container *ngIf ="!webSocket.isLockReleasedManually">
+            <div class="modal-body" >
+                <p>There is currently a lock for the {{webSocket.currentModuleDescription==='IP'?'Institute Proposal':webSocket.currentModuleDescription}} owned by
+                    {{webSocket.currentUser}} on
+                    {{webSocket.createTimeStamp | date: 'medium'}}</p>
+                <p *ngIf="webSocket.currentModuleDescription != 'Certification'">To chat with {{webSocket.currentUser}}, Please click Stay on Page</p>
+                <p *ngIf="webSocket.currentModuleDescription == 'Proposal'">You can still complete your certification. Please click stay on page and move to the certification tab.</p>
+            </div>
+            <div class="modal-footer">
+                <button *ngIf="webSocket.currentModuleDescription != 'Certification'" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                    (click)="showChatWindow()">Stay on
+                    Page</button>
+                <button *ngIf="webSocket.currentModuleDescription != 'Certification'" type="button" class="btn btn-primary-sub btn-sm" data-dismiss="modal"
+                    (click)="leavePage()">Leave
+                    Page</button>
+                <button type="button" *ngIf="webSocket.currentModuleDescription == 'Certification'" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+            </div>
+            </ng-container>
+            <ng-container *ngIf ="webSocket.isLockReleasedManually">
+                <div class="modal-body" >
+                    <p>Your Lock has been manually released from another System. Please click refresh to continue.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                        (click)="reload()"> Refresh </button>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+</div>
+<app-chatbox></app-chatbox>

@@ -1,0 +1,123 @@
+<div class="push4slideMenu pageMinHeight" id="scrollToTop">
+    <div class="container-fluid pushFixedHeaderFooter">
+        <div class="headerPush"></div>
+        <div class="row">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-12">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h4 class="card-title">
+                            <div>Frequently Asked Questions</div>
+                        </h4>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-2 pt-4 pl-5">
+                                    <h4>Categories</h4>
+                                </div>
+                                <div class="col-8 mb-25 p-0">
+                                    <div class="searchBox" id="searchElastic">
+                                        <input [(ngModel)]="searchText" (ngModelChange)="searchQuestions(searchText)"
+                                            placeholder="Search by Questions..."
+                                            class="form-control ng-pristine ng-valid ng-touched">
+                                        <a class="searchButton">
+                                            <i aria-hidden="true" class="fa fa-search fa-med pt-2"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="col-2">
+                                    <button title="Add New Question" class="btn btn-sm btn-primary"
+                                        (click)="triggerFaq = true" id="add-faq-btn">
+                                        Add New Question
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="row pt-5 pb-4">
+                                <div class="col-2 side-scroll pl-4">
+                                    <div class="category-sidebar" *ngFor="let category of categoryList;let i=index">
+                                        <div id="accordion" role="tablist" aria-multiselectable="true"
+                                            class="category-list-color">
+                                            <ul [ngClass]="(i === selectedCategory) ? 'categorylist-active' : 'category-list'"
+                                                style="list-style: none">
+                                                <li>
+                                                    <tr>
+                                                        <a data-toggle="collapse" data-parent="#accordion"
+                                                            (click)="(category.faqSubCategory.length > 0) ? isCollapse[i] = !isCollapse[i] : displayFAQ(category.categoryCode,'' ,true,i)"
+                                                            [attr.data-target]="'#collapseOne' + i"
+                                                            aria-expanded="false" aria-controls="collapseOne"
+                                                            class="collapsed">
+                                                            <td>
+                                                                <h4 class="hand-cursor"
+                                                                    [innerHTML]="category.description"></h4>
+                                                            </td>
+                                                            <td><i aria-hidden="true" class="accordion-arrow collapsed"
+                                                                    *ngIf="category.faqSubCategory.length > 0"
+                                                                    [ngClass]="(isCollapse[i] === true)?'fa fa-angle-up':'fa fa-angle-down'"
+                                                                    data-toggle="collapse" aria-expanded="false"
+                                                                    aria-controls="collapseOne"></i>
+                                                            </td>
+                                                        </a>
+                                                    </tr>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div id="collapseOne{{i}}" class="collapse" role="tabpanel"
+                                            aria-labelledby="headingOne" aria-expanded="false">
+                                            <ul class="nav" *ngFor="let subcategory of category.faqSubCategory">
+                                                <li class="active">
+                                                    <h5 class="subheader hand-cursor"
+                                                        (click)="displayFAQ(category.categoryCode, subcategory.subCategoryCode,false,i)">
+                                                        {{ subcategory.description }}</h5>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-7 pt-3 side-scroll">
+                                    <h2>{{ categoryName }}</h2>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div *ngIf="questionsList.length === 0">
+                                                <p>There are no questions in this category</p>
+                                            </div>
+                                            <div class="qa-display" id="qa-tab" *ngIf="questionsList.length > 0">
+                                                <div *ngFor="let questions of tempQuestionList;let i=index">
+                                                    <h4 class="pt-4" id="question-title-{{ i }}">
+                                                        {{ questions.question }}</h4>
+                                                    <p>{{ questions.answer }}</p>
+                                                    <p><a href="" (click)="redirectUrl(questions?.url);" *ngIf="questions.url != ''"
+                                                        >{{ questions.url }}</a></p>
+                                                    <span class="fileChips hand-cursor" style="word-break: break-all;"
+                                                        *ngFor="let question of questions.faqAttachment"
+                                                        (click)="saveAttachment(question,question.faqAttachmentId)">
+                                                        <span>{{question.fileName}}
+                                                            <i aria-hidden="true" class="fa fa-download"
+                                                                title="Click here to download {{question.fileName}}"></i>
+                                                        </span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-3 right-sidebar side-scroll">
+                                    <div class="question-tab timeline">
+                                        <ul class="pl-3">
+                                            <li id="question-{{ i }}"
+                                                *ngFor="let questions of questionsList;let i=index"
+                                                [ngClass]="(i === selectedQuestion) ? 'questionlist-active ' : 'question-list '"
+                                                (click)="pageScroll('question-title-'+i); highlightQuestion(i)">
+                                                <a class="hand-cursor">{{questions.question}}</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<app-add-faq *ngIf="triggerFaq" (selectedResult)="resetFaqTrigger($event)"></app-add-faq>

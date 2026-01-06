@@ -1,0 +1,1 @@
+\. ./FIBI-COI-5.7.5/FC-1486/Procedures/MIGRATE_PERSON_TRAINING.sql

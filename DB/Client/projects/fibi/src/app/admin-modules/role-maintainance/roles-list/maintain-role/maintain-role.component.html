@@ -1,0 +1,410 @@
+<div class="card">
+  <div class="card-content">
+      <div class="card-header p-2 pl-4 pr-4">
+          <h4 class="card-title d-flex justify-content-between align-items-center">
+              <span *ngIf="isCreateRole == true">Create Role</span>
+              <span *ngIf="isCreateRole == false">Edit Role</span>
+              <button class="btn more-btn float-right"
+              [routerLink]="['/fibi/role-maintainance/rolesList']" title="Back to Roles List">
+                  <i aria-hidden="true" class="fa fa-reply"></i>
+              </button>
+          </h4>
+      </div>
+      <div class="card-body">
+          <div class="gridSkin">
+              <div class="row mb-3">
+                  <div class="form-group col-sm-3 col-12">
+                      <label class="d-block">
+                      <span *ngIf="isCreateRole" class="mandatory">*</span>Role Name</label>
+                      <span *ngIf="isCreateRole">
+                          <input [class.is-invalid]="validationMap.has('roleName')" [(ngModel)]="role.roleName"
+                          type="text" class="form-control"/>
+                          <div *ngIf="validationMap.has('roleName')" class="invalid-feedback">
+                              Please provide a Role Name
+                          </div>
+                      </span>
+                      <span *ngIf="!isCreateRole">{{role?.roleName}}</span>
+                  </div>
+                  <div class="form-group col-sm-3 col-12 ml-5">
+                      <label class="d-block">
+                      <span *ngIf="isCreateRole" class="mandatory">*</span>Role Type</label>
+                      <ng-container *ngIf="isCreateRole">
+                          <select id="award-type" class="form-control" [(ngModel)]="role.roleTypeCode"
+                                  [class.is-invalid]="validationMap.has('roleTypeCode')">
+                              <option value=undefined>--Select--</option>
+                              <option *ngFor="let roleTypes of roleTypesList" [value]="roleTypes.roleTypeCode"
+                                  [hidden]="roleTypes.isActive != true">
+                                  {{roleTypes?.roleType}}</option>
+                          </select>
+                          <div *ngIf="validationMap.has('roleTypeCode')" class="invalid-feedback">
+                              Please provide a Role Type
+                          </div>
+                      </ng-container>
+                      <span *ngIf="!isCreateRole">{{role?.roleType?.roleType}}</span>
+                  </div>
+                  <div class="form-group col-sm col-12 ml-5">
+                      <label class="d-block"><span *ngIf="isCreateRole" class="mandatory">*</span>Role Description</label>
+                      <span *ngIf="isCreateRole">
+                          <input type="text" [class.is-invalid]="validationMap.has('description')" class="form-control"
+                              [(ngModel)]="role.description"/>
+                          <div *ngIf="validationMap.has('description')" class="invalid-feedback">
+                              Please provide a Role Description
+                          </div>
+                      </span>
+                      <span *ngIf="!isCreateRole">{{role.description}}</span>
+                  </div>
+              </div>
+      </div>
+          <div class="row" *ngIf="!isCreateRole">
+              <div class="col dual-list list-left ">
+                  <div class="card card-inner h-100">
+                      <div class="card-header">
+                          <label class="card-title col-12">Assigned Rights</label>
+                      </div>
+                      <ng-container>
+                      <div class="card-content">
+                          <div class="card-body">
+                              <div class="row">
+                                  <div class="col-1 pl-0">
+                                      <div *ngIf="tempAssignedRightList?.length > 0">
+                                          <label class="custom-checkbox">
+                                              <input title="Select All" type="checkbox" class="select-all"
+                                                  [(ngModel)]="checkall"
+                                                  (ngModelChange)="selectAllAssignedRights(checkall)">
+                                              <span class="checkmark"></span>
+                                          </label>
+                                      </div>
+                                  </div>
+                                  <div class="col-11">
+                                      <div class="searchBox">
+                                          <input [(ngModel)]="searchText"
+                                              (ngModelChange)="filterAssignedRights(searchText)" type="text"
+                                              placeholder="Type here for a right with right name "
+                                              class="ng-pristine ng-valid ng-touched">
+                                          <a *ngIf="!searchText" class="searchButton">
+                                              <i class="fa fa-search fa-med pt-2" aria-hidden="true"></i>
+                                          </a>
+                                          <a *ngIf="searchText" class="searchButton"
+                                              (click)="searchText = '';filterAssignedRights(searchText)">
+                                              <i class="fa fa-close fa-med pt-2" aria-hidden="true"></i>
+                                          </a>
+
+                                      </div>
+                                  </div>
+                              </div>
+                              <ul *ngIf="tempAssignedRightList?.length;else noData" id="drop-container" class="list-group">
+                                  <li *ngFor="let list of tempAssignedRightList;let index=index"
+                                      class="drop-child list-group-item">
+                                      <div draggable="false" class="d-flex">
+                                          <span class="inline-block-display mt-2">
+                                              <label class="custom-checkbox custom-alt">
+                                                  <input type="checkbox" [checked]="list.selected"
+                                                      (change)="list.selected = !list.selected;checkall = false">
+                                                  <span class="checkmark alt-check"></span>
+                                              </label>
+                                          </span>
+                                          <span (click)="list.selected = !list.selected" class="inline-block-display">
+                                              <div id="visibleOrderId" draggable="false">
+                                                  {{list?.rightName}} : <strong>{{list?.description}}</strong>
+                                              </div>
+                                          </span>
+                                      </div>
+                                  </li>
+                              </ul>
+                          </div>
+                      </div>
+                  </ng-container>
+                  <ng-template #noData>
+                      <div class="no-data-container">
+                        <span class="no-data-icon-outer">
+                          <div class="no-data-icon">
+                            <i class="fa fa-file-o" aria-hidden="true"></i>
+                            <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                          </div>
+                        </span>
+                        <h4>There is no information in this section.</h4>
+                      </div>
+                    </ng-template>
+                  </div>
+              </div>
+              <div class="list-arrows" [ngClass]="(isViewMode)?'col-lg-1':'col-lg-1'">
+                  <button class="btn btn-default btn-sml move-left " title="Add rights"
+                 
+                  (click)="noUnassignedData()" >
+                      <span class="fa fa-angle-double-left"></span>
+                  </button>
+                  <button class="btn btn-default btn-sml move-right" title="Remove rights"
+                  (click)="noAssignedData()">
+                      <span class="fa fa-angle-double-right"></span>
+                  </button>
+              </div>
+              <div class="col dual-list list-right">
+                  <div class="card card-inner h-100">
+                      <div class="card-header">
+                          <label class="card-title col-12">Unassigned Rights</label>
+                      </div>
+                      <ng-container>
+                      <div class="card-content">
+                          <div class="card-body">
+                              <div class="row">
+                                  <div class="col-md-1 pl-0">
+                                      <div *ngIf="tempUnAssignedRightList?.length > 0;" class="btn-group">
+                                          <label class="custom-checkbox">
+                                              <input title="Select All" type="checkbox" class="select-all"
+                                                  [(ngModel)]="allcheck"
+                                                  (ngModelChange)="selectAllUnAssignedRights(allcheck)">
+                                              <span class="checkmark"></span>
+                                          </label>
+                                      </div>
+                                  </div>
+                                  <div class="col-md-11">
+                                      <div class="searchBox">
+                                          <input [(ngModel)]="search" (ngModelChange)="filterUnassignedRights(search)"
+                                              type="text" placeholder="Type here for a right with right name"
+                                              class="ng-pristine ng-valid ng-touched">
+
+                                          <a *ngIf="!search" class="searchButton">
+                                              <i class="fa fa-search fa-med pt-2" aria-hidden="true"></i>
+                                          </a>
+                                          <a *ngIf="search" class="searchButton"
+                                              (click)="search='';filterUnassignedRights(search)">
+                                              <i class="fa fa-close fa-med pt-2" aria-hidden="true"></i>
+                                          </a>
+                                      </div>
+                                  </div>
+                              </div>
+                              <ul *ngIf="tempUnAssignedRightList?.length;else noData" id="drop-container" class="list-group">
+                                  <li *ngFor="let list of tempUnAssignedRightList;let index=index"
+                                      class="drop-child list-group-item">
+                                      <div class="d-flex">
+                                          <span class="inline-block-display mt-2">
+                                              <label class="custom-checkbox custom-alt">
+                                                  <input type="checkbox" [checked]="list.selected"
+                                                      (change)="list.selected = !list.selected;allcheck = false">
+                                                  <span class="checkmark alt-check"></span>
+                                              </label>
+                                          </span>
+                                          <span class="inline-block-display"
+                                           (click)="list.selected = !list.selected">
+                                              <div id="visibleOrderId"> {{list?.rightName}} :
+                                                  <strong>{{list?.description}}</strong>
+                                              </div>
+                                          </span>
+                                      </div>
+                                  </li>
+                              </ul>
+                          </div>
+                      </div>
+                  </ng-container>
+                  <ng-template #noData>
+                      <div class="no-data-container">
+                        <span class="no-data-icon-outer">
+                          <div class="no-data-icon">
+                            <i class="fa fa-file-o" aria-hidden="true"></i>
+                            <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                          </div>
+                        </span>
+                        <h4>There is no information in this section.</h4>
+                      </div>
+                    </ng-template>
+                  </div>
+              </div>
+          </div>
+          <!--new code starts-->
+          <div class="row" *ngIf="isCreateRole">
+              <div class="dual-list list-right col-12">
+                  <div class="card card-inner">
+                      <div class="card-header">
+                          <label class="card-title col-12">Rights</label>
+                      </div>
+                      <div class="card-content">
+                          <div class="card-body">
+                              <div class="row">
+                                  <div class="col-1 pl-0">
+                                      <div *ngIf="tempUnAssignedRightList?.length > 0" class="btn-group">
+                                          <label class="custom-checkbox">
+                                              <input title="Select All" type="checkbox" class="select-all"
+                                                  [(ngModel)]="allCheck"
+                                                  (ngModelChange)="selectAllUnAssignedRights(allCheck)">
+                                              <span class="checkmark"></span>
+                                          </label>
+                                      </div>
+                                  </div>
+                                  <div class="col-11">
+                                      <div class="searchBox">
+                                          <input [(ngModel)]="search" (ngModelChange)="filterUnassignedRights(search)"
+                                              type="text" placeholder="Type here for a right with right name"
+                                              class="ng-pristine ng-valid ng-touched">
+
+                                          <a *ngIf="!search" class="searchButton">
+                                              <i class="fa fa-search fa-med pt-2" aria-hidden="true"></i>
+                                          </a>
+                                          <a *ngIf="search" class="searchButton"
+                                              (click)="search='';filterUnassignedRights(search)">
+                                              <i class="fa fa-close fa-med pt-2" aria-hidden="true"></i>
+                                          </a>
+                                      </div>
+                                  </div>
+                              </div>
+                              <ul id="drop-container" class="list-group">
+                                  <li *ngFor="let list of tempUnAssignedRightList;let index=index"
+                                      class="drop-child list-group-item">
+                                      <div class="d-flex">
+                                          <span class="inline-block-display mt-2">
+                                              <label class="custom-checkbox custom-alt">
+                                                  <input type="checkbox" [checked]="list.selected"
+                                                      (change)="list.selected = !list.selected;onChangeRight(list.rightId, $event)">
+                                                  <span class="checkmark alt-check"></span>
+                                              </label>
+                                          </span>
+                                          <span class="inline-block-display" (click)="list.selected = !list.selected">
+                                              <div id="visibleOrderId"> {{list?.rightName}} :
+                                                  <strong>{{list?.description}}</strong>
+                                              </div>
+                                          </span>
+                                      </div>
+                                  </li>
+                              </ul>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+          <!--new code end-->
+          <div class="row float-right mt-3 mb-3" *ngIf="isCreateRole">
+              <button class="btn btn-primary-sub btn-sm mt-2 mr-4"
+              (click)="getSelectedRightsList()" title="Save Roles" type="button">Create</button>
+          </div>
+      </div>
+  </div>
+</div>
+
+<div class="modal fade show mySkinDialog" tabindex="-1" id="UnassignedRightModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Assign Right(s)
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ng-container *ngIf="tempModalDataList?.length;else noUnassigned">
+                    <p>Following right(s) will be assigned to {{role?.roleName}} role</p>
+                    <div class="fileChips d-inline-block mb-2" style="word-break: break-all;">
+                        <ng-container *ngFor="let list of tempModalDataList">
+                            <span>
+                                {{list.rightName}}
+                            </span>
+                        </ng-container>
+                    </div>
+                </ng-container>
+                <ng-template #noUnassigned>
+                    <div class="no-data-container">
+                        <span class="no-data-icon-outer">
+                            <div class="no-data-icon">
+                                <i class="fa fa-file-o" aria-hidden="true"></i>
+                                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                            </div>
+                        </span>
+                        <h4>No rights are selected to assign to {{role?.roleName}} role.</h4>
+                    </div>
+                </ng-template>
+            </div>
+            <div *ngIf="tempModalDataList?.length" class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" data-dismiss="modal"
+                    (click)="moveUnAssignedList()">Proceed</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade show mySkinDialog" tabindex="-1" id="assignedRightModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Unassign Right(s)
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ng-container *ngIf="tempModalDataList?.length;else noAssigned">
+                    <p>Following right(s) will be removed from {{role?.roleName}} role</p>
+                    <div class="fileChips d-inline-block mb-2" style="word-break: break-all;">
+                        <ng-container *ngFor="let list of tempModalDataList">
+                            <span>
+                                {{list.rightName}}
+                            </span>
+                        </ng-container>
+                    </div>
+                </ng-container>
+                <ng-template #noAssigned>
+                    <div class="no-data-container">
+                        <span class="no-data-icon-outer">
+                            <div class="no-data-icon">
+                                <i class="fa fa-file-o" aria-hidden="true"></i>
+                                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                            </div>
+                        </span>
+                        <h4>No rights are selected to remove from {{role?.roleName}} role.</h4>
+                    </div>
+                </ng-template>
+            </div>
+            <div *ngIf="tempModalDataList?.length" class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" data-dismiss="modal"
+                    (click)="moveAssignedList()">Proceed</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade show mySkinDialog" tabindex="-1" id="createRightModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Selected Right(s)
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ng-container *ngIf="tempSelectedList?.length;else noSelected">
+                    <p>Following right(s) will be added to {{role?.roleName}} role</p>
+                    <div class="fileChips d-inline-block mb-2" style="word-break: break-all;">
+                        <ng-container *ngFor="let list of tempSelectedList">
+                            <span>
+                                {{list.rightName}}
+                            </span>
+                        </ng-container>
+                    </div>
+                </ng-container>
+                <ng-template #noSelected>
+                    <div class="no-data-container">
+                        <span class="no-data-icon-outer">
+                            <div class="no-data-icon">
+                                <i class="fa fa-file-o" aria-hidden="true"></i>
+                                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                            </div>
+                        </span>
+                        <h4>No rights selected for {{role?.roleName}} role.</h4>
+                    </div>
+                </ng-template>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" data-dismiss="modal"
+                  (click)="saveRoles()">Proceed</button>
+            </div>
+        </div>
+    </div>
+</div>
+

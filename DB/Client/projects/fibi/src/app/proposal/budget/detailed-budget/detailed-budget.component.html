@@ -1,0 +1,395 @@
+<div id="proposal-detailed-budget" class="card p-15" *ngIf="budgetData?.budgetHeader">
+
+    <app-unsaved-change-warning [hasUnsavedChanges]="hasUnsavedChangesIn != 'NONE'"
+        [buttonName]="hasUnsavedChangesIn == 'LIST' ? 'Save' : hasUnsavedChangesIn == 'NEW_ENTRY' ? 'Add' : 'Add or Save'">
+    </app-unsaved-change-warning>
+
+    <div class="budget-nav-outer mb-3">
+
+        <ul class="nav nav-tabs budget-nav">
+            <li *ngFor="let period of budgetData?.budgetHeader?.budgetPeriods; let periodId = index"
+                class="nav-item hand-cursor period-hover">
+                <a *ngIf="periodId <= 4" class="nav-link" id="proposal-budget-period-details"
+                    [ngClass]="currentPeriodData.budgetPeriod== period.budgetPeriod?'active':'inActiveTab'"
+                    (click)="changePeriod(period)" title="Click to view Period {{period.budgetPeriod}} details">Period
+                    {{period.budgetPeriod}}
+                </a>
+            </li>
+            <li *ngIf="budgetData?.budgetHeader?.budgetPeriods?.length > 5"
+                class="nav-item dropdown hand-cursor period-hover" class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">
+                    More periods
+                </a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <ng-container *ngFor="let period of budgetData?.budgetHeader?.budgetPeriods; let periodId = index">
+                        <a *ngIf="periodId > 4" class="dropdown-item hand-cursor"
+                            [ngClass]="currentPeriodData.budgetPeriod== period.budgetPeriod?'active':'inActiveTab'"
+                            (click)="changePeriod(period);shiftPeriods(periodId);"
+                            title="Click to view Period {{period.budgetPeriod}} details">Period {{period.budgetPeriod}}
+                        </a>
+                    </ng-container>
+                </div>
+            </li>
+        </ul>
+
+    </div>
+
+    <ng-container *ngFor="let period of budgetData?.budgetHeader?.budgetPeriods; let periodIndex = index">
+        <ng-container *ngIf="currentPeriodData.budgetPeriod== period.budgetPeriod">
+
+            <div class="row cost-fields pb-3 m-0 pl-1 pr-1">
+                <div class="col-lg col-md-3 col-sm-4 col-6 d-flex flex-column justify-content-between">
+                    <label class="d-block mt-1">Start Date</label>
+                    <span class="fs-15 fw-600">{{period.startDate | dateFormatterWithTimeZone}}</span>
+                </div>
+                <div class="col-lg col-md-3 col-sm-4 col-6 d-flex flex-column justify-content-between">
+                    <label class="d-block mt-1">End Date</label>
+                    <span class="fs-15 fw-600">{{period.endDate | dateFormatterWithTimeZone}}</span>
+                </div>
+                <div class="col-lg col-md-3 col-sm-4 col-6 d-flex flex-column justify-content-between">
+                    <label class="d-block mt-1">Direct Cost</label>
+                    <span class="fs-15 fw-600">{{period.totalDirectCost | customCurrency}}</span>
+                </div>
+                <div class="col-lg col-md-3 col-sm-4 col-6 d-flex flex-column justify-content-between"
+                    *ngIf="budgetData?.isShowModifiedDirectCost">
+                    <label class="d-block mt-1">Modified Direct Cost</label>
+                    <span class="fs-15 fw-600">{{period.totalModifiedDirectCost | customCurrency}}</span>
+                </div>
+                <div class="col-lg col-md-3 col-sm-4 col-6 d-flex flex-column justify-content-between">
+                    <label class="d-block mt-1">Indirect Cost</label>
+                    <span class="fs-15 fw-600">{{period.totalIndirectCost | customCurrency}}</span>
+                </div>
+                <div class="col-lg col-md-3 col-sm-4 col-6 d-flex flex-column justify-content-between"
+                    *ngIf="budgetData?.isShowCostShareAndUnderrecovery">
+                    <label class="d-block mt-1">
+                        <ng-container i18n="@@PROPOSAL_COST-SHARING">Cost Share</ng-container>
+                    </label>
+                    <span class="fs-15 fw-600">{{period.costSharingAmount | customCurrency}}</span>
+                </div>
+                <div class="col-lg col-md-3 col-sm-4 col-6 d-flex flex-column justify-content-between"
+                    *ngIf="budgetData?.isShowCostShareAndUnderrecovery">
+                    <label class="d-block mt-1">Under Recovery</label>
+                    <span class="fs-15 fw-600">{{period.underrecoveryAmount | customCurrency}}</span>
+                </div>
+                <div class="col-lg col-md-3 col-sm-4 col-6 d-flex flex-column justify-content-between"
+                    *ngIf="budgetData?.isShowInKind">
+                    <label class="d-block mt-1">Total Requested Cost</label>
+                    <span class="fs-15 fw-600">{{period.totalCost | customCurrency}}</span>
+                </div>
+                <div class="col-lg col-md-3 col-sm-4 col-6 d-flex flex-column justify-content-between"
+                    *ngIf="budgetData?.isShowInKind">
+                    <label class="d-block mt-1">Total In-Kind</label>
+                    <span class="fs-15 fw-600">{{period?.totalInKind| customCurrency}}</span>
+                </div>
+                <div class="col-lg col-md-3 col-sm-4 col-6 d-flex flex-column justify-content-between">
+                    <label class="d-block mt-1">Total Cost</label>
+                    <span class="fs-15 fw-600">{{period?.totalOfTotalCost| customCurrency}}</span>
+                </div>
+            </div>
+
+            <div class="row card-table-box m-0">
+                <div *ngIf="!_budgetDataService.isBudgetViewMode || (_budgetDataService.isBudgetViewMode && period.budgetDetails.length)"
+                    class="table-responsive">
+                    <!--LINE ITEM ADDING AND LISTING STARTS HERE-->
+                    <table class="table budget-table tableStyle table-head-color"
+                        aria-describedby="proposal-budget-period-details">
+                        <thead class="text-center">
+                            <tr>
+                                <th scope="col" width="19%">Cost Element</th>
+                                <th scope="col" width="19%">Line Item Description</th>
+                                <th scope="col" width="12%">Quantity</th>
+                                <th scope="col" width="12%">Line Item Cost ({{_commonService.currencyFormat}})</th>
+                                <th class="p-0" scope="col" width="18%">
+                                    <div class="form-row m-0 cost-sharing text-center">
+                                        <div class="col-12">
+                                            <ng-container i18n="@@PROPOSAL_COST-SHARING">Cost Share</ng-container>
+                                        </div>
+                                        <div class="col-4">%</div>
+                                        <div class="col-8">Amount ({{_commonService.currencyFormat}})</div>
+                                    </div>
+                                </th>
+                                <th scope="col" width="12%">
+                                    Fund Requested
+                                </th>
+                                <th scope="col" width="8%">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!--MAIN LINE ITEM ADDITION SECTION STARTS HERE-->
+                            <tr *ngIf="!_budgetDataService.isBudgetViewMode" app-line-items
+                                [lineItemData]="lineItemData" [isInvalidLineItem]="isInvalidLineItem"
+                                [currentPeriodData]="currentPeriodData" (isLineItemActions)="lineItemActions($event)"
+                                [rowType]="'ADD'" [helpText]="helpText"
+                                (emitChange)="setUnsavedChanges(true, 'NEW_ENTRY')"></tr>
+                            <!--MAIN LINE ITEM PERSON ADDITION SECTION STARTS HERE-->
+                            <tr *ngIf="lineItemData?.budgetCategory?.budgetCategoryTypeCode == 'P'"
+                                class="c-element-color">
+                                <td class="p-0" colspan="7">
+                                    <app-personnel-line-items [lineItemData]="lineItemData"
+                                        [currentPeriodData]="currentPeriodData" [personValidation]="personValidation"
+                                        (emitChange)="setUnsavedChanges(true, 'NEW_ENTRY')"></app-personnel-line-items>
+                                </td>
+                            </tr>
+                            <!--MAIN LINE ITEM PERSON ADDITION SECTION ENDS HERE-->
+                            <tr *ngIf="lineItemData?.budgetCategory?.budgetCategoryTypeCode == 'P'"
+                                class="c-element-color">
+                                <td colspan="7" class="text-right">
+                                    <button class="btn btn-primary-sub btn-sm"
+                                        (click)="addBudgetDetail(period, 'SAVE')">Add</button>
+                                </td>
+                            </tr>
+                            <!--MAIN LINE ITEM ADDITION SECTION ENDS HERE-->
+                            <!-- MAIN LINE ITEM LISTING STARTS HERE....-->
+                            <tr *ngFor="let lineItem of period.budgetDetails; let detailIndex=index; let index= index">
+                                <ng-container *ngIf=" lineItem.budgetDetailId != null">
+                                    <td class="p-0" colspan="7">
+                                        <div class="budget-list-outer p-0">
+                                            <table class="table budget-table budget-list-table mb-0 text-center"
+                                                aria-describedby="proposal-budget-period-details">
+                                                <caption class="sr-only">Detailed Budget</caption>
+                                                <thead class="d-none">
+                                                    <tr>
+                                                        <th scope="col"></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr app-line-items [lineItemData]="lineItem"
+                                                        [isInvalidLineItem]="lineItemValidations[detailIndex]"
+                                                        [helpText]="helpText" [currentPeriodData]="currentPeriodData"
+                                                        [rowType]="'LIST'" (isLineItemActions)="lineItemActions($event)"
+                                                        (emitChange)="setUnsavedChanges(true, 'LIST')"></tr>
+                                                </tbody>
+                                            </table>
+                                            <!--MAIN LINE ITEM PERSON LISTING SECTION STARTS HERE-->
+                                            <app-personnel-line-items *ngIf="lineItem?.personsDetails?.length > 0"
+                                                [lineItemData]="lineItem" [currentPeriodData]="currentPeriodData"
+                                                (isLineItemActions)="lineItemActions($event)"
+                                                (emitChange)="setUnsavedChanges(true, 'LIST')"
+                                                [personValidation]="lineItemValidations[detailIndex] && lineItemValidations[detailIndex].personValidation ? lineItemValidations[detailIndex].personValidation : []">
+                                            </app-personnel-line-items>
+                                            <!--MAIN LINE ITEM PERSON LISTING SECTION STARTS HERE-->
+                                        </div>
+                                    </td>
+                                </ng-container>
+                            </tr>
+                            <!-- MAIN LINE ITEM LISTING ENDS HERE....-->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="form-group mt-2 mb-0 text-right w-100"
+                    *ngIf="!_budgetDataService.isBudgetViewMode && period.budgetDetails.length">
+                    <button class="btn btn-primary-sub btn-sm" (click)="saveOrUpdateProposalBudget(null, period)">
+                        Save
+                    </button>
+                </div>
+            </div>
+            <div class="no-data-container p-3"
+                *ngIf="_budgetDataService.isBudgetViewMode && !period.budgetDetails.length">
+                <span class="no-data-icon-outer">
+                    <div class="no-data-icon">
+                        <i class="fa fa-file-o" aria-hidden="true"></i>
+                        <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                    </div>
+                </span>
+                <h4 class="text-content-color">There is no cost elements added for this period.</h4>
+            </div>
+        </ng-container>
+    </ng-container>
+</div>
+
+<!-- SHOW RATES CALCULATION MODAL -->
+<div class="modal fade mySkinDialog" stabindex="-1" id="showRatesCalcProposal" tabindex="-1" role="dialog"
+    aria-labelledby="showRatesTitle" aria-hidden="true">
+    <div class="modal-dialog"
+        [ngClass]="[!tempLineItemData?.budgetDetailCalcAmounts?.length ?'modal-md modal-dialog-centered':'rate-modal-lg']"
+        role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="proposal-budget-applied-rates">Applied Rates for
+                    '{{tempLineItemData?.costElement?.description}}'
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" *ngIf="tempLineItemData?.budgetDetailCalcAmounts?.length">
+                <div class="row mb-3">
+                    <div class="col-4">
+                        <ng-container *ngIf="tempLineItemData?.calculateLineItemCostIncludingBenifit != null">
+                            <label class="d-block">Line Item Cost with benefit</label>
+                            <span>{{tempLineItemData?.calculateLineItemCostIncludingBenifit| customCurrency}}</span>
+                        </ng-container>
+                    </div>
+                    <div class="col-4">
+                        <ng-container *ngIf="tempLineItemData?.calculateCostSharingWithBenifit != null">
+                            <label class="d-block">
+                                <ng-container i18n="@@PROPOSAL_COST-SHARE_WITH_BENEFIT">Cost-Share Amount with benefit
+                                </ng-container>
+                            </label>
+                            <span>{{tempLineItemData?.calculateCostSharingWithBenifit| customCurrency}}</span>
+                        </ng-container>
+                    </div>
+                    <div class="col-4">
+                        <ng-container *ngIf="tempLineItemData?.calculateFundRequestedIncludingBenifit != null">
+                            <label class="d-block">Fund Requested Amount with benefit</label>
+                            <span>{{tempLineItemData?.calculateFundRequestedIncludingBenifit| customCurrency}}</span>
+                        </ng-container>
+                    </div>
+                </div>
+                <div class="fixed-header-table mt-3">
+                    <table id="ratesTable" class="table tableStyle tableSkin"
+                        aria-describedby="proposal-budget-applied-rates">
+                        <thead class="thead-light th-border">
+                            <tr>
+                                <th scope="col">Class</th>
+                                <th scope="col">Type</th>
+                                <!-- <th scope="col">Rate (%)</th> -->
+                                <th scope="col" class="px-0 pb-0">
+                                    <div class="form-row m-0 cost-sharing text-center">
+                                        <div class="col-12">Rate (%)</div>
+                                        <div class="col-4 py-2"><span class="badge badge-info mr-1">Institute</span>
+                                        </div>
+                                        <div class="col-8 py-2"><span class="badge badge-warning mr-1">Applied</span>
+                                        </div>
+                                    </div>
+                                </th>
+                                <th scope="col">Rate Cost</th>
+                                <th scope="col">
+                                    <ng-container i18n="@@PROPOSAL_RATE_ON_COST-SHARE">Rate on Cost-Share</ng-container>
+                                </th>
+                                <th scope="col">Rate on Fund Requested</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let detailCalcAmount of tempLineItemData?.budgetDetailCalcAmounts">
+                                <td>{{detailCalcAmount?.rateClass?.description}}</td>
+                                <td>{{detailCalcAmount?.rateTypeDescription}}</td>
+                                <!-- <td>{{detailCalcAmount?.applicableRate}}</td> -->
+                                <td class="px-0 pb-0">
+                                    <div class="form-row m-0 text-center cost-sharing">
+                                        <div class="col-4">
+                                            {{detailCalcAmount?.applicableCostSharingRate}}
+                                        </div>
+                                        <div class="col-8">
+                                            {{detailCalcAmount?.applicableRate}}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span *ngIf="detailCalcAmount?.rateClass?.rateClassTypeCode != 'O'"
+                                        class="badge badge-warning mr-1">{{detailCalcAmount?.applicableRate}}%</span>
+                                    <span *ngIf="detailCalcAmount?.rateClass?.rateClassTypeCode == 'O'"
+                                        class="badge badge-info mr-1">{{detailCalcAmount?.applicableCostSharingRate}}%</span>
+                                    {{ detailCalcAmount?.calculatedCost ? detailCalcAmount?.calculatedCost : "0.00" |
+                                    customCurrency}}
+                                </td>
+                                <td>
+                                    <span *ngIf="detailCalcAmount?.rateClass?.rateClassTypeCode != 'O'"
+                                        class="badge badge-warning mr-1">{{detailCalcAmount?.applicableRate}}%</span>
+                                    <span *ngIf="detailCalcAmount?.rateClass?.rateClassTypeCode == 'O'"
+                                        class="badge badge-info mr-1">{{detailCalcAmount?.applicableCostSharingRate}}%</span>
+                                    {{detailCalcAmount?.calculatedCostSharing ? detailCalcAmount?.calculatedCostSharing
+                                    : "0.00" | customCurrency}}
+                                </td>
+                                <td>
+                                    <span class="badge badge-warning mr-1">{{detailCalcAmount?.applicableRate}}%</span>
+                                    {{ detailCalcAmount?.calculatedFundRequested ?
+                                    detailCalcAmount?.calculatedFundRequested : "0.00" | customCurrency}}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-body" *ngIf="!tempLineItemData?.budgetDetailCalcAmounts?.length">
+                <p>There are no applied rates for selected line-item.</p>
+            </div>
+            <div class="modal-footer">
+                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-6"
+                    *ngIf="tempLineItemData?.budgetDetailCalcAmounts?.length">
+                    <input type="checkbox" [disabled]="_budgetDataService.isBudgetViewMode"
+                        [checked]='tempLineItemData.isApplyInflationRate'
+                        (change)="tempLineItemData.isApplyInflationRate = !tempLineItemData.isApplyInflationRate;setUnsavedChanges(true, 'LIST');" />
+                    <label><span class="font">Apply Inflation Rate </span></label>
+                </div>
+                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-6">
+                    <button type="button" class="btn btn-primary-sub rate-float" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- SHOW RATES CALCULATION MODAL ENDS -->
+
+<!-- DELETE LINE ITEM MODAL -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="deleteLineItemModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="deleteLineItemModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Line item</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this line item?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub" data-dismiss="modal"
+                    (click)="deleteLineItem()">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- DELETE LINE ITEM MODAL ENDS -->
+
+<!-- COST ELEMENT CHANGE-PERSON DELETE WARNING MODAL -->
+<div class="modal fade mySkinDialog" id="costElementChangeWarnModal" role="dialog" data-backdrop="static"
+    data-keyboard="false">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header ct-footer-padding">
+                <h4 class="modal-title">Warning!</h4>
+                <button id="addPersonCloseId" type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body ct-modal-padding">
+                Please delete persons from the cost element.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary-sub" data-dismiss="modal">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- COST ELEMENT CHANGE-PERSON DELETE WARNING MODAL ENDS -->
+
+
+<!--DELETE PERSON MODAL-->
+<div class="modal fade mySkinDialog" tabindex="-1" id="deletePersonLineItem" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="deletePersonOrItemModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Person</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this Person?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub" data-dismiss="modal"
+                    (click)="personnelLineItem.deletePersonServiceCall(tempPerson)">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--DELETE PERSON MODAL ENDS -->

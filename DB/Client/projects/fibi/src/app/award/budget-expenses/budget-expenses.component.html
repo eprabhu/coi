@@ -1,0 +1,190 @@
+<div class="row mt-3" *ngIf="awardCostDetails?.activeAmountInfo || awardCostDetails?.pendingAmountInfo">
+    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+        <div class="card">
+            <div class="card-content">
+                <div class="card-header">
+                    <h4 class="card-title align-items-center d-flex">
+                        <span class="mr-auto">Dates & Amounts - Overview</span>
+                        <span>
+                            <button id="project-expand-btn" class="updown-arrow"
+                                (click)="isProjectCostActive = !isProjectCostActive">
+                                <i [ngClass]="!isProjectCostActive?'fa fa-angle-double-up':'fa fa-angle-double-down '"
+                                    aria-hidden="true" class="fa-large"></i>
+                            </button>
+                        </span>
+                    </h4>
+                </div>
+                <div *ngIf="!isProjectCostActive" class="card-body p-2">
+                    <div class="table-responsive custom-table-responsive">
+                        <table class="table tableSkin grid2">
+                            <caption class="sr-only">Transaction Overview Details</caption>
+                            <thead class="thead-light">
+                                <th scope="col"></th>
+                                <th scope="col">Obligated Start Date</th>
+                                <th scope="col">Obligated End Date</th>
+                                <th class="text-right" scope="col">Obligated Distributable</th>
+                                <th class="text-right" scope="col">Obligated Total</th>
+                                <th class="text-right" scope="col">Anticipated Distributable</th>
+                                <th class="text-right" scope="col">Anticipated Total</th>
+                                <th class="text-right" scope="col">Total Project Cost</th>
+                                <th class="text-right" scope="col">In Foreign Currency</th>
+                            </thead>
+                            <tbody>
+                                <tr class="active-data" *ngIf="awardCostDetails?.activeAmountInfo">
+                                    <td class="text-success fw-700">ACTIVE</td>
+                                    <td>{{awardCostDetails?.activeAmountInfo?.startDate| dateFormatter}} </td>
+                                    <td>{{awardCostDetails?.activeAmountInfo?.endDate| dateFormatter}}</td>
+                                    <td class="text-right">{{awardCostDetails?.activeAmountInfo?.obligatedDistributableTotal
+                                        | currency: _commonService.currencyFormat}}</td>
+                                    <td class="text-right"> {{awardCostDetails?.activeAmountInfo?.obligatedTotal
+                                        | currency: _commonService.currencyFormat}}</td>
+                                    <td class="text-right">{{awardCostDetails?.activeAmountInfo?.anticipatedDistributableTotal
+                                        | currency: _commonService.currencyFormat}}</td>
+                                    <td class="text-right">{{awardCostDetails?.activeAmountInfo?.anticipatedTotal
+                                        | currency: _commonService.currencyFormat}}
+                                        <a *ngIf="isViewAnticipatedDistribution && (!awardCostDetails?.pendingAmountInfo || !_commonData.checkSectionHightlightPermission('108')
+                                            || this.result.award.awardWorkflowStatus.workflowAwardStatusCode === '3')"
+                                            (click)="anticipatedModalType = 'A'" class="anchor-link hand-cursor">
+                                            <i class="fa fa-money rounded-icon" aria-hidden="true"></i>
+                                        </a>
+                                    </td>
+                                    <td class="text-right">{{awardCostDetails?.activeAmountInfo?.totalCost
+                                        | currency: _commonService.currencyFormat}}</td>
+                                    <td class="text-right">{{awardCostDetails?.activeAmountInfo?.totalCostInCurrency | currency:
+                                        awardCostDetails?.pendingAmountInfo?.currency?.currencySymbol}}
+                                    </td>
+                                </tr>
+                                <tr class="pending-data" *ngIf="awardCostDetails?.pendingAmountInfo">
+                                    <td class="text-warning  fw-700">PENDING</td>
+                                    <td>{{awardCostDetails?.pendingAmountInfo?.startDate| dateFormatter}} </td>
+                                    <td>{{awardCostDetails?.pendingAmountInfo?.endDate| dateFormatter}}</td>
+                                    <td class="text-right">{{awardCostDetails?.pendingAmountInfo?.obligatedDistributableTotal
+                                        | currency: _commonService.currencyFormat}}</td>
+                                    <td class="text-right">{{awardCostDetails?.pendingAmountInfo?.obligatedTotal
+                                        | currency: _commonService.currencyFormat}}</td>
+                                    <td class="text-right">{{awardCostDetails?.pendingAmountInfo?.anticipatedDistributableTotal
+                                        | currency: _commonService.currencyFormat}}</td>
+                                    <td class="text-right">{{awardCostDetails?.pendingAmountInfo?.anticipatedTotal
+                                        | currency: _commonService.currencyFormat}}
+                                        <a *ngIf="isViewAnticipatedDistribution && ((this.result.award.awardWorkflowStatus.workflowAwardStatusCode !== '3' &&
+                                            (_commonData.checkSectionHightlightPermission('108') || _commonData.getSectionEditableFlag('108')))
+                                            || this.result.award.awardWorkflowStatus.workflowAwardStatusCode === '3')"
+                                            (click)="updateAnticipatedDistributable('P')" class="anchor-link hand-cursor">
+                                            <i class="fa fa-money rounded-icon" aria-hidden="true"></i>
+                                        </a>
+                                    </td>
+                                    <td class="text-right">{{awardCostDetails?.pendingAmountInfo?.totalCost
+                                        | currency: _commonService.currencyFormat}}</td>
+                                    <td class="text-right">{{awardCostDetails?.pendingAmountInfo?.totalCostInCurrency | currency:
+                                        awardCostDetails?.pendingAmountInfo?.currency?.currencySymbol}}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row p-3">
+                        <div class=" col-12 gridSkin">
+                            <div class="row p-2 ">
+                                <div class="col-lg-2 col-md-4 col-sm-6 col-12 card ">
+                                    <label class="d-sm-block">
+                                        <ng-container i18n="@@COMMON_AWARD_EFFECTIVE_DATE">Award Effective Date
+                                        </ng-container>
+                                    </label>
+                                    <span class="font-weight-bold">{{awardCostDetails?.projectStartDate |
+                                        dateFormatter}}</span>
+                                </div>
+                                <!-- Final Expiration Date -->
+                                <div class="col-lg-2 col-md-4 col-sm-6 col-12 card ">
+                                    <label class="d-sm-block">
+                                        <ng-container i18n="@@COMMON_FINAL_EXPIRATION_DATE">Final Expiration Date
+                                        </ng-container>
+                                    </label>
+                                    <span class="font-weight-bold">{{awardCostDetails?.projectEndDate |
+                                        dateFormatter}}</span>
+                                </div>
+                                <!-- Cost Share (Sponsor) -->
+                                <div class="col-lg-2 col-md-4 col-sm-6 col-12 card ">
+                                    <label class="d-sm-block">Cost Share (Sponsor)</label>
+                                    <span class="font-weight-bold">{{awardCostDetails?.sponsorTotal | currency:
+                                        _commonService.currencyFormat}}</span>
+                                </div>
+                                <!-- Cost Share (Institute) -->
+                                <div class="col-lg-2 col-md-4 col-sm-6 col-12 card ">
+                                    <label class="d-sm-block">Cost Share (Institute)</label>
+                                    <span class="font-weight-bold">{{awardCostDetails?.instituteTotal | currency:
+                                        _commonService.currencyFormat}}</span>
+                                </div>
+                                <!-- Cost Share Distributable -->
+                                <div class="col-lg-2 col-md-4 col-sm-6 col-12 card ">
+                                    <label class="d-sm-block">Cost Share Distributable</label>
+                                    <span class="font-weight-bold">{{awardCostDetails?.costShareTotal | currency:
+                                        _commonService.currencyFormat}}</span>
+                                </div>
+                                <!-- Total Cost Share -->
+                                <div class="col-lg-2 col-md-4 col-sm-6 col-12 card ">
+                                    <label class="d-sm-block">Total Cost Share</label>
+                                    <span class="font-weight-bold">{{awardCostDetails?.costShareTotal | currency:
+                                        _commonService.currencyFormat}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<section id="award-budget-expense-section" class="mt-3">
+    <div class="row">
+        <div class="col">
+            <ul class="subTabs mb-0">
+                <li routerLinkActive="active" *ngIf="_commonData.awardSectionConfig['102']?.isActive"
+                (click)="_commonData.redirectionRoute ='/fibi/award/budget-expense/budget';enableBudgetTabTrigger();">
+                    <a [routerLink]="['/fibi/award/budget-expense/budget']" queryParamsHandling='merge'
+                        class="subTabLink" tabindex="0">
+                        <ng-container i18n="@@AWARD_BUDGET">Budget</ng-container>
+                    </a>
+                </li>
+                <li routerLinkActive="active" *ngIf="_commonData.awardSectionConfig['509']?.isActive"
+                    (click)="_commonData.redirectionRoute ='/fibi/award/budget-expense/budget-summary';enableBudgetTabTrigger();">
+                    <a [routerLink]="['/fibi/award/budget-expense/budget-summary']" queryParamsHandling='merge'
+                        class="subTabLink" tabindex="0">
+                        Annual Budget
+                    </a>
+                </li>
+                <li id="budget-expense-expense-tracking" *ngIf="isExpenseTrackRight && _commonData.awardSectionConfig['114']?.isActive" routerLinkActive="active"
+                    (click)="_commonData.redirectionRoute ='/fibi/award/budget-expense/expensetrack'">
+                    <a [routerLink]="['/fibi/award/budget-expense/expensetrack']" queryParamsHandling='merge'
+                        class="subTabLink" tabindex="0">
+                        Expense Tracking
+                    </a>
+                </li>
+                <li id="budget-expense-purchase" *ngIf="isPurchaseRight && _commonData.awardSectionConfig['146']?.isActive" routerLinkActive="active"
+                (click)="_commonData.redirectionRoute ='/fibi/award/budget-expense/purchase'">
+                    <a [routerLink]="['/fibi/award/budget-expense/purchase']" queryParamsHandling='merge'
+                        class="subTabLink" tabindex="0">
+                        Purchase
+                    </a>
+            </li>
+            <li id="budget-expense-revenue" *ngIf="isRevenueRight && _commonData.awardSectionConfig['147']?.isActive" routerLinkActive="active"
+                (click)="_commonData.redirectionRoute ='/fibi/award/budget-expense/revenue'">
+                <a [routerLink]="['/fibi/award/budget-expense/revenue']" queryParamsHandling='merge'
+                    class="subTabLink" tabindex="0">
+                    Revenue
+                </a>
+            </li>
+             <li id="budget-expense-claims" *ngIf="isClaimRight && _commonData.awardSectionConfig['148']?.isActive" routerLinkActive="active"
+                (click)="_commonData.redirectionRoute ='/fibi/award/budget-expense/claims'">
+                <a [routerLink]="['/fibi/award/budget-expense/claims']" queryParamsHandling='merge'
+                    class="subTabLink" tabindex="0">
+                    Claims
+                </a>
+            </li>
+            </ul>
+        </div>
+    </div>
+</section>
+<router-outlet></router-outlet>
+<app-anticipated-distribution *ngIf="_commonData?.awardSectionConfig['196']?.isActive && anticipatedModalType" [anticipatedModalType]="anticipatedModalType"
+    [isEdit]="false" [awardCostDetails]="awardCostDetails" (closeModal)="updateAnticipatedDistributable($event)"></app-anticipated-distribution>
+

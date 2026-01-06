@@ -1,0 +1,264 @@
+<ng-container *ngIf="_commonDataService.claimSectionConfig['1402']?.isActive">
+    <div class="card mb-3" id="general-information">
+        <div class="card-header px-4">
+            <h4 class="card-title">General Information</h4>
+        </div>
+        <div class="card-content">
+            <div class="card-body">
+                <ng-container *ngIf="!isManualClaim">
+                    <div class="form-row mb-4" *ngIf="isEditMode">
+                        <div class="col-md-6">
+                            <label class="block-display" for="title">Claim Description:</label>
+                            <div>
+                                <input [(ngModel)]="claimDetails.title"
+                                       [ngClass]="(claimMap.get('title')) ? 'is-invalid d-block' : ''" class="form-control"
+                                       (ngModelChange)="setUnsavedChanges(true);"
+                                       id="title"
+                                       placeholder="Claim Description" type="text">
+                                <div *ngIf="(claimMap.get('title'))" class="invalid-feedback d-block">
+                                    * Please provide a Claim Description.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-12">
+                            <label class="block-display">Start Date:</label>
+                            <div>
+                        <span class="dateField">
+                            <input  matInput [matDatepicker]="startDate" (ngModelChange)="validateEndDate($event)"
+                                   [disabled] = "!enableClaimStartEndDate"
+                                   [(ngModel)]="claimStartDate" (click)="startDate.open()"
+                                   (ngModelChange)="getDuration();setUnsavedChanges(true);"
+                                   autocomplete="off"
+                                   class="d-inline-block form-control" id="start-date"
+                                   [ngClass]="(claimMap.get('startDate')) ? 'is-invalid d-block' : ''"
+                                   placeholder="{{datePlaceHolder}}"
+                                   style="width: 100% !important">
+                            <i (click)="startDate.open()" aria-hidden="true"
+                               class="fa fa-calendar fa-large insidePicker hand-cursor"
+                               id="start-date-icon" title="Open Calendar"></i>
+                            <mat-datepicker #startDate (ngModelChange)="getDuration()"
+                                           (opened)="setFocusToElement('start-date')"></mat-datepicker>
+                        </span>
+                                <div *ngIf="(claimMap.get('startDate'))" class="invalid-feedback d-block">
+                                    {{claimMap.get('startDate')}}
+                                </div>
+                                <div>
+                            <span class="invalid-feedback d-block"
+                                  *ngFor="let item of dateWarningList">
+                                {{item}}
+                            </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-12">
+                            <label class="block-display">End Date:</label>
+                            <div>
+                            <span class="dateField">
+                                <input matInput [matDatepicker]="endDate" (ngModelChange)="validateEndDate(null, $event)"
+                                       [disabled] = "!enableClaimStartEndDate"
+                                       [(ngModel)]="claimEndDate" (click)="endDate.open()"
+                                       (ngModelChange)="getDuration();setUnsavedChanges(true);"
+                                       autocomplete="off"
+                                       class="d-inline-block form-control" id="endDate"
+                                       [ngClass]="(claimMap.get('endDate')) ? 'is-invalid d-block' : ''"
+                                       placeholder="{{datePlaceHolder}}"
+                                       style="width: 100% !important">
+                                <i (click)="endDate.open()" aria-hidden="true"
+                                   class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                   id="end-date-icon" title="Open Calendar"></i>
+                                <mat-datepicker #endDate (ngModelChange)="getDuration()"
+                                               (opened)="setFocusToElement('endDate')"></mat-datepicker>
+                            </span>
+                                <div *ngIf="(claimMap.get('endDate'))" class="invalid-feedback d-block">
+                                    {{claimMap.get('endDate')}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gridSkin" *ngIf="!isEditMode">
+                        <div class="row">
+                            <div class="col-md-6 col-sm-12">
+                                <label class="block-display">Claim Description: </label>
+                                <span>{{claimDetails.title}}</span>
+                                <span *ngIf="claimDetails?.title == null" class="noDataExists">No Claim Description Specified</span>
+                            </div>
+                            <div class="col-md-3 col-sm-12">
+                                <label class="block-display">Start Date: </label>
+                                <span>{{claimDetails.startDate | dateFormatter}}</span>
+                                <span *ngIf="claimDetails.startDate == null" class="noDataExists">No Start Date Specified</span>
+                            </div>
+                            <div class="col-md-3 col-sm-12">
+                                <label class="block-display">End Date: </label>
+                                <span>{{claimDetails.endDate | dateFormatter}}</span>
+                                <span *ngIf="claimDetails.endDate == null" class="noDataExists">No End Date Specified</span>
+                            </div>
+                        </div>
+                    </div>
+                </ng-container>
+                <ng-container *ngIf="isManualClaim">
+                    <ng-container *ngIf="isEditMode">
+                        <div class="form-row mb-4">
+                            <div class="col-md-12">
+                                <label class="block-display" for="title">Claim Description:</label>
+                                <div>
+                                    <input [ngClass]="(claimMap.get('title')) ? 'is-invalid d-block' : ''" class="form-control"
+                                           id="title" [(ngModel)]="claimDetails.title"
+                                           (ngModelChange)="setUnsavedChanges(true);"
+                                           placeholder="Claim Description" type="text">
+                                    <div *ngIf="(claimMap.get('title'))" class="invalid-feedback d-block">
+                                        * Please provide a Claim Description.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row mb-4">
+                            <div class="col-md-3 col-sm-12">
+                                <label class="block-display">Start Date:</label>
+                                <div>
+                        <span class="dateField">
+                            <input matInput [matDatepicker]="startDate" (ngModelChange)="validateEndDate($event)"
+                                   [(ngModel)]="claimStartDate" (click)="startDate.open()"
+                                   autocomplete="off"
+                                   (ngModelChange)="setUnsavedChanges(true);"
+                                   class="d-inline-block form-control" id="start-date"
+                                   [ngClass]="(claimMap.get('startDate')) ? 'is-invalid d-block' : ''"
+                                   placeholder="{{datePlaceHolder}}"
+                                   style="width: 100% !important">
+                            <i (click)="startDate.open()" aria-hidden="true"
+                               class="fa fa-calendar fa-large insidePicker hand-cursor"
+                               id="start-date-icon" title="Open Calendar"></i>
+                            <mat-datepicker #startDate
+                                           (opened)="setFocusToElement('start-date')"></mat-datepicker>
+                        </span>
+                                    <div *ngIf="(claimMap.get('startDate'))" class="invalid-feedback d-block">
+                                        {{claimMap.get('startDate')}}
+                                    </div>
+                                    <div>
+                                    <span class="invalid-feedback d-block"
+                                          *ngFor="let item of dateWarningList">
+                                        {{item}}
+                                    </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-12">
+                                <label class="block-display">End Date:</label>
+                                <div>
+                            <span class="dateField">
+                                <input matInput [matDatepicker]="endDate" (ngModelChange)="validateEndDate(null, $event)"
+                                       [(ngModel)]="claimEndDate" (click)="endDate.open()"
+                                       autocomplete="off"
+                                       (ngModelChange)="setUnsavedChanges(true);"
+                                       class="d-inline-block form-control" id="endDate"
+                                       [ngClass]="(claimMap.get('endDate')) ? 'is-invalid d-block' : ''"
+                                       placeholder="{{datePlaceHolder}}"
+                                       style="width: 100% !important">
+                                <i (click)="endDate.open()" aria-hidden="true"
+                                   class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                   id="end-date-icon" title="Open Calendar"></i>
+                                <mat-datepicker #endDate
+                                               (opened)="setFocusToElement('endDate')"></mat-datepicker>
+                            </span>
+                                    <div *ngIf="(claimMap.get('endDate'))" class="invalid-feedback d-block">
+                                        {{claimMap.get('endDate')}}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-12">
+                                <label class="block-display" for="submitDate">Submit Date:</label>
+                                <div>
+                                <span class="dateField">
+                                    <input matInput [matDatepicker]="submitDates" [(ngModel)]="claimSubmissionDate"
+                                           (click)="submitDates.open()"
+                                           autocomplete="off" class="d-inline-block form-control"
+                                           id="submitDate" [ngClass]="(claimMap.get('claimSubmissionDate')) ? 'is-invalid d-block' : ''"
+                                           placeholder="{{datePlaceHolder}}"
+                                           style="width: 100% !important"
+                                           (ngModelChange)="setUnsavedChanges(true);">
+                                    <i (click)="submitDates.open()" aria-hidden="true"
+                                       class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                       id="submit-date-icon" title="Open Calendar"></i>
+                                    <mat-datepicker #submitDates
+                                                   (opened)="setFocusToElement('submitDate')"></mat-datepicker>
+                                </span>
+                                    <div *ngIf="(claimMap.get('claimSubmissionDate'))" class="invalid-feedback d-block">
+                                        * Please pick a Submit Date.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-12">
+                                <label class="block-display" for="amount">Total Amount:</label>
+                                <div>
+                                    <input class="form-control" id="amount" [ngClass]="(claimMap.get('totalAmount')) ? 'is-invalid d-block' : ''"
+                                        type="text" appCurrencyFormat maxlength="13" [(ngModel)]="claimDetails.totalAmount" (ngModelChange)="setUnsavedChanges(true);
+                                                                   amountValidation(claimDetails.totalAmount ,'totalAmount')">
+                                    <div *ngIf="(claimMap.get('totalAmount'))" class="invalid-feedback d-block">
+                                        * Please provide a valid total amount.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </ng-container>
+                    <div class="gridSkin" *ngIf="!isEditMode">
+                        <div class="row">
+                            <div class="col-md-12 col-sm-12">
+                                <label class="block-display">Claim Description: </label>
+                                <span>{{claimDetails.title}}</span>
+                                <span *ngIf="claimDetails?.title == null" class="noDataExists">No Claim Description Specified</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3 col-sm-12">
+                                <label class="block-display">Start Date: </label>
+                                <span>{{claimDetails.startDate | dateFormatter}}</span>
+                                <span *ngIf="claimDetails.startDate == null" class="noDataExists">No Start Date Specified</span>
+                            </div>
+                            <div class="col-md-3 col-sm-12">
+                                <label class="block-display">End Date: </label>
+                                <span>{{claimDetails.endDate | dateFormatter}}</span>
+                                <span *ngIf="claimDetails.endDate == null" class="noDataExists">No End Date Specified</span>
+                            </div>
+                            <div class="col-md-3 col-sm-12">
+                                <label class="block-display">Submit Date: </label>
+                                <span>{{claimDetails.claimSubmissionDate | dateFormatter}}</span>
+                                <span *ngIf="claimDetails.claimSubmissionDate == null" class="noDataExists">No Submit Date Specified</span>
+                            </div>
+                            <div class="col-md-3 col-sm-12">
+                                <label class="block-display">Total Amount: </label>
+                                <span>{{claimDetails.totalAmount | currency: commonService.currencyFormat}}</span>
+                                <span *ngIf="claimDetails.totalAmount == null" class="noDataExists">No Total Amount Specified</span>
+                            </div>
+                        </div>
+                    </div>
+                </ng-container>
+
+            </div>
+        </div>
+    </div>
+    <!-- Information Modal Trigger-->
+    <button hidden id="triggerDateChangeWarning" data-toggle="modal"
+            data-target="#InformationClaimModal"></button>
+    <!-- Information Modal -->
+    <div class="modal fade mySkinDialog" id="InformationClaimModal" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header ct-footer-padding">
+                    <h4 class="modal-title">Warning!</h4>
+                </div>
+                <div class="modal-body ct-modal-padding">
+                    <div class="row">
+                        <div class="col-lg-12 mt-3 mb-4">
+                            <p class="m-0 f-13">Changes made to the claim date(s) may affect the overall claim development.</p>
+                            <p class="m-0 f-13">Please review and modify amounts if needed.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer ct-footer-padding">
+                    <button type="button" class="btn btn-primary-sub btn-sm" data-dismiss="modal">Ok</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</ng-container>

@@ -1,0 +1,366 @@
+<!-- Last updated by Arun Raj on 12-03-2020  -->
+<div class="card-inner scroll-margin-top5" id="code-table-add-entry-card">
+    <div *ngIf="codeTableProperty.tableName" id="codetable-content">
+        <section>
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="card-header col-12 px-3 py-2">
+                        <h4 class="card-title d-flex align-items-center">{{codeTableProperty.displayName}}
+                            <span class="ml-auto pr-0 mr-0" *ngIf="isAddAllowed">
+                                <button type="button" class="btn btn-sm btn-primary" data-toggle="modal"
+                                    data-target=".create-modal" (click)="setNewCreation()"
+                                    title="Add new entry to {{codeTableProperty.displayName}}">
+                                    Add Entry
+                                </button>
+                            </span>
+                        </h4>
+                    </div>
+                </div>
+                <div class="success-banner px-3 my-2 mx-0 d-flex justify-content-between align-items-center pb-2 pt-2">
+                    <div>
+                        <i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i>
+                        <em><em>{{codeTableProperty.description}}</em>
+                            <ul class="list-style-none mt-2">
+                                <li *ngFor="let dependency of codeTableProperty?.content?.dependency">
+                                  <ng-container *ngIf="dependency?.showTableName">
+                                   <span class="chevron"><i class="fa fa-chevron-right"></i><i
+                                   class="fa fa-chevron-right"></i></span>
+                                   <span class="ml-2 text-muted fw-600">{{dependency?.displayName}}</span>
+                                  </ng-container>  
+                                </li>
+                            </ul>  
+                        </em>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <div class="card-content">
+            <div class="card-body pb-0">
+                <div class="row result-outer mb-0">
+                    <div class="col-md-8 offset-md-2 col-12">
+                        <div class="searchBox">
+                            <input type="text" placeholder={{placeHolder}} id="searchTextField"
+                                class="form-control ng-pristine ng-valid ng-touched" (focusin)="isSearchFocused = true"
+                                [(ngModel)]="searchText">
+                            <a *ngIf="!searchText" class="searchButton">
+                                <i class="fa fa-search fa-med pt-2" aria-hidden="true"></i>
+                            </a>
+                            <a *ngIf="searchText" class="searchButton" (click)="searchText=''">
+                                <i class="fa fa-close" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-content">
+            <div class="card-body pt-0">
+                <section class="row">
+                    <div class="col-12">
+                        <table class="table tableSkin mb-0 tablealign tbl-padding table-type-head" id="code-table">
+                            <caption class="sr-only">Code Table</caption>
+                            <thead class="thead-light">
+                                <ng-container *ngFor="let column of tableColumnList">
+                                    <ng-container
+                                        *ngIf="column.visible && column.columnName != 'UPDATE_USER' && column.columnName != 'UPDATE_TIMESTAMP'">
+                                        <th scope="col" class="headeralign  irb-table-hdcolor hand-cursor"
+                                            (click)="sortOnDisplayName(column.columnName,column.dataType)"
+                                            [ngClass]="{'text-center':column.dataType=='Blob'||column.dataType=='Clob'}">
+                                            {{column.displayName}}
+                                            <ng-container
+                                                *ngIf="column.dataType !== 'INTEGER' && column.dataType !== 'Blob' && column.dataType !== 'Clob'">
+                                                <i aria-hidden="true" *ngIf="sortedColumn != column.columnName"
+                                                    class="fa fa-sort-alpha-asc blrcolor"></i>
+                                                <i aria-hidden="true" *ngIf="sortedColumn == column.columnName"
+                                                    [ngClass]=" sortOrder ? 'fa fa-sort-alpha-asc sortIcon'
+                                                                                                    : 'fa fa-sort-alpha-desc sortIcon'"></i>
+                                            </ng-container>
+                                            <ng-container *ngIf="column.dataType === 'INTEGER'">
+                                                <i aria-hidden=" true" *ngIf="sortedColumn != column.columnName"
+                                                    class="fa fa-sort-numeric-asc blrcolor"></i>
+                                                <i aria-hidden="true" *ngIf="sortedColumn == column.columnName"
+                                                    [ngClass]=" sortOrder ? 'fa fa-sort-numeric-asc sortIcon'
+                                                                                                        : 'fa fa-sort-numeric-desc sortIcon'"></i>
+                                            </ng-container>
+
+                                        </th>
+                                    </ng-container>
+                                </ng-container>
+                                <th scope=" col" class="headeralign irb-table-hdcolor hand-cursor" style="width: 10%">
+                                    Actions
+                                </th>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let values of tableEntryList | filter : searchText"
+                                    class="pull-up text-break">
+                                    <ng-container *ngFor="let column of tableColumnList">
+                                        <ng-container
+                                            *ngIf="column.visible && column.columnName != 'UPDATE_USER' && column.columnName != 'UPDATE_TIMESTAMP'">
+                                            <td
+                                                [ngClass]="{'text-center':column.dataType == 'Blob'|| column.dataType == 'Clob'}">
+                                                <span title="{{values[column.columnName]}}"
+                                                    *ngIf="column.dataType!='Clob' && 
+                                                            column.dataType!='Blob' && column.dataType!='Date'
+                                                            && column.filterType !='switch'">
+                                                    {{values[column.columnName] && values[column.columnName].length > 60
+                                                    ?
+                                                    values[column.columnName].slice(0,60) + '...' :
+                                                    values[column.columnName]}}
+                                                </span>
+                                                <span *ngIf="column.filterType =='switch'">
+                                                    <div>
+                                                        <a
+                                                            *ngIf="values[column.columnName] == 'N' || values[column.columnName] == 'n' || values[column.columnName] == false">
+                                                            <label class="switch">
+                                                                <input type="checkbox"
+                                                                    (click)="toggleCodeTableEntryStatus('Y', values, column.columnName)">
+                                                                <span class="slider round">
+                                                                    <small class="deactivate-text">No</small></span>
+                                                            </label>
+                                                        </a>
+                                                        <a
+                                                            *ngIf="values[column.columnName] == 'Y' || values[column.columnName] == 'y' || values[column.columnName] == true">
+                                                            <label class="switch">
+                                                                <input type="checkbox" checked
+                                                                    (click)="toggleCodeTableEntryStatus('N', values, column.columnName)">
+                                                                <span class="slider round"><small>Yes</small></span>
+                                                            </label>
+                                                        </a>
+                                                    </div>
+                                                </span>
+                                                <span *ngIf="column.dataType=='Date'">
+                                                    {{values[column.columnName] | dateFormatter}}
+                                                </span>
+                                                <span *ngIf="column.dataType=='Clob'|| column.dataType=='Blob'"
+                                                    class="ct-download-icn">
+                                                    <i class="fa fa-download" data-toggle="tooltip"
+                                                        title="Click to download" aria-hidden="true"
+                                                        (click)="downloadAttachment(values, column.columnName)"></i>
+                                                </span>
+                                            </td>
+                                        </ng-container>
+                                    </ng-container>
+                                    <td class="action-icon">
+                                        <i *ngIf="isEditAllowed" class="fa fa-pencil" aria-hidden="true"
+                                            data-toggle="modal" data-target=".create-modal"
+                                            (click)="editCodeTable(values)" title="Click to edit"></i>
+                                        <i *ngIf="isDeleteAllowed" class="fa fa-trash-o" aria-hidden="true"
+                                            data-toggle="modal" data-target="#myModal" title="Click to delete"
+                                            (click)="deleteCodeTable(values)"></i>
+                                        <span class="d-inline-block icon-hover">
+                                            <a class="tooltip "><i class="fa fa-info-circle fa-med hand-cursor"
+                                                    aria-hidden="true"></i>
+                                                <div class="tooltiptext-right card card-inner p-15 text-left">
+                                                    <span class="font-cv">Last Updated By</span><span
+                                                        class="font-cv font-weight-bold">{{values['UPDATE_USER']}}
+                                                        on {{values['UPDATE_TIMESTAMP'] | dateFormatterWithTimeZone :
+                                                        'long'}}</span>
+                                                </div>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="ct-not-available" *ngIf="this.tableEntryList.length === 0">No data available
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+<!--create/update-modal  -->
+<div id="createModal-code-table" class="modal mySkinDialog fade create-modal" tabindex="-1" role="dialog" *ngIf="isShowModal"
+    aria-labelledby="myLargeModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog modal-lg px-5">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" *ngIf="currentEditIndex == -1">Add {{codeTableProperty.displayName}}</h5>
+                <h5 class="modal-title" *ngIf="currentEditIndex >= 0">Update {{codeTableProperty.displayName}}</h5>
+                <button type="button" class="close" (click)="isShowModal = false" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true" title="Close">&times;</span>
+                </button>
+            </div>
+            <div class="container">
+                <caption class="sr-only">Add New Table Entry</caption>
+                <div class="row" *ngFor="let column of tableColumnList;let i=index">
+                    <ng-container *ngIf="column.isEditable">
+                        <div class="col-4 my-2 text-right">
+                            <label class="">{{column.displayName}} </label>
+                        </div>
+                        <div class="col-8 my-2">
+                            <ng-container [ngSwitch]="true">
+                                <div *ngSwitchCase="column.dataType !='Blob' && 
+                                     column.dataType !='Clob' && column.dataType !='Date'">
+                                    <ng-container *ngIf="!column.filterType && column.dataType !== 'INTEGER'">
+                                        <textarea appAutoGrow class="form-control mt-10" appLengthValidator
+                                            [limit]="column.length" [styleList]="'pt-2 float-right word-count d-inline'"
+                                            [(ngModel)]="newCodeTableEntry[column.columnName]"
+                                            (ngModelChange)="markAsChanged(column.columnName);getAuditLogChangedFields(column.columnName)" rows="1">
+                                        </textarea>
+                                    </ng-container>
+                                    <ng-container *ngIf="!column.filterType && column.dataType == 'INTEGER'">
+                                        <input type="number" maxlength="{{column.length}}" appLengthValidator
+                                            [limit]="column.length" class="form-control mt-10"
+                                            [styleList]="'pt-2 float-right word-count d-inline'"
+                                            [(ngModel)]="newCodeTableEntry[column.columnName]"
+                                            (ngModelChange)="markAsChanged(column.columnName);getAuditLogChangedFields(column.columnName)" />
+                                    </ng-container>
+                                    <ng-container *ngIf="column.filterType == 'lookUp'">
+                                        <div class="position-relative">
+                                            <app-look-up [options]='column.valueField'
+                                                [defaultValue]="this.lookupDefaultValues[column.columnName]"
+                                                (selectedResult)="onLookupSelect($event, column.columnName, column.defaultValue)">
+                                            </app-look-up>
+                                        </div>
+                                    </ng-container>
+                                    <ng-container *ngIf="column.filterType == 'endpoint'">
+                                        <div class="position-relative">
+                                            <app-endpoint-search
+                                                [httpOptions]="endPointSearchOptions[column.columnName]"
+                                                [placeHolder]="'Type here for ' + column.displayName"
+                                                (onSelect)="onEndPointSelect($event, column.columnName, column.valueField, column.defaultValue, column.index)">
+                                            </app-endpoint-search>
+                                        </div>
+                                    </ng-container>
+                                    <ng-container *ngIf="column.filterType == 'elastic'">
+                                        <div class="position-relative">
+                                            <app-elastic [options]="elasticSearchOptions[column.columnName]"
+                                                [placeHolder]="'Type here for ' + column.displayName"
+                                                (selectedResult)="onElasticSelect($event, column.columnName,column.valueField, column.defaultValue)">
+                                            </app-elastic>
+                                        </div>
+                                    </ng-container>
+                                    <ng-container *ngIf="column.filterType == 'autocompleter'">
+                                        <div *ngIf="autoCompleterSearchOptions[column.columnName]" class="position-relative">
+                                            <app-autocompleter [completerOptions]="autoCompleterSearchOptions[column.columnName]"
+                                                [placeHolder]="'Type here for ' + column.displayName"
+                                                (onSelect)="onAutoCompleterSelect($event, column.columnName,column.valueField, column.defaultValue, column.index)">
+                                            </app-autocompleter>
+                                        </div>
+                                    </ng-container>
+                                    <ng-container *ngIf="column.filterType == 'systemDropdown'">
+                                        <div class="position-relative">
+                                            <select [(ngModel)]="newCodeTableEntry[column.columnName]"
+                                                (ngModelChange)="markAsChanged(column.columnName);getAuditLogChangedFields(column.columnName)"
+                                                class="form-control">
+                                                <option *ngIf="currentEditIndex == -1" value = "undefined">--select--</option>
+                                                <option *ngIf="currentEditIndex >= 0" value = null>--select--</option>
+                                                <option [value] =" option.code" *ngFor="let option of column.values">
+                                                    {{option.description}}
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </ng-container>
+                                    <ng-container *ngIf="column.filterType == 'switch'">
+                                        <div>
+                                            <a
+                                                *ngIf="!newCodeTableEntry[column.columnName] || newCodeTableEntry[column.columnName] == 'N' || newCodeTableEntry[column.columnName] == 'n' || newCodeTableEntry[column.columnName] == false">
+                                                <label class="switch">
+                                                    <input type="checkbox"
+                                                        (click)="newCodeTableEntry[column.columnName] = 'Y'; markAsChanged(column.columnName);getAuditLogChangedFields(column.columnName)">
+                                                    <span class="slider round"><small
+                                                            class="deactivate-text">No</small></span>
+                                                </label>
+                                            </a>
+                                            <a
+                                                *ngIf="newCodeTableEntry[column.columnName] == 'Y' || newCodeTableEntry[column.columnName] == 'y' || newCodeTableEntry[column.columnName] == true">
+                                                <label class="switch">
+                                                    <input type="checkbox" checked
+                                                        (click)="newCodeTableEntry[column.columnName] = 'N'; markAsChanged(column.columnName);getAuditLogChangedFields(column.columnName)">
+                                                    <span class="slider round"><small>Yes</small></span>
+                                                </label>
+                                            </a>
+                                        </div>
+                                    </ng-container>
+                                </div>
+                                <div *ngSwitchCase="column.dataType == 'Blob'|| column.dataType == 'Clob'">
+                                    <app-file-drop (filesDropEvent)="addAttachments($event,column.columnName, i)" 
+                                    [fileAccept]="commonService.correspondenceTemplateType">
+                                    </app-file-drop>
+                                    <div class="col fileChips mb-0" style="word-break: break-all;"
+                                        *ngIf="uploadedFile.length > 0">
+                                        <span>{{uploadedFile[0]?.name}}
+                                            <i class="fa fa-close hand-cursor" id="attachment-dlt" aria-hidden="true"
+                                                (click)="deleteAttachment(column.columnName)"
+                                                title="Remove this attachment"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div *ngSwitchCase="column.dataType=='Date'" class="ct-date-dv">
+                                    <input matInput [matDatepicker]="dt3" [(ngModel)]="newCodeTableEntry[column.columnName]"
+                                        placeholder="{{newCodeTableEntry[column.columnName] | dateFormatter}}"
+                                        id="code-table-date" class="form-control"
+                                        (ngModelChange)="markAsChanged(column.columnName);getAuditLogChangedFields(column.columnName)" (click)="dt3.open()">
+                                    <span class="trigger ct-date-i action-icon" (click)="dt3.open()">
+                                        <i class="fa fa-calendar" aria-hidden="true"></i>
+                                    </span>
+                                    <mat-datepicker #dt3 (opened)="setFocusToElement('code-table-date')"
+                                        (closed)="setDateFormat(column.columnName)">
+                                    </mat-datepicker>
+                                </div>
+                            </ng-container>
+                            <div class="invalid-feedback d-inline">
+                                <span *ngIf=" errorMap.get(column.columnName)" class="ct-warning-validation">
+                                    {{errorMap.get(column.columnName)}}
+                                </span>
+                            </div>
+                        </div>
+                    </ng-container>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="closeModal" class="btn btn-secondary" data-dismiss="modal" type="button"
+                    (click)="isShowModal = false">Cancel</button>
+                <button class="btn btn-primary-sub btn-sm" type="button" *ngIf="currentEditIndex == -1"
+                    (click)="addNewCodeTableData()">Save</button>
+                <button class="btn btn-primary-sub btn-sm" type="button" *ngIf="currentEditIndex >= 0"
+                    (click)="updateCodeTable(newCodeTableEntry)">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- delete Modal -->
+<div class="modal fade show mySkinDialog" id="myModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document"
+        [ngClass]="{'modal-lg': codeTableProperty?.content?.dependency?.length > 3}">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Remove {{codeTableProperty.displayName}}</h4>
+                <button class="close" aria-label="Close" data-dismiss="modal" type="button">
+                    <span class="ng-tns-c3-0" aria-hidden="true" title="Close">×</span>
+                </button>
+            </div>
+            <div class="modal-body pb-1">
+                <div class="row">
+                    <div class="col-12 mb-4">
+                        <label>Do you want to remove this entry from {{codeTableProperty.displayName}} ?</label>
+                    </div>
+                    <div class="list-on-select col-12 py-3"
+                        *ngIf="codeTableProperty?.content?.dependency?.length !== 0">
+                        <label class="mb-2 text-muted">
+                            <span class="text-warning mr-2"><i class="fa fa-exclamation-triangle"></i></span>
+                              <span>This entry is being used by the following  dependent code table(s)</span>
+                              <span [ngClass]="{'ml-4 pl-3': codeTableProperty?.content?.dependency?.length < 3}">and/or in the database table(s):</span>
+                        </label>
+                        <ul class="list-style-none mt-2">
+                            <li *ngFor="let dependency of codeTableProperty?.content?.dependency">
+                                <span class="chevron"><i class="fa fa-chevron-right"></i><i
+                                        class="fa fa-chevron-right"></i></span>
+                                <span class="ml-2 text-muted fw-600">{{dependency.displayName}}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="deleteCodeTableData();"
+                    data-dismiss="modal">Remove</button>
+            </div>
+        </div>
+    </div>
+</div>

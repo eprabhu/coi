@@ -1,0 +1,345 @@
+<!-- Report -->
+<div id="Award109">
+    <ng-container>
+        <div class="d-flex justify-content-between">
+            <ul class="subTabs mb-3">
+                <ng-container *ngIf="reportKeys?.length > 0">
+                <li (click)="switchTabs(key)" *ngFor="let key of reportKeys" [class.active]="currentTab===key">
+                    <a class="subTabLink">
+                        {{key}} ({{reportsData[key]?.length}})
+                        <span *ngIf="helpText?.report?.reportClassCode && helpText?.report?.reportClassCode[reportsData[key][0].reportClassCode] &&
+                                helpText?.report?.reportClassCode[reportsData[key][0].reportClassCode]?.isActive === 'Y'" class="d-inline-block icon-hover">
+                            <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med hand-cursor position-relative top-1" aria-hidden="true"></i>
+                                <div class="tooltiptext-left card card-inner p-15 text-left">
+                                    <span
+                                        class="font-cv">{{helpText?.report?.reportClassCode[reportsData[key][0].reportClassCode]?.helpTextInfo}}</span>
+                                </div>
+                            </a>
+                        </span>
+                        </a>
+                    </li>
+                </ng-container>
+            </ul>
+            <button *ngIf="isModifiable" (click)="clearReports();reportModalConfiguration()" class="btn btn-tertiary btn-sm mt-0 min-w-105"
+                    data-target="#addReports"
+                    data-toggle="modal"
+                    id="prop-special-revw-view-modal-btn" tabindex="0">
+                <span (click)="setElasticForRecipients()">Add Reports</span>
+            </button>
+        </div>
+    </ng-container>
+
+    <div *ngIf="reportKeys?.length == 0" class="no-data-container">
+        <span class="no-data-icon-outer">
+            <div class="no-data-icon">
+                <i aria-hidden="true" class="fa fa-file-o"></i>
+                <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+            </div>
+        </span>
+        <h4>There is no information in this section.</h4>
+    </div>
+    <div *ngIf="currentTab && reportsData[currentTab]?.length > 0">
+        <div class="card card-content card-body">
+            <div *ngFor="let reportCodeList of reportsData[currentTab]; let i = index;let last = last"
+                 id="individualList">
+                <div class="gridSkin">
+                    <div class="row">
+                        <div class="col">
+                            <label class="block-display">Type
+                                <span *ngIf="helpText?.report?.reportCode && helpText?.report?.reportCode[reportCodeList.reportCode] &&
+                                    helpText?.report?.reportCode[reportCodeList.reportCode]?.isActive === 'Y'"
+                                      class="d-inline-block icon-hover">
+                                <a class="tooltip z-index-0 tooltip-helptext"><i
+                                    aria-hidden="true" class="fa fa-question-circle fa-med hand-cursor"></i>
+                                    <div class="tooltiptext-left card card-inner p-15 text-left">
+                                        <span
+                                            class="font-cv">{{helpText?.report?.reportCode[reportCodeList.reportCode]?.helpTextInfo}}</span>
+                                    </div>
+                                </a>
+                            </span>
+                            </label>
+                            <span>{{reportCodeList?.reportName}}</span>
+                            <span *ngIf="reportCodeList?.reportName==null" class="noDataExists">No Type Specified</span>
+                        </div>
+                        <div class="col">
+                            <label class="block-display">Frequency</label>
+                            <span>{{getFrequencyType(reportCodeList?.frequencyCode)}}</span>
+                            <span *ngIf="reportCodeList?.frequencyCode==null"
+                                  class="noDataExists">No Frequency Specified</span>
+                        </div>
+                        <div class="col">
+                            <label class="block-display">Frequency Base</label>
+                            <span>{{getFrequencyBasis(reportCodeList?.frequencyBaseCode)}}</span>
+                            <span *ngIf="reportCodeList?.frequencyBaseCode==null" class="noDataExists">No Frequency Base Specified</span>
+                        </div>
+                        <div class="col">
+                            <label class="block-display">Base Date</label>
+                            <span>{{reportCodeList?.baseDate | dateFormatter}}</span>
+                            <span *ngIf="!reportCodeList?.baseDate" class="noDataExists">No Base Date Specified</span>
+                        </div>
+                        <div class="col-4">
+                            <label class="block-display">Recipients</label>
+                            <span *ngFor="let recipient of reportCodeList?.awardReportTermRecipient"
+                                  class="fileChips" style="word-break: break-all; width:20%"
+                                  title="{{recipient.fullName}}">
+                                <span>{{recipient?.fullName}}
+                                </span>
+                            </span>
+                            <span *ngIf="reportCodeList?.awardReportTermRecipient?.length == 0" class="noDataExists">No Recipients Specified</span>
+                        </div>
+                        <div class="col-auto text-right no-hover-effect">
+                            <ul class="actionButtonGroup mt-3">
+                                <li class="mx-3" *ngIf="(isProgressReportEnabled && ['1','2'].includes(reportCodeList.reportClass.reportClassCode) && isDeletableIndex[i]) || (isDeletableIndex[i] && isModifiable)">
+                                    <a data-target="#addReports" data-toggle="modal" href="#"
+                                       id="delete-area-of-research-btn" tabindex="0">
+                                        <i (click)="editReport(reportCodeList);isAddReport = false;
+                                            isEditReport = true;this.mandatoryMsg = null;
+                                            this.warningMsg.recipientWarningText = null;"
+                                           aria-hidden="true"
+                                           class="fa fa-pencil pointer"
+                                           title="Click here to edit this Report"></i>
+                                    </a>
+                                </li>
+                                <li class="mr-3" *ngIf="(isProgressReportEnabled && ['1','2'].includes(reportCodeList.reportClass.reportClassCode) && isDeletableIndex[i]) || (isDeletableIndex[i] && isModifiable)">
+                                    <a (click)="selectedIndex=i" data-target="#deleteReports" data-toggle="modal"
+                                       title="Delete Report">
+                                        <i aria-hidden="true" class="fa fa-trash-o pointer"></i>
+                                    </a>
+                                </li>
+                                <li *ngIf="((isProgressReportEnabled && !['1','2'].includes(reportCodeList.reportClass.reportClassCode) || !isProgressReportEnabled) && !isAddNewReporting[i] && isModifiable)" class="mr-3">
+                                    <a (click)="isAddNewReporting[i] = true; isDetailsOpen[i] && toggleReportDetails(reportCodeList, i)" title="Add Report">
+                                        <i aria-hidden="true" class="fa fa-plus pointer"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a (click)="toggleReportDetails(reportCodeList, i)" class="cursor-pointer"
+                                       tabindex="0">
+                                        <i [ngClass]="!isDetailsOpen[i]?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                                           [title]="(isDetailsOpen[i]?'Show':'Hide') + ' report details'"
+                                           aria-hidden="true"
+                                           class="fa-large"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <app-reporting-requirement-details (dataChange)="setDeleteIndex(reportsData[currentTab])"
+                                                   (refreshReport)="getReportsData()"
+                                                   (cancelAddReminder)="cancelAddReminder($event, i)"
+                                                   *ngIf="!isDetailsOpen[i]" [awardData]="awardData"
+                                                   [awardReport]="reportCodeList"
+                                                   [isEditMode]="true" [isAddNewReporting]="isAddNewReporting[i]"
+                                                   [isProgressReportEnabled]="isProgressReportEnabled"
+                                                   [isReplaceAttachmentEnabled]="isReplaceAttachmentEnabled"
+                                                   [isEditEnabledForSection]="isEditEnabledForSection"
+                                                   [reportStatusList]="reportTermsLookup?.reportStatusList"
+                                                   [rowData]="reportCodeList"></app-reporting-requirement-details>
+                <hr *ngIf="!last">
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Report ends -->
+<!--REPORTS MODAL-->
+<div aria-hidden="true" aria-labelledby="skippedSchedulesTitle" class="modal fade show mySkinDialog modal-opacity mt-3"
+     id="addReports"
+     role="dialog" tabindex="-1">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 *ngIf="isAddReport" class="modal-title" id="skippedSchedulesLongTitleAdd">Add Report
+                </h5>
+                <h5 *ngIf="isEditReport" class="modal-title" id="skippedSchedulesLongTitleEdit">Edit Report
+                </h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" id="special-revw-close-btn" type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label for="award-report-class"><span class="mandatory">*</span>Report Class:
+                            <span *ngIf="helpText?.report?.reportClassCode && helpText?.report?.reportClassCode[awardReport.reportClassCode] &&
+                                    helpText?.report?.reportClassCode[awardReport.reportClassCode]?.isActive === 'Y'"
+                                  class="d-inline-block icon-hover">
+                                <a class="tooltip z-index-0 tooltip-helptext"><i
+                                    aria-hidden="true" class="fa fa-question-circle fa-med hand-cursor"></i>
+                                    <div class="tooltiptext-left card card-inner p-15 text-left">
+                                        <span
+                                            class="font-cv">{{helpText?.report?.reportClassCode[awardReport.reportClassCode]?.helpTextInfo}}</span>
+                                    </div>
+                                </a>
+                            </span>
+                        </label>
+                        <select (change)="fetchReportType();" [(ngModel)]="awardReport.reportClassCode"
+                                [disabled]="isEditReport" [ngClass]="(map.get('class'))? 'is-invalid d-block' : ''"
+                                class="form-control" id="award-report-class">
+                            <option value=null>--Select--</option>
+                            <option *ngFor="let reportClass of reportTermsLookup?.reportClassList"
+                                    [hidden]="reportClass.isActive != true"
+                                    [value]="reportClass.reportClassCode">
+                                {{reportClass?.description}}</option>
+                        </select>
+                        <div *ngIf="map.get('class')">
+                            <span class="mandatory">{{map.get('class')}}</span>
+                        </div>
+                    </div>
+                    <div class="form-group col">
+                        <label for="award-report-type">Report Type:
+                            <span *ngIf="helpText?.report?.reportCode && helpText?.report?.reportCode[awardReport.reportCode] &&
+                                    helpText?.report?.reportCode[awardReport.reportCode]?.isActive === 'Y'"
+                                  class="d-inline-block icon-hover">
+                                <a class="tooltip z-index-0 tooltip-helptext"><i
+                                    aria-hidden="true" class="fa fa-question-circle fa-med hand-cursor"></i>
+                                    <div class="tooltiptext-left card card-inner p-15 text-left">
+                                        <span
+                                            class="font-cv">{{helpText?.report?.reportCode[awardReport.reportCode]?.helpTextInfo}}</span>
+                                    </div>
+                                </a>
+                            </span>
+                        </label>
+                        <select [(ngModel)]="awardReport.reportCode"
+                                [disabled]="awardReport.reportClassCode == 'null' || awardReport.reportClassCode == null"
+                                class="form-control"
+                                id="award-report-type">
+                            <option value="">--Select--</option>
+                            <option *ngFor="let report of reportTermsLookup?.reportList" [value]="report.reportCode">
+                                {{report?.description ? report?.description : 'No data available'}}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label class="block-display" for="award-freq"><span class="mandatory">*</span>Frequency:</label>
+                        <select (change)="checkForFrequencyChanges();" [(ngModel)]="awardReport.frequencyCode"
+                                [ngClass]="(map.get('frequencyCode'))? 'is-invalid d-block' : ''"
+                                class="form-control"
+                                id="award-freq">
+                            <option value="">--Select--</option>
+                            <option *ngFor="let frequency of reportTermsLookup?.frequencyList"
+                                    [hidden]="frequency.active != true"
+                                    value="{{frequency.frequencyCode}}">
+                                {{frequency.description}}</option>
+                        </select>
+                        <div *ngIf="map.get('frequencyCode')">
+                            <span class="mandatory">{{map.get('frequencyCode')}}</span>
+                        </div>
+                    </div>
+                    <div class="form-group col">
+                        <label class="block-display" for="award-freq-base"><span class="mandatory">*</span>Frequency
+                            Base:</label>
+                        <select (change)="this.awardReport.baseDate = null;frequencyBaseChange()"
+                                [(ngModel)]="awardReport.frequencyBaseCode"
+                                [ngClass]="(map.get('frequencyBaseCode'))? 'is-invalid d-block' : ''"
+                                class="form-control"
+                                id="award-freq-base">
+                            <option value="">--Select--</option>
+                            <option *ngFor="let frequencyBase of reportTermsLookup?.frequencyBaseList"
+                                    [hidden]="frequencyBase.active != true"
+                                    value="{{frequencyBase.frequencyBaseCode}}">
+                                {{frequencyBase.description}}</option>
+                        </select>
+                        <div *ngIf="map.get('frequencyBaseCode')">
+                            <span class="mandatory">{{map.get('frequencyBaseCode')}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-6">
+                        <label class="block-display" for="report-base-date"><span
+                            class="mandatory">*</span>Base Date:</label>
+                        <span>
+                            <span class="dateField">
+                                <input matInput [matDatepicker]="baseDt" (keypress)="_commonService._keyPress($event, 'date')"
+                                       [(ngModel)]="awardReport.baseDate"
+                                       [disabled]="awardReport.frequencyBaseCode !== '6'"
+                                       [ngClass]="(map.get('isFrequencyAsRequired'))? 'is-invalid d-block' : ''"
+                                       (click)="baseDt.open()" autocomplete="off" class="d-inline-block form-control"
+                                       id="report-base-date"
+                                       placeholder="{{datePlaceHolder}}"/>
+                                <i (click)="baseDt.open()"
+                                   aria-hidden="true" class="fa fa-calendar fa-large hand-cursor insidePicker"></i>
+                                <mat-datepicker #baseDt (opened)="setFocusToElement('report-base-date')"></mat-datepicker>
+                            </span>
+                        </span>
+                        <div *ngIf="map.get('isFrequencyAsRequired')">
+                            <span class="mandatory">{{map.get('isFrequencyAsRequired')}}</span>
+                        </div>
+                    </div>
+                    <div class="form-group col-6">
+                        <label class="block-display" for="report-recipient"> Recipients:</label>
+                        <div class="searchBox memberSearchBox" id="report-recipient">
+                            <app-elastic (selectedResult)="selectedRecipients($event)"
+                                         [clearField]="clearRecipientField"
+                                         [options]="elasticPersonSearchOptions"
+                                         [placeHolder]="'Search'">
+                            </app-elastic>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col">
+                        <div *ngIf="awardReport.awardReportTermRecipient?.length > 0" class="fileChips"
+                             style="word-break: break-all;">
+                            <ng-container *ngFor="let recipient of awardReport.awardReportTermRecipient ;let i = index">
+                                <span *ngIf="recipient.acType != 'D'">{{recipient.fullName}}
+                                    <i (click)="deleteRecipient(recipient,i)" aria-hidden="true"
+                                       class="fa fa-close hand-cursor" id="prop-keywrd-dlt"
+                                       title="Remove this Recipient"></i>
+                                </span>
+                            </ng-container>
+                        </div>
+                    </div>
+                </div>
+
+                <div *ngIf="warningMsg?.recipientWarningText != null" class="row">
+                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <span class="warning-text">{{warningMsg?.recipientWarningText}}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button (click)="this.warningMsg.recipientWarningText = null;map.clear();awardReport.baseDate = null;"
+                        class="btn btn-secondary btn-sm" data-dismiss="modal" id="close-report-modal"
+                        type="button">
+                    Cancel
+                </button>
+                <button (click)="saveReports()" class="btn btn-primary-sub btn-sm" id="award-special-revw-add-btn"
+                        type="button">Save
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Reports Delete modal -->
+<div class="modal fade mySkinDialog" id="deleteReports" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" id="prop-dlt-member-dismiss"
+                        type="button">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this report?</p>
+            </div>
+            <div class="modal-footer">
+                <button (click)="selectedIndex = null;" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                        data-toggle="modal"
+                        type="button">No
+                </button>
+                <button (click)="deleteReport(reportsData[currentTab][selectedIndex])"
+                        class="btn btn-primary-sub btn-sm" data-dismiss="modal"
+                        type="button">Yes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Reports Delete modal ends -->

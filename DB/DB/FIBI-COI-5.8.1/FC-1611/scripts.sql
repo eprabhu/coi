@@ -1,0 +1,16 @@
+ANALYZE TABLE person_entity;
+-- Add IS_COMMITMENT if not exists
+SET @SQL := IF(
+    (
+        SELECT COUNT(*)
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'person_entity'
+          AND COLUMN_NAME = 'IS_COMMITMENT'
+    ) = 0,
+    'ALTER TABLE person_entity ADD COLUMN IS_COMMITMENT VARCHAR(1) NULL;',
+    'DO 1'
+);
+PREPARE STMT FROM @SQL;
+EXECUTE STMT;
+DEALLOCATE PREPARE STMT;

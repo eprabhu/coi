@@ -1,0 +1,123 @@
+<app-common-modal [modalConfig]="entityAttachmentModalConfig" (modalAction)="attachmentModalActions($event)">
+    <!-- header -->
+    <ng-container modal-header>
+        <span>{{attachmentInputType === 'DESCRIPTION_CHANGE' ? 'Update' : attachmentInputType === 'ADD' ? 'Add' : 'Replace'}}</span>
+        <span class="ms-1">Attachment(s)<app-common-help-text [subSectionId]="subSectionId"
+                            [elementId]="'coi-sub-modal-head-' + subSectionId"></app-common-help-text></span>
+    </ng-container>
+    <!-- body -->
+    <ng-container modal-body>
+        <!-- for add and replace -->
+        <ng-container *ngIf="attachmentInputType !== 'DESCRIPTION_CHANGE'">
+            <!-- file drop -->
+            <div>
+                <app-file-drop [multiple]="true" [fileAccept]="commonService.generalFileType" (filesDropEvent)="fileDrop($event)"></app-file-drop>
+            </div>
+            <!-- uploaded list -->
+            <ng-container *ngIf="uploadedFiles.length > 0">
+                <div class="card shadow-sm p-2 mb-2" *ngFor="let files of uploadedFiles; let i=index">
+                    <div class="row mx-2 mb-2 mt-3">
+                        <!-- Attachment Type -->
+                        <div class="col-6">
+                            <label for="coi-add-attachment-type{{i}}" class="d-block coi-text-dark">
+                                <span class="mandatory">*</span>
+                                <span>Attachment Type</span>
+                                <app-common-help-text [subSectionId]="subSectionId" [elementId]="'coi-attach-type-' + subSectionId"></app-common-help-text>
+                            </label>
+                            <!-- add case -->
+                            <ng-container *ngIf="attachmentInputType === 'ADD'">
+                                <app-look-up (selectedResult)="onAttachmentTypeSelected($event, i)" [externalArray]="attachmentTypes"
+                                    [isExternalArray]="true" [options]="entityAttachmentTypeOption"
+                                    [selectedLookUpList]="selectedLookUpList" [uniqueId]="'coi-add-attachment-type' + i"
+                                    [isError]="attachmentErrorMsg">
+                                </app-look-up>
+                            </ng-container>
+                            <!-- replace case -->
+                            <ng-container *ngIf="attachmentInputType === 'REPLACE'">
+                                <span id="coi-add-attachment-type"
+                                    class="coi-text-light">{{currentAttachment?.attachmentType}}</span>
+                            </ng-container>
+                        </div>                        
+                        <!-- file name -->
+                        <div class="col-6">
+                            <label for="coi-attachment-filename{{i}}" class="d-block coi-text-dark">
+                                <span class="mandatory">*</span>
+                                <span>File Name<app-common-help-text [subSectionId]="subSectionId"
+                                    [elementId]="'coi-attach-filename-' + subSectionId"></app-common-help-text>
+                                </span>
+                            </label>
+                            <span id="coi-attachment-filename{{i}}" class="d-block coi-text-light">{{files?.name}}</span>
+                        </div>
+                        <!-- description -->
+                        <div class="col-12 mt-3">
+                            <label for="coi-add-attachment-description{{i}}" class="d-block coi-text-dark">Description<app-common-help-text [subSectionId]="subSectionId"
+                            [elementId]="'coi-attach-desc-' + subSectionId"></app-common-help-text>
+                            </label>
+                            <textarea id="coi-add-attachment-description{{i}}" rows="1"
+                                id="external-review-doc-popup-desc" [(ngModel)]="selectedAttachmentDescriptions[i]"
+                                placeholder="Please enter the description." class="form-control" appLengthValidator
+                                [isShowLimiter]='true' [limit]="500">
+                            </textarea>
+                        </div>
+                        <!-- delete -->
+                        <!-- <div class="col-lg-auto col d-flex align-items-center justify-content-center">
+                            <button id="coi-attachment-delete{{i}}" title="Click here to remove file."
+                                aria-label="Click here to remove file." (click)="deleteFromUploadedFileList(i)"
+                                class="btn btn-primary-icon d-flex fs-24 align-items-center justify-content-center rounded-circle p-2 mt-0">
+                                <mat-icon aria-hidden="true" class="flex-shrink-0">delete</mat-icon>
+                            </button>
+                        </div> -->
+                    </div>
+                    <button id="coi-attachment-delete{{i}}" title="Click here to remove file."
+                                aria-label="Click here to remove file." (click)="deleteFromUploadedFileList(i)"
+                                class="btn btn-primary-icon d-flex fs-24 align-items-center justify-content-center rounded-circle p-2 mt-0 coi-btn-attachment-delete">
+                                <mat-icon aria-hidden="true" class="flex-shrink-0">delete</mat-icon>
+                            </button>
+                </div>
+            </ng-container>
+            <!-- error -->
+            <span *ngIf="attachmentErrorMsg != null" class="invalid-feedback d-block fs-14">{{attachmentErrorMsg}}</span>
+        </ng-container>
+
+        <!-- for update description -->
+        <ng-container *ngIf="attachmentInputType === 'DESCRIPTION_CHANGE'">
+            <div class="card shadow-sm p-2">
+                <div class="row mx-2 mb-2 mt-3">
+                    <!-- Attachment Type -->
+                    <div class="col-6">
+                        <label for="coi-add-attachment-type" class="d-block coi-text-dark">
+                            <span class="mandatory">*</span>
+                            <span>Attachment Type</span>
+                            <app-common-help-text [subSectionId]="subSectionId"
+                                [elementId]="'coi-attach-type-' + subSectionId"></app-common-help-text>
+                        </label>
+                        <span id="coi-add-attachment-type"
+                            class="coi-text-light">{{currentAttachment?.attachmentType}}</span>
+                    </div>                    
+                    <!-- File Name -->
+                    <div class="col-6">
+                        <label for="coi-attachment-filename" class="coi-text-dark">
+                            <span class="mandatory">*</span>
+                            <span>File Name</span>
+                            <app-common-help-text [subSectionId]="subSectionId"
+                                [elementId]="'coi-attach-filename-' + subSectionId"></app-common-help-text>
+                        </label>
+                        <span id="coi-attachment-filename" class="d-block fs-14">{{currentAttachment?.fileName}}</span>
+                    </div>
+                    <!-- Description -->
+                    <div class="col-12 mt-3">
+                        <label for="coi-add-attachment-description" class="d-block coi-text-dark">
+                            <span>Description</span>
+                            <app-common-help-text [subSectionId]="subSectionId"
+                                [elementId]="'coi-attach-desc-' + subSectionId"></app-common-help-text>
+                        </label>
+                        <textarea id="coi-add-attachment-description" rows="1" id="external-review-doc-popup-desc"
+                            [(ngModel)]="currentAttachment.comment" placeholder="Please enter the description."
+                            class="form-control" appLengthValidator [isShowLimiter]='true' [limit]="500">
+                        </textarea>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+    </ng-container>
+</app-common-modal>

@@ -1,0 +1,138 @@
+<div class="card coi-card-regular coi-border-grey shadow-sm mt-0" id="coi-RevC-{{commentCardConfig?.uniqueId}}-card" [class.coi-bg-gray]="commentCardConfig?.isReplyComment">
+    <div class="card-body" id="coi-RevC-{{commentCardConfig?.uniqueId}}-card-body">
+        <div class="d-flex gap-3">
+            <!-- person icon -->
+            <div class="coi-person-icon-container-width">
+                <span class="coi-icon-light-rounded"><mat-icon aria-hidden="true" class="flex-shrink-0 fs-24">person</mat-icon></span>
+            </div>
+            <!-- comment details content -->
+            <div class="d-flex flex-column gap-2 coi-comment-container-width">
+                <div class="d-flex gap-2 align-items-center coi-person-width">
+                    <!-- person name -->
+                    <span id="coi-RevC-{{commentCardConfig?.commentDetails?.commentId}}-updateduser" class="text-slice">
+                        <app-no-data-label [valueToShow]="commentCardConfig?.commentDetails?.updateUserFullName">
+                            <span class="coi-text-light fw-700 fs-15"
+                                [title]="commentCardConfig?.commentDetails?.updateUserFullName">{{commentCardConfig?.commentDetails?.updateUserFullName}}</span>
+                        </app-no-data-label>
+                    </span>
+                    <!-- Private flag -->
+                    <span *ngIf="commentCardConfig?.commentDetails?.isPrivate" class="fw-700 text-primary txt-medium">Private</span>
+                    <!-- time -->
+                    <span *ngIf="commentCardConfig?.commentDetails?.commentId" id="coi-RevC-{{commentCardConfig?.commentDetails?.commentId}}-updated-time" class="text-slice">
+                        <app-no-data-label [valueToShow]="(commentCardConfig?.commentDetails?.updateTimestamp)">
+                            <span [title]="commentCardConfig?.commentDetails?.updateTimestamp | dateFormatterWithTimeZone: 'long'"
+                                class="coi-text-light fs-13">{{commentCardConfig?.commentDetails?.updateTimestamp | dateFormatterWithTimeZone: 'long'}}</span>
+                        </app-no-data-label>
+                    </span>
+                    <!-- more action -->
+                    <ng-container
+                        *ngIf="commentCardConfig?.isEditMode && loggedPersonId ===
+                                                            (commentCardConfig?.commentDetails?.commentPersonId || commentCardConfig?.commentDetails?.commentBy)
+                                                            && !commentCardConfig?.commentDetails?.isResolved && !commentCardConfig?.commentDetails?.isParentCommentResolved">
+                        <ng-container *ngIf="commentCardConfig?.commentDetails?.isPrivate ? commentCardConfig?.canMaintainPrivateComments : (commentCardConfig?.canMaintainComments || commentCardConfig?.canMaintainPrivateComments || commentCardConfig?.isDocumentOwner)">
+                            <button *ngIf="!commentCardConfig?.isOpenAddComment && editCommentId !== commentCardConfig?.commentDetails?.commentId"
+                                [matMenuTriggerFor]="beforeMenu" type="button" id="coi-RevC-{{commentCardConfig?.commentDetails?.commentId}}-more-btn"
+                                title="Click here for more action" aria-label="Click here for more action"
+                                class="btn-none more-info-icon rounded-circle d-inline-flex justify-content-center align-items-center ms-auto">
+                                <mat-icon aria-hidden="true" class="flex-shrink-0">more_vert</mat-icon>
+                            </button>
+                            <!-- more actions -->
+                            <mat-menu #beforeMenu="matMenu" xPosition="before">
+                                <!-- edit/update -->
+                                <button mat-menu-item id="coi-RevC-{{commentCardConfig?.commentDetails?.commentId}}-update-btn"
+                                    aria-label="Click here to edit comment" title="Click here to edit comment"
+                                    (click)="editComment(commentCardConfig?.commentDetails)">
+                                    <mat-icon class="coi-text-lighter" aria-hidden="true">edit</mat-icon>
+                                    <span class="fw-medium fs-14">Edit</span>
+                                </button>
+                                <!-- delete -->
+                                <ng-container *ngIf="!commentCardConfig?.commentDetails?.childComments?.length">
+                                    <button id="coi-RevC-{{commentCardConfig?.commentDetails?.commentId}}-delete-btn" mat-menu-item
+                                        title="Click here to delete comment" aria-label="Click here to delete comment"
+                                        (click)="triggerDeleteComment(commentCardConfig?.commentDetails)">
+                                        <mat-icon aria-hidden="true"
+                                            class="coi-text-lighter">delete</mat-icon>
+                                        <span class="fw-medium fs-14">Delete</span>
+                                    </button>
+                                </ng-container>
+                            </mat-menu>
+                        </ng-container>
+                    </ng-container>
+                </div>
+                <!-- comments -->
+                <div *ngIf="!commentCardConfig?.isEditMode || (!commentCardConfig?.isOpenAddComment && editCommentId !== commentCardConfig?.commentDetails?.commentId)" class="col-12">
+                    <app-no-data-label [valueToShow]="commentCardConfig?.commentDetails?.comment">
+                        <span class="fs-13 word-break-all no-margin" [innerHTML]="commentCardConfig?.commentDetails?.comment | safe"></span>
+                    </app-no-data-label>
+                </div>
+                <!-- Add/Edit Comment -->
+                <div *ngIf="commentCardConfig?.isEditMode && (commentCardConfig?.isOpenAddComment || editCommentId === commentCardConfig?.commentDetails?.commentId)" class="col">
+                    <app-coi-review-comments-editor [commentEditorConfig]="commentEditorConfig"></app-coi-review-comments-editor>
+                </div>
+
+                <ng-container *ngIf="commentCardConfig?.isEditMode">
+                    <div *ngIf="!commentCardConfig?.commentDetails?.isResolved" class="d-flex align-items-center col-12 pt-2 gap-2">
+                        <ng-container *ngIf="!commentCardConfig?.isReplyComment && !commentCardConfig?.isOpenAddComment">
+                            <!-- Resolve Button -->
+                            <button *ngIf="isShowResolveComment"
+                                id="coi-RevC-{{commentCardConfig?.commentDetails?.commentId}}-resolve-btn"
+                                class="d-flex align-items-center btn btn-sm btn-tertiary m-0 gap-1 fs-14"
+                                title="Click here to resolve comment" aria-label="Click here to resolve comment"
+                                (click)="resolveComment(commentCardConfig?.commentDetails)">
+                                <mat-icon aria-hidden="true" class="flex-shrink-0">mark_chat_read</mat-icon>
+                                <span class="me-1">Resolve</span>
+                            </button>
+
+                            <!-- Reply Button -->
+                            <ng-container *ngIf="(commentCardConfig?.commentDetails?.isPrivate ? commentCardConfig?.canMaintainPrivateComments
+                                                    : (commentCardConfig?.canMaintainComments || commentCardConfig?.canMaintainPrivateComments || commentCardConfig?.isDocumentOwner))">
+                                <button *ngIf="editCommentId !== commentCardConfig?.commentDetails?.commentId && !isOpenReplyEditor"
+                                    id="coi-RevC-{{commentCardConfig?.commentDetails?.commentId}}-reply-btn"
+                                    class="d-flex align-items-center btn btn-sm btn-tertiary m-0 gap-1 fs-14"
+                                    title="Click here to add reply comment" aria-label="Click here to add reply comment"
+                                    (click)="openReplyComment(commentCardConfig?.commentDetails)">
+                                    <mat-icon aria-hidden="true" class="flex-shrink-0">reply</mat-icon>
+                                    <span class="me-1">Reply</span>
+                                </button>
+                            </ng-container>
+                        </ng-container>
+                    </div>
+                </ng-container>
+
+                <div *ngIf="commentCardConfig?.commentDetails?.isResolved && !isOpenReplyEditor && !commentCardConfig?.isOpenAddComment"
+                    class="d-flex align-items-center col-12 pt-2 gap-2">
+                    <span class="badge text-bg-success fs-14">Resolved</span>
+                    <span id="last-updated" class="coi-text-dark fs-13 fw-normal" [attr.aria-label]="commentCardConfig?.commentDetails?.resolvedUserFullName + ' on ' +
+                                        (commentCardConfig?.commentDetails?.resolvedTimestamp | dateFormatterWithTimeZone: 'long')">
+                        <span class="coi-text-lighter fs-13 fw-medium"> by </span>
+                        {{commentCardConfig?.commentDetails?.resolvedUserFullName}}<span class="coi-text-lighter fs-13 fw-medium"> On
+                        </span>{{commentCardConfig?.commentDetails?.resolvedTimestamp | dateFormatterWithTimeZone: 'long'}}</span>
+                </div>
+
+                <!-- new reply -->
+                <ng-container *ngIf="isOpenReplyEditor && commentCardConfig?.isEditMode">
+                    <app-coi-review-comments-card [commentCardConfig]="replyCommentDetails" ></app-coi-review-comments-card>
+                </ng-container>
+                <!-- reply cards -->
+                <ng-container *ngFor="let childCommentDetails of commentCardConfig?.commentDetails?.childComments; let nameIndex = index; let last = last">
+                    <ng-container *ngIf="(nameIndex < 2) || isExpandReplyComment">
+                        <app-coi-review-comments-card [commentCardConfig]="childCommentDetails"></app-coi-review-comments-card>
+                    </ng-container>
+                    <!-- view more / less -->
+                    <a *ngIf="last && commentCardConfig?.commentDetails?.childComments?.length > 2"
+                        class="d-inline-flex gap-1 link-primary cursor-pointer view-btn-hover" tabindex="0" id="coi-RevC-{{commentCardConfig?.commentDetails?.commentId}}-reply-toggle"
+                        title="Click here to {{ isExpandReplyComment ? 'return to default comments view' : 'view all reply comments' }}"
+                        attr.aria-label="Click here to {{ isExpandReplyComment ? 'return to default comments view' : 'view all reply comments' }}"
+                        (click)="isExpandReplyComment = !isExpandReplyComment" (keyup.enter)="isExpandReplyComment = !isExpandReplyComment">
+                        <span *ngIf="isExpandReplyComment">View Less...</span>
+                        <ng-container *ngIf="!isExpandReplyComment">
+                            <span>View</span>
+                            <span>{{ commentCardConfig?.commentDetails?.childComments?.length - replyCommentsLimit }}</span>
+                            <span>{{(commentCardConfig?.commentDetails?.childComments?.length - replyCommentsLimit) === 1 ? 'more reply' : 'more replies'}}...</span>
+                        </ng-container>
+                    </a>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</div>

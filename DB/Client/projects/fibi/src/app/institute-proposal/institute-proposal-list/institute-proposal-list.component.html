@@ -1,0 +1,389 @@
+<div class="card card-table-box rounded-0">
+  <div class="card-content">
+      <div class="card-header py-2">
+          <h4 class="card-title align-items-center d-flex">
+              <span class="mr-auto">List of Institute Proposals</span>
+              <span>
+                  <a id="show-advcance-search-award" class="btn btn-sm btn-tertiary float-right mt-0 mr-2"
+                      href="#collapseInstituteProposal" data-toggle="collapse" role="button" aria-expanded="false"
+                      aria-controls="collapseInstituteProposal">
+                      <i aria-hidden="true" class="fa fa-sliders"></i> Advanced Search
+                  </a>
+              </span>
+              <span>
+                  <span class="exportIcon-margin">Export as :</span>
+                  <a title="Export data to Excel sheet" class="exportIcon-margin  hand-cursor"
+                      id="export-prop-excel-btn" (click)="exportAsTypeDoc('excel')" tabindex="0">
+                      <i aria-hidden="true" class="fa fa-file-excel-o"></i>
+                  </a>
+                  <a class="exportIcon-margin">|</a>
+                  <a title="Export data to PDF document" class="hand-cursor" id="export-prop-pdf-btn"
+                      (click)="exportAsTypeDoc('pdf')" tabindex="0">
+                      <i aria-hidden="true" class="fa fa-file-pdf-o"></i>
+                  </a>
+              </span>
+          </h4>
+      </div>
+      <div class="card">
+          <div class="card-body pb-0">
+              <div class="form-row" *ngIf="!_commonService.isExternalUser">
+                  <div class="col-12 searchBox">
+                      <app-elastic [options]="elasticSearchOptions"
+                          [placeHolder]="'Search: Proposal ID, Title, Principal Investigator, Category, Type, Status,Sponsor'"
+                          (selectedResult)="selectProposalElasticResult($event)"></app-elastic>
+                  </div>
+              </div>
+              <div class="form-row mb-3">
+                  <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12  viewMode resultCard"
+                      *ngIf="(isShowResultCard == true)">
+                      <button class="closeResultCard" id="close-elastic-result-proposal"
+                          (click)="isShowResultCard = false;">
+                          <i aria-hidden="true" class="fa fa-times"></i>
+                      </button>
+                      <!-- proposal elastic search results-->
+                      <div class="row shadow py-3">
+                          <div class="col-xl-9 col-lg-9 col-md-6 col-sm-12 col-9">
+                              <label>Title</label>
+                              <span>
+                                  <a (click)="setCurrentProposalTab()" routerLink='/fibi/instituteproposal' class="anchor-link"
+                                      [queryParams]="{instituteProposalId:elasticResultObject.proposal_id}">#{{ elasticResultObject?.proposal_number }}
+                                      : {{ elasticResultObject?.title }}</a>
+                                      <i class="fa fa-external-link-square anchor-link ml-1" aria-hidden="true"></i>
+                              </span>
+                          </div>
+                          <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-3">
+                              <label>Status</label>
+                              <span>
+                                  <a (click)="setCurrentProposalTab()" routerLink='/fibi/instituteproposal'
+                                      [queryParams]="{instituteProposalId:elasticResultObject.proposal_id}">{{ elasticResultObject?.status}}
+                                  </a>
+                              </span>
+                          </div>
+                          <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-3">
+                              <label>Principal Investigator</label>
+                              <span>
+                                  <a (click)="setCurrentProposalTab()" routerLink='/fibi/instituteproposal'
+                                      [queryParams]="{instituteProposalId:elasticResultObject.proposal_id}">{{ elasticResultObject?.pi_full_name}}
+                                  </a>
+                              </span>
+                          </div>
+                          <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-3">
+                              <label>Sponsor</label>
+                              <span>
+                                  <a (click)="setCurrentProposalTab()" routerLink='/fibi/instituteproposal'
+                                      [queryParams]="{instituteProposalId:elasticResultObject.proposal_id}">{{ elasticResultObject?.sponsor}}
+                                  </a>
+                              </span>
+                          </div>
+                          <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-3">
+                              <label>Type</label>
+                              <span>
+                                  <a (click)="setCurrentProposalTab()" routerLink='/fibi/instituteproposal'
+                                      [queryParams]="{instituteProposalId:elasticResultObject.proposal_id}">{{ elasticResultObject?.proposal_type}}
+                                  </a>
+                              </span>
+                          </div>
+                          <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-3">
+                              <label><ng-container i18n="@@COMMON_CATEGORY_PROPOSAL">Category</ng-container></label>
+                              <span>
+                                  <a (click)="setCurrentProposalTab()" routerLink='/fibi/instituteproposal'
+                                      [queryParams]="{instituteProposalId:elasticResultObject.proposal_id}">{{ elasticResultObject?.activity_type}}
+                                  </a>
+                              </span>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+      <div class="row">
+          <div class="collapse w-100" id="collapseInstituteProposal">
+              <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                  <div class="card">
+                      <div class="card-body gridSkin">
+                          <!-- advance search options -->
+                          <div class="form-row">
+                              <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6 col-12">
+                                  <label class="d-block">Institute Proposal #</label>
+                                  <input type="text" id="adv-search-proposal-no" placeholder="Institute Proposal #"
+                                      maxlength="60" [(ngModel)]="tempProposalRequestObject.property1"
+                                      class="form-control" (keyup.enter)="setAdvanceSearchValuesToServiceObject();searchUsingAdvanceOptions()" />
+                              </div>
+                              <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12">
+                                  <label class="d-block">Title</label>
+                                  <input type="text" id="adv-search-proposal-title" placeholder="Title" maxlength="60"
+                                      [(ngModel)]="tempProposalRequestObject.property2" class="form-control"
+                                      (keyup.enter)="setAdvanceSearchValuesToServiceObject();searchUsingAdvanceOptions()" />
+                              </div>
+                              <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12">
+                                  <label class="d-block">Status</label>
+                                  <app-look-up [options]='proposalStatusOptions'
+                                      [selectedLookUpList]="lookupValues['property3']" (keydown.enter)="setAdvanceSearchValuesToServiceObject();searchUsingAdvanceOptions()"
+                                      (selectedResult)="onLookupSelectIntegerValues($event, 'property3')">
+                                  </app-look-up>
+                              </div>
+                              <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12">
+                                  <label class="d-block"><ng-container i18n="@@COMMON_CATEGORY_PROPOSAL">Category</ng-container></label>
+                                  <app-look-up [options]='proposalTypeOptions'
+                                      [selectedLookUpList]="lookupValues['property4']" (keydown.enter)="setAdvanceSearchValuesToServiceObject();searchUsingAdvanceOptions()"
+                                      (selectedResult)="onLookupSelect($event, 'property4')"></app-look-up>
+                              </div>
+                              <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6 col-12">
+                                  <label class="d-block pb-1">Proposal Type</label>
+                                  <app-look-up [options]='proposalsTypeOptions'
+                                      [selectedLookUpList]="lookupValues['property7']" (keydown.enter)="setAdvanceSearchValuesToServiceObject();searchUsingAdvanceOptions()"
+                                      (selectedResult)="onLookupSelectIntegerValues($event, 'property7')">
+                                  </app-look-up>
+                              </div>
+                              <div class="col-xl-4 col-lg-5 col-md-6 col-12">
+                                  <label class="d-none d-sm-inline-block">Principal Investigator</label>
+                                  <label class="d-sm-none">PI</label>
+                                  <span class="float-right">
+                                      <input id="employee" type="radio" name='employee_nonemployee' [value]='true'
+                                          [(ngModel)]="isEmployeeFlag" checked="true" (change)="changeMemberType()">
+                                      <label for="employee" class="fs-14">
+                                          Employee
+                                      </label>
+                                      <input id="non-employee" type="radio" name='employee_nonemployee'
+                                          [value]='false' [(ngModel)]="isEmployeeFlag" (change)="changeMemberType()">
+                                      <label for="non-employee" class="fs-14">
+                                          Non-Employee
+                                      </label>
+                                  </span>
+                                  <app-elastic
+                                      [placeHolder]="isEmployeeFlag ? 'Search an employee': 'Search a non-employee' "
+                                      (selectedResult)="selectedFilter($event)" (keyup)="emptyValidationKeyup($event)"
+                                      [options]="elasticPersonSearchOptions" [clearField]="advSearchClearField">
+                                  </app-elastic>
+                              </div>
+                              <div class="col-xl-3 col-lg-5 col-sm-6 col-12">
+                                  <label class="d-block pb-1">Sponsor</label>
+                                  <app-endpoint-search [httpOptions]="fundingAgencySearchOptions"
+                                      [clearField]="clearFieldFundingAgency" [placeHolder]="'Sponsor'" (keydown.enter)="setAdvanceSearchValuesToServiceObject();searchUsingAdvanceOptions()"
+                                      (onSelect)="setFundungAgencyForAdancedSearch($event)">
+                                  </app-endpoint-search>
+                              </div>
+                              <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6 col-12 d-sm-flex align-items-end">
+                                  <button id="adv-search-clear-proposal" title="Clear"
+                                      class="btn btn-secondary btn-sm btn-xs mr-sm-2 mr-0"
+                                      (click)="clearAdvanceSearchField();loadDashboard();">Clear</button>
+                                  <button id="adv-search-proposal" title="Search"
+                                      class="btn btn-primary btn-sm btn-xs"
+                                      (click)="_insitutelistService.proposalRequestServiceObject.currentPage=1;setAdvanceSearchValuesToServiceObject();searchUsingAdvanceOptions()">Search</button>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+      <div class="table-responsive" *ngIf="(serviceRequestList != null && serviceRequestList?.length != 0)">
+          <table class="table tableSkin mb-0">
+              <caption class="sr-only"><ng-container i18n="@@COMMON_IP_LIST">Institute Proposal List</ng-container></caption>
+              <thead class="header-border">
+                  <tr>
+                      <th id="sortby-proposal-id" (click)="sortResult('proposalNumber')" class="hand-cursor"
+                          title="Click to sort by Proposal Id" tabindex="0">Institute Proposal #
+                          <i aria-hidden="true" *ngIf="!_insitutelistService.proposalRequestServiceObject.sort['proposalNumber']"
+                              class="fa fa-sort-numeric-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_insitutelistService.proposalRequestServiceObject.sort['proposalNumber'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_insitutelistService.proposalRequestServiceObject.sort['proposalNumber'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"></i>
+                      </th>
+                      <th style="width: 24%" scope="col" (click)="sortResult('title')" class="hand-cursor"
+                          title="Click to sort by Proposal Title" tabindex="0">Title
+                          <i aria-hidden="true" *ngIf="!_insitutelistService.proposalRequestServiceObject.sort['title']"
+                              class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_insitutelistService.proposalRequestServiceObject.sort['title'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_insitutelistService.proposalRequestServiceObject.sort['title'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                      </th>
+                      <th id="sortby-proposal-PI" (click)="sortResult('instProposalPersons.fullName')"
+                          class="hand-cursor" title="Click to sort by Principal Investigator" tabindex="0">Principal Investigator
+                          <i aria-hidden="true" *ngIf="!_insitutelistService.proposalRequestServiceObject.sort['instProposalPersons.fullName']"
+                              class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_insitutelistService.proposalRequestServiceObject.sort['instProposalPersons.fullName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_insitutelistService.proposalRequestServiceObject.sort['instProposalPersons.fullName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                      </th>
+                      <th id="sortby-proposal-category" (click)="sortResult('activityType')"
+                          class="text-nowrap hand-cursor" title="Click to sort by category" tabindex="0"><ng-container i18n="@@COMMON_CATEGORY_PROPOSAL">Category</ng-container>
+                            <i aria-hidden="true" *ngIf="!_insitutelistService.proposalRequestServiceObject.sort['activityType']" class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_insitutelistService.proposalRequestServiceObject.sort['activityType'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_insitutelistService.proposalRequestServiceObject.sort['activityType'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                      </th>
+                      <th id="sortby-proposal-type" (click)="sortResult('instProposalType.description')"
+                          class="hand-cursor" title="Click to sort by type" tabindex="0">Type
+                          <i aria-hidden="true" *ngIf="!_insitutelistService.proposalRequestServiceObject.sort['instProposalType.description']"
+                              class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_insitutelistService.proposalRequestServiceObject.sort['instProposalType.description'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_insitutelistService.proposalRequestServiceObject.sort['instProposalType.description'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                      </th>
+                      <th id="sortby-proposal-status" (click)="sortResult('instProposalStatus.description')"
+                          class="text-nowrap hand-cursor" title="Click to sort by status" tabindex="0">Status
+                          <i aria-hidden="true" *ngIf="!_insitutelistService.proposalRequestServiceObject.sort['instProposalStatus.description']"
+                              class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_insitutelistService.proposalRequestServiceObject.sort['instProposalStatus.description'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_insitutelistService.proposalRequestServiceObject.sort['instProposalStatus.description'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                      </th>
+                      <th id="sortby-proposal-sponsor" (click)="sortResult('sponsorName')" class="hand-cursor"
+                          title="Click to sort by sponsor name" tabindex="0">Sponsor
+                          <i aria-hidden="true" *ngIf="!_insitutelistService.proposalRequestServiceObject.sort['sponsorName']"
+                              class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_insitutelistService.proposalRequestServiceObject.sort['sponsorName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_insitutelistService.proposalRequestServiceObject.sort['sponsorName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                      </th>
+                      <th id="sortby-proposal-sponsor-deadline" (click)="sortResult('submissionDate')"
+                          class="hand-cursor" title="Click to sort by Submission Date" tabindex="0">Submission Date
+                          <i aria-hidden="true" *ngIf="!_insitutelistService.proposalRequestServiceObject.sort['submissionDate']"
+                              class="fa fa-sort-numeric-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_insitutelistService.proposalRequestServiceObject.sort['submissionDate'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_insitutelistService.proposalRequestServiceObject.sort['submissionDate'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"></i>
+                      </th>
+                      <!-- <th id="sortby-proposal-created-by" (click)="sortResult('createUser')" class="hand-cursor" title="Click to sort by Created By">Created By
+            <i aria-hidden="true"  [ngClass]="((proposalRequestObject.sortBy == 'createUser') ? (isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+          </th> -->
+                      <th scope="col" style="width: 9%" tabindex="0">Actions</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  <tr class="pull-up" *ngFor="let proposal of serviceRequestList; let i =index" [@fadeDown]>
+                      <td (click)="viewInstProposalById(proposal)" tabindex="0">{{proposal?.proposalNumber}}</td>
+                      <td (click)="viewInstProposalById(proposal)"
+                          [title]="(proposal?.title).length>40 ? proposal?.title: ''" tabindex="0">
+                          {{ (proposal?.title).length>40 ? (proposal?.title | slice:0:60)+'...' : proposal?.title}}
+                      </td>
+                      <td (click)="viewInstProposalById(proposal)" tabindex="0">
+                          {{proposal?.principalInvestigator}}</td>
+                      <td (click)="viewInstProposalById(proposal)" tabindex="0">
+                          {{proposal?.applicationActivityType}}</td>
+                      <td (click)="viewInstProposalById(proposal)" tabindex="0">{{proposal?.applicationType}}
+                      </td>
+                      <td (click)="viewInstProposalById(proposal)" tabindex="0">{{proposal?.applicationStatus}}
+                      </td>
+                      <td (click)="viewInstProposalById(proposal)" tabindex="0">{{proposal?.sponsorName}}</td>
+                      <td (click)="viewInstProposalById(proposal)" tabindex="0">
+                          {{proposal?.submissionDate | dateFormatter}}</td>
+                      <!-- <td (click)="viewInstProposalById(proposal)">{{proposal?.createUser}}</td> -->
+                      <td style="padding: 0px !important;">
+                          <ul class="actionButtonGroup">
+                              <li>
+                                  <a title="Open proposal {{proposal?.proposalNumber}}" class="pointer"
+                                      id="open-proposal-btn"
+                                      (click)="viewInstProposalById(proposal)" tabindex="0">
+                                      <i aria-hidden="true" class="fa fa-eye pointer"></i>
+                                  </a>
+                              </li>
+                          </ul>
+                      </td>
+                  </tr>
+              </tbody>
+          </table>
+      </div>
+
+      <div class="no-data-container" *ngIf="serviceRequestList?.length == 0">
+          <span class="no-data-icon-outer">
+              <div class="no-data-icon">
+                  <i class="fa fa-file-o" aria-hidden="true"></i>
+                  <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+              </div>
+          </span>
+          <h4>There is no information in this section.</h4>
+      </div>
+      <!-- Pagination -->
+      <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12"
+          *ngIf="serviceRequestList !== null && serviceRequestList?.length !== 0">
+          <nav class="pagination justify-content-end">
+              <app-pagination [totalCount]="result.totalServiceRequest"
+                  (pageChangeEvent)="actionsOnPageChange($event)">
+              </app-pagination>
+          </nav>
+      </div>
+  </div>
+</div>
+
+<div class="modal fade show mySkinDialog" tabindex="-1" id="newVersionAlreadyExist" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <ng-container>There is pending version for this Institute Proposal.</ng-container>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body px-3 py-2">
+                <div class="gridSkin">
+                    <div class="row mb-3">
+                        <!-- IP Number -->
+                        <div class="col-xl-2 col-lg-9 col-md-6 col-sm-12 col-9">
+                            <label>
+                                <ng-container>Institute Proposal # </ng-container>
+                            </label>
+                            <span class="d-block" [ngClass]="modalHeaderIPDetails?.proposalNumber ? '' : 'noDataExists'">
+                                {{modalHeaderIPDetails?.proposalNumber ? modalHeaderIPDetails?.proposalNumber:
+                                'Not Available'}}</span>
+                        </div>
+                        <!-- Title -->
+                        <div class="col-xl-4 col-lg-3 col-md-6 col-sm-12 col-3">
+                            <label>Title</label>
+                            <span class="d-block" [ngClass]="modalHeaderIPDetails?.title ? '' : 'noDataExists'">
+                                {{modalHeaderIPDetails?.title ? ((modalHeaderIPDetails?.title?.length>40)?(modalHeaderIPDetails?.title | slice :0:60)+'...':(modalHeaderIPDetails?.title)): 'Not Available'}}</span>
+                        </div>
+                        <!-- Principal Investigator -->
+                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-3">
+                            <label>Principal Investigator</label>
+                            <span class="d-block"
+                                [ngClass]="modalHeaderIPDetails?.principalInvestigator ? '' : 'noDataExists'">
+                                {{modalHeaderIPDetails?.principalInvestigator ?
+                                modalHeaderIPDetails?.principalInvestigator: 'Not Available'}}</span>
+                        </div>
+                        <!-- Lead Unit -->
+                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-3">
+                            <label>Lead Unit</label>
+                            <span class="d-block" [ngClass]="modalHeaderIPDetails?.homeUnitNumber ? '' : 'noDataExists'">
+                                {{modalHeaderIPDetails?.homeUnitNumber}}- {{modalHeaderIPDetails.homeUnitName}}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="modalIPVersions?.instProposalSummaryDetails?.length ===2">
+                    <div *ngFor="let instituteProposalList of modalIPVersions?.instProposalSummaryDetails" class="my-2 py-2 pl-3 pr-2 align-items-center d-flex"
+                    [ngClass]="instituteProposalList.proposalSequenceStatus ==='ACTIVE'?'border-bottom':''">                        <div class="mr-auto">
+                            <span>Open 
+                                <span>{{instituteProposalList?.proposalSequenceStatus==='PENDING'?'Pending':'Active'}}</span> Version
+                            </span>
+                        </div>
+                        <div>
+                            <a class="anchor-link mr-4"
+                                title="View Institute Proposal#{{instituteProposalList?.instProposalNumber}}"
+                                (click)="openIPInNewTab(instituteProposalList?.proposalId)">
+                                Open
+                                <i aria-hidden="true" class="fa fa-external-link-square mr-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary mr-2" data-dismiss="modal">Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+

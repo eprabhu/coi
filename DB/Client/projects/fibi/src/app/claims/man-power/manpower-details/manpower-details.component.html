@@ -1,0 +1,340 @@
+<div class="card mt-4">
+    <div class="card-header">
+        <h4 class="card-title justify-content-between d-flex align-items-center">
+            Manpower listing of all the staff(Employed/Supported by NRF grant)
+        </h4>
+    </div>
+    <div *ngIf="claimManpowerObject?.allAwardManpowerResource?.length" class="card-content">
+        <div class="card-body">
+            <div class="success-banner p-2 mb-4 d-flex align-items-center">
+                <i aria-hidden="true" class="fa fa-info-circle mr-1 info-icon"></i>
+                <em class="text-secondary">Please include the names of any new staff to the list,as the project
+                    progresses. Please ensure that every staff (Employed/Supported by NRF grant) under the project is
+                    accounted.</em>
+            </div>
+            <div class="mt-2 overflow-auto">
+                <table aria-describedby="reimbursement-summary"
+                       class="table mb-0 tableSkin grid2 manpower-table table-inner">
+                    <thead>
+                    <tr>
+                        <th scope="col">S/N</th>
+                        <th style="width: 10%;" scope="col">Name of Staff</th>
+                        <th scope="col">Job Designation</th>
+
+                        <th scope="col">Birth Date</th>
+                        <th scope="col">Category
+                            <span class="d-inline-block ">
+                                <a class="tooltip "><i aria-hidden="true" class="fa fa-info-circle fa-med"></i>
+                                    <div class="tooltiptext-left card card-inner p-15 text-left">
+                                    <span class="font-cv font-weight-bold">
+                                    (PI, Co-PI, RSE, PostDoc,PhD, Masters, Undergrad,
+                                    Student Assistants/Interns or Others)</span>
+                                    </div>
+                                </a>
+                                </span>
+                        </th>
+                        <th scope="col">If other category, please indicate</th>
+                        <th scope="col">Nationality
+                            <span class="d-inline-block ">
+                            <a class="tooltip "><i aria-hidden="true" class="fa fa-info-circle fa-med"></i>
+                            <div class="tooltiptext-left card card-inner p-15 text-left">
+                            <span class="font-cv font-weight-bold">
+                            (Singapore Citizens, Permanent Residents or Foreign
+                            Citizens)</span>
+                            </div>
+                            </a>
+                            </span></th>
+                        <th scope="col">If foreign citizen,Indicate the country of citizenship</th>
+                        <th scope="col">Highest Education Obtained</th>
+                        <th scope="col">Overall Project Involvement Period</th>
+
+                        <th scope="col">% Effort within Job Scope</th>
+                        <th scope="col">Involvement period for current claim From
+                        </th>
+                        <th scope="col">Involvement period for current claim To
+                        </th>
+                        <th scope="col">Start Date of Employment</th>
+                        <th scope="col">End Date of Employment</th>
+                        <th scope="col">Current Status
+                            <span class="d-inline-block ">
+                                <a class="tooltip "><i aria-hidden="true" class="fa fa-info-circle fa-med"></i>
+                                <div class="tooltiptext-right card card-inner p-15 text-left">
+                                <span class="font-cv font-weight-bold">
+                                (Employed/ Resigned)</span>
+                                </div>
+                                </a>
+                                </span>
+                        </th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <ng-container
+                            *ngFor="let manpower of claimManpowerObject.allAwardManpowerResource; let currentIndex = index">
+                        <tr>
+                            <td>{{currentIndex + 1}}</td>
+                            <td>{{manpower?.fullName}}</td>
+                            <td>{{manpower?.manpowerJobProfileType?.defaultJobTitle}}</td>
+                            <td>{{manpower?.dateOfBirth|dateFormatter}}</td>
+                            <td></td>
+                            <td></td>
+                            <td>{{manpower?.manpower?.decryptedNationality}}</td>
+                            <td>{{manpower?.manpower?.decryptedCitizenShip}}</td>
+                            <td></td>
+                            <td>{{manpower?.chargeStartDate | dateFormatter}}
+                                <span *ngIf="manpower?.chargeStartDate || manpower?.chargeEndDate">-</span>
+                                {{manpower?.chargeEndDate | dateFormatter}}</td>
+                            <td *ngIf="manpower?.costAllocation !== ''&& manpower?.costAllocation !== null">
+                                {{manpower?.costAllocation}}%</td>
+                            <td class="text-center" *ngIf="manpower?.costAllocation === ''
+                            || manpower?.costAllocation === null">-</td>
+                            <td>{{manpower?.involvementFrom | dateFormatter}}</td>
+                            <td>{{manpower?.involvementTo | dateFormatter}}</td>
+                            <td>{{manpower?.manpower?.hireDate | dateFormatter}}</td>
+                            <td>{{manpower?.manpower?.contractEndDate | dateFormatter}}</td>
+                            <td >{{manpower?.personStatus}}
+                            </td>
+                            <td class="action-btn">
+                                <ul class="actionButtonGroup">
+                                    <li *ngIf="!isRowEditMode[currentIndex] && isEditMode">
+                                        <a class="hand-cursor" id="manpower-edit-btn" title="Edit Manpower Details">
+                                            <i (click)="editManPowerDetails(currentIndex, manpower)" aria-hidden="true"
+                                               class="fa fa-pencil"></i>
+                                        </a>
+                                    </li>
+                                    <li *ngIf="isRowEditMode[currentIndex] && isEditMode">
+                                        <a class="hand-cursor" id="manpower-save-btn" title="Save Manpower Details">
+                                            <i (click)="saveManpowerDetails(manpower, currentIndex)" aria-hidden="true"
+                                               class="fa fa-save"></i>
+                                        </a>
+                                    </li>
+                                    <li *ngIf="isRowEditMode[currentIndex] && isEditMode">
+                                        <a class="hand-cursor" id="manpower-cancel-btn" title="Cancel Edit Details">
+                                            <i (click)="cancelEdit(currentIndex)"
+                                               aria-hidden="true"
+                                               class="fa fa-remove"></i>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="hand-cursor" id="manpower-accordion-btn" title="Additional Details">
+                                            <i (click)="toggleManualDetails(currentIndex, manpower)"
+                                               [ngClass]="isManpowerDetailsOpen[currentIndex] ?' fa fa-angle-double-up':' fa fa-angle-double-down'"
+                                               aria-hidden="true"
+                                               class="f-20"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr *ngIf="isManpowerDetailsOpen[currentIndex]">
+                            <ng-container>
+                                <td colspan="17">
+                                    <div class="card py-4">
+                                        <div class="row">
+                                            <div class="ml-4 section-width">
+                                                <div class="mx-4 pb-2 text-right">Last updated:
+                                                    <span class="font-weight-bold">{{currentEditEntry?.updateUserFullName}}</span> on <span class="font-weight-bold">{{currentEditEntry?.updateTimeStamp | dateFormatterWithTimeZone:'long'}}</span>
+                                                </div>
+                                                <div class="bg-color mx-4 p-4">
+                                                    <label class="d-block f-15">Q) Institution</label>
+                                                    <div class="answer-field p-0 mn-ml-2">
+                                                        <input *ngIf="isRowEditMode[currentIndex]"
+                                                               [(ngModel)]="currentEditEntry.institution"
+                                                               class="form-control w-50"
+                                                               type="text"/>
+                                                    </div>
+                                                    <ng-container *ngIf="!isRowEditMode[currentIndex]">
+                                                        <span class="d-block fw-500 mn-ml-2 content-color">{{currentEditEntry?.institution}}</span>
+                                                        <span *ngIf="currentEditEntry?.institution== null"
+                                                              class="noDataExists fw-500 mn-ml-2">No Institution Specified</span>
+                                                    </ng-container>
+                                                </div>
+                                                <div class="bg-color mx-4 p-4 mt-4">
+                                                    <label class="d-block f-15">Q) Employed/Supported Using NRF Grant</label>
+                                                    <ng-container *ngIf="isRowEditMode[currentIndex]">
+                                                        <div class="form-check form-check-inline mn-ml-2">
+                                                            <input [(ngModel)]="currentEditEntry.isGrantUsed"
+                                                                   [value]="true"
+                                                                   class="radio-inline" id="inlineRadio1"
+                                                                   name="inlineRadioOptions"
+                                                                   type="radio">
+                                                            <label class="ml-2 form-check-label"
+                                                                   for="inlineRadio1">Yes</label>
+                                                        </div>
+                                                        <div class="form-check form-check-inline">
+                                                            <input [(ngModel)]="currentEditEntry.isGrantUsed"
+                                                                   [value]="false"
+                                                                   class="radio-inline" id="inlineRadio2"
+                                                                   name="inlineRadioOptions"
+                                                                   type="radio">
+                                                            <label class="ml-2 form-check-label"
+                                                                   for="inlineRadio2">No</label>
+                                                        </div>
+                                                    </ng-container>
+                                                    <ng-container *ngIf="!isRowEditMode[currentIndex]">
+                                                        <span *ngIf="currentEditEntry?.isGrantUsed!= null"
+                                                              class="d-block fw-500 mn-ml-2 content-color">{{currentEditEntry?.isGrantUsed ? 'Yes' : 'No'}}</span>
+                                                        <span *ngIf="currentEditEntry?.isGrantUsed== null"
+                                                              class="noDataExists fw-500 mn-ml-2">No Data Specified</span>
+                                                    </ng-container>
+                                                </div>
+                                                <div class="bg-color mx-4 p-4 mt-4"  *ngIf="!currentEditEntry.isGrantUsed && currentEditEntry.isGrantUsed != null">
+                                                    <label class="d-block f-15">Q) If not employed/supported using NRF Grant, indicate source of funding e.g. MOE scholarship</label>
+                                                    <div class="answer-field p-0 mn-ml-2">
+                                                        <input *ngIf="isRowEditMode[currentIndex]"
+                                                               [(ngModel)]="currentEditEntry.sourceOfFunding"
+                                                               class="form-control w-50"
+                                                               type="text"/>
+                                                    </div>
+                                                    <ng-container *ngIf="!isRowEditMode[currentIndex]">
+                                                        <span class="d-block fw-500 mn-ml-2 content-color">{{currentEditEntry?.sourceOfFunding}}</span>
+                                                        <span *ngIf="currentEditEntry?.sourceOfFunding== null"
+                                                              class="noDataExists fw-500 mn-ml-2">No Source Of Funding Specified</span>
+                                                    </ng-container>
+                                                </div>
+                                                <div class="bg-color mx-4 p-4 mt-4">
+                                                    <label class="d-block f-15">Q) For “Foreign” staff, were ‘Nationality Waiver’ approval sought from NRF/MOE?</label>
+                                                    <ng-container *ngIf="isRowEditMode[currentIndex]">
+                                                        <div class="form-check form-check-inline mn-ml-2">
+                                                            <input [(ngModel)]="currentEditEntry.isApprovedForForeignStaff"
+                                                                   (ngModelChange)="currentEditEntry.nationalityWaiverDesc = null"
+                                                                   [value]="true"
+                                                                   class="radio-inline"
+                                                                   id="inlineRadio3" name="inlineRadioOptions1"
+                                                                   type="radio">
+                                                            <label class="ml-2 form-check-label"
+                                                                   for="inlineRadio3">Yes</label>
+                                                        </div>
+                                                        <div class="form-check form-check-inline">
+                                                            <input [(ngModel)]="currentEditEntry.isApprovedForForeignStaff"
+                                                                   (ngModelChange)="currentEditEntry.dateOfApproval = null"
+                                                                   [value]="false"
+                                                                   class="radio-inline"
+                                                                   id="inlineRadio4" name="inlineRadioOptions1"
+                                                                   type="radio">
+                                                            <label class="ml-2 form-check-label"
+                                                                   for="inlineRadio4">No</label>
+                                                        </div>
+                                                    </ng-container>
+                                                    <ng-container *ngIf="!isRowEditMode[currentIndex]">
+                                                                    <span *ngIf="currentEditEntry?.isApprovedForForeignStaff!= null"
+                                                                          class="d-block fw-500 mn-ml-2 content-color">{{currentEditEntry?.isApprovedForForeignStaff ? 'Yes' : 'No'}}</span>
+                                                        <span *ngIf="currentEditEntry?.isApprovedForForeignStaff== null"
+                                                              class="noDataExists fw-500 mn-ml-2">No Data Specified</span>
+                                                    </ng-container>
+                                                </div>
+                                                <div class="bg-color mx-4 p-4 mt-4" *ngIf="currentEditEntry.isApprovedForForeignStaff != null">
+                                                    <label class="d-block f-15">Q) {{currentEditEntry.isApprovedForForeignStaff != null && currentEditEntry.isApprovedForForeignStaff ? "If “YES”, please indicate the ‘Date of Approval’ from NRF/MOE." : "If “NO”, please explain why"}}</label>
+                                                    <div *ngIf="isRowEditMode[currentIndex]"
+                                                         class="answer-field p-0 mn-ml-2">
+                                                        <textarea *ngIf="isRowEditMode[currentIndex] && currentEditEntry.isApprovedForForeignStaff != null && !currentEditEntry.isApprovedForForeignStaff"
+                                                               [(ngModel)]="currentEditEntry.nationalityWaiverDesc" class="form-control w-75" type="text" appAutoGrow></textarea>
+                                                        <span *ngIf="isRowEditMode[currentIndex] && currentEditEntry.isApprovedForForeignStaff != null && currentEditEntry.isApprovedForForeignStaff"
+                                                              class="dateField w-25">
+                                                                    <input matInput [matDatepicker]="fromDate" [(ngModel)]="currentEditEntry.dateOfApproval"
+                                                                           (click)="fromDate.open()"
+                                                                           autocomplete="off"
+                                                                           class="d-inline-block form-control"
+                                                                           id="reqDate"
+                                                                           placeholder="{{datePlaceHolder}}"
+                                                                           style="width: 100% !important">
+                                                                    <i (click)="fromDate.open()" aria-hidden="true"
+                                                                       class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                                                       id="from-date-icon" title="Open Calendar"></i>
+                                                                    <mat-datepicker #fromDate
+                                                                                   (opened)="setFocusToElement('reqDate')"></mat-datepicker>
+                                                                </span>
+                                                    </div>
+                                                    <ng-container *ngIf="!isRowEditMode[currentIndex]">
+                                                                    <span *ngIf="currentEditEntry?.isApprovedForForeignStaff!= null && currentEditEntry?.isApprovedForForeignStaff"
+                                                                          class="d-block fw-500 mn-ml-2 content-color">{{currentEditEntry?.dateOfApproval | dateFormatter}}</span>
+                                                        <span *ngIf="currentEditEntry?.isApprovedForForeignStaff!= null && !currentEditEntry?.isApprovedForForeignStaff"
+                                                              class="d-block fw-500 mn-ml-2 content-color">{{currentEditEntry?.nationalityWaiverDesc}}</span>
+                                                        <span *ngIf="currentEditEntry?.isApprovedForForeignStaff== null || (currentEditEntry?.nationalityWaiverDesc == null && currentEditEntry?.dateOfApproval == null)"
+                                                              class="noDataExists fw-500 mn-ml-2">No Data Specified</span>
+                                                    </ng-container>
+                                                </div>
+                                                <div class="bg-color mx-4 p-4 mt-4">
+                                                    <label class="d-block f-15">Q) Does this Job Type require a PhD Qualification?</label>
+                                                    <ng-container *ngIf="isRowEditMode[currentIndex]">
+                                                        <div class="form-check form-check-inline mn-ml-2">
+                                                            <input [(ngModel)]="currentEditEntry.isJobReqPHDQualification"
+                                                                   [value]="true"
+                                                                   class="radio-inline" id="inlineRadio6"
+                                                                   name="inlineRadioOptions2"
+                                                                   type="radio">
+                                                            <label class="ml-2 form-check-label"
+                                                                   for="inlineRadio6">Yes</label>
+                                                        </div>
+                                                        <div class="form-check form-check-inline">
+                                                            <input [(ngModel)]="currentEditEntry.isJobReqPHDQualification"
+                                                                   [value]="false"
+                                                                   class="radio-inline" id="inlineRadio7"
+                                                                   name="inlineRadioOptions2"
+                                                                   type="radio">
+                                                            <label class="ml-2 form-check-label"
+                                                                   for="inlineRadio7">No</label>
+                                                        </div>
+                                                    </ng-container>
+                                                    <ng-container *ngIf="!isRowEditMode[currentIndex]">
+                                                                    <span *ngIf="currentEditEntry?.isJobReqPHDQualification!= null"
+                                                                          class="d-block fw-500 mn-ml-2 content-color">{{currentEditEntry?.isJobReqPHDQualification ? 'Yes' : 'No'}}</span>
+                                                        <span *ngIf="currentEditEntry?.isJobReqPHDQualification== null"
+                                                              class="noDataExists fw-500 mn-ml-2">No Data Specified</span>
+                                                    </ng-container>
+                                                </div>
+                                                <div class="bg-color mx-4 p-4 mt-4">
+                                                    <label class="d-block f-15">Q) Proportion of Time to be spent on SIG Prog (%)</label>
+                                                    <div *ngIf="isRowEditMode[currentIndex]" class="answer-field p-0 mn-ml-2">
+                                                        <input (keyup)="limitKeypress(currentEditEntry.percntgeTimeSpentOnProg, 'percentage', progressPercentage)"
+                                                               [(ngModel)]="currentEditEntry.percntgeTimeSpentOnProg"
+                                                               [ngClass]="progressPercentage?.has('percentage') ? 'is-invalid' : ''"
+                                                               class="form-control w-25"
+                                                               type="number"
+                                                        />
+                                                    </div>
+                                                    <ng-container *ngIf="!isRowEditMode[currentIndex]">
+                                                        <span class="d-block fw-500 mn-ml-2 content-color">{{currentEditEntry?.percntgeTimeSpentOnProg}}</span>
+                                                        <span *ngIf="currentEditEntry?.percntgeTimeSpentOnProg== null || currentEditEntry?.percntgeTimeSpentOnProg===''"
+                                                              class="noDataExists fw-500 mn-ml-2">No Data Specified</span>
+                                                    </ng-container>
+                                                    <div *ngIf="(progressPercentage?.has('percentage'))">
+                                                        <span class="mandatory font-weight-normal font mn-ml-2">{{progressPercentage?.get('percentage')}}</span>
+                                                    </div>
+                                                </div>
+                                                <div class="text-right pr-4 pt-4" *ngIf="isEditMode">
+                                                    <ng-container *ngIf="isRowEditMode[currentIndex]">
+                                                        <button class="btn btn-secondary btn-sm" title="Cancel Edit Details" (click)="cancelEdit(currentIndex)">Cancel</button>
+                                                        <button class="btn btn-primary-sub btn-sm" title="Save Manpower Details" (click)="saveManpowerDetails(manpower, currentIndex)">Save</button>
+                                                    </ng-container>
+                                                    <button class="btn btn-primary-sub btn-sm"  *ngIf="!isRowEditMode[currentIndex]"
+                                                            title="Edit Manpower Details" (click)="editManPowerDetails(currentIndex, manpower)">Edit</button>
+                                                </div>
+                                            </div>
+                                            <div></div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </ng-container>
+
+                        </tr>
+                    </ng-container>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div *ngIf="!claimManpowerObject?.allAwardManpowerResource?.length" class="card mt-2">
+        <div class="d-flex align-items-center justify-content-center height-adjust">
+            <div class="no-data-container">
+                <span class="no-data-icon-outer">
+                    <div class="no-data-icon">
+                        <i aria-hidden="true" class="fa fa-file-o"></i>
+                        <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                    </div>
+                </span>
+                <h4>There is no information in this section.</h4>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,270 @@
+<div class="row g-3">
+    <!-- notification banner -->
+    <div class="col-12" *ngIf="isShowNotification">
+        <app-coi-notification-banner [notificationType]="warning" [(isShowNotification)]="isShowNotification">
+            <span notification-content [innerHTML]="notificationText"></span>
+        </app-coi-notification-banner>
+    </div>
+         <!-- fcoi card -->
+    <div *ngIf="commonService.isShowFinancialDisclosure && ((!fcoiDisclosureCard && commonService.isDisclosureRequired) || fcoiDisclosureCard)"
+        class="col-12" [ngClass]="(commonService?.isShowOpaDisclosure && (cardOPADisclosure || (!cardOPADisclosure && commonService.canCreateOPA))) ? 'col-xl-6' : 'col-xl-12'">
+        <div class="card shadow-sm h-100">
+            <div class="d-flex card-body flex-column flex-md-row align-items-start align-items-md-center p-2">
+                <div *ngIf="fcoiDisclosureCard" class="d-flex flex-column flex-grow-1">
+                    <div class="d-flex align-items-start align-items-md-center">
+                        <div
+                            class="align-items-center d-inline-flex justify-content-center me-2 flex-shrink-0 warning-icon-wrapper">
+                            <mat-icon class="mat-icon material-icons" aria-hidden="true">
+                                article
+                            </mat-icon>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center">
+                                <span class="fw-bold me-md-2 mb-md-0">{{ COMMON_DISCL_LOCALIZE.TERM_COI }} Disclosure</span>
+                                <div [attr.aria-label]="fcoiDisclosureCard?.expirationDate | dateFormatterWithTimeZone" class="d-flex gap-1 badge expiration-date fs-12 fw-normal">
+                                    <span id="coi-user-disclosure-fcoi-notpending-card-value-exp-date">Expiration Date:</span>
+                                    <app-no-data-label [valueToShow]="fcoiDisclosureCard?.expirationDate">
+                                        <span class="fs-12 fw-normal">{{ fcoiDisclosureCard?.expirationDate | dateFormatterWithTimeZone }}</span>
+                                    </app-no-data-label>
+                                </div>
+                                <div *ngIf="fcoiDisclosureCard?.isExtended && fcoiDisclosureCard?.expirationDate" class="ms-2">
+                                    <app-common-extended-badge></app-common-extended-badge>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-wrap">
+                                <span class="pe-3">
+                                    <span class="coi-text-lighter"><ng-container
+                                            i18n="@@COMMON_DISCLOSURE_STATUS">Disclosure Status:</ng-container></span>
+                                    <span [attr.aria-label]="fcoiDisclosureCard?.coiConflictStatusType?.description">
+                                        <app-no-data-label [valueToShow]="fcoiDisclosureCard?.coiConflictStatusType?.description">
+                                            <span class="ml-2">
+                                                <span
+                                                    class="{{ disclosureConflictStatusBadge[fcoiDisclosureCard?.coiConflictStatusType?.conflictStatusCode] || 'yellow-badge' }}"></span>
+                                                <span class="coi-text-light fw-bold"
+                                                    id="coi-user-disclosure-fcoi-notpending-card-value-disc-status">
+                                                    {{ fcoiDisclosureCard?.coiConflictStatusType?.description }}
+                                                </span>
+                                            </span>
+                                        </app-no-data-label>
+                                    </span>
+                                </span>
+                                <span>
+                                    <span class="coi-text-lighter"><ng-container i18n="@@COI_REVIEW_STATUS">Review
+                                            Status:
+                                        </ng-container></span>
+                                    <span [attr.aria-label]="fcoiDisclosureCard?.coiReviewStatusType?.description">
+                                        <span
+                                            class="{{coiReviewStatusBadge[fcoiDisclosureCard?.coiReviewStatusType?.reviewStatusCode] || 'red-badge'}} ml-2"></span>
+                                        <span class="coi-text-light fw-bold"
+                                            id="coi-user-disclosure-fcoi-notpending-card-value-review-status">
+                                            {{ fcoiDisclosureCard?.coiReviewStatusType?.description }}
+                                        </span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="!fcoiDisclosureCard" class="d-flex flex-column">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="d-inline-flex align-items-center justify-content-center flex-shrink-0 add-icon-wrapper">
+                            <mat-icon class="mat-icon material-icons fs-25px " aria-hidden="true">add</mat-icon>
+                        </div>
+                        <div class="fs-14 color-black gap-2">
+                            Please disclose any personal, financial, or other interests that may influence your judgment and decision-making at work. Click the 'Create {{ COMMON_DISCL_LOCALIZE.TERM_COI_INITIAL_DISCL }}' button to begin your {{ COMMON_DISCL_LOCALIZE.TERM_COI_INITIAL_DISCL }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3 mt-md-0 text-end text-md-start flex-shrink-0 p-1 ms-auto">
+                    <button *ngIf="(hasFCOIDisclosure && hasActiveFCOI) && ((!hasPendingFCOI && commonService.isDisclosureRequired) || hasPendingFCOI)"
+                        class="d-inline-flex align-items-center btn btn-sm btn-success me-2"
+                        (click)="fcoiReviseButtonAction()" title="Click here to revise disclosure"
+                        aria-label="Click here to revise disclosure" id="coi-user-home-fcoi-revise-btn">
+                        <mat-icon aria-hidden="true" class="me-1 flex-shrink-0">restart_alt</mat-icon>
+                        <span>Revise</span>
+                    </button>
+                    <button *ngIf="!hasFCOIDisclosure && commonService.isDisclosureRequired"
+                        title="Click here to create {{ COMMON_DISCL_LOCALIZE.TERM_COI_INITIAL_DISCL }}"
+                        attr.aria-label="Click here to create {{ COMMON_DISCL_LOCALIZE.TERM_COI_INITIAL_DISCL }}" (click)="handleFCOICreation('INITIAL')"
+                        class="btn btn-primary btn-sm d-inline-flex align-items-center justify-content-center fs-14 gap-1">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0">add</mat-icon>
+                        <span class="text-nowrap">Create {{ COMMON_DISCL_LOCALIZE.TERM_COI_INITIAL_DISCL }}</span>
+                    </button>
+
+                    <button *ngIf="hasFCOIDisclosure" (click)="redirectToFCOIDisclosure(fcoiDisclosureCard)"
+                        title="Click here to view disclosure" aria-label="Click here to view disclosure"
+                        class="btn btn-primary btn-sm d-inline-flex align-items-center justify-content-center fs-14 gap-1">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0">visibility</mat-icon>
+                        <span class="text-nowrap">View</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- opa card -->
+    <div *ngIf="commonService?.isShowOpaDisclosure && (cardOPADisclosure || (!cardOPADisclosure && commonService.canCreateOPA))" class="col-12"
+        [ngClass]="commonService.isShowFinancialDisclosure && ((!fcoiDisclosureCard && commonService.isDisclosureRequired) || fcoiDisclosureCard) ? 'col-xl-6' : 'col-xl-12'">
+        <div class="card shadow-sm h-100">
+            <div class="d-flex card-body flex-column flex-md-row align-items-start align-items-md-center p-2">
+                <div *ngIf="cardOPADisclosure" class="d-flex flex-column flex-grow-1">
+                    <div class="d-flex align-items-start align-items-md-center gap-2">
+                        <div
+                            class="d-inline-flex align-items-center justify-content-center flex-shrink-0 pending-icon-wrapper">
+                            <mat-icon class="mat-icon material-icons" aria-hidden="true">pending_actions</mat-icon>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center">
+                                <span class="fw-bold me-md-2 mb-md-0">OPA Disclosure</span>
+                                <div aria-label="Expiration date is empty"
+                                    class="d-flex gap-1 badge expiration-date fs-12 fw-normal">
+                                    <span id="coi-user-opa-card-value-exp-date">Expiration Date:</span>
+                                    <app-no-data-label [valueToShow]="cardOPADisclosure?.expirationDate">
+                                        <span class="fs-12 fw-normal">{{ cardOPADisclosure?.expirationDate | dateFormatterWithTimeZone }}</span>
+                                    </app-no-data-label>
+                                </div>
+                            </div>
+                            <div class="small d-flex flex-wrap">
+                                <span class="me-md-3 mb-md-0">
+                                    <span class="coi-text-lighter"><ng-container i18n="@@OPA_REVIEW_STATUS">Review
+                                            Status:
+                                        </ng-container></span>
+                                    <span>
+                                        <app-no-data-label
+                                            [valueToShow]="cardOPADisclosure?.reviewStatusType?.description">
+                                            <span
+                                                class="{{opaReviewStatusBadge[cardOPADisclosure?.reviewStatusType?.reviewStatusCode] || 'red-badge'}} me-1 ml-2"></span>
+                                            <span class="coi-text-light fw-bold"
+                                                id="coi-user-disclosure-opa-approved-card-value-review-status">{{cardOPADisclosure?.reviewStatusType?.description}}
+                                            </span>
+                                        </app-no-data-label>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="!cardOPADisclosure" class="d-flex flex-column flex-grow-1">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="d-inline-flex align-items-center justify-content-center flex-shrink-0 add-icon-wrapper">
+                            <mat-icon class="mat-icon material-icons fs-25px" aria-hidden="true">add</mat-icon>
+                        </div>
+                        <div class="fs-14 color-black gap-2">
+                            Please disclose any current or planned outside professional activities, including the organization name, your role, and time commitment. Click the 'Create OPA Disclosure' button to begin your OPA disclosure.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3 mt-md-0 text-end text-md-start flex-shrink-0 p-1 ms-auto">
+                    <button *ngIf="commonService.canCreateOPA && headerService.opaCreationType === 'REVISION'" class="d-inline-flex align-items-center btn btn-sm btn-success me-2"
+                        (click)="reviseOPA()" title="Click here to revise disclosure" aria-label="Click here to revise disclosure"
+                        id="coi-user-home-opa-revise-btn">
+                        <mat-icon aria-hidden="true" class="me-1 flex-shrink-0">restart_alt</mat-icon>
+                        <span>Revise</span>
+                    </button>
+                    <button *ngIf="commonService.canCreateOPA && headerService.opaCreationType === 'INITIAL'" title="Click here to create OPA disclosure"
+                        aria-label="Click here to create OPA disclosure" (click)="createOPA()" id="coi-user-home-opa-create-btn"
+                        class="btn btn-primary btn-sm d-inline-flex align-items-center justify-content-center fs-14 gap-1">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0">add</mat-icon>
+                        <span class="text-nowrap">Create OPA Disclosure</span>
+                    </button>
+                    <button *ngIf="headerService.opaCreationType !== 'INITIAL'" class="align-items-center btn btn-sm btn-primary d-inline-flex"
+                        id="coi-user-disclosure-opa-approved-card-view-btn"
+                        (click)="headerService.redirectToOPADisclosure(cardOPADisclosure?.opaDisclosureId)"
+                        title="Click here to view OPA disclosure details"
+                        aria-label="Click here to view OPA disclosure details">
+                        <mat-icon aria-hidden="true" class="me-1">visibility</mat-icon>
+                        <span>View</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Notification Action List -->
+    <div class="col-12 col-xl-9 col-lg-8">
+        <app-notification-action-list></app-notification-action-list>
+    </div>
+
+    <!-- quick links -->
+    <div class="col-12 col-xl-3 col-lg-4">
+        <app-coi-section-card uniqueId="quick-links" [customClass]="'coi-home-card-scroll'">
+            <ng-container card-header-icon><mat-icon aria-hidden="true">link</mat-icon></ng-container>
+            <ng-container card-header-content><span>Quick Links</span></ng-container>
+            <ng-container card-body>
+                <ul *ngIf="quickLinks?.length; else noData" class="m-0 p-0">
+                    <li *ngFor="let link of quickLinks" class="p-0 m-0 list-unstyled">
+                        <a tabindex="0" class="d-flex align-items-center gap-1 link-primary fs-14 py-1"
+                            [title]="link?.title" [attr.aria-label]="link?.ariaLabel" (click)="navigateQuickLinks(link)">
+                            <span class="d-flex align-items-center"><mat-icon aria-hidden="true">{{ link?.icon }}</mat-icon></span>
+                            <span class="fw-500">{{ link?.name }}</span>
+                        </a>
+                    </li>
+                </ul>
+                <ng-template #noData>
+                    <div class="d-flex align-items-center justify-content-center h-100 pb-2">
+                        <app-no-information customClass="mt-0" [isBorderNeeded]="false">
+                            <span>Quick links are not available at the moment.</span>
+                        </app-no-information>
+                    </div>
+                </ng-template>
+            </ng-container>
+        </app-coi-section-card>
+    </div>
+
+    <!-- images -->
+    <div class="col-12 col-xl-6">
+        <div id="coi-carousel-user-home" class="carousel slide carousel-fade rounded-3"
+            [class.d-none]="!imageUrlConfig?.length" data-bs-ride="carousel">
+            <div *ngIf="imageUrlConfig?.length > 1" class="carousel-indicators mb-1">
+                <ng-container *ngFor="let imgIndicatorConfig of imageUrlConfig; let indicatorIndex = index">
+                    <button type="button" data-bs-target="#coi-carousel-user-home"
+                        [attr.data-bs-slide-to]="indicatorIndex"
+                        [class.active]="indicatorIndex === 0" class="coi-carousel-indicators-btn"
+                        aria-current="true" [attr.aria-label]="'Slide' + indicatorIndex">
+                    </button>
+                </ng-container>
+            </div>
+            <div class="carousel-inner rounded-3 overflow-hidden">
+                <ng-container *ngFor="let imgConfig of imageUrlConfig; let imgIndex = index">
+                    <div class="carousel-item coi-carousel-item border border-4 border-white position-relative overflow-hidden"
+                        [class.active]="imgIndex === 0" [attr.data-bs-interval]="CAROUSEL_INTERVAL">
+                        <img [src]="(imgConfig?.imagePath === 'INTERNAL' ? deployMap : '') + imgConfig?.imagePath" class="d-block w-100 h-100" [alt]="imgConfig?.name">
+                        <div *ngIf="imgConfig?.notificationHeader || imgConfig?.notificationBody" class="coi-home-notification">
+                            <h4 *ngIf="imgConfig?.notificationHeader" class="text-white">{{ imgConfig?.notificationHeader }}</h4>
+                            <p class="m-0 fs-14">
+                                <span *ngIf="imgConfig?.notificationBody" class="text-white fs-14">{{ imgConfig?.notificationBody }}</span>
+                                <button *ngIf="imgConfig?.navigateToUrl?.trim()"
+                                    (click)="openImageRedirectionPath(imgConfig)"
+                                    class="btn btn-outline-secondary fs-13 p-1 ms-1"
+                                    title="Click here to {{ imgConfig?.notificationLinkName?.toLowerCase() || 'view' }}"
+                                    attr.aria-label="Click here to {{ imgConfig?.notificationLinkName?.toLowerCase() || 'view' }}">
+                                    <span class="text-white">{{ imgConfig?.notificationButtonName || 'View' }}</span>
+                                </button>
+                            </p>
+                        </div>
+                    </div>
+                </ng-container>
+            </div>
+        </div>
+        <!-- no info -->
+        <ng-container *ngIf="!imageUrlConfig?.length">
+            <div class="d-flex align-items-center justify-content-center coi-carousel-item bg-white shadow-sm">
+                <app-no-information customClass="mt-0" [isBorderNeeded]="false">
+                    <span>You have no notifications at the moment.</span>
+                </app-no-information>
+            </div>
+        </ng-container>
+    </div>
+
+    <!-- How Do I -->
+    <div class="col-12 col-xl-3 col-lg-6 col-md-12">
+        <app-help-guide></app-help-guide>
+    </div>
+
+    <!-- FAQ -->
+    <div class="col-12 col-xl-3 col-lg-6 col-md-12">
+        <app-faq-section></app-faq-section>
+    </div>
+</div>

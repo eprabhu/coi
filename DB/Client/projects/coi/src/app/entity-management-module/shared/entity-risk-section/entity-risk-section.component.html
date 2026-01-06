@@ -1,0 +1,163 @@
+<div class="p-3 coi-card-grey-border rounded-2" [id]="sectionId">
+    <div class="row mb-2">
+        <div class="col d-flex align-items-center coloured-bg-header gap-2">
+            <div class="col">
+                <span class="coi-entity-icon-bg me-2 coi-coloured-icons fs-14 d-inline-flex" aria-hidden="true">
+                    <mat-icon class="coi-mat-icon-size">warning</mat-icon>
+                </span>
+                <span class="fs-16 fw-medium" id="coi-entity-subaward-risk">{{ sectionName }}</span>
+                <app-common-help-text [subSectionId]="subSectionId" [elementId]="'coi-section-head-' + subSectionId"></app-common-help-text>
+            </div>
+            <!-- Add Risk -->
+            <div class="col-auto" *ngIf="entityRiskList?.length && isEditMode">
+                <button id="add-risk-details-button" class="btn btn-primary fs-14 d-inline-flex"
+                    title="Click here to add risk" aria-label="Click here to add risk"
+                    (click)="openAddEntityRiskModal()">
+                    <mat-icon aria-hidden="true">add</mat-icon>
+                    <span>Add Risk</span>
+                </button>
+            </div>
+            <!-- Comments -->
+            <div *ngIf="isShowCommentButton" class="col-auto">
+                <button class="d-flex gap-1 align-items-center btn btn-sm btn-tertiary mt-0 lh-1"
+                    (click)="openReviewComments()" id="entity-comment-risk-{{sectionId}}" type="button"
+                    [disabled]="entityManagementService.reviewCommentsSliderConfig?.isOpenCommentSlider"
+                    title="Click here to open review comment" aria-label="Click here to open review comment">
+                    <mat-icon aria-hidden="true" class="flex-shrink-0 padding-3px">rate_review</mat-icon>
+                    <span>Comments<span *ngIf="commentCount > 0">({{commentCount}})</span></span>
+                </button>
+            </div>
+        </div>
+        <!-- sub award risks -->
+        <div *ngIf="entityRiskList?.length">
+            <div *ngFor="let risk of entityRiskList; let isFirst = first; let isLast = last; let riskIndex = index"
+                class="coi-card-regular d-flex align-items-between p-3 shadow-sm"
+                [ngClass]="isFirst ? 'my-2' : !isLast ? 'mb-2' : ''">
+                <!-- risk type -->
+                <div class="col-md-9 col-lg-10 coi-text-light fs-14">
+                    <span>{{risk?.riskType ? risk?.riskType?.description : risk?.riskTypeDescription}} - </span>
+                    <span [class.text-danger]="risk?.riskLevel?.riskLevelCode == 3 || risk?.riskLevelDescription == 'High'"
+                        [class.text-warning]="risk?.riskLevel?.riskLevelCode == 2 || risk?.riskLevelDescription == 'Medium'"
+                        [class.text-success]="risk?.riskLevel?.riskLevelCode == 1 || risk?.riskLevelDescription == 'Low'"
+                        [class.text-muted]="risk?.riskLevel?.riskLevelCode > 3 || risk?.riskLevelDescription == 'NA' || risk?.riskLevelDescription == 'Undetermined'"
+                        class="fw-bold">{{risk?.riskLevel?.description}}</span>
+                    <div class="d-flex fs-14 mt-1">
+                        <span>{{risk?.description}}</span>
+                    </div>
+                </div>
+                <!-- risk action -->
+                <div class="col-md-3 col-lg-2 d-flex align-items-center">
+                    <span class="ms-auto d-flex">
+                        <!-- edit -->
+                        <button *ngIf="isEditMode" id="coi-entity-risk-edit-{{riskIndex}}"
+                            class="btn btn-primary-icon d-flex align-items-center justify-content-center rounded-circle p-2 m-1"
+                            title="Click here to update risk" aria-label="Click here to update risk"
+                            (click)="editOrHistorySlider(risk, riskIndex , true)">
+                            <mat-icon aria-hidden="true" class="flex-shrink-0">edit</mat-icon>
+                        </button>
+
+                        <!-- history -->
+                        <button id="coi-entity-risk-history-{{riskIndex}}"
+                            class="btn btn-primary-icon d-flex align-items-center justify-content-center rounded-circle p-2 m-1"
+                            title="Click here to view risk history" aria-label="Click here to view risk history"
+                            (click)="editOrHistorySlider(risk, riskIndex , false)">
+                            <mat-icon id="coi-risk-history" aria-hidden="true">history</mat-icon>
+                        </button>
+
+                        <!-- delete -->
+                        <!-- <button id="coi-entity-sub-award-delete-{{riskIndex}}"
+                            class="btn btn-primary-icon d-flex align-items-center justify-content-center rounded-circle p-2 m-1"
+                            title="Click here to delete risk." aria-label="Click here to delete risk."
+                            (click)="confirmDeleteRisk(risk, riskIndex)">
+                            <mat-icon aria-hidden="true" class="flex-shrink-0">delete</mat-icon>
+                        </button> -->
+                    </span>
+                </div>
+            </div>
+        </div>
+        <!-- no info card -->
+        <ng-container *ngIf="!entityRiskList?.length">
+            <app-no-information [isBorderNeeded]="false" [canShowAddButton]="isEditMode" [buttonName]="'Add Risk'"
+                (buttonAction)="openAddEntityRiskModal()"></app-no-information>
+        </ng-container>
+    </div>
+</div>
+
+<ng-container *ngIf="isOpenRiskModal">
+    <app-common-modal [modalConfig]="entityRiskModalConfig" (modalAction)="riskModalActions($event)">
+
+        <!-- header -->
+        <ng-container modal-header>
+            <span>{{'Add ' +  sectionName }}</span>
+            <app-common-help-text [subSectionId]="subSectionId" [elementId]="'coi-sub-head-' + subSectionId"></app-common-help-text>
+        </ng-container>
+
+        <!-- body -->
+        <ng-container modal-body>
+            <div class="row gap-3">
+                <div class="col-sm-12 col-lg">
+                    <label class="fs-14 fw-500 pb-1 coi-label-help" for="coi-org-risk-type">
+                        <span class="mandatory me-1">*</span>
+                        <span>Risk Type</span>
+                        <app-common-help-text [subSectionId]="subSectionId" [elementId]="'coi-risk-type-' + subSectionId"></app-common-help-text>
+                    </label>
+                    <app-look-up (selectedResult)="onRiskTypeSelected($event)" [options]="entityRiskTypeOptions"
+                        [isExternalArray]="true" [externalArray]="entityRiskTypeList"
+                        [selectedLookUpList]="entityRiskModalDetails.selectedRiskTypeLookUpList"
+                        [uniqueId]="'coi-risk-type'" [isError]="mandatoryList?.has('riskType')"></app-look-up>
+                    <div *ngIf="mandatoryList?.has('riskType')" class="invalid-feedback d-block fs-13">
+                        {{mandatoryList?.get('riskType')}}
+                    </div>
+                </div>
+                <div class="col-sm-12 col-lg-6 mt-lg-0">
+                    <label class="fs-14 fw-500 pb-1 coi-label-help" for="coi-org-risk-level">
+                        <span class="mandatory me-1">*</span>
+                        <span>Risk Level</span>
+                        <app-common-help-text [subSectionId]="subSectionId" [elementId]="'coi-risk-level-' + subSectionId"></app-common-help-text>
+                    </label>
+                    <app-look-up (selectedResult)="onRiskLevelSelected($event)" [options]="entityRiskLevelOption"
+                        [isExternalArray]="true" [externalArray]="entityRiskLevelList"
+                        [selectedLookUpList]="entityRiskModalDetails.selectedRiskLevelLookUpList"
+                        [uniqueId]="'coi-risk-level'" [isError]="mandatoryList?.has('riskLevel')"></app-look-up>
+                    <div *ngIf="mandatoryList?.has('riskLevel')" class="invalid-feedback d-block fs-13">
+                        {{mandatoryList?.get('riskLevel')}}
+                    </div>
+                </div>
+                <div class="col-12">
+                    <label class="fs-14 fw-500 pb-1 coi-label-help" for="coi-org-risk-desc">
+                        <span class="mandatory me-1">*</span>
+                        <span>Risk Description</span>
+                        <app-common-help-text [subSectionId]="subSectionId" [elementId]="'coi-risk-desc-' + subSectionId"></app-common-help-text>
+                    </label>
+                    <textarea appAutoGrow class="form-control" id="coi-risk-desc" rows="1"
+                        [(ngModel)]="entityRiskModalDetails.entityRisk.description" appTailingSpaceRemover [limit]="2000"
+                        appLengthValidator [ngClass]="(mandatoryList?.has('riskDescription')) ? 'is-invalid d-block' : ''"
+                        title="Risk Description" aria-label="Risk Description">
+                    </textarea>
+                    <div *ngIf="mandatoryList?.has('riskDescription')" class="invalid-feedback d-block fs-13">
+                        {{mandatoryList?.get('riskDescription')}}
+                    </div>
+                </div>
+                </div>
+        </ng-container>
+    </app-common-modal>
+</ng-container>
+
+<ng-container *ngIf="showSlider">
+     <app-risk-edit-history-slider (closePage)="closeHeaderSlider()" [riskCategoryCode]="riskCategoryCode"
+     [currentRiskDetails]="currentRiskDetails" (riskUpdated)="onRiskUpdated($event)" [isEditRisk]="isEditRisk" [sectionName]="sectionName"
+     [sectionId]="sectionId" [subSectionId]="subSectionId">
+     </app-risk-edit-history-slider>
+</ng-container>
+
+<!-- <app-common-modal [modalConfig]="modalConfig" (modalAction)="postConfirmation($event)">
+    <ng-container modal-header>
+        <span>Confirmation</span>
+    </ng-container>
+    <ng-container modal-body>
+        <p>Do you want to delete <strong>{{deleteRiskObj?.riskType?.description?
+                deleteRiskObj?.riskType?.description:deleteRiskObj?.riskTypeDescription}}
+                - {{deleteRiskObj?.riskLevel?.description ? deleteRiskObj?.riskLevel?.description :
+                deleteRiskObj?.riskLevelDescription}}</strong>?</p>
+    </ng-container>
+</app-common-modal> -->

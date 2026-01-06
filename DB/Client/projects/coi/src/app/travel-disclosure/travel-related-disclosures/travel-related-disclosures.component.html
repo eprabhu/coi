@@ -1,0 +1,43 @@
+<div *ngIf="isExternal" [@listAnimation]="historyData.length" [@fadeInOutHeight] class="mt-4">
+    <!-- engagement card -->
+    <div *ngIf="historyData.length > 0" class="travel-related-card">
+        <app-shared-sfi-card (viewSlider)="viewSlider($event)" [reqObject]='entityDetails'
+            [referredFrom]="'TRAVEL_DISCLOSURE'" [isShowSelectButton]="false" [uniqueId]="'travel-related-disclosure'">
+        </app-shared-sfi-card>
+    </div>
+
+    <ng-container *ngIf="!isLoading">
+        <!-- disclosure histories -->
+        <div *ngFor="let disclosure of historyData; let travelIndex = index" class="position-relative mt-3">
+            <div class="d-flex align-items-center">
+                <div id="coi-travel-disclosure-timeline-{{travelIndex}}">
+                    <div
+                        class="d-flex align-items-center justify-content-center fs-14 position-absolute start-date text-nowrap">
+                        <span [title]="disclosure?.firstStayStartDate | date:'dd MMM yyyy'"
+                            class="fw-bold grey-text">{{disclosure?.firstStayStartDate | date : 'dd MMM yyyy'}}</span>
+                    </div>
+                    <div
+                        class="d-flex align-items-center justify-content-center fs-14 position-absolute end-date text-nowrap">
+                        <span [title]="disclosure?.lastStayEndDate | date:'dd MMM yyyy'"
+                            class="fw-bold grey-text">{{disclosure?.lastStayEndDate | date : 'dd MMM yyyy'}}</span>
+                    </div>
+                    <div [class.remaining-timeline]="travelIndex!==0" [class.first-timeline]="travelIndex===0"></div>
+                </div>
+                <div class="col z-index-2 custom-margin-left">
+                    <app-related-disclosures-engagement-card [disclosureItem]="disclosure"></app-related-disclosures-engagement-card>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+</div>
+
+<!-- no data component -->
+<app-no-information *ngIf="(historyData.length == 0 || !isExternal) && !isLoading"> </app-no-information>
+
+<ng-container *ngIf="showSlider">
+    <app-coi-slider (closeSlider)="hideSfiNavBar()" [elementId]="sliderElementId">
+        <ng-container content>
+            <app-entity-details [entityId]="entityDetails.personEntityId"></app-entity-details>
+        </ng-container>
+    </app-coi-slider>
+</ng-container>

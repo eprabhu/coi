@@ -1,0 +1,974 @@
+<div class="card p-15" *ngIf=" awardBudgetData?.awardBudgetHeader">
+  <div class="budget-nav-outer mb-3">
+    <ul class="nav nav-tabs budget-nav">
+      <li *ngFor="let period of awardBudgetData?.awardBudgetHeader?.budgetPeriods; let periodId = index"
+        class="nav-item hand-cursor period-hover">
+        <a *ngIf="periodId <= 4" class="nav-link"
+          [ngClass]="currentPeriodData.budgetPeriod == period.budgetPeriod?'active':'inActiveTab'"
+          title="Click to view Period {{period.budgetPeriod}} details" (click)="setCurrentPeriod(period);" tabindex="0">
+          Period {{period.budgetPeriod}}
+        </a>
+      </li>
+      <li *ngIf="awardBudgetData?.awardBudgetHeader?.budgetPeriods.length > 5"
+        class="nav-item dropdown hand-cursor period-hover" class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
+          aria-haspopup="true" aria-expanded="false">
+          More periods
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <ng-container *ngFor="let period of awardBudgetData?.awardBudgetHeader?.budgetPeriods; let periodId = index">
+            <a *ngIf="periodId > 4" class="dropdown-item hand-cursor"
+              [ngClass]="currentPeriodData.budgetPeriod == period.budgetPeriod?'active':'inActiveTab'"
+              title="Click to view Period {{period.budgetPeriod}} details"
+              (click)="setCurrentPeriod(period);shiftPeriods(periodId);">Period {{period.budgetPeriod}}
+            </a>
+          </ng-container>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <ng-container *ngFor="let period of awardBudgetData?.awardBudgetHeader?.budgetPeriods">
+    <ng-container *ngIf="currentPeriodData.budgetPeriodId == period.budgetPeriodId">
+      <div class="form-row cost-fields pb-3 m-0 pl-3 pr-3">
+        <div class="col">
+          <label class="d-block mt-1">Start Date</label>
+          <span>{{period.startDate | dateFormatterWithTimeZone}}</span>
+        </div>
+        <div class="col">
+          <label class="d-block mt-1">End Date</label>
+          <span>{{period.endDate | dateFormatterWithTimeZone}}</span>
+        </div>
+        <div class="col">
+          <label class="d-block mt-1">Direct Cost</label>
+          <span>{{period.totalDirectCost | currency: currency}}</span>
+        </div>
+        <div class="col">
+          <label class="d-block mt-1">Indirect Cost</label>
+          <span>{{period.totalIndirectCost | currency: currency}}</span>
+        </div>
+        <div class="col">
+          <label class="d-block mt-1">Total Cost</label>
+          <span>{{period.totalCost | currency: currency}}</span>
+        </div>
+      </div>
+<!-- DETAILED BUDGET TABLE-->
+  <!-- budgetTypeCode = 2 : 'Rebudget'
+       budgetStatusCode = 1 : 'In Progress'
+       budgetStatusCode = 5 : 'Submitted' -->
+      <div class="row card-table-box m-0">
+        <div class="w-100">
+          <table class="table budget-table tableStyle table-head-color">
+            <caption class="sr-only">Detailed Budget</caption>
+            <thead class="text-center">
+              <tr>
+                <th scope="col" width="15%">Budget Category</th>
+                <th scope="col" width="20%"><ng-container i18n="@@AWARD_COST_ELEMENT">Cost Element</ng-container></th>
+                <th scope="col" width="15%"><ng-container i18n="@@AWARD_WBS_NUMBER_FOR_OFIN_USE">WBS Number (for OFIN use)</ng-container></th>
+                <th scope="col" width="5%">Quantity</th>
+                <th scope="col" width="13%" scope="col"
+                  *ngIf="awardBudgetData?.awardBudgetHeader?.budgetTypeCode == 2 &&
+                  (awardBudgetData?.awardBudgetHeader?.budgetStatusCode == 1 || awardBudgetData?.awardBudgetHeader?.budgetStatusCode == 5)">
+                  Latest Approved Budget</th>
+                <th scope="col" width="10%" scope="col"
+                  *ngIf="awardBudgetData?.awardBudgetHeader?.budgetTypeCode == 2 &&
+                  (awardBudgetData?.awardBudgetHeader?.budgetStatusCode == 1 || awardBudgetData?.awardBudgetHeader?.budgetStatusCode == 5)">
+                  Balance To Date</th>
+                <th scope="col" width="12%" *ngIf="awardBudgetData?.awardBudgetHeader?.budgetTypeCode != 2">Line Item
+                  Cost ({{currency}})</th>
+                <th scope="col" width="12%" *ngIf="awardBudgetData?.awardBudgetHeader?.budgetTypeCode == 2">Revised
+                  Budget ({{currency}})</th>
+                <th scope="col" width="8%">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+<!-- COST ELEMENT ADDING SECTION -->
+              <ng-container *ngIf="_budgetDataService.isBudgetEditable">
+<!--MAIN LINE ITEM ADDING SECTION-->
+                <tr class="c-element-color">
+                  <td width="15%" class="position-relative">
+                    <input type="text" disabled class="dateBox form-control w-92" [(ngModel)]="selectedBudgetCategory"
+                      title="{{selectedBudgetCategory}}" [ngClass]="helpText?.budget && helpText?.budget[newLineItemObject?.budgetCategoryCode]?.helpTextInfo ? 'd-inline-block float-left' : ''">
+                      <span *ngIf="helpText?.budget && helpText?.budget[newLineItemObject?.budgetCategoryCode]?.helpTextInfo" class="d-inline-block  icon-hover ml-2 position-absolute">
+                        <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med" aria-hidden="true"></i>
+                            <div class="tooltiptext-left card card-inner p-15 text-left">
+                                <span class="font-cv">{{helpText?.budget[newLineItemObject?.budgetCategoryCode]?.helpTextInfo}}</span>
+                            </div>
+                        </a>
+                      </span>
+                    </td>
+                  <td id="searchCostElement">
+                    <app-endpoint-search [httpOptions]="endpointSearchOptions" [searchOnFocus]=true
+                      [placeHolder]="'Type here for  Cost Element'" (onSelect)="costElementChange($event)"
+                      [isError]="isInvalidLineItem.costElement? true : false" [clearField]="clearField">
+                    </app-endpoint-search>
+                    <div *ngIf="isInvalidLineItem.costElement" class="invalid-feedback d-block text-left">
+                      {{isInvalidLineItem.costElement}}
+                    </div>
+                    <a *ngIf="newLineItemObject?.budgetCategory?.budgetCategoryTypeCode &&
+                      newLineItemObject?.budgetCategory?.budgetCategoryTypeCode != 'P' &&
+                      awardBudgetData?.isNonPersonalLineItemEnabled && !newLineItemObject?.nonPersonsDetails?.length"
+                      (click)="setNonPerson(newLineItemObject);"
+                      class="anchor-link d-block fs-14 ng-star-inserted" id="award-non-person-add-btn">
+                      <i aria-hidden="true" class="fa fa-plus"></i> Add Sub Item</a>
+                  </td>
+                  <td>
+                    <input class="dateBox form-control" [disabled]='awardData?.isGenerateWBSNumber'
+                      [(ngModel)]="newLineItemObject.internalOrderCode" />
+                  </td>
+                  <td>
+                    <input type="text" step="any" class="dateBox form-control" [(ngModel)]="newLineItemObject.quantity"
+                      [ngClass]="{'lineItem-mandatory': isInvalidLineItem.quantityMsg}" min="0"
+                      appCurrencyFormat [initialValue]="newLineItemObject.quantity" [isNumberFormatOnly]="true"
+                      (keypress)="inputRestriction($event)" (ngModelChange)="_commonDataService.isAwardDataChange = true;" />
+                    <div *ngIf="isInvalidLineItem.quantityMsg" class="invalid-feedback d-block text-left">
+                      {{isInvalidLineItem.quantityMsg}}
+                    </div>
+                  </td>
+                  <td *ngIf="awardBudgetData?.awardBudgetHeader?.budgetTypeCode == 2 &&
+                   (awardBudgetData?.awardBudgetHeader?.budgetStatusCode == 1 ||
+                   awardBudgetData?.awardBudgetHeader?.budgetStatusCode == 5)">
+                    <input type="number" step="any" class="dateBox form-control" disabled />
+                  </td>
+                  <td *ngIf="awardBudgetData?.awardBudgetHeader?.budgetTypeCode == 2 &&
+                   (awardBudgetData?.awardBudgetHeader?.budgetStatusCode == 1 ||
+                   awardBudgetData?.awardBudgetHeader?.budgetStatusCode == 5)">
+                    <input type="number" step="any" class="dateBox form-control" disabled />
+                  </td>
+                  <td>
+                    <input type="text" appCurrencyFormat class="dateBox form-control text-right"
+                      [(ngModel)]="newLineItemObject.lineItemCost" [initialValue]="newLineItemObject.lineItemCost"
+                      (ngModelChange)="_commonDataService.isAwardDataChange = true; inputDigitRestriction(newLineItemObject.lineItemCost)"
+                      [ngClass]="{'lineItem-mandatory': isInvalidLineItem.cost || isInvalidCostOnAdd}"
+                      [disabled]="(newLineItemObject?.budgetCategory?.budgetCategoryTypeCode == 'P' && personTotalSalary > 0) && awardBudgetData?.enableAbPersonAppliedSalary" />
+                    <div class="invalid-feedback d-block text-left" *ngIf="isInvalidLineItem.cost">
+                      <span>{{isInvalidLineItem.cost}}</span>
+                    </div>
+                  </td>
+                  <td width="8%" class="text-center" *ngIf="!newLineItemObject?.budgetCategory?.budgetCategoryTypeCode ||
+                    (newLineItemObject?.budgetCategory?.budgetCategoryTypeCode != 'P' && !newLineItemObject?.nonPersonsDetails?.length ) ||
+                    (newLineItemObject?.budgetCategory?.budgetCategoryTypeCode == 'P' && awardBudgetData?.awardBudgetHeader?.manpowerEnabled &&
+                    awardBudgetData?.awardBudgetHeader?.budgetAssociatedWithManpower)">
+                    <button class="btn btn-primary-sub btn-sm budget-table-add-btn pt-1"
+                     (click)="addNewBudgetLineItem()">Add</button>
+                  </td>
+                  <td *ngIf="(newLineItemObject?.budgetCategory?.budgetCategoryTypeCode == 'P' &&
+                    (!awardBudgetData?.awardBudgetHeader?.manpowerEnabled ||
+                    !awardBudgetData?.awardBudgetHeader?.budgetAssociatedWithManpower)) ||
+                    (newLineItemObject?.budgetCategory?.budgetCategoryTypeCode != 'P' && newLineItemObject?.nonPersonsDetails?.length) "
+                    width="8%">
+                    &nbsp;
+                  </td>
+                </tr>
+                <tr *ngIf="isInvalidCostOnAdd">
+                  <td class="no-border" [colSpan]="(awardBudgetData?.awardBudgetHeader?.budgetTypeCode == 2) ? 8 : 6">
+                    <div class="invalid-feedback d-block text-left"
+                      *ngIf="isInvalidCostOnAdd && awardBudgetData.awardBudgetHeader.availableFund > 0">
+                      <span><ng-container i18n="@@AWARD_BUDGET_VALIDATION-MESSAGE">Line Item Cost should be less than or equal to Remaining Fund.</ng-container></span>
+                    </div>
+                    <div class="invalid-feedback d-block text-left"
+                      *ngIf="isInvalidCostOnAdd && awardBudgetData.awardBudgetHeader.availableFund <= 0">
+                      <span><ng-container i18n="@@AWARD_BUDGET_VALIDATION-MESSAGE">Line Item Cost should be less than or equal to Remaining Fund.</ng-container></span>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="no-border">
+                    <label>Line Item Description</label>
+                  </td>
+                  <td class="no-border" [colSpan]="(awardBudgetData?.awardBudgetHeader?.budgetTypeCode == 2) ? 7 : 5">
+                    <div class="row">
+                      <div class="col-lg-12 col-md-12 col-sm-12 col-12">
+                        <textarea class="form-control"
+                          [(ngModel)]="newLineItemObject.lineItemDescription"
+                          (ngModelChange)="_commonDataService.isAwardDataChange = true;" appLengthValidator
+                          [isShowLimiter]='_budgetDataService.isBudgetEditable' [limit]=4000>
+                        </textarea>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+<!--MAIN LINE ITEM ADDING SECTION ENDS-->
+<!--PERSON SUB LINE ITEM-->
+                <tr *ngIf="newLineItemObject?.budgetCategory?.budgetCategoryTypeCode == 'P' &&
+                (!awardBudgetData?.awardBudgetHeader?.manpowerEnabled || !awardBudgetData?.awardBudgetHeader?.budgetAssociatedWithManpower)"
+                  class="c-element-color">
+                  <td class="p-0" [attr.colspan]="awardBudgetData?.awardBudgetHeader?.budgetTypeCode == 2 ? '8' : '6'">
+                    <div class="budget-person-outer pl-4 pr-4">
+                      <div class="budget-person p-2">
+                        <div class="form-row budget-person-head m-0">
+                          <div class="col-3">Persons</div>
+                          <div class="col">Start Date</div>
+                          <div class="col">End Date</div>
+                          <div class="col"><ng-container i18n="@@AWARD_WBS_NUMBER_FOR_OFIN_USE">WBS Number</ng-container></div>
+                          <div class="col" *ngIf="awardBudgetData?.enableAbPersonAppliedSalary">Salary({{currency}})</div>
+                          <div class="col-1" *ngIf="awardBudgetData?.enableAbPersonAppliedSalary">Effort%</div>
+                          <div class="col"><ng-container i18n="@@AWARD_APPLIED_SALARY">Applied Salary</ng-container> ({{currency}})</div>
+                          <div *ngIf="_budgetDataService.isBudgetEditable" class="col-1">Action</div>
+                        </div>
+                        <div *ngFor="let person of newLineItemObject.personsDetails;let personIndex = index"
+                          class="form-row mb-2">
+                          <div class="col-3">
+                            <select class="form-control mr-3 select-box p-0" [(ngModel)]="person.budgetPersonId"
+                              [ngClass]="{'lineItem-mandatory': subItemValidationArray[personIndex]?.personMsg}"
+                              (change)="triggerPersonsModal($event, person, newLineItemObject)"
+                              (ngModelChange)="awardBudgetCalculations(newLineItemObject, person)">
+                              <option [value]="null">--Select--</option>
+                              <option *ngFor="let budgetPerson of personResultData.awardBudgetPersonList"
+                                [value]="budgetPerson.budgetPersonId">
+                                <ng-container
+                                  *ngIf="budgetPerson.personType === 'N' || budgetPerson.personType === 'P' || budgetPerson.personType === 'E'">
+                                  {{budgetPerson?.personName}} ({{budgetPerson?.jobCodes?.jobTitle}})
+                                </ng-container>
+                                <ng-container *ngIf="budgetPerson.personType === 'T'">
+                                  {{budgetPerson?.tbnPerson?.personName}} ({{budgetPerson?.jobCodes?.jobTitle}})
+                                </ng-container>
+                              </option>
+                              <option value="otherPersons">Add other persons</option>
+                            </select>
+                            <div class="invalid-feedback d-block text-left"
+                              *ngIf="subItemValidationArray[personIndex]?.personMsg">
+                              <span class="mandatory">{{subItemValidationArray[personIndex]?.personMsg}}</span>
+                            </div>
+                          </div>
+                          <div class="col budget-date">
+                            <span class="dateField">
+                              <input matInput [matDatepicker]="perstDate" placeholder="{{datePlaceHolder}}" id="award-perst-date"
+                                [ngClass]="{'lineItem-mandatory': subItemValidationArray[personIndex]?.stDateMsg}"
+                                class="budgetDate-width form-control p-1" [(ngModel)]="person.startDate"
+                                (ngModelChange)="awardBudgetCalculations(newLineItemObject, person)" (click)="perstDate.open()">
+                              <i class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                (click)="perstDate.open()" aria-hidden="true"></i>
+                              <mat-datepicker #perstDate (opened)="setFocusToElement('award-perst-date')"></mat-datepicker>
+                            </span>
+                            <div class="invalid-feedback d-block text-left"
+                              *ngIf="subItemValidationArray[personIndex]?.stDateMsg">
+                              <span class="mandatory">{{subItemValidationArray[personIndex]?.stDateMsg}}</span>
+                            </div>
+                          </div>
+                          <div class="col budget-date">
+                            <span class="dateField">
+                              <input matInput [matDatepicker]="perendDate" placeholder="{{datePlaceHolder}}" id="award-perend-date"
+                                [ngClass]="{'lineItem-mandatory': subItemValidationArray[personIndex]?.endDateMsg}"
+                                (click)="perendDate.open()" class="budgetDate-width form-control p-1"
+                                [(ngModel)]="person.endDate"
+                                (ngModelChange)="awardBudgetCalculations(newLineItemObject, person)" />
+                              <i class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                (click)="perendDate.open()" aria-hidden="true"></i>
+                              <mat-datepicker #perendDate (opened)="setFocusToElement('award-perend-date')"></mat-datepicker>
+                            </span>
+                            <div class="invalid-feedback d-block text-left"
+                              *ngIf="subItemValidationArray[personIndex]?.endDateMsg">
+                              <span class="mandatory">{{subItemValidationArray[personIndex]?.endDateMsg}}</span>
+                            </div>
+                          </div>
+                          <div class="col">
+                            <input class="form-control" [disabled]='awardData?.isGenerateWBSNumber'
+                              [(ngModel)]="person.internalOrderCode"
+                              (ngModelChange)="_commonDataService.isAwardDataChange = true;">
+                          </div>
+                          <div class="col" *ngIf="awardBudgetData?.enableAbPersonAppliedSalary">
+                            <input class="form-control text-right" type="text" appCurrencyFormat
+                              [(ngModel)]="person.totalSalary" disabled [initialValue]="person.totalSalary">
+                          </div>
+                          <div class="col-1" *ngIf="awardBudgetData?.enableAbPersonAppliedSalary">
+                            <input class="form-control" type="number" step="any" [(ngModel)]="person.percentageEffort"
+                              [ngClass]="{'lineItem-mandatory': subItemValidationArray[personIndex]?.effortMsg}"
+                              (ngModelChange)="awardBudgetCalculations(newLineItemObject, person)"
+                              placeholder="eg: 100, 99.99, 10.22, 25 etc"
+                              (keyup)="limitKeypress(person.percentageEffort, personIndex)" />
+                            <div class="invalid-feedback d-block text-left"
+                              *ngIf="subItemValidationArray[personIndex]?.effortMsg">
+                              <span class="mandatory">{{subItemValidationArray[personIndex]?.effortMsg}}</span>
+                            </div>
+                          </div>
+                          <div class="col">
+                            <input class="form-control text-right" type="text" appCurrencyFormat
+                              [(ngModel)]="person.salaryRequested" [initialValue]="person.salaryRequested"
+                               [disabled]="awardBudgetData?.enableAbPersonAppliedSalary">
+                          </div>
+                          <div *ngIf="_budgetDataService.isBudgetEditable" class="col-1">
+                            <span>
+                              <i class="fa fa-trash hand-cursor hoverColor action-icons" aria-hidden="true"
+                                title="Delete person"
+                                (click)="deletePersonSubItemOnAddition(personIndex, newLineItemObject)"></i>
+                              <button *ngIf="personIndex == newLineItemObject.personsDetails.length-1"
+                                title="Add Personnel" class="personAddBtn font hoverColor"
+                                (click)="addPersonSubItem(newLineItemObject, 'ADD', null)">
+                                <i class="fa fa-user-plus fa-large action-icons" aria-hidden="true"></i>
+                              </button>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+<!--PERSON SUB LINE ITEM ENDS-->
+<!--NONPERSON SUB LINE ITEM-->
+                <tr *ngIf="newLineItemObject?.nonPersonsDetails?.length" class="c-element-color">
+                <td class="p-0" [attr.colspan]="awardBudgetData?.awardBudgetHeader?.budgetTypeCode == 2 ? '8' : '6'">
+                  <div class="budget-person-outer pl-4 pr-4">
+                    <div class="budget-person p-2">
+                      <div class="form-row budget-person-head m-0">
+                        <div class="col-5">Sub Item</div>
+                        <div class="col"><ng-container i18n="@@AWARD_WBS_NUMBER_FOR_OFIN_USE">WBS Number (for OFIN use)</ng-container></div>
+                        <div class="col">Line Item Cost ({{currency}})</div>
+                        <div *ngIf="_budgetDataService.isBudgetEditable" class="col-1">Action</div>
+                      </div>
+                      <div *ngFor="let nonPerson of newLineItemObject.nonPersonsDetails;let nonPersonIndex = index"
+                        class="form-row mb-2">
+                        <div class="col-5">
+                          <input class="form-control" type="text" [(ngModel)]="nonPerson.description"
+                          [ngClass]="{'lineItem-mandatory': subItemValidationArray[nonPersonIndex]?.subItem}">
+                          <div class="invalid-feedback d-block text-left"
+                          *ngIf="subItemValidationArray[nonPersonIndex]?.subItem">
+                          <span class="mandatory">{{subItemValidationArray[nonPersonIndex]?.subItem}}</span>
+                        </div>
+                        </div>
+                        <div class="col">
+                          <input class="form-control" [disabled]='awardData?.isGenerateWBSNumber'
+                            [(ngModel)]="nonPerson.internalOrderCode"
+                            (ngModelChange)="_commonDataService.isAwardDataChange = true;">
+                        </div>
+                        <div class="col">
+                          <input class="form-control text-right" type="text" appCurrencyFormat
+                            [ngClass]="{'lineItem-mandatory': subItemValidationArray[nonPersonIndex]?.cost}"
+                            [(ngModel)]="nonPerson.lineItemCost" (ngModelChange)="setNonPersonLineItemCost(newLineItemObject)" [initialValue]="nonPerson.lineItemCost">
+                            <div class="invalid-feedback d-block text-left"
+                            *ngIf="subItemValidationArray[nonPersonIndex]?.cost">
+                            <span class="mandatory">{{subItemValidationArray[nonPersonIndex]?.cost}}</span>
+                          </div>
+                          </div>
+                        <div *ngIf="_budgetDataService.isBudgetEditable" class="col-1">
+                          <span>
+                            <i class="fa fa-trash hand-cursor hoverColor action-icons" aria-hidden="true"
+                              title="Delete Sub Item"
+                              (click)="deleteNonPersonSubItemOnAddition(nonPersonIndex, newLineItemObject)"></i>
+                            <button *ngIf="nonPersonIndex == newLineItemObject.nonPersonsDetails.length-1"
+                              title="Add Sub Item" class="personAddBtn font hoverColor"
+                              (click)="addNonPersonSubItem(newLineItemObject, 'ADD', null)">
+                              <i class="fa fa-plus fa-large action-icons" aria-hidden="true"></i>
+                            </button>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                </tr>
+<!--NONPERSON SUB LINE ITEM ENDS-->
+                <tr *ngIf="_budgetDataService.isBudgetEditable &&
+                newLineItemObject?.budgetCategory?.budgetCategoryTypeCode &&
+                (((!awardBudgetData?.awardBudgetHeader?.manpowerEnabled ||
+                !awardBudgetData?.awardBudgetHeader?.budgetAssociatedWithManpower)
+                && newLineItemObject?.budgetCategory?.budgetCategoryTypeCode == 'P')
+                || newLineItemObject?.nonPersonsDetails?.length)"
+                class="c-element-color">
+                <td class="text-right"
+                  [attr.colspan]="awardBudgetData?.awardBudgetHeader?.budgetTypeCode == 2 ? '8' : '6'">
+                  <div class="invalid-feedback d-block">
+                    <span class="float-left" *ngIf="!isSubItemCostValidOnAdd">
+                      <span>{{newLineItemObject?.budgetCategory?.budgetCategoryTypeCode === 'P' ? 'Person(s)' : 'Sub Line Item(s)'}}</span> cost should not exceed line item cost of {{newLineItemObject.costElement.description}}.
+                    </span>
+                    <button class="btn btn-primary-sub btn-sm" (click)="addNewBudgetLineItem()">Add</button>
+                  </div>
+                </td>
+                </tr>
+              </ng-container>
+<!-- COST ELEMENT ADDING SECTION ENDS-->
+
+<!--LINE ITEM LISTING....-->
+              <ng-container *ngFor="let lineItem of period.budgetDetails; let detailIndex=index;">
+                <tr>
+                  <td class="p-0"
+                    [attr.colspan]="awardBudgetData?.awardBudgetHeader?.budgetTypeCode == 2 ? '8' : '6'">
+                    <div class="budget-list-outer p-0">
+<!--MAIN LINE ITEM LISTING-->
+                      <table class="table budget-table budget-list-table mb-0 text-center">
+                        <caption class="sr-only">Detailed Budget</caption>
+                        <tbody>
+                          <tr>
+                            <td width="15%" class="position-relative" ><input type="text" disabled class="dateBox form-control w-92"
+                                title="{{lineItem.budgetCategory.description}}"
+                                [(ngModel)]="lineItem.budgetCategory.description"
+                                [ngClass]="helpText?.budget && helpText?.budget[lineItem?.budgetCategoryCode]?.helpTextInfo && lineItem?.budgetCategory?.description ? 'd-inline-block float-left' : ''" />
+                                <span *ngIf="helpText?.budget && helpText?.budget[lineItem?.budgetCategoryCode]?.helpTextInfo && lineItem?.budgetCategory?.description" class="d-inline-block icon-hover position-absolute">
+                                  <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med" aria-hidden="true"></i>
+                                      <div class="tooltiptext-left card card-inner p-15 text-left">
+                                          <span class="font-cv">{{helpText?.budget[lineItem?.budgetCategoryCode]?.helpTextInfo}}</span>
+                                      </div>
+                                  </a>
+                                </span>
+                            </td>
+                            <td width="20%" id="searchCostElementIteration" class="text-left">
+                              <app-endpoint-search [searchOnFocus]=true
+                                *ngIf="lineItem?.isSystemGeneratedCostElement!=true && isLineItemEditable[detailIndex] &&
+                                lineItem.prevLineItemCost == null"
+                                [httpOptions]="endpointSearchOptionsEdit" [clearField]="clearFieldIteration"
+                                [placeHolder]="'Type here for  Cost Element'"
+                                (onSelect)="costElementChangeOnEdit($event, lineItem)"
+                                [isError]="lineItemValidations[detailIndex]?.costElement? true : false">
+                              </app-endpoint-search>
+                              <input type="text" class="form-control"
+                                title="{{lineItem.costElement.costElementDetail}}"
+                                *ngIf="lineItem?.isSystemGeneratedCostElement==true || !isLineItemEditable[detailIndex] ||
+                                lineItem.prevLineItemCost != null"
+                                disabled [(ngModel)]="lineItem.costElement.costElementDetail" />
+                              <div class="invalid-feedback d-block text-left"
+                                *ngIf="lineItemValidations[detailIndex]?.costElement">
+                                <span class="mandatory">{{lineItemValidations[detailIndex]?.costElement}}</span>
+                              </div>
+                              <a *ngIf="lineItem?.budgetCategory?.budgetCategoryTypeCode &&
+                                lineItem.nonPersonsDetails.length == 0 && lineItem?.budgetCategory?.budgetCategoryTypeCode != 'P'
+                                && lineItem?.isSystemGeneratedCostElement!=true && (isLineItemEditable[detailIndex] || _budgetDataService.isBudgetPartiallyEditable) && awardBudgetData?.isNonPersonalLineItemEnabled"
+                                (click)="addNonPersonSubItem(lineItem, 'ITERATION', detailIndex);tempObject.lineItemIndex = detailIndex;"
+                     class="anchor-link d-block fs-14 ng-star-inserted" id="award-non-person-add-btn">
+                      <i aria-hidden="true" class="fa fa-plus"></i> Add Sub Item</a>
+                            </td>
+                            <td width="15%">
+                              <input class="dateBox form-control" [(ngModel)]="lineItem.internalOrderCode"
+                                (ngModelChange)="_commonDataService.isAwardDataChange = true;"
+                                [disabled]="!checkIOCodeEditable(lineItem, detailIndex)" [title]="lineItem.internalOrderCode">
+                            </td>
+                            <td width="5%">
+                              <input class="dateBox form-control" type="text" step="any" [(ngModel)]="lineItem.quantity"
+                                appCurrencyFormat [initialValue]="lineItem.quantity" [isNumberFormatOnly]="true"
+                                min="0" (keypress)="inputRestriction($event)"
+                                [disabled]="lineItem?.isSystemGeneratedCostElement==true || !isLineItemEditable[detailIndex]"
+                                [ngClass]="{'lineItem-mandatory': lineItemValidations[detailIndex]?.quantityMsg}"
+                                (ngModelChange)="_commonDataService.isAwardDataChange = true;">
+                              <div class="invalid-feedback d-block text-left"
+                                *ngIf="lineItemValidations[detailIndex]?.quantityMsg">
+                                <span class="mandatory">{{lineItemValidations[detailIndex]?.quantityMsg}}</span>
+                              </div>
+                            </td>
+                            <td width="13%" *ngIf="awardBudgetData?.awardBudgetHeader?.budgetTypeCode == 2
+                              && (awardBudgetData?.awardBudgetHeader?.budgetStatusCode == 1 ||
+                              awardBudgetData?.awardBudgetHeader?.budgetStatusCode == 5)">
+                              <input type="text" appCurrencyFormat class="dateBox form-control text-right" disabled
+                                [(ngModel)]="lineItem.prevLineItemCost" [initialValue]="lineItem.prevLineItemCost" />
+                            </td>
+                            <td width="10%" *ngIf="awardBudgetData?.awardBudgetHeader?.budgetTypeCode == 2
+                              && (awardBudgetData?.awardBudgetHeader?.budgetStatusCode == 1 ||
+                              awardBudgetData?.awardBudgetHeader?.budgetStatusCode == 5)">
+                              <input type="text" appCurrencyFormat class="dateBox form-control" disabled
+                                [(ngModel)]="lineItem.balanceToDate" [initialValue]="lineItem.balanceToDate" />
+                            </td>
+                            <td width="12%">
+                              <input class="dateBox form-control text-right" type="text" appCurrencyFormat
+                                [(ngModel)]="lineItem.lineItemCost" [initialValue]="lineItem.lineItemCost"
+                                (ngModelChange)="_commonDataService.isAwardDataChange = true; inputDigitRestriction(lineItem.lineItemCost, detailIndex, 'editLineItem')"
+                                [disabled]="((lineItem?.budgetCategory?.budgetCategoryTypeCode == 'P'&&
+                                (!awardBudgetData?.awardBudgetHeader?.manpowerEnabled ||
+                                !awardBudgetData?.awardBudgetHeader?.budgetAssociatedWithManpower)) &&
+                                personTotalSalary > 0 && lineItem?.personsDetails?.length > 0 && awardBudgetData?.enableAbPersonAppliedSalary) || !isLineItemEditable[detailIndex]"
+                                [ngClass]="{'lineItem-mandatory': lineItemValidations[detailIndex]?.cost ||
+                                (isInvalidCostOnEdit && tempObject?.lineItem?.budgetDetailId == lineItem.budgetDetailId)}">
+                              <div class="invalid-feedback d-block text-left"
+                                *ngIf="lineItemValidations[detailIndex]?.cost">
+                                <span class="mandatory">{{lineItemValidations[detailIndex]?.cost}}</span>
+                              </div>
+                            </td>
+                            <td width="8%">
+                              <span>
+                                <i *ngIf="lineItem?.isSystemGeneratedCostElement!=true && awardBudgetData?.awardBudgetHeader?.isAutoCalc"
+                                  class="fa fa-eye hand-cursor hoverColor action-icons" title="View rates"
+                                  data-toggle="modal" data-target="#awardBudgetLineItemRatesModal"
+                                  (click)="tempObject.lineItem = lineItem;resetEditLineItem();"
+                                  aria-hidden="true"></i>
+                                <i class="fa fa-file-text hand-cursor hoverColor mr-1 action-icons"
+                                  *ngIf="(lineItem?.isSystemGeneratedCostElement && !awardBudgetData?.awardBudgetHeader?.isAutoCalc) || !lineItem?.isSystemGeneratedCostElement"
+                                  title="{{justificationToggleList[detailIndex] ? 'Hide Description' : 'Show Description'}}"
+                                  (click)="justificationToggleList[detailIndex]=!justificationToggleList[detailIndex]"
+                                  aria-hidden="true">
+                                </i>
+                                <i *ngIf="lineItem?.isSystemGeneratedCostElement!=true && _budgetDataService.isBudgetEditable && lineItem.prevLineItemCost == null"
+                                  class="fa fa-trash hand-cursor hoverColor action-icons" title="Delete line Item"
+                                  data-toggle="modal" data-target="#deleteAwardBudgetLineitemModal"
+                                  (click)="deleteLineItemIndex = detailIndex; isIOCodeExistInManpower = lineItem.isIOCodeExistInManpower;
+                                  isManpowerResourceExistInManpower = lineItem.isManpowerResourceExistInManpower" aria-hidden="true"></i>
+                                <i *ngIf="!isLineItemEditable[detailIndex] && _budgetDataService.isBudgetEditable && ((lineItem?.isSystemGeneratedCostElement && !awardBudgetData?.awardBudgetHeader?.isAutoCalc) || !lineItem?.isSystemGeneratedCostElement)"
+                                  class="fa fa-pencil hand-cursor hoverColor action-icons"
+                                  (click)="editLineItem(lineItem, detailIndex)" title="Edit line item"
+                                  aria-hidden="true"></i>
+                                <i *ngIf="isLineItemEditable[detailIndex] && _budgetDataService.isBudgetEditable"
+                                  class="fa fa-close hand-cursor hoverColor action-icons"
+                                  (click)="cancelEditLineItem(detailIndex)" title="Cancel" aria-hidden="true"></i>
+                                <i *ngIf="(isLineItemEditable[detailIndex] && _budgetDataService.isBudgetEditable)
+                                || (_budgetDataService.isBudgetPartiallyEditable && !lineItem?.isSystemGeneratedCostElement)"
+                                  class="fa fa-save hand-cursor hoverColor action-icons"
+                                  (click)="updateAwardBudgetLineItem(lineItem, detailIndex, lineItem?.budgetCategory?.budgetCategoryTypeCode)" title="Save line item"
+                                  aria-hidden="true"></i>
+                                  <i class="hand-cursor hoverColor mr-1 action-icons" [ngClass]="isSubSectionOpen[lineItem.budgetDetailId] ? 'fa fa-chevron-up': 'fa fa-chevron-down'"
+                                  *ngIf="lineItem?.isSystemGeneratedCostElement == false && lineItem?.budgetCategory?.budgetCategoryTypeCode == 'P' && (!awardBudgetData?.awardBudgetHeader?.manpowerEnabled ||
+                                  !awardBudgetData?.awardBudgetHeader?.budgetAssociatedWithManpower)"
+                                   title="{{isSubSectionOpen[lineItem.budgetDetailId] ? 'Hide Persons' : 'View Persons'}}"
+                                   (click)="isSubSectionOpen[lineItem.budgetDetailId]=!isSubSectionOpen[lineItem.budgetDetailId]"></i>
+                                  <i class="hand-cursor hoverColor mr-1 action-icons" [ngClass]="isSubSectionOpen[lineItem.budgetDetailId] ? 'fa fa-chevron-up': 'fa fa-chevron-down'"
+                                  *ngIf="lineItem?.isSystemGeneratedCostElement == false && lineItem?.budgetCategory?.budgetCategoryTypeCode !== 'P' && awardBudgetData?.isNonPersonalLineItemEnabled"
+                                  title="{{isSubSectionOpen[lineItem.budgetDetailId] ? 'Hide Sub Items' : 'View Sub Items'}}"
+                                  (click)="isSubSectionOpen[lineItem.budgetDetailId]=!isSubSectionOpen[lineItem.budgetDetailId]"></i>
+                              </span>
+                              <button title="Add Personnel" class="personAddBtn font hoverColor"
+                                (click)="addPersonSubItem(lineItem, 'ITERATION', detailIndex);tempObject.lineItemIndex = detailIndex;"
+                                *ngIf="lineItem.personsDetails.length == 0 && lineItem?.budgetCategory?.budgetCategoryTypeCode == 'P' &&
+                                 (isLineItemEditable[detailIndex] || _budgetDataService.isBudgetPartiallyEditable)
+                                && (!awardBudgetData?.awardBudgetHeader?.manpowerEnabled || !awardBudgetData?.awardBudgetHeader?.budgetAssociatedWithManpower)"
+                                aria-hidden="true">
+                                <i class="fa fa-user-plus fa-large action-icons" aria-hidden="true"></i>
+                              </button>
+                            </td>
+                          </tr>
+                          <tr *ngIf="((isInvalidCostOnEdit || isInvalidRevisedBudget || isManpowerLineItemCostValidation)&&
+                           tempObject?.lineItem?.budgetDetailId == lineItem.budgetDetailId)">
+                            <td class="no-border"
+                              [colSpan]="(awardBudgetData?.awardBudgetHeader?.budgetTypeCode == 2 ) ? 8 : 6">
+                              <div class="invalid-feedback d-block text-left">
+                                <span *ngIf="isInvalidCostOnEdit" class="d-block">
+                                  <ng-container i18n="@@AWARD_BUDGET_VALIDATION-MESSAGE">Line Item Cost should be less than or equal to Remaining Fund.</ng-container></span>
+                                <span *ngIf="isInvalidRevisedBudget">
+                                  You cannot do virement more than the balance amount available to date.
+                                </span>
+                                <span *ngIf="isManpowerLineItemCostValidation">
+                                  Insufficient line item budget. Please ensure revised budget is equal or more than Committed amount in Manpower tab.                                </span>
+                              </div>
+                            </td>
+                          </tr>
+                          <tr *ngIf="justificationToggleList[detailIndex]">
+                            <td class="no-border"
+                              [colSpan]="(awardBudgetData?.awardBudgetHeader?.budgetTypeCode == 2) ? 8 : 6">
+                              <div class="row">
+                                <div class="col-lg-2 col-md-2 col-sm-2 col-2">
+                                  <label>Line Item Description</label>
+                                </div>
+                                <div class="col-lg-10 col-md-10 col-sm-10 col-10">
+                                  <textarea class="form-control"
+                                    [disabled]="(lineItem.isSystemGeneratedCostElement && awardBudgetData?.awardBudgetHeader?.isAutoCalc) || !_budgetDataService.isBudgetEditable ||
+                                    !isLineItemEditable[detailIndex]"
+                                    [(ngModel)]="lineItem.lineItemDescription"
+                                    (ngModelChange)="_commonDataService.isAwardDataChange = true" appLengthValidator
+                                    [isShowLimiter]='_budgetDataService.isBudgetEditable' [limit]=4000>
+                                  </textarea>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+<!--MAIN LINE ITEM LISTING ENDS-->
+<!--PERSON SUB ITEM LISTING-->
+                      <div *ngIf="lineItem?.budgetCategory?.budgetCategoryTypeCode == 'P' &&
+                      isSubSectionOpen[lineItem.budgetDetailId] && (!awardBudgetData?.awardBudgetHeader?.manpowerEnabled ||
+                        !awardBudgetData?.awardBudgetHeader?.budgetAssociatedWithManpower)"
+                        class="budget-person-outer pl-4 pr-4">
+                        <div class="budget-person p-3 mb-1">
+                          <div class="form-row budget-person-head m-0">
+                            <div class="col-3">Persons</div>
+                            <div class="col">Start Date</div>
+                            <div class="col">End Date</div>
+                            <div class="col"><ng-container i18n="@@AWARD_WBS_NUMBER_FOR_OFIN_USE">WBS Number (for OFIN use)</ng-container></div>
+                            <div class="col" *ngIf="awardBudgetData?.enableAbPersonAppliedSalary">Salary({{currency}})</div>
+                            <div class="col-1" *ngIf="awardBudgetData?.enableAbPersonAppliedSalary">Effort%</div>
+                            <div class="col"><ng-container i18n="@@AWARD_APPLIED_SALARY">Applied Salary</ng-container> ({{currency}})</div>
+                            <div *ngIf="_budgetDataService.isBudgetEditable || _budgetDataService.isBudgetPartiallyEditable" class="col-1">Action</div>
+                          </div>
+                          <ng-container  *ngIf="lineItem?.personsDetails?.length > 0">
+                          <div class="form-row mb-2"
+                            *ngFor="let person of lineItem?.personsDetails; let PIndex = index">
+                            <div class="col-3">
+                              <select class="form-control mr-3 select-box p-0" [(ngModel)]="person.budgetPersonId"
+                                (change)="triggerPersonsModal($event, person, lineItem)"
+                                [disabled]="!isLineItemEditable[detailIndex] && !_budgetDataService?.isBudgetPartiallyEditable"
+                                [ngClass]="{'lineItem-mandatory': lineItemValidations[detailIndex]?.subItemValidationArray[PIndex]?.personMsg}"
+                                (ngModelChange)="awardBudgetCalculations(lineItem, person)">
+                                <option [value]=null>--Select--</option>
+                                <!-- awardBudgetPersonList is iterated here since we need dropdown values for selecting while editing person name -->
+                                <option *ngFor="let budgetPerson of personResultData.awardBudgetPersonList"
+                                  [value]="budgetPerson.budgetPersonId">
+                                  <ng-container
+                                    *ngIf="budgetPerson.personType === 'N' || budgetPerson.personType === 'P' || budgetPerson.personType === 'E'">
+                                    {{budgetPerson?.personName}} ({{budgetPerson?.jobCodes?.jobTitle}})
+                                  </ng-container>
+                                  <ng-container *ngIf="budgetPerson.personType === 'T'">
+                                    {{budgetPerson?.tbnPerson?.personName}} ({{budgetPerson?.jobCodes?.jobTitle}})
+                                  </ng-container>
+                                </option>
+                                <option value="otherPersons">Add other persons</option>
+                              </select>
+                              <div class="invalid-feedback d-block text-left"
+                                *ngIf="lineItemValidations[detailIndex]?.subItemValidationArray[PIndex]?.personMsg">
+                                <span
+                                  class="mandatory">{{lineItemValidations[detailIndex]?.subItemValidationArray[PIndex]?.personMsg}}</span>
+                              </div>
+                            </div>
+                            <div class="col budget-date">
+                              <span class="dateField">
+                                <input matInput [matDatepicker]="perstDate" placeholder="{{datePlaceHolder}}" id="award-preSt-date"
+                                  class="budgetDate-width form-control p-1" [(ngModel)]="person.startDate"
+                                  [disabled]="!isLineItemEditable[detailIndex] && !_budgetDataService?.isBudgetPartiallyEditable"
+                                  [ngClass]="{'lineItem-mandatory': lineItemValidations[detailIndex]?.subItemValidationArray[PIndex]?.stDateMsg}"
+                                  (ngModelChange)="awardBudgetCalculations(lineItem, person)" (click)="perstDate.open()">
+                                <i class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                  (click)="perstDate.open()" aria-hidden="true"></i>
+                                <mat-datepicker #perstDate (opened)="setFocusToElement('award-preSt-date')"></mat-datepicker>
+                              </span>
+                              <div class="invalid-feedback d-block text-left"
+                                *ngIf="lineItemValidations[detailIndex]?.subItemValidationArray[PIndex]?.stDateMsg">
+                                <span
+                                  class="mandatory">{{lineItemValidations[detailIndex]?.subItemValidationArray[PIndex]?.stDateMsg}}</span>
+                              </div>
+                            </div>
+                            <div class="col budget-date">
+                              <span class="dateField">
+                                <input matInput [matDatepicker]="perendDate" placeholder="{{datePlaceHolder}}" id="award-perEnd-date"
+                                  class="budgetDate-width form-control p-1" [(ngModel)]="person.endDate"
+                                  [disabled]="!isLineItemEditable[detailIndex] && !_budgetDataService?.isBudgetPartiallyEditable"
+                                  [ngClass]="{'lineItem-mandatory': lineItemValidations[detailIndex]?.subItemValidationArray[PIndex]?.endDateMsg}"
+                                  (ngModelChange)="awardBudgetCalculations(lineItem, person)" (click)="perendDate.open()">
+                                <i class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                  (click)="perendDate.open()" aria-hidden="true"></i>
+                                <mat-datepicker #perendDate (opened)="setFocusToElement('award-perEnd-date')"></mat-datepicker>
+                              </span>
+                              <div class="invalid-feedback d-block text-left"
+                                *ngIf="lineItemValidations[detailIndex]?.subItemValidationArray[PIndex]?.endDateMsg">
+                                <span
+                                  class="mandatory">{{lineItemValidations[detailIndex]?.subItemValidationArray[PIndex]?.endDateMsg}}</span>
+                              </div>
+                            </div>
+                            <div class="col">
+                              <input class="form-control" [(ngModel)]="person.internalOrderCode"
+                                (ngModelChange)="_commonDataService.isAwardDataChange = true;"
+                                [disabled]="!checkIOCodeEditable(lineItem, detailIndex)">
+                            </div>
+                            <div class="col" *ngIf="awardBudgetData?.enableAbPersonAppliedSalary">
+                              <input class="form-control text-right" type="text" appCurrencyFormat
+                                [(ngModel)]="person.totalSalary" disabled [initialValue]="person.totalSalary">
+                            </div>
+                            <div class="col-1" *ngIf="awardBudgetData?.enableAbPersonAppliedSalary">
+                              <input class="form-control" type="number" step="any" [(ngModel)]="person.percentageEffort"
+                                (ngModelChange)="awardBudgetCalculations(lineItem, person)"
+                                [disabled]="!isLineItemEditable[detailIndex] && !_budgetDataService?.isBudgetPartiallyEditable" placeholder="eg: 100, 99.99, 10.22, 25 etc"
+                                [ngClass]="{'lineItem-mandatory': lineItemValidations[detailIndex]?.subItemValidationArray[PIndex]?.effortMsg}"
+                                (keyup)="limitKeypress(person.percentageEffort, PIndex, detailIndex)">
+                              <div class="invalid-feedback d-block text-left"
+                                *ngIf="lineItemValidations[detailIndex]?.subItemValidationArray[PIndex]?.effortMsg">
+                                <span
+                                  class="mandatory">{{lineItemValidations[detailIndex]?.subItemValidationArray[PIndex]?.effortMsg}}</span>
+                              </div>
+                            </div>
+                            <div class="col">
+                              <input class="form-control text-right" type="text" appCurrencyFormat
+                                [(ngModel)]="person.salaryRequested" [initialValue]="person.salaryRequested"
+                                [disabled]="awardBudgetData?.enableAbPersonAppliedSalary ||
+                                        (!awardBudgetData?.enableAbPersonAppliedSalary && !isLineItemEditable[detailIndex] && !_budgetDataService.isBudgetPartiallyEditable)">
+                            </div>
+                            <div class="col-1" *ngIf="_budgetDataService.isBudgetEditable|| _budgetDataService.isBudgetPartiallyEditable">
+                              <i class="fa fa-trash hand-cursor hoverColor action-icons" aria-hidden="true"
+                                title="Delete person" data-toggle="modal"
+                                data-target="#deleteAwardLineItemPersonModal"
+                                (click)="setSubItemDeleteObject(lineItem, person, PIndex, detailIndex)">
+                              </i>
+                              <button
+                                *ngIf="lineItem.personsDetails.length-1 == PIndex && (isLineItemEditable[detailIndex] || _budgetDataService.isBudgetPartiallyEditable)"
+                                title="Add Personnel" class="personAddBtn font hoverColor"
+                                (click)="addPersonSubItem(lineItem, 'ITERATION', detailIndex);tempObject.lineItemIndex = detailIndex">
+                                <i class="fa fa-user-plus fa-large action-icons" aria-hidden="true"></i>
+                              </button>
+                            </div>
+                          </div>
+                          <div class="row">
+                            <div class="col-12">
+                              <span class="invalid-feedback"
+                                    *ngIf="this.subItemCostValidationList[detailIndex]===false && (isLineItemEditable[detailIndex] || _budgetDataService?.isBudgetPartiallyEditable)">
+                                    <span>{{lineItem?.budgetCategory?.budgetCategoryTypeCode === 'P' ? 'Person(s)' : 'Sub Line Item(s)'}}</span> cost should not exceed line item cost of {{lineItem?.costElement?.description}}.
+                              </span>
+                              <button class="btn btn-primary-sub btn-sm float-right" *ngIf="isLineItemEditable[detailIndex] || _budgetDataService?.isBudgetPartiallyEditable"
+                                (click)="updateAwardBudgetLineItem(lineItem, detailIndex, lineItem?.budgetCategory?.budgetCategoryTypeCode)">Save</button>
+                            </div>
+                          </div>
+                        </ng-container>
+                        <ng-container *ngIf="lineItem?.personsDetails?.length === 0">
+                          <div><span class="noDataExists ml-2">No persons added.</span></div>
+                        </ng-container>
+                        </div>
+                      </div>
+<!--PERSON SUB ITEM LISTING ENDS-->
+<!--NONPERSON SUB ITEM LISTING-->
+                      <div *ngIf="lineItem?.budgetCategory?.budgetCategoryTypeCode != 'P' && !lineItem.isSystemGeneratedCostElement &&
+                       isSubSectionOpen[lineItem.budgetDetailId] && awardBudgetData?.isNonPersonalLineItemEnabled"
+                         class="budget-person-outer pl-4 pr-4">
+                      <div class="budget-person p-3 mb-1">
+                        <div class="form-row budget-person-head m-0">
+                          <div class="col-3">Sub Line Item</div>
+                          <div class="col"><ng-container i18n="@@AWARD_WBS_NUMBER_FOR_OFIN_USE">WBS Number (for OFIN use)</ng-container></div>
+                          <div class="col">Line Item Cost({{currency}})</div>
+                          <div *ngIf="_budgetDataService.isBudgetEditable || _budgetDataService.isBudgetPartiallyEditable" class="col-1">Action</div>
+                        </div>
+                        <ng-container *ngIf="lineItem?.nonPersonsDetails?.length > 0">
+                        <div class="form-row mb-2" *ngFor="let nonPerson of lineItem?.nonPersonsDetails; let nPIndex = index">
+                          <div class="col-3">
+                            <input class="form-control" type="text" [(ngModel)]="nonPerson.description"
+                             [disabled]="!isLineItemEditable[detailIndex] && !_budgetDataService?.isBudgetPartiallyEditable"
+                             [ngClass]="{'lineItem-mandatory':lineItemValidations[detailIndex]?.subItemValidationArray[nPIndex]?.subItem }">
+                             <div class="invalid-feedback d-block text-left"
+                                *ngIf="lineItemValidations[detailIndex]?.subItemValidationArray[nPIndex]?.subItem">
+                                <span
+                                  class="mandatory">{{lineItemValidations[detailIndex]?.subItemValidationArray[nPIndex]?.subItem}}</span>
+                              </div>
+                          </div>
+                          <div class="col">
+                            <input class="form-control" [(ngModel)]="nonPerson.internalOrderCode"
+                              (ngModelChange)="_commonDataService.isAwardDataChange = true;"
+                              [disabled]="!checkIOCodeEditable(lineItem, detailIndex)">
+                          </div>
+                          <div class="col">
+                            <input class="form-control text-right" type="text" appCurrencyFormat
+                              [disabled]="!isLineItemEditable[detailIndex] && !_budgetDataService?.isBudgetPartiallyEditable"
+                              [(ngModel)]="nonPerson.lineItemCost" [initialValue]="nonPerson.lineItemCost"
+                              (ngModelChange)="setNonPersonLineItemCost(lineItem)"
+                              [ngClass]="{'lineItem-mandatory':lineItemValidations[detailIndex]?.subItemValidationArray[nPIndex]?.cost }">
+                              <div class="invalid-feedback d-block text-left"
+                                *ngIf="lineItemValidations[detailIndex]?.subItemValidationArray[nPIndex]?.cost">
+                                <span
+                                  class="mandatory">{{lineItemValidations[detailIndex]?.subItemValidationArray[nPIndex]?.cost}}</span>
+                              </div>
+                          </div>
+                          <div class="col-1" *ngIf="_budgetDataService.isBudgetEditable || _budgetDataService.isBudgetPartiallyEditable">
+                            <i class="fa fa-trash hand-cursor hoverColor action-icons" aria-hidden="true"
+                              title="Delete sub line item" data-toggle="modal"
+                              data-target="#deleteAwardSubLineItemnModal"
+                              (click)="setSubItemDeleteObject(lineItem, nonPerson, nPIndex, detailIndex)">
+                            </i>
+                            <button
+                            *ngIf="lineItem.nonPersonsDetails.length-1 == nPIndex && (isLineItemEditable[detailIndex] || _budgetDataService.isBudgetPartiallyEditable)"
+                            title="Add Sub Item" class="personAddBtn font hoverColor"
+                              (click)="addNonPersonSubItem(lineItem, 'ITERATION', detailIndex);tempObject.lineItemIndex = detailIndex">
+                              <i class="fa fa-plus fa-large action-icons" aria-hidden="true"></i>
+                            </button>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-12">
+                            <span class="invalid-feedback"
+                                  *ngIf="this.subItemCostValidationList[detailIndex]===false && (isLineItemEditable[detailIndex] || _budgetDataService?.isBudgetPartiallyEditable)">
+                                  <span>{{lineItem?.budgetCategory?.budgetCategoryTypeCode === 'P' ? 'Person(s)' : 'Sub Line Item(s)'}}</span> cost should not exceed line item cost of {{lineItem?.costElement?.description}}.
+                            </span>
+                            <button class="btn btn-primary-sub btn-sm float-right" *ngIf="isLineItemEditable[detailIndex] || _budgetDataService?.isBudgetPartiallyEditable"
+                              (click)="updateAwardBudgetLineItem(lineItem, detailIndex, lineItem?.budgetCategory?.budgetCategoryTypeCode)">Save</button>
+                          </div>
+                        </div>
+                      </ng-container>
+                      <ng-container *ngIf="lineItem?.nonPersonsDetails?.length === 0">
+                        <div><span class="noDataExists ml-2">No sub items added.</span></div>
+                      </ng-container>
+                      </div>
+                    </div>
+<!--NONPERSON SUB ITEM LISTING ENDS-->
+                    </div>
+                  </td>
+                </tr>
+              </ng-container>
+<!--LINE ITEM LISTING ENDS....-->
+            </tbody>
+          </table>
+        </div>
+        <div class="form-group col pl-0">
+          <span class="noDataExists regularFont"
+            *ngIf="period.budgetDetails.length <= 0 && !_budgetDataService.isBudgetEditable">
+            No cost elements added for this period</span>
+        </div>
+      </div>
+<!-- DETAILED BUDGET TABLE ENDS-->
+    </ng-container>
+  </ng-container>
+</div>
+
+<!-- PERSON DELETE MODAL STARTS -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="deleteAwardLineItemPersonModal" tabindex="-1" role="dialog"
+  data-backdrop="static" data-keyboard="false" aria-labelledby="deleteAwardLineItemPersonModal" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete Person</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this person?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary-sub" data-dismiss="modal"
+          (click)="deletePersonSubItem()">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- PERSON DELETE MODAL ends -->
+
+<!-- SUB LINE ITEM DELETE MODAL STARTS -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="deleteAwardSubLineItemnModal" tabindex="-1" role="dialog"
+  data-backdrop="static" data-keyboard="false" aria-labelledby="deleteAwardSubLineItemnModal" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete Sub Line Item</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this sub line item?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary-sub" data-dismiss="modal"
+          (click)="deleteNonPersonSubLineItem()">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- SUB LINE ITEM DELETE MODAL ends -->
+
+<!-- LINEITEM DELETE MODAL STARTS -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="deleteAwardBudgetLineitemModal" tabindex="-1" role="dialog"
+  data-backdrop="static" data-keyboard="false" aria-labelledby="deleteAwardBudgetLineitemModal" aria-hidden="true">
+  <div class="modal-dialog" role="document" [ngClass]="_commonService.isManpowerEnabled && (isIOCodeExistInManpower ||
+  isManpowerResourceExistInManpower) ? 'modal-lg' : ''">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p *ngIf="!(isManpowerResourceExistInManpower && _commonService.isManpowerEnabled)">Are you sure you want to delete this line item?</p>
+        <div *ngIf="isIOCodeExistInManpower && !isManpowerResourceExistInManpower && _commonService.isManpowerEnabled"
+        class="alert alert-warning" role="alert">Deleting the line item would also delete the corresponding entry in Manpower Plan
+        </div>
+        <div *ngIf="isManpowerResourceExistInManpower && _commonService.isManpowerEnabled" class="alert alert-danger" role="alert">
+          Deletion can only be done when there are no resource in the manpower category
+      </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button *ngIf="!isManpowerResourceExistInManpower" type="button" class="btn btn-primary-sub" data-dismiss="modal"
+          (click)="deleteLineItem()">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- LINEITEM DELETE MODAL ends -->
+
+<!-- ADD OTHER PERSON MODAL -->
+<button id="awardAddOtherPersonModalBtn" class="d-none" data-toggle="modal"
+  data-target="#awardAddOtherPersonModal"></button>
+<div class="modal fade mySkinDialog" id="awardAddOtherPersonModal" role="dialog" data-backdrop="static"
+  data-keyboard="false">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header ct-footer-padding">
+        <h4 class="modal-title">Add Person
+        </h4>
+        <button id="add-person-modal-clear" type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body ct-modal-padding">
+        <div class="row">
+          <div class="col-lg-12">
+            <app-personnel (isPersonAdded)='setAddedPerson($event)'></app-personnel>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ADD OTHER PERSON MODAL ENDS-->
+
+<!-- COST ELEMENT CHANGE - PERSON DELETE WARNING MODAL -->
+<button style="display: none" id="awardBudgetCostelementChangewarningModalBtn" data-toggle="modal"
+  data-target="#awardBudgetCostelementChangewarningModal"></button>
+<div class="modal fade mySkinDialog" id="awardBudgetCostelementChangewarningModal" role="dialog" data-backdrop="static"
+  data-keyboard="false">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header ct-footer-padding">
+        <h4 class="modal-title">Warning!</h4>
+        <button id="addPersonCloseId" type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body ct-modal-padding">
+        <p>Please delete sub line item(s) to proceed.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary-sub" data-dismiss="modal">Ok</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- COST ELEMENT CHANGE - PERSON DELETE WARNING MODALENDS-->
+<!-- SHOW RATES CALCULATION MODAL -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="awardBudgetLineItemRatesModal" tabindex="-1" role="dialog"
+  aria-labelledby="showRatesTitle" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="award-budget-applied-rates">Applied Rates for
+          {{tempObject?.lineItem?.costElement?.costElementDetail}} </h5>
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" *ngIf="tempObject?.lineItem?.budgetDetailCalcAmounts?.length >0">
+        <div class="row mb-3">
+          <div class="col-4">
+            <ng-container
+              *ngIf="tempObject?.lineItem?.budgetDetailCalcAmounts?.calculateLineItemCostIncludingBenifit != null">
+              <label class="d-block">Line Item Cost with benefit</label>
+              <span>{{tempObject?.lineItem?.budgetDetailCalcAmounts?.calculateLineItemCostIncludingBenifit| currency: currency}}</span>
+            </ng-container>
+          </div>
+        </div>
+        <div class="fixed-header-table mt-3">
+          <table id="ratesTable" class="table tableStyle tableSkin" aria-describedby="proposal-budget-applied-rates">
+            <caption class="sr-only">Applied Rates</caption>
+            <thead class="thead-light">
+              <tr>
+                <th scope="col">Class</th>
+                <th scope="col">Type</th>
+                <th scope="col">Rate (%)</th>
+                <th scope="col">Rate Cost</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let detailCalcAmount of tempObject?.lineItem?.budgetDetailCalcAmounts">
+                <td>{{detailCalcAmount?.rateClass?.description}}</td>
+                <td>{{detailCalcAmount?.rateTypeDescription}}</td>
+                <td>{{detailCalcAmount?.applicableRate}}</td>
+                <td>{{detailCalcAmount?.calculatedCost | currency: currency}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-body" *ngIf="tempObject?.lineItem?.budgetDetailCalcAmounts?.length <=0">
+        <p>There are no applied rates for selected line-item.</p>
+      </div>
+      <div class="modal-footer">
+        <!-- <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-6" *ngIf="!deleteModalObj.isNoRatesAppplied">
+          <input type="checkbox" [disabled]="dataVisibilityObj.mode =='view' && !dataVisibilityObj.isBudgetEdittable"
+            [(ngModel)]='isApplyInflation' (ngModelChange)="changeApplyInflation()" />
+          <label><span class="font">Apply Inflation Rate </span></label>
+        </div> -->
+        <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-6">
+          <button type="button" class="btn btn-primary-sub rate-float" data-dismiss="modal"
+            (click)="tempObject.lineItem = {}">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,186 @@
+<!-- last updated by Arun Raj on 27-02-2020 -->
+<!--Adds area of research-->
+<div id="Award125" class="card mb-3" [ngClass]="{'item-highlighted': isHighlighted}" *ngIf="this.awardObject.researchType">
+  <div class="card-header px-4">
+    <h4 class="card-title" id="award-research-area-edit-details">
+      <ng-container i18n="@@COMMON_AREA_OF_RESEARCH/SOCIETAL_CHALLENGE_AREA">Area of Research/Societal Challenge Area</ng-container>
+      <span *ngIf="helpText?.areaOfResearch?.helpTextInfo" class="d-inline-block icon-hover">
+        <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med hand-cursor" aria-hidden="true"></i>
+            <div class="tooltiptext-left card card-inner p-15 text-left">
+                <span class="font-cv">{{helpText?.areaOfResearch?.helpTextInfo}}</span>
+            </div>
+        </a>
+      </span>
+      <div class="float-right">
+        <button id="prop-add-area-of-research-btn"  class="btn btn-tertiary btn-sm  mr-5 button-right"
+          data-toggle="modal" data-target="#add-area-modal" >
+            Add Area </button>
+        </div>
+      <button id="area-of-research-expnd-btn" class="updown-arrow"
+        (click)="isShowCollapse = !isShowCollapse">
+        <i [ngClass]="isShowCollapse?'fa fa-angle-double-up':'fa fa-angle-double-down'" aria-hidden="true"
+          class="fa-large"></i>
+      </button>
+    </h4>
+  </div>
+  <div class="card-content" *ngIf="isShowCollapse">
+    <div class="card-body">
+      <div class="noDataOnChart noDataExists p-2" *ngIf="result?.awardResearchAreas?.length == 0">
+        <div class="no-data-container">
+          <span class="no-data-icon-outer">
+            <div class="no-data-icon">
+              <i aria-hidden="true" class="fa fa-file-o"></i>
+              <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+            </div>
+          </span>
+          <h4>There is no information in this section.</h4>
+        </div>
+      </div>
+      <table class="table tableSkin grid2" aria-describedby="award-research-area-edit-details"
+        *ngIf="isShowCollapse && result?.awardResearchAreas?.length > 0">
+        <caption class="sr-only">Area of Research/Societal Challenge Area</caption>
+        <thead class="thead-light">
+          <th scope="col">Type</th>
+          <th scope="col">Area</th>
+          <th scope="col">Sub-Area</th>
+          <th scope="col">Action</th>
+        </thead>
+        <tbody>
+          <tr *ngFor="let researchArea of result?.awardResearchAreas;let i = index;">
+            <td>{{researchArea?.researchType?.description}}</td>
+            <td>{{researchArea?.researchTypeArea?.description}}</td>
+            <td *ngIf="researchArea?.researchTypeSubArea?.description">{{researchArea?.researchTypeSubArea?.description}}</td>
+            <td *ngIf="!researchArea?.researchTypeSubArea?.description"><span class="noDataExists">No subarea selected</span></td>            
+            <td>
+              <ul class="actionButtonGroup">
+                <li><a href="#" id="award-area-of-research-delete-btn" data-toggle="modal"
+                  *ngIf="!isEditAreaOfResearch || (isEditAreaOfResearch && editIndex !== i)"
+                    data-target="#deleteResearchArea" (click)="temporarySaveAreaOfResearch($event,researchArea)"><i
+                      class="fa fa-trash-o" aria-hidden="true"
+                      title="{{researchArea?.researchTypeCode == 1? 'Remove this Research Area' : 'Remove this Societal Challenge Area'}}"></i>
+                  </a>
+                </li>
+                <li>
+                  <a id="award-area-of-research-edit-btn">  
+                      <i class="fa fa-pencil" aria-hidden="true"   (click)="isEditAreaOfResearch = true;editAreaOfResearch(i)"
+                          title="Edit this Research Area"  data-toggle="modal" data-target="#add-area-modal" ></i>
+                  </a>
+              </li>
+              </ul>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+        <!-- More information -->
+        <div class="card-details mt-0 pt-0 px-0" *ngIf="isMoreInfoWidgetOpen">
+          <h4 class="card-title pb-3 ml-4 mt-2">More Information</h4>
+          <div class="card gridSkin p-2 m-0">
+            <div class="row">
+              <div class="col-12">
+                <label><ng-container i18n="@@COMMON_STUDY_SOCIETAL_CHALLENGE_DESCRIPTION_ERR">Elaborate on how the proposed study may contribute to the Societal Challenge and/or
+                  Research Area</ng-container></label>
+                <textarea id="award-area-of-research-desc" name="description" autocomplete="off"
+                  [(ngModel)]="result.award.researchDescription" (ngModelChange)="_commonData.isAwardDataChange = true" class="form-control"
+                  placeholder="Elaborate on how the proposed study may contribute to the Societal Challenge and/or Research Area"  appLengthValidator [isShowLimiter]='true' [limit]=4000
+                  i18n-placeholder="@@COMMON_STUDY_SOCIETAL_CHALLENGE_DESCRIPTION_PLHDR"></textarea>
+              </div>
+              <div class="col-12">
+                <label>Indicate if the application is a multi-disciplinary project and elaborate</label>
+                <textarea id="award-area-of-research-multi-desc" name="areaDescription" autocomplete="off"
+                  [(ngModel)]="result.award.multiDisciplinaryDescription" (ngModelChange)="_commonData.isAwardDataChange = true" class="form-control" 
+                  appLengthValidator [isShowLimiter]='true' [limit]=4000
+                  placeholder="Indicate if the application is a multi-disciplinary project and elaborate"></textarea>
+              </div>
+              <div class="col-12">
+                <button class="btn btn-primary-sub btn-sm rate-float mt-2" id="award-more-info-save-btn"
+                  (click)="saveMoreInfo()">Save More Information</button>
+              </div>
+            </div>
+          </div>
+        </div>
+</div>
+<!-- DELETE RESEARCH AREA WARNING MODAL -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="deleteResearchArea" tabindex="-1" role="dialog"
+  aria-labelledby="deleteModalTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete</h5>
+        <button type="button" id="award-area-of-research-dismiss" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this item?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="award-area-of-research-close-btn" class="btnSkin btn-secondary"
+          data-dismiss="modal">No</button>
+        <button type="button" id="award-area-of-research-delete" class="btn btn-primary-sub btn-sm"
+          (click)="deleteAreaOfResearch()" data-dismiss="modal">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Area Modal -->
+<div class="modal fade mySkinDialog" id="add-area-modal" role="dialog" aria-labelledby="skippedSchedulesTitle"
+  aria-hidden="true" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{editIndex >= 0? 'Update' : 'Add'}} Area of Research/Societal Challenge Area
+        </h5>
+        <button type="button" class="close" (click)="resetAreaOfResearch()" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body py-1 px-3">
+        <app-award-overview-modal-card></app-award-overview-modal-card>
+        <div class="w-100">
+          <div class="form-row">
+            <div class="col-12 mt-3">
+              <label for="award-area-of-research-type">Type</label>
+              <select class="form-control" id="award-area-of-research-type" [(ngModel)]="awardObject.researchType"
+                (change)="researchTypeChange()">
+                <option *ngFor="let type of lookupData?.researchTypes" [hidden]="type.isActive != true"
+                  [value]="type.researchTypeCode">
+                  {{type.description}}</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label>
+                <span class="mandatory">*</span>Area
+              </label>
+              <div class="searchBox">
+                <app-endpoint-search [isError]="isError" id="award-area-of-research" [clearField]="clearAreaField"
+                  [httpOptions]="areaHttpOptions" [placeHolder]="'Type here for Area'"
+                  (onSelect)="researchAreaSelectedFunction($event)" [searchOnFocus] = true></app-endpoint-search>
+                <div class="invalid-feedback d-block" *ngIf="researchWarningMsg != null">
+                  {{researchWarningMsg}}</div>
+              </div>
+            </div>
+            <div class="col-12">
+              <label class="margin-left-label">
+                Sub-Area</label>
+              <app-endpoint-search id="prop-sub-area-of-research" [clearField]="clearSubAreaField"
+                [httpOptions]="subAreaHttpOptions" [placeHolder]="'Type here for Sub-Area'"
+                (onSelect)="researchSubAreaSelectedFunction($event)" [searchOnFocus] = true></app-endpoint-search>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer mt-4">
+        <div class="text-center text-md-right">
+          <button id="prop-cancel-area-of-research-btn" class="btn btn-secondary btn-sm  btn-xs mr-2"
+            data-dismiss="modal" (click)="resetAreaOfResearch()">Cancel</button>
+          <button class="btn btn-primary-sub btn-xs" id="prop-edit-area-of-research-btn"
+            (click)="validateAndSetReqObject()">
+            {{editIndex >= 0? 'Update' : 'Add'}}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

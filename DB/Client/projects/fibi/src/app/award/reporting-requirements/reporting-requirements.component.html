@@ -1,0 +1,483 @@
+<!-- Report -->
+<div id="Award109">
+	<div *ngIf="isHelpTextEnable"  class="success-banner px-3 mx-1 my-2 d-flex justify-content-between align-items-center ng-star-inserted">
+		<div >
+			<i  aria-hidden="true" class="fa fa-info-circle mr-1 info-icon"></i>
+			<em  class="ng-star-inserted"> This action conflicts with another variation that is currently In Progress. Please add new reports in the pending variation.</em>
+		</div>
+		<button  aria-label="Close" class="close close-button" type="button" (click)="isHelpTextEnable=false">
+			<span  aria-hidden="true" class="d-block">×</span>
+		</button>
+	</div>
+	<div class="row">
+		<div class="col-10">
+			<div class="p-0 ">
+				<ng-container *ngFor="let report of allReports let i = index">
+					<div class="card border mb-4 ">
+						<div class="card-header p-3">
+							<div class="row">
+								<div class="col-11">
+									<span class="p-3">
+										<a (click)="toggleReportDetails( i)" class="cursor-pointer" tabindex="0">
+											<i [ngClass]="!isDetailsOpen[i]?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+												[title]="(isDetailsOpen[i]?'Show':'Hide') + ' report details'"
+												aria-hidden="true" class="fa-large"></i>
+										</a>
+									</span>
+									<span class="ml-2 fw-500 fs-16">{{report.reportClass.description}} <span
+											*ngIf="report.reportCode">- {{report.reportName}}</span> </span>
+								</div>
+								<div class="col-1 d-flex flex-row-reverse">
+									<span>
+										<span class="mr-3" *ngIf=" isEdit">
+											<a (click)="selectedIndex=i" data-target="#deleteReports"
+												data-toggle="modal" title="Delete Report">
+												<i aria-hidden="true" class="fa fa-trash-o pointer"></i>
+											</a>
+										</span>
+									</span>
+								</div>
+							</div>
+						</div>
+
+						<app-reporting-requirement-details class="table-line" *ngIf="!isDetailsOpen[i]"
+							[awardData]="awardData" [awardReport]="report"
+							(updateDataForSearch)="updateSearchData($event)" [isEditMode]="isEdit"
+							[manageOnActiveAward]="manageOnActiveAward"
+							[isEditEnabledForSection]="isEditEnabledForSection"
+							[dataChange]="setDataToChild"
+							(setDataToModal)="setDataToModal($event)"
+							[uniqueComponentId]="report.reportClassCode+report.reportCode"
+							[reportStatusList]="reportTermsLookup?.reportStatusList || []" >
+						</app-reporting-requirement-details>
+
+					</div>
+				</ng-container>
+				<div class="no-data-container"
+					*ngIf="allReports?.length == 0 && (this.filterRO.reportClassCode || this.filterRO.startDate || this.filterRO.endDate || this.filterRO.status)">
+					<span class="no-data-icon-outer">
+						<div class="no-data-icon">
+							<i class="fa fa-file-o" aria-hidden="true"></i>
+							<i class="fa fa-times-circle-o" aria-hidden="true"></i>
+						</div>
+					</span>
+					<h4>No report class found</h4>
+
+				</div>
+			</div>
+		</div>
+		<div class="col-2 pl-0">
+
+			<div [style.top.px]="topOffSet" *ngIf="unFilteredReports?.length != 0" class="card card-fixed  mr-4">
+				<div class="card-body d-flex justify-content-center pb-0 mt-1">
+					<button  (click)="openAddReportingRequirementModal()" *ngIf="((isModifiable && isEdit) || manageOnActiveAward) && isEditEnabledForSection"
+						class="btn btn-tertiary btn-sm mt-0 w-100" id="prop-special-revw-view-modal-btn" tabindex="0">
+						<span>Add Reports</span>
+					</button>
+				</div>
+
+				<div class="card-body pl-15 pb-15 pr-15 pt-0">
+					<hr *ngIf="((isModifiable && isEdit) || manageOnActiveAward) && isEditEnabledForSection">
+					<div class="d-block fw-600">Filter By :</div>
+
+					<div>
+
+						<div class="form-row p-3">
+							<label class="text-nowrap">Report Class :</label>
+							<select [(ngModel)]="filterRO.reportClassCode" (ngModelChange)="filterAllReports()"
+								 class="form-control"
+								id="award-report-class">
+								<option [ngValue]="null">All</option>
+								<option *ngFor="let reportClass of reportTermsLookup?.reportClassList"
+									[hidden]="reportClass.isActive != true" [value]="reportClass.reportClassCode">
+									{{reportClass?.description}}</option>
+							</select>
+						</div>
+						<div class="form-row p-3">
+							<label class="">Status :</label>
+							<select [(ngModel)]="filterRO.status" (ngModelChange)="filterAllReports()"
+								 class="form-control"
+								id="award-report-class">
+								<option [ngValue]="null">All</option>
+								<option *ngFor="let reportTrackingStatus of reportTermsLookup?.reportTrackingStatuses"
+									[value]="reportTrackingStatus.description">
+									{{reportTrackingStatus?.description}}</option>
+							</select>
+						</div>
+
+
+
+
+						<label class="date-label text-nowrap pl-2 pt-3 mt-2">Due Date :</label>
+
+						<div class="form-row pl-3 pr-3">
+							<label class="d-block">
+								From
+							</label>
+							<div class=" dateField w-100">
+								<input matInput id="submission-start-date" [(ngModel)]="filterRO.startDate"
+									(ngModelChange)="debounce.next()" [matDatepicker]="dueFromDt"
+									(click)="dueFromDt.open()"
+									placeholder="From ({{datePlaceHolder}})" class="form-control  d-inline-block"
+									(keypress)="_commonService._keyPress($event, 'date')" />
+								<i (click)="dueFromDt.open()" aria-hidden="true"
+									class="fa fa-calendar fa-large pointer insidePicker hand-cursor"
+									title="open calendar">
+								</i>
+								<mat-datepicker #dueFromDt (opened)="setFocusToElement('submission-start-date')">
+								</mat-datepicker>
+							</div>
+						</div>
+
+
+						<div class="form-row pl-3 pb-3 pr-3">
+							<label class="d-block">
+								To
+							</label>
+							<div class="dateField w-100">
+								<input id="submission-due-date" matInput placeholder="To ({{datePlaceHolder}})"
+									[(ngModel)]="filterRO.endDate" [matDatepicker]="dueToDt"
+									(ngModelChange)="debounce.next()" class="form-control d-inline-block"
+									(click)="dueToDt.open()"
+									(keypress)="_commonService._keyPress($event, 'date')">
+								<i (click)="dueToDt.open()" aria-hidden="true"
+									class="fa fa-calendar fa-large pointer insidePicker hand-cursor"
+									title="open calendar"></i>
+								<mat-datepicker #dueToDt
+									(opened)="setFocusToElement('submission-due-date')">
+								</mat-datepicker>
+							</div>
+						</div>
+
+
+					</div>
+
+					<!-- <div>
+                                <button class="btn btn-secondary ml-2" (click)="clearSearch()">Clear</button>
+                                <button id="search-user" (click)="filterAllReports()" title="Search"
+                                    class="btn btn-primary ml-3">Search</button>
+                            </div> -->
+
+
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="no-data-container" *ngIf="unFilteredReports?.length == 0">
+		<span class="no-data-icon-outer">
+			<div class="no-data-icon">
+				<i class="fa fa-file-o" aria-hidden="true"></i>
+				<i class="fa fa-times-circle-o" aria-hidden="true"></i>
+			</div>
+		</span>
+		<h4>There is no reporting requirements.</h4>
+		<div class="d-flex justify-content-center">
+			<button (click)="openAddReportingRequirementModal()" *ngIf="((isModifiable && isEdit) || manageOnActiveAward) && isEditEnabledForSection" class="btn btn-tertiary btn-sm mt-2"
+				id="prop-special-revw-view-modal-btn" tabindex="0">
+				<span >Add Reports</span>
+			</button>
+		</div>
+
+	</div>
+</div>
+<!-- Report ends -->
+
+<!-- Reports Delete modal -->
+<div class="modal fade mySkinDialog" id="deleteReports" role="dialog">
+	<div class="modal-lg modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Delete Reporting Requirement For {{reportLabel}}</h5>
+				<button aria-label="Close" class="close" data-dismiss="modal" id="prop-dlt-member-dismiss"
+					type="button">
+					<span aria-hidden="true">×</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div >
+					<p class="m-1">
+						Are you sure you want to delete all pending report tracking ?
+					</p>
+
+				</div>
+				<div class="f-14 mt-3 form-group alert alert-warning ">
+					<i  aria-hidden="true"
+							class="fa fa-exclamation-triangle mr-2"></i>
+					<p class="d-inline">
+						 <strong>Note:</strong>  This action will remove the pending reports without any attachments or linked to any report.
+					</p>
+					
+				</div>
+				
+			</div>
+			<div class="modal-footer">
+				<button (click)="selectedIndex = null;" class="btn btn-secondary btn-sm" data-dismiss="modal"
+					data-toggle="modal" type="button">No
+				</button>
+				<button (click)="deleteReport(allReports[selectedIndex])" class="btn btn-primary-sub btn-sm"
+					data-dismiss="modal" type="button">Yes
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- Reports Delete modal ends -->
+
+<div [id]="'nonProgressReportCreateModal'" class="modal fade mySkinDialog " data-backdrop="static">
+
+	<div class="modal-dialog modal-xl">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Reporting Requirement Details: {{reportLabel}} | Due Date: {{reportTrackingObject.dueDate | dateFormatterWithTimeZone}}</h5>
+				<button aria-label="Close" class="close" data-dismiss="modal" type="button">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class="form-row">
+					<div class="col-4">
+						<label for="status">Status</label>
+						<div id="status">
+							<select [(ngModel)]="reportTrackingObject.statusCode" [id]="'prop-type'"
+								class="form-control">
+								<option *ngFor="let statusList of reportTermsLookup?.reportStatusList"
+									[value]="statusList.statusCode">
+									{{statusList.description}}</option>
+							</select>
+						</div>
+					</div>
+					<div class="col-4">
+						<label for="preparer"> Preparer</label>
+						<div [id]="'searchElastic'" class="searchBox m-0">
+							<app-elastic (selectedResult)="selectedPerson($event);" [clearField]="clearField"
+								[options]="elasticSearchOptions" [placeHolder]="'Search'">
+							</app-elastic>
+						</div>
+
+
+					</div>
+					<div class="col-4">
+						<div>
+							<label for="activityDate"> Activity Date</label>
+							<div id="activityDate">
+								<span class="dateField">
+									<input matInput (keypress)="_commonService._keyPress($event, 'date');"
+										[(ngModel)]="reportTrackingObject.activityDate" [id]="'award-activity-date'"
+										[matDatepicker]="activityDate" (click)="activityDate.open()"
+										autocomplete="off" class="d-inline-block form-control"
+										placeholder="{{datePlaceHolder}}" style="width: 100% !important" />
+									<i [id]="'award-activity-date-icon'"  (click)="activityDate.open()"
+										aria-hidden="true" class="fa fa-calendar fa-large hand-cursor insidePicker"></i>
+									<mat-datepicker #activityDate
+										(opened)="setFocusToElement('award-activity-date')">
+									</mat-datepicker>
+								</span>
+							</div>
+						</div>
+					</div>
+
+				</div>
+				<div class="form-row">
+					<div class="col">
+						<label for="comment"> Comment</label>
+						<div id="comment">
+							<textarea [(ngModel)]="reportTrackingObject.comments" [id]="'award-report-tracking-comnt'"
+								[isShowLimiter]='true' [limit]=4000 appLengthValidator
+								class="form-control p-2 w-100 comment-box" rows="1"></textarea>
+						</div>
+
+					</div>
+				</div>
+				<div>
+
+					<div>
+						<label for="attachment">Attachment</label>
+						<div id="attachment" class="table-responsive" *ngIf="uploadedFiles?.length != 0">
+							<table class="table tableSkin grid2">
+								<caption class="sr-only">Attachment</caption>
+								<thead>
+									<tr class="header-border">
+										<th scope="col">File Name</th>
+										<th scope="col">Actions</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr id="addedAttachment">
+										<td>
+											<span>{{(uploadedFiles[0]?.name?.length > 55) ? (uploadedFiles[0].name| slice:0:55) + '...' :
+												(uploadedFiles[0].name)}}
+											</span>
+										</td>
+
+										<td>
+											<ul class="actionButtonGroup d-inline-block">
+												<li>
+													<a (click)="deleteElement();" title="Delete attachment">
+														<i aria-hidden="true" class="fa fa-trash-o pointer"></i>
+													</a>
+												</li>
+												<li>
+													<a>
+														<i *ngIf="reportTrackingObject?.awardReportTrackingFile" (click)="downloadReportAttachment(reportTrackingObject?.awardReportTrackingFile)"
+															aria-hidden="true" class="fa fa-download pointer"
+															title="Click here to download {{(reportTrackingObject?.awardReportTrackingFile?.fileName.length > 55)?
+                                                                                        (reportTrackingObject?.awardReportTrackingFile?.fileName | slice:0:55)+'...': (reportTrackingObject?.awardReportTrackingFile?.fileName)}}"></i>
+													</a>
+												</li>
+
+											</ul>
+										</td>
+									</tr>
+									<tr id="delete-confirmation" class="confirmation">
+										<td colspan="100%" class="p-0">
+											<div class="alert alert-danger d-flex align-items-center mb-0 justify-content-between"
+												role="alert">
+												<h4><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> 
+													Are you sure you want to delete this attachment?
+												</h4>
+												<span>
+													<button (click)="cancelDeleteElement()" title="Cancel"
+														class="btn btn-outline-secondary">
+														Cancel
+													</button>
+													<button class="btn btn-outline-danger" title="Delete"
+														(click)="deleteAttachment()">Delete</button>
+												</span>
+											</div>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+
+					<div
+						*ngIf="uploadedFiles?.length == 0">
+						<app-file-drop (filesDropEvent)="addReportAttachment($event)" [multiple]="false">
+						</app-file-drop>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button (click)="selectedIndex = null; clearModalDataForNonProgressReport() " class="btn btn-secondary"
+					data-dismiss="modal" type="button">
+					Cancel
+				</button>
+				<button class="btn btn-primary-sub btn-sm" type="button"
+					(click)="saveReportTrackingDetails(reportTrackingObject)">Save</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div [id]="'dueDateEditModal'" class="modal fade mySkinDialog " data-backdrop="static">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Edit Due Date For {{reportLabel}}</h5>
+				<button aria-label="Close" class="close" data-dismiss="modal" type="button">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class="form-row">
+					<div class="col-12">
+						<label  for="currentDate"> Current Due Date</label>
+						<div id="currentDate" class="data-exist">
+							{{currentDueDate | dateFormatterWithTimeZone}}
+						</div>
+					</div>
+
+					<div class="col-12 mt-2" >
+						<label for="dueDate">New Due Date</label>
+						<div id="dueDate">
+							<span class="dateField d-block position-relative">
+								<input matInput (keypress)="_commonService._keyPress($event, 'date');"
+									[(ngModel)]="reportTrackingObject.dueDate" [id]="'award-due-date'"
+									(click)="dueDate.open()"									
+									[matDatepicker]="dueDate" autocomplete="off"
+									class="d-inline-block form-control" placeholder="{{datePlaceHolder}}"
+									style="width: 100% !important" />
+								<i [id]="'award-due-date-icon'" (click)="dueDate.open()" aria-hidden="true"
+									class="fa fa-calendar fa-large hand-cursor insidePicker"></i>
+								<mat-datepicker #dueDate (opened)="setFocusToElement('award-due-date')">
+								</mat-datepicker>
+							</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button (click)="selectedIndex = null;" class="btn btn-secondary" data-dismiss="modal" type="button">
+					Cancel
+				</button>
+				<button class="btn btn-primary-sub btn-sm" (click)="saveReportTrackingDetails(reportTrackingObject)"
+					type="button">Save</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- DELETE ATTACHMENT WARNING MODAL -->
+<div id="deleteTracking" aria-hidden="true" aria-labelledby="deleteModalTitle" class="modal fade mySkinDialog"
+	role="dialog" tabindex="-1">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Delete Tracking For {{reportLabel}}</h5>
+				<button [id]="'award-doc-dlt-dismiss'" aria-label="Close" class="close" data-dismiss="modal"
+					type="button">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<p>Are you sure you want to delete this tracking for <strong>Due Date: {{reportTrackingObject.dueDate | dateFormatterWithTimeZone}} </strong> ? </p>
+			</div>
+			<div class="modal-footer">
+				<button (click)="selectedIndex=null" [id]="'award-doc-dlt-no-btn'" class="btn btn-secondary btn-sm"
+					data-dismiss="modal" data-toggle="modal" type="button">Cancel
+				</button>
+				<button (click)="deleteReportTracking()" [id]="'award-doc-dlt-yes-btn'"
+					class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button">Delete
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade mySkinDialog" id="activeDataExist" role="dialog">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Alert</h5>
+				<button aria-label="Close" class="close" data-dismiss="modal" id="prop-dlt-member-dismiss"
+					type="button">
+					<span aria-hidden="true">×</span>
+				</button>
+			</div>
+			<div class="modal-body">
+
+				<div class="f-14 mt-3 form-group alert alert-danger ">
+					<i  aria-hidden="true"
+							class="fa fa-exclamation-triangle mr-2"></i>
+					<p class="d-inline">
+						 <strong>Note:</strong>  Cannot delete this tracking as report exists in active.
+					</p>
+					
+				</div>
+				
+			</div>
+			<div class="modal-footer">
+				<button  class="btn btn-secondary btn-sm" data-dismiss="modal"
+					data-toggle="modal" type="button">Close
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<app-progress-report-create-modal (createdProgressReport)="runPostReportCreationProcesses($event)"
+	[createReportDetails]="createReportDetails"></app-progress-report-create-modal>
+
+<app-addReportingRequirements [isEditEnabledForSection]="isEditEnabledForSection" (refreshData)="getReportsData()"
+	[awardData]="awardData" [reportTermsLookup]="reportTermsLookup || null"></app-addReportingRequirements>

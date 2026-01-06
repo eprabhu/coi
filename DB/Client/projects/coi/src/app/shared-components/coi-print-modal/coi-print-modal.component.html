@@ -1,0 +1,37 @@
+<app-common-modal [modalConfig]="printModalConfig?.modalConfig" (modalAction)="printModalActions($event)">
+    <!-- modal header -->
+    <ng-container modal-header>
+        <span>{{ printModalConfig?.modalHeaderText }}</span>
+        <!-- header help text -->
+        <app-common-help-text *ngIf="printModalConfig?.helpTextConfig?.subSectionId"
+            [elementId]="printModalConfig?.helpTextConfig?.elementId"
+            [subSectionId]="printModalConfig?.helpTextConfig?.subSectionId">
+        </app-common-help-text> 
+    </ng-container>
+    <!-- modal body -->
+    <ng-container modal-body>
+        <fieldset role="group" [attr.aria-labelledby]="modalName + '-print-template-label'">
+            <!-- form header -->
+            <legend id="{{modalName}}-print-template-label" class="coi-text-light">
+                {{ printModalConfig.templateLabel }}
+            </legend>
+            <!-- form fields -->
+            <div class="d-flex flex-column gap-2">
+                <div *ngFor="let template of printTemplates; let templateIndex = index" class="d-flex align-items-center gap-2">
+                    <input class="coi-print-modal-radio-btn text-secondary border border-secondary" type="checkbox"
+                        id="{{modalName}}-template-{{templateIndex}}"
+                        name="{{modalName}}-template-{{template.letterTemplateTypeCode}}"
+                        [(ngModel)]="isChecked[templateIndex]" (ngModelChange)="changeSelectedTemplate($event, template)"
+                        [attr.aria-describedby]="validationMap.has('selectTemplate') ? (modalName + '-template-error') : null">
+                    <label for="{{modalName}}-template-{{templateIndex}}" class="coi-text-dark fs-15">
+                        <span>{{ template?.fileName.split('.')[0] }}</span> - ( <em class="text-primary">{{ template?.printFileType }}</em> )
+                    </label>
+                </div>
+            </div>
+            <!-- form error -->
+            <span *ngIf="validationMap.has('selectTemplate')"
+                id="{{modalName}}-template-error"
+                class="d-block fs-14 invalid-feedback">{{ validationMap.get('selectTemplate') }}</span>
+        </fieldset>
+    </ng-container>
+</app-common-modal>

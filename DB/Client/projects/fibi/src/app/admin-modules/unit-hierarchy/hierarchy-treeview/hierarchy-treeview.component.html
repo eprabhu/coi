@@ -1,0 +1,401 @@
+<div class="push4slideMenu pageMinHeight" id="scrollToTop">
+    <div class="container-fluid pushFixedHeaderFooter">
+        <div class="headerPush"></div>
+        <div class="card mt-3">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h4 class="card-title">Unit Hierarchy</h4>
+                <a class="tooltip-helptext"><i class="fa fa-info-circle ct-icon-right hand-cursor " aria-hidden="true"
+                        (click)="helpInfo = !helpInfo"></i></a>
+
+            </div>
+
+            <div *ngIf="helpInfo" class="mx-4 mt-3">
+                <div class="col-12">
+                    <div class="p-2 row success-banner">
+                        <div class="col-auto pl-2 pr-3">
+                            <i  aria-hidden="true" class="fa fa-info-circle mr-1 info-icon"></i>
+                        </div>
+                        <div class="col px-0"><em>This module lists the unit hierarchy for the selected unit.
+                         In more actions section there is Role Maintenance to view the roles assigned to users.
+                         There is also Rates Maintenance to view the Rates available.This allows to add a new unit.</em>
+                        </div>
+                        <div class="col-auto pr-2">
+                            <button  aria-label="Close" class="close close-button " data-dismiss="modal"
+                                id="modal-close" type="button" (click)="helpInfo = false">
+                                <span  aria-hidden="true" class="d-block">×</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--unit hierarchy-->
+            <div class="card-content">
+                <div class="card-body">
+                    <section class="row">
+                        <div class="col-md-7 col-sm-12 col-12 order-md-0 order-1">
+                            <div class="searchBox mb-3" id="searchElastic">
+                                <app-autocompleter [completerOptions]="unitHierarchySearchOptions"
+                                [placeHolder]="'Search: Unit Number, Unit Name'" [clearField]="clearSearchUnitField"
+                                    (onSelect)="fetchunit($event)">
+                                </app-autocompleter>
+                            </div>
+                            <div class="u-tree-outer" (scroll)="onWindowScroll($event);">
+                                <ul class="unit-tree ui-tree">
+                                    <ng-template #recursiveList let-treeData>
+                                        <li *ngFor="let node of treeData; let i=index" class="child-li pointer">
+                                            <div class="container-fluid unit-tree-blocks" data-toggle="modal"
+                                                title="Click to view {{node?.unitNumber}} : {{node?.unitName}}">
+                                                <div  class="row justify-content-between align-items-center"
+                                                    id="{{node.unitNumber}}">
+                                                    <div (click)="viewUnitDetails(node.unitNumber)"
+                                                        class="flex-fill u-content-middle unit-no">
+                                                        <span><i *ngIf="node?.childUnits?.length"
+                                                                [ngClass]="(node.visible)?'fa fa-chevron-down u-down-arrow':'fa fa-chevron-right u-left-arrow'"
+                                                                (click)="listClick($event, node)"
+                                                                aria-hidden="true"></i><span
+                                                                class="uh-ml" (click)="listClick($event, node)">{{node?.unitNumber}} :
+                                                                {{node?.unitName}}</span></span>
+                                                    </div>
+                                                    <div class="u-icons dropdown text-right p-0 ">
+                                                        
+                                                        <i class="fa fa-ellipsis-v u-action-icon dropdown-toggle pointer btn-dropdown-xs"
+                                                            id="dropdownMenuButton" data-toggle="dropdown"
+                                                            aria-haspopup="true" aria-expanded="false" title="Actions"
+                                                            aria-hidden="true"></i>
+                                                        <div class="action-bar dropdown-icons">
+                                                            <div class="dropdown-menu"
+                                                                [attr.aria-labelledby]="'dropdownMenuButton'+ i">
+                                                                <a *ngIf="isMaintainUserRoles" class="dropdown-item"
+                                                                    [routerLink]="['/fibi/role-maintainance']"
+                                                                    [queryParams]="{ unitId: node.unitNumber}">
+                                                                    <i class="fa fa-cog" aria-hidden="true"></i>Role
+                                                                    Maintenance
+                                                                </a>
+                                                                <a class="dropdown-item"
+                                                                    [routerLink]="['rateMaintainance']"
+                                                                    [queryParams]="{ unitId: node.unitNumber }"><i
+                                                                        class="fa fa-percent"
+                                                                        aria-hidden="true"></i>Rates
+                                                                    Maintenance</a>
+                                                                <a class="dropdown-item" data-toggle="modal"
+                                                                    data-target="#exampleModalLong"
+                                                                    (click)="addNewUnitParentSet(node,'add');isEditmode=false"
+                                                                    title="Click to add a child unit in {{node?.unitNumber}} : {{node?.unitName}}">
+                                                                    <i class="fa fa-plus" aria-hidden="true"></i>Add
+                                                                    Unit
+                                                                </a>
+                                                                <a class="dropdown-item" data-toggle="modal"
+                                                                    data-target="#exampleModalLong"
+                                                                    (click)="addNewUnitParentSet(node,'copy');isEditmode=false"
+                                                                    title="Click to copy a unit from {{node.unitNumber}} : {{node?.unitName}}">
+                                                                    <i class="fa fa-copy" aria-hidden="true"></i>Copy
+                                                                    Unit
+                                                                </a>
+                                                                <a class="dropdown-item" data-toggle="modal"
+                                                                data-target="#exampleModalLong"
+                                                                (click)=" checkForChild(node);viewUnitDetails(node.unitNumber);isEditmode=null;mode = null"
+                                                                title="Click to edit {{node?.unitNumber}} : {{node?.unitName}}">
+                                                                 <i class="fa fa-pencil" aria-hidden="true" ></i>Edit
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <ul *ngIf="node?.childUnits?.length > 0 && node?.visible"
+                                                [ngClass]="{ 'subfolder': selectedNode == node }">
+                                                <ng-container
+                                                    *ngTemplateOutlet="recursiveList; context:{ $implicit: node.childUnits }">
+                                                </ng-container>
+                                            </ul>
+                                        </li>
+                                    </ng-template>
+                                    <ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: treeData }">
+                                    </ng-container>
+                                    <button (click)="topFunction()" id="scrollUpBtn" title="Go to top">
+                                        <i class="fa fa-angle-double-up top-arrow" aria-hidden="true"></i>
+                                    </button>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-5 col-sm-12 col-12 order-md-1 order-0">
+                            <div class="card border">
+                                <div class="card-content">
+                                    <div class="card-header">
+                                        <h4 class="card-title">
+                                            Unit Administrators of {{viewUnitProperties?.unit?.unitName}}
+                                        </h4>
+                                        <span *ngIf="viewUnitProperties?.unit?.parentUnitNumber != null"
+                                            class="badge-title bg-transparent pl-0 context-menu">
+                                            <i class="fa fa-university text-primary context-menu"
+                                                aria-hidden="true"></i>
+                                            Parent Unit : {{viewUnitProperties?.unit?.parentUnitName}}</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <div *ngIf="viewUnitProperties?.unit?.unitAdministrators.length==0" colspan="3"
+                                            class="uh-not-available">
+                                            No Administrators
+                                        </div>
+                                        <table *ngIf="viewUnitProperties?.unit?.unitAdministrators.length > 0"
+                                            class="table tableSkin grid2">
+                                            <caption class="sr-only">Administrators</caption>
+                                            <thead class="thead-light">
+                                                <th scope="col">Administrator Type</th>
+                                                <th scope="col">Name</th>
+                                            </thead>
+                                            <tbody>
+                                                <tr
+                                                    *ngFor="let administrator of viewUnitProperties.unit.unitAdministrators; let index = index">
+                                                    <td>
+                                                        {{administrator?.unitAdministratorType?.description}}
+                                                    </td>
+                                                    <td>
+                                                        {{administrator?.fullName}}
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+            <!--unit hierarchy-end-->
+        </div>
+        <div class="modal fade bd-example-modal-lg mySkinDialog" id="exampleModalLong" tabindex="-1" role="dialog"
+            aria-labelledby="myLargeModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 *ngIf="isEditmode == false" class="modal-title">
+                            <span *ngIf="mode == 'add'">Add Unit</span>
+                            <span *ngIf="mode == 'copy'">Copy Unit</span>
+                        </h5>
+                        <h5 *ngIf="isEditmode == null" class="modal-title" id="exampleModalLongTitle">
+                            Modify Unit : {{unitProperties?.unit?.unitNumber}}
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div *ngIf="unitProperties?.unit?.parentUnitNumber != null || mode == 'copy'" class="form-row">
+                            <div class="col">
+                                <label id="exampleModalLongTitle"><span *ngIf="isEditmode!=true"
+                                        class="mandatory">*</span>
+                                    Parent Unit
+                                </label>
+                                <app-autocompleter [completerOptions]="parentUnitHierarchySearchOptions" [isDisabled] = "isParenUnitDisabled"
+                                [placeHolder]="'Search: Unit Number, Unit Name'" [clearField]="clearParentUnitField" [isError]="isSameUnit==true || isParentUnitNumEmpty"
+                                    (onSelect)="selectParentUnit($event)">
+                                </app-autocompleter>
+                                        <span *ngIf="isSameUnit==true" class="invalid-feedback d-block">
+                                            * Unit name can not be parent name
+                                        </span>
+                                        <span *ngIf="isParentUnitNumEmpty" class="invalid-feedback d-block">
+                                            * Please specify parent unit name
+                                        </span>
+
+                            </div>
+                        </div>
+                        <div *ngIf="!isEditmode" class="form-row">
+                            <div *ngIf="!isEditmode"
+                                [ngClass]="!isEditmode?'col-lg-12':'col-lg-7'">
+                                <label class=""><span class="mandatory">*</span>
+                                    Unit Name
+                                </label>
+                                <input [ngClass]="(isUnitNameEmpty || isUnitNameLength) ?
+                                'is-invalid d-block' : ''" type="text"
+                                    class="form-control ng-pristine ng-valid ng-touched"
+                                    [(ngModel)]="unitProperties.unit.unitName" maxlength="200"
+                                    (keyup)='validateUnitName( $event, "unitName" )'
+                                    (ngModelChange)="isValueChanged=true">
+                                <span *ngIf="isUnitNameEmpty" class="invalid-feedback d-block">
+                                    * Please specify unit name
+                                </span>
+                                <span *ngIf="isUnitNameLength" class="invalid-feedback d-block">
+                                    * Maximum length is 200
+                                </span>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div *ngIf="isEditmode == false" class="col-md-4 mt-3">
+                                <label class=""><span class="mandatory">*</span>
+                                    Unit Number
+                                </label>
+                                <input type="text" class="form-control ng-pristine ng-valid ng-touched"
+                                    [(ngModel)]="unitProperties.unit.unitNumber" maxlength="8"
+                                    (keyup)='validateUnitNumber( $event, "unitNumber" )'
+                                    (ngModelChange)="isValueChanged=true" (keypress)="inputRestriction($event)"
+                                    [ngClass]=" (isUnitNumEmpty || isUnitNumLength || isUnitNumRepeat)?
+                                    'is-invalid d-block' : ''">
+                                <span *ngIf="isUnitNumEmpty==true" class="invalid-feedback d-block">
+                                    * Please specify unit number
+                                </span>
+                                <span *ngIf="isUnitNumLength==true" class="invalid-feedback d-block">
+                                    * Maximum length is 8
+                                </span>
+                                <span *ngIf="isUnitNumRepeat == true" class="invalid-feedback d-block">
+                                    * This unit number is already existing
+                                </span>
+                            </div>
+                            <div [ngClass]="isEditmode == false ?'col-md-8':'col-md-12'" class="mt-3">
+                                <label class="">Organization</label>
+                                <app-endpoint-search id="unit-hierarchy-add-org" [httpOptions]="unitHttpOptions"
+                                [clearField]="clearUnitField" [placeHolder]="'Type here for Organization'"
+                                (onSelect)="OrgSelectionFunction($event);">
+                              </app-endpoint-search>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 mt-3">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h4 class="card-title">Unit Administrators</h4>
+                                    </div>
+                                    <div class="card-content">
+                                        <div class="card-body table-scroll pt-0 mt-2">
+                                            <table class="table tableSkin grid2">
+                                                <caption class="sr-only">Unit Administrators</caption>
+                                                <thead class="thead-light">
+                                                    <th class="sticky-top dropdown-sticky" scope="col">Administrator Type</th>
+                                                    <th class="sticky-top dropdown-sticky" scope="col">Name</th>
+                                                    <th class="sticky-top dropdown-sticky" *ngIf="!isEditmode" scope="col">Actions</th>
+                                                </thead>
+                                                <tbody>
+                                                    <tr
+                                                        *ngFor="let administrator of unitProperties?.unit?.unitAdministrators; let index = index">
+                                                        <td>
+                                                            <select
+                                                                class="form-control"
+                                                                [(ngModel)]="administrator.unitAdministratorTypeCode"
+                                                                [disabled]="isEditmode"
+                                                                (ngModelChange)="administratorTypeValue(administrator.unitAdministratorTypeCode, index, administrator)">
+                                                                <option value="">--Select--</option>
+                                                                <option [value]="unitAdministrator.code"
+                                                                    *ngFor="let unitAdministrator of unitAdministratorTypeList" [hidden] = "!unitAdministrator.isActive">
+                                                                    {{unitAdministrator?.description}}
+                                                                </option>
+                                                            </select>
+                                                            <span *ngIf="isAdmnTypeEmpty[index] ==true"
+                                                                class="invalid-feedback d-block">
+                                                                * Please specify administrator type
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <div class="searchBox memberSearchBox" id="searchElastic">
+                                                                <input type="text" placeholder="Search Unit"
+                                                                    class="ng-pristine ng-valid ng-touched viewMode"
+                                                                    [(ngModel)]="administrator.fullName"
+                                                                    [ngClass]="{'border':isEditmode == null}"
+                                                                    [disabled]="true">
+                                                            </div>
+                                                        </td>
+                                                        <td *ngIf="!isEditmode" class="u-table-icons uh-icn-size">
+                                                            <ng-container
+                                                                *ngIf="unitProperties?.unit?.unitAdministrators?.length>0&&unitProperties?.unit?.unitAdministrators[0]?.personId!=''|| unitProperties?.unit?.unitAdministrators?.length>0&&unitProperties?.unit?.unitAdministrators[0]?.unitAdministratorTypeCode!=''">
+                                                                <i class="fa fa-close fa-med close-icon"
+                                                                    aria-hidden="true"
+                                                                    (click)="deleteUnitAdministrator(index)"></i>
+                                                            </ng-container>
+                                                        </td>
+                                                    </tr>
+                                                    <tr *ngIf="!isEditmode">
+                                                        <td>
+                                                            <select
+                                                                class="form-control"
+                                                                [(ngModel)]="unitAdministratorsObject.unitAdministratorTypeCode">
+                                                                <option value="">--Select--</option>
+                                                                <option [value]="unitAdministrator.code"
+                                                                    *ngFor="let unitAdministrator of unitAdministratorTypeList" [hidden] = "!unitAdministrator.isActive">
+                                                                    {{unitAdministrator.description}}
+                                                                </option>
+                                                            </select>
+                                                            <span
+                                                                *ngIf="isAdmnTypeEmpty[this.unitProperties?.unit?.unitAdministrators?.length] ==true"
+                                                                class="invalid-feedback d-block">
+                                                                * Please specify administrator type
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <div class="searchBox memberSearchBox" id="searchElastic">
+                                                                <app-elastic [options]="elasticSearchOptions"
+                                                                    [placeHolder]="'Search user'"
+                                                                    [clearField]="clearField"
+                                                                    (selectedResult)="elasticResult($event)"
+                                                                    (keyup)="resetAdminPersonId($event)">
+                                                                </app-elastic>
+                                                            </div>
+                                                            <span
+                                                                *ngIf="isAdmnUserEmpty[this.unitProperties?.unit?.unitAdministrators?.length] ==true"
+                                                                class="invalid-feedback d-block">
+                                                                * Please specify administrator
+                                                            </span>
+                                                        </td>
+                                                        <td class="u-table-icons uh-icn-size">
+                                                            <i class="fa fa-plus add-icon" aria-hidden="true"
+                                                                (click)="addUnitAdministrator(unitAdministratorsObject)"></i>
+                                                            <i class="fa fa-close close-icon" aria-hidden="true"
+                                                                (click)="unitAdministratorsObjectReset()"></i>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                                <span *ngIf="isAdministratorsRepeat " class="invalid-feedback d-block">
+                                                    * Person with same role cannot be repeated
+                                                </span>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 text-right modal-footer">
+                                <button id="closeModal" class="btn btn-secondary btn-sm"
+                                    [ngClass]="{'uh-btnhide':isValueChanged}" data-dismiss="modal" (click)="clearField = 'true'"
+                                    type="button">Cancel</button>
+                                <button *ngIf="isValueChanged" class="btn btn-secondary btn-sm" data-toggle="modal"
+                                    data-target="#exampleModalCenter">Cancel</button>
+                                <button *ngIf="isEditmode == false && mode=='add'" class="btn btn-primary-sub btn-sm"
+                                    (click)="addNewUnit()">Add Unit</button>
+                                <button *ngIf="isEditmode == null" class="btn btn-primary-sub btn-sm"
+                                    (click)="addNewUnit()">Modify Unit</button>
+                                <button *ngIf="isEditmode == false && mode == 'copy'" class="btn btn-primary-sub btn-sm"
+                                    (click)="addNewUnit()">Add Unit</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--modal-add-unit-end-->
+    </div>
+    <div class="footerPush"></div>
+</div>
+
+<button (click)="topFunction()" id="scrollUpBtn" title="Go to top">
+    <i class="fa fa-angle-double-up top-arrow" aria-hidden="true"></i>
+</button>
+<!-- Modal -->
+<div class="modal fade mySkinDialog " id="exampleModalCenter" tabindex="-1" role="dialog"
+    aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog uh-confirm modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Confirmation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel the changes?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">No</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="cancelChanges()"
+                    data-dismiss="modal">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>

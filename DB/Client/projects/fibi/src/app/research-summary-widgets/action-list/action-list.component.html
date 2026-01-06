@@ -1,0 +1,158 @@
+<div class="card card-widget-box h-100">
+  <div class="card-header py-3">
+    <h4 class="card-title d-flex justify-content-between">
+      <span class="d-flex align-items-center">{{widgetDescription?.widgetName}}</span>
+      <span class="d-flex justify-content-between">
+        <ul class="nav nav-pills mb-0 hand-cursor">
+          <li class="nav-item" (click)="inboxTab = 'PENDING';getActionList(false);isInboxInfo = true;" tabindex="0">
+            <a class="nav-link" [ngClass]="{active:(inboxTab == 'PENDING')}">Pending</a>
+          </li>
+          <li class="nav-item" (click)="inboxTab = 'PROCESSED'; getActionList(true);isInboxInfo = true;" tabindex="0">
+            <a class="nav-link" [ngClass]="{active:(inboxTab == 'PROCESSED')}">Processed</a>
+          </li>
+          <li class="ml-2 pt-1" tabindex="0">
+            <a class="switch-view px-3 py-2" (click)="viewInboxSearch = !viewInboxSearch;" tabindex="0"><i
+                aria-hidden="true" class="fa fa-search " title="Search"></i> </a>
+          </li>
+          <li class="ml-2 pt-1" tabindex="0">
+            <a class="switch-view px-3 py-2" (click)="clearInboxSearchField();getInboxTab()" tabindex="0">
+              <i class="fa fa-refresh" aria-hidden="true" title="Refresh"></i></a>
+          </li>
+        </ul>
+        <span *ngIf="widgetDescription?.description" class="d-inline-block icon-hover pt-1 pl-1">
+          <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med"
+              aria-hidden="true"></i>
+            <div class="tooltiptext-right card card-inner p-15 text-left">
+              <span class="font-cv new-line-property">{{widgetDescription?.description}}</span>
+            </div>
+          </a>
+        </span>
+      </span>
+    </h4>
+  </div>
+  <div *ngIf="isInboxInfo && inboxDetails?.length !== 0"
+    class="success-banner px-3 my-2 mx-4 d-flex justify-content-between align-items-center">
+    <div>
+      <i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i>
+      <em *ngIf="inboxTab == 'PENDING'">Action list that are awaiting an action</em>
+      <em *ngIf="inboxTab == 'PROCESSED'">Processed list of last 6 months</em>
+    </div>
+    <button type="button" id="modal-close" class="close close-button " data-dismiss="modal"
+      (click)="isInboxInfo = false" aria-label="Close">
+      <span class="d-block" aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <!-- <div class="fileChips regularFont success-banner px-3 pb-1 my-2 mx-4 align-items-center">
+      <em class="mr-1">Search results of </em>
+      <span class="px-3" *ngFor="let item of filterFields; let index=index">{{item}} 
+          <i id="award-approve-attach-delete" class="fa fa-close hand-cursor"
+              aria-hidden="true" title="Remove File"
+              (click)="deleteFromFilterFileList(index)">
+          </i>
+      </span>
+  </div> -->
+  <div *ngIf="viewInboxSearch" class="card inbox-card">
+    <button type="button" id="modal-close" class="close no-outline mr-2" data-dismiss="modal"
+      (click)="viewInboxSearch = false" aria-label="Close">
+      <span class="d-block" aria-hidden="true">&times;</span>
+    </button>
+    <div class="card-content">
+      <div class="card-body">
+        <div class="form-row">
+          <div class="col-12 mb-2">
+            <label>Module</label>
+            <select [(ngModel)]="inboxObject.moduleCode" class="form-control wd-100">
+              <option [ngValue]=null>--Select--</option>
+              <option [value]="module.moduleCode" *ngFor="let module of moduleList">
+                {{module.description}}</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label>Action Date</label>
+            <div class="d-flex">
+              <span class="dateField">
+                <input matInput [matDatepicker]="fromDt" class="d-inline-block form-control" [(ngModel)]="inboxObject.fromDate" (ngModelChange)="checkForValidFormat($event, 'fromDate')"
+                  placeholder="{{datePlaceHolder}}" id="from-date" (click)="fromDt.open()">
+                <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor" title="open calendar"
+                  (click)="fromDt.open()"></span>
+                <mat-datepicker #fromDt (opened)="setFocusToElement('from-date')">
+                </mat-datepicker>
+                <span class="invalid-feedback block-display" *ngIf="fromDateValidationMap">
+                  <span>Entered date format is invalid.<br>Please use {{DEFAULT_DATE_FORMAT}} format.</span>
+                </span>
+              </span>
+              <span>-</span>
+              <span class="dateField">
+                <input matInput [matDatepicker]="toDt" class="d-inline-block form-control" [(ngModel)]="inboxObject.toDate" (ngModelChange)="checkForValidFormat($event, 'toDate')"
+                  placeholder="{{datePlaceHolder}}" id="to-date" (click)="toDt">
+                <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor" title="open calendar"
+                  (click)="toDt"></span>
+                <mat-datepicker #toDt (opened)="setFocusToElement('to-date')">
+                </mat-datepicker>
+				<span class="invalid-feedback block-display" *ngIf="toDateValidationMap">
+                  <span>Entered date format is invalid.<br>Please use {{DEFAULT_DATE_FORMAT}} format.</span>
+                </span>
+              </span>
+            </div>
+          </div>
+          <span class="invalid-feedback block-display" *ngIf="dateValidationMap.get('endDate')">
+            {{dateValidationMap.get('endDate')}}
+          </span>
+          <div class="text-right col-12 mt-3">
+            <button id="adv-search-clear-grant" class="btn btn-secondary btn-sm btn-xs mr-sm-2 mr-0"
+              (click)="clearInboxSearchField();getInboxTab()">Clear</button>
+            <button id="adv-search-grant" class="btn btn-primary btn-sm btn-xs" (click)="getInboxTab()">Search</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-content" [ngClass]="{'h-100 d-flex align-items-center': !inboxDetails.length}">
+    <div class="card-body pt-0 pb-0">
+      <div *ngIf="isSaving" appCustomPreloader></div>
+      <div class="py-0">
+        <div class="row pull-up p-75 row-divider" *ngFor="let inbox of inboxDetails; let i=index" tabindex="0"
+          (click)="goToActionPath(inbox, i)">
+          <div class="col-md-8 col-sm-12 col-xs-12">
+            <span class="font-style tab-styler">{{(inbox?.message?.description)?.length>100 ?
+              (inbox?.message?.description | slice:0:150)+'...' : inbox?.message?.description}}
+            </span>
+          </div>
+          <div class="col-md-4 col-sm-12 col-xs-12 order-md-0 order-1 pl-md-0">
+            <span class="float-md-right tab-styler f-12 fw-600">
+              <i class="fa fa-clock-o mr-2 d-inline" title="{{inbox?.arrivalDate | dateFormatterWithTimeZone: 'long'}}"
+                aria-hidden="true"></i>{{getTimeInterval(inbox?.arrivalDate)}}</span>
+          </div>
+          <div class="col-12 tab-styler">
+            <div class="row">
+              <div class="col">
+                <span>{{(inbox?.userMessage)?.length>100 ? (inbox?.userMessage | slice:0:150)+'...' :
+                  inbox?.userMessage}}</span>
+              </div>
+              <div class="col-auto pl-0">
+                <span *ngIf="inbox.messageTypeCode !== '121' && inbox.messageTypeCode !== '122' else variation"
+                  class="{{inbox.class}} float-right mt-1">
+                  {{inbox?.name}}</span>
+                <ng-template #variation>
+                  <span class="{{inbox.class}} float-right mt-1">Variation Request</span>
+                </ng-template>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="inboxDetails?.length > 4" class="d-flex justify-content-center">
+        <a class="anchor-link" routerLink='/fibi/expanded-widgets/action-list'>View more</a>
+      </div>
+      <div class="no-data-container" *ngIf="inboxDetails?.length === 0">
+        <span class="no-data-icon-outer">
+          <div class="no-data-icon">
+            <i class="fa fa-file-o" aria-hidden="true"></i>
+            <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+          </div>
+        </span>
+        <h4>There is no information in this section.</h4>
+      </div>
+    </div>
+  </div>
+</div>

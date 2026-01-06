@@ -1,0 +1,265 @@
+<button tabindex="-1" class="d-none" data-bs-toggle="modal" data-bs-target="#coi-entity-view-modal"
+    id="coi-entity-view-modal-trigger-btn" aria-hidden="true"></button>
+
+<div class="modal fade mySkinDialog modal-xl" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1" id="coi-entity-view-modal" role="dialog"
+    aria-labelledby="coi-entity-view-modal-header">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="d-flex gap-5">
+                    <h4 class="d-flex align-items-center col mb-0 coi-text-darker fs-6 pe-5">
+                        <!-- icon -->
+                        <span class="coi-icon-bg me-2 fs-14 d-inline-flex"><mat-icon aria-hidden="true" class="coi-entity-icon-size coi-coloured-icons">domain</mat-icon></span>
+                        <!-- Entity Name -->
+                        <div class="d-flex flex-column">
+                            <div class="d-flex align-items-center">
+                                <span class="text-slice fs-6" [title]="entityDetails?.entityName">{{ entityDetails?.entityName }}</span>
+                                <ng-container *ngIf="entityDetails?.isForeign">
+                                    <app-common-foreign-flag [entityName]="entityDetails?.entityName"></app-common-foreign-flag>
+                                </ng-container>
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <!-- Ownership Type -->
+                                <div class="d-flex align-items-center gap-1">
+                                    <label for="coi-entity-modal-ownership-type" class="coi-text-dark fs-13 text-nowrap">Ownership Type:</label>
+                                    <div id="coi-entity-modal-ownership-type" class="text-slice coi-text-light fs-13 coi-min-width-25px">
+                                        <app-no-data-label [valueToShow]="entityDetails?.entityOwnershipType?.description">
+                                            <span [title]="entityDetails?.entityOwnershipType?.description"
+                                                class="coi-text-light fs-13">{{ entityDetails?.entityOwnershipType?.description }}</span>
+                                        </app-no-data-label>
+                                    </div>
+                                </div>
+                                <!-- divider -->
+                                <span class="coi-text-lighter">|</span>
+                                <!-- Business Type -->
+                                <div class="d-flex align-items-center gap-1">
+                                    <label for="coi-entity-modal-business-type" class="coi-text-dark fs-13 text-nowrap">Business Type:</label>
+                                    <div id="coi-entity-modal-business-type" class="text-slice coi-text-light fs-13 coi-min-width-25px">
+                                        <app-no-data-label [valueToShow]="entityDetails?.entityBusinessType?.description">
+                                            <span [title]="entityDetails?.entityBusinessType?.description"
+                                                class="coi-text-light fs-13">{{ entityDetails?.entityBusinessType?.description }}</span>
+                                        </app-no-data-label>
+                                    </div>
+                                </div>
+                                <!-- divider -->
+                                <span class="coi-text-lighter">|</span>
+                                <!-- Entity Type -->
+                                <div class="d-flex align-items-center gap-1">
+                                    <label for="coi-entity-modal-entity-type" class="coi-text-dark fs-13 text-nowrap">Entity Type:</label>
+                                    <div id="coi-entity-modal-entity-type" class="text-slice coi-text-light fs-13 coi-min-width-25px">
+                                        <app-no-data-label [valueToShow]="entireEntityData?.complianceInfo?.coiEntityType?.description">
+                                            <span [title]="entireEntityData?.complianceInfo?.coiEntityType?.description"
+                                                class="coi-text-light fs-13">{{ entireEntityData?.complianceInfo?.coiEntityType?.description }}</span>
+                                        </app-no-data-label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- corporate linkage -->
+                            <div *ngIf="entireEntityData?.entityFamilyTreeRoles?.length" class="d-flex align-items-center">
+                                <mat-icon aria-hidden="true" class="flex-shrink-0 coi-text-lighter coi-scale-7 coi-ms-n3px">mediation</mat-icon>
+                                <ng-container *ngFor="let familyTreeRoles of entireEntityData?.entityFamilyTreeRoles; let lastLinkage = last">
+                                    <div class="coi-text-light fs-13 text-slice" [title]="familyTreeRoles">{{ familyTreeRoles?.familyRoleType?.description }}</div>
+                                    <!-- divider -->
+                                    <span *ngIf="!lastLinkage" class="coi-text-lighter px-1">|</span>
+                                </ng-container>
+                            </div>
+                        </div>
+                    </h4>
+                </div>
+                <button type="button" class="d-none btn-close" title="Click here to close" data-bs-dismiss="modal"
+                    aria-label="Click here to close" id="coi-entity-view-modal-dissmiss-btn">
+                </button>
+                <button type="button" class="btn-close" title="Click here to close"
+                    aria-label="Click here to close" id="coi-entity-view-modal-close-btn"
+                    (click)="commonService.closeEntityDetailsModal(true)">
+                </button>
+            </div>
+            <div class="modal-body" id="coi-entity-modal">
+                <div class="pt-2">
+                  <div class="row mx-0 g-3">
+                    <ng-container *ngFor="let fieldOrder of entityCardOrder">
+                        <!-- Address -->
+                        <div *ngIf="fieldOrder === 'ADDRESS'" tabindex="-1" class="col-12"
+                            [attr.aria-label]="'Address is ' + (primaryAddress ? primaryAddress : 'empty')">
+                            <label for="coi-entity-modal-address" class="coi-text-dark d-block">Address</label>
+                            <div id="coi-entity-modal-address" class="text-slice">
+                                <app-no-data-label [valueToShow]="primaryAddress">
+                                    <span [title]="primaryAddress"
+                                        class="coi-text-light">{{primaryAddress}}</span>
+                                </app-no-data-label>
+                            </div>
+                        </div>
+                        <!-- City -->
+                        <div *ngIf="fieldOrder === 'CITY'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                            [attr.aria-label]="'City is ' + (entityDetails?.city ? entityDetails?.city : 'empty')">
+                            <label for="coi-entity-modal-city" class="coi-text-dark d-block">City</label>
+                            <div id="coi-entity-modal-city" class="text-slice">
+                                <app-no-data-label [valueToShow]="entityDetails?.city">
+                                    <span [title]="entityDetails?.city"
+                                        class="coi-text-light">{{entityDetails?.city}}</span>
+                                </app-no-data-label>
+                            </div>
+                        </div>
+                        <!-- State/Province/Region -->
+                        <div *ngIf="fieldOrder === 'STATE'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                            [attr.aria-label]="'State/Province/Region is ' + (entityDetails?.stateDetails?.stateName || entityDetails?.state || 'empty')">
+                            <label for="coi-entity-modal-state" class="coi-text-dark d-block">State/Province/Region</label>
+                            <div id="coi-entity-modal-state" class="text-slice">
+                                <app-no-data-label [valueToShow]="entityDetails?.stateDetails?.stateName ? entityDetails?.stateDetails?.stateName : entityDetails?.state">
+                                    <span [title]="entityDetails?.stateDetails?.stateName ? entityDetails?.stateDetails?.stateName : entityDetails?.state"
+                                        class="coi-text-light">{{ entityDetails?.stateDetails?.stateName ? entityDetails?.stateDetails?.stateName : entityDetails?.state }}</span>
+                                </app-no-data-label>
+                            </div>
+                        </div>
+                        <!-- Country -->
+                        <div *ngIf="fieldOrder === 'COUNTRY'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                            [attr.aria-label]="'Country is ' + (entityDetails?.country?.countryName ? entityDetails?.country?.countryName : 'empty')">
+                            <label for="coi-entity-modal-country" class="coi-text-dark d-block">Country</label>
+                            <div id="coi-entity-modal-country" class="text-slice">
+                                <app-no-data-label [valueToShow]="entityDetails?.country?.countryName">
+                                    <span [title]="entityDetails?.country?.countryName"
+                                        class="coi-text-light">{{ entityDetails?.country?.countryName }}</span>
+                                </app-no-data-label>
+                            </div>
+                        </div>
+                        <!-- DUNS Number -->
+                        <div *ngIf="fieldOrder === 'DUNS_NUMBER'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                            [attr.aria-label]="'DUNS number is ' + (entityDetails?.dunsNumber ? entityDetails?.dunsNumber : 'empty')">
+                            <label for="coi-entity-modal-duns-number" class="coi-text-dark d-block">DUNS Number</label>
+                            <div id="coi-entity-modal-duns-number" class="text-slice">
+                                <app-no-data-label [valueToShow]="entityDetails?.dunsNumber">
+                                    <span [title]="entityDetails?.dunsNumber"
+                                        class="coi-text-light">{{entityDetails?.dunsNumber}}</span>
+                                </app-no-data-label>
+                            </div>
+                        </div>
+                        <!-- UEI Number -->
+                        <div *ngIf="fieldOrder === 'UEI_NUMBER'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                            [attr.aria-label]="'UEI number is ' + (entityDetails?.ueiNumber ? entityDetails?.ueiNumber : 'empty')">
+                            <label for="coi-entity-modal-uei-number" class="coi-text-dark d-block">UEI Number</label>
+                            <div id="coi-entity-modal-uei-number" class="text-slice">
+                                <app-no-data-label [valueToShow]="entityDetails?.ueiNumber">
+                                    <span [title]="entityDetails?.ueiNumber"
+                                        class="coi-text-light">{{entityDetails?.ueiNumber}}</span>
+                                </app-no-data-label>
+                            </div>
+                        </div>
+                        <!-- ZIP/Postal Code -->
+                        <div *ngIf="fieldOrder === 'ZIP_CODE'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                            [attr.aria-label]="'UEI number is ' + (entityDetails?.postCode ? entityDetails?.postCode : 'empty')">
+                            <label for="coi-entity-modal-zip-code" class="coi-text-dark d-block">ZIP/Postal Code</label>
+                            <div id="coi-entity-modal-zip-code" class="text-slice">
+                                <app-no-data-label [valueToShow]="entityDetails?.postCode">
+                                    <span [title]="entityDetails?.postCode"
+                                        class="coi-text-light">{{entityDetails?.postCode}}</span>
+                                </app-no-data-label>
+                            </div>
+                        </div>
+                        <!-- CAGE Number -->
+                        <div *ngIf="fieldOrder === 'CAGE_NUMBER'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                            [attr.aria-label]="'CAGE number is ' + (entityDetails?.cageNumber ? entityDetails?.cageNumber : 'empty')">
+                            <label for="coi-entity-modal-cage-number" class="coi-text-dark d-block">CAGE Number</label>
+                            <div id="coi-entity-modal-cage-number" class="text-slice">
+                                <app-no-data-label [valueToShow]="entityDetails?.cageNumber">
+                                    <span [title]="entityDetails?.cageNumber"
+                                        class="coi-text-light">{{entityDetails?.cageNumber}}</span>
+                                </app-no-data-label>
+                            </div>
+                        </div>
+                        <!-- Website -->
+                        <div *ngIf="fieldOrder === 'WEBSITE'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                            [attr.aria-label]="'Website is ' + (entityDetails?.websiteAddress ? entityDetails?.websiteAddress: 'empty')">
+                            <label for="coi-entity-modal-website" class="coi-text-dark d-block">Website</label>
+                            <div id="coi-entity-modal-website" class="text-slice">
+                                <app-no-data-label [valueToShow]="entityDetails?.websiteAddress">
+                                    <a title="Click here to view {{ entityDetails?.websiteAddress }}"
+                                        aria-label ="Click here to view {{ entityDetails?.websiteAddress }}" tabindex="0"
+                                        id="entity-details-modal-website-address" class="d-flex align-items-center gap-1 fs-14 link-primary"
+                                        (click)="openWebsite(entityDetails?.websiteAddress)" (keyup.enter)="openWebsite(entityDetails?.websiteAddress)">
+                                        <span>{{entityDetails?.websiteAddress}}</span>
+                                        <mat-icon aria-hidden="true" class="flex-shrink-0 fs-16">open_in_new</mat-icon>
+                                    </a>
+                                </app-no-data-label>
+                            </div>
+                        </div>
+                        <!-- Prior Name -->
+                        <div *ngIf="fieldOrder === 'PRIOR_NAME'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                            [attr.aria-label]="'Prior name is ' + (entireEntityData?.priorNames?.length ? entireEntityData.priorNames[0]?.priorNames: 'empty')">
+                            <label for="coi-entity-modal-prior-name" class="coi-text-dark d-block">Prior Name</label>
+                            <div id="coi-entity-modal-prior-name" class="text-slice">
+                                <app-no-data-label [valueToShow]="entireEntityData?.priorNames[0]?.priorNames">
+                                    <span [title]="entireEntityData?.priorNames[0]?.priorNames"
+                                        class="coi-text-light">{{entireEntityData?.priorNames[0]?.priorNames}}</span>
+                                </app-no-data-label>
+                            </div>
+                        </div>
+                        <!-- Foreign Name(s) -->
+                        <div *ngIf="fieldOrder === 'FOREIGN_NAME'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                            [attr.aria-label]="'Foreign name(s) are ' + (entireEntityData?.foreignNames? entireEntityData?.foreignNames: 'empty')">
+                            <label for="coi-entity-modal-foreign-name" class="coi-text-dark d-block">Foreign Name(s)</label>
+                            <div id="coi-entity-modal-foreign-name">
+                                <app-no-data-label [valueToShow]="entireEntityData?.foreignNames?.length ? true : null">
+                                    <span *ngIf="entireEntityData?.foreignNames?.length" class="coi-file-chip-container">
+                                        <ng-container *ngFor="let foreignName of entireEntityData?.foreignNames; let nameIndex = index; let last = last">
+                                            <ng-container *ngIf="(nameIndex < 2) || isExpandForeignName">
+                                                <span class="coi-file-chips rounded-pill">{{foreignName?.foreignName}}</span>
+                                            </ng-container>
+                                            <!-- view more / less -->
+                                            <button *ngIf="last && entireEntityData?.foreignNames?.length > 2" class="coi-btn-halo rounded-pill d-inline-flex fs-12"
+                                                title="Click here to read {{ isExpandForeignName ? 'less' : 'more' }}"
+                                                attr.aria-label="Click here to read {{ isExpandForeignName ? 'less' : 'more' }}"
+                                                (click)="isExpandForeignName = !isExpandForeignName">
+                                                <span>{{isExpandForeignName ? 'View Less' : ('+' + ( entireEntityData?.foreignNames?.length - 2 ) + ' More')}}</span>
+                                            </button>
+                                        </ng-container>
+                                    </span>
+                                </app-no-data-label>
+                            </div>
+                        </div>
+
+                        <!-- Organization ID -->
+                        <div *ngIf="fieldOrder === 'ORGANIZATION_ID'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                            [attr.aria-label]="'Organization ID is ' + (entireEntityData?.organizationId ? entireEntityData?.organizationId : 'empty')">
+                            <label for="coi-entity-modal-organization-id" class="coi-text-dark d-block">Organization ID</label>
+                            <div id="coi-entity-modal-organization-id" class="text-slice">
+                                <app-no-data-label [valueToShow]="entireEntityData?.organizationId ? entireEntityData?.organizationId : ''">
+                                    <span [title]="entireEntityData?.organizationId"
+                                        class="coi-text-light">{{ entireEntityData?.organizationId }}</span>
+                                </app-no-data-label>
+                            </div>
+                        </div>
+                        <!-- Sponsor Code -->
+                        <div *ngIf="fieldOrder === 'SPONSOR_CODE'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                            [attr.aria-label]="'Sponsor code is ' + (entireEntityData?.sponsorCode ? entireEntityData?.sponsorCode : 'empty')">
+                            <label for="coi-entity-modal-sponsor-code" class="coi-text-dark d-block">Sponsor Code</label>
+                            <div id="coi-entity-modal-sponsor-code" class="text-slice">
+                                <app-no-data-label [valueToShow]="entireEntityData?.sponsorCode ? entireEntityData?.sponsorCode : ''">
+                                    <span [title]="entireEntityData?.sponsorCode"
+                                        class="coi-text-light">{{ entireEntityData?.sponsorCode }}</span>
+                                </app-no-data-label>
+                            </div>
+                        </div>
+                    </ng-container>
+                  </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <!-- Close -->
+                <button class="btn btn-outline-secondary" data-bs-dismiss="modal" id="coi-entity-details-close-btn" type="button" title="Click here to close"
+                    aria-label="Click here to close" (click)="commonService.closeEntityDetailsModal(false)">
+                    Close
+                </button>
+                <!-- Graph -->
+                <button *ngIf="isEnableGraph && hasEntityRights" id="coi-entity-modal-graph-btn"
+                    (click)="openGraph(entityDetails?.entityName)"
+                    aria-label="Click here to view entity graph"
+                    class="d-flex align-items-center btn btn-outline-secondary fs-14"
+                    title="Click here to view entity graph">
+                    <mat-icon aria-hidden="true" class="me-1">hub</mat-icon>
+                    Graph
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+

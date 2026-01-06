@@ -1,0 +1,257 @@
+<div class="table-responsive mb-2 p-2 shadow-sm border position-relative">
+    <div>
+        <label class="label mt-2 mb-1" for="{{title}}">{{title}}</label>
+        <button (click)="addEntry()"
+                *ngIf="isEditMode"
+                [attr.data-target]="'#form-modal' + kpiSummaryId"
+                class="btn btn-outline-primary btn-xs float-sm-right fs-14-nav mb-2 mr-50"
+                data-toggle="modal">
+            <span><i aria-hidden="true" class="fa fa-plus pr-2"></i></span> Add Entry
+        </button>
+        <button (click)="isFormOpen = !isFormOpen" class="updown-arrow" id="kpiFormToggle{{kpiSummaryId}}">
+            <i [ngClass]="isFormOpen?'fa fa-angle-double-down':'fa fa-angle-double-up'" aria-hidden="true"
+               class="fa-large"></i>
+        </button>
+    </div>
+    <ng-container *ngIf="isFormOpen">
+        <table *ngIf="summaryDetail.length > 0"
+               [attr.aria-describedby]="title"
+               class="table tableSkin mb-0" id="{{title}}">
+            <thead>
+            <tr>
+                <th scope="col">Title</th>
+                <th scope="col">Date Filed</th>
+                <th scope="col">Date Granted</th>
+                <th scope="col">Ownership</th>
+                <th scope="col">Patent Number</th>
+                <th scope="col">Description</th>
+                <th scope="col">Comments</th>
+                <th scope="col" *ngIf="isEditMode">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let kpi of summaryDetail;let index = index">
+                <td>{{kpi?.title}}</td>
+                <td>{{kpi?.dateFiled | dateFormatter}}</td>
+                <td>{{kpi?.dateGranted | dateFormatter}}</td>
+                <td>{{kpi?.ownership}}</td>
+                <td>{{kpi?.patentNumber}}</td>
+                <td>{{kpi?.description}}</td>
+                <td>
+                    <ul class="actionButtonGroup">
+                        <li>
+                            <div class="dropdown">
+                                <a aria-expanded="false" aria-haspopup="true"
+                                   data-toggle="dropdown" id="dropdownMenuLink{{kpiSummaryId}}">
+                                    <i aria-hidden="true"
+                                       class="fa fa-commenting-o hand-cursor hoverColor mr-1" title="Comment"></i>
+                                </a>
+                                <div [attr.aria-labelledby]="'dropdownMenuLink'+kpiSummaryId"
+                                     class="dropdown-menu dropdown-menu-right">
+                                    <div [innerHTML]="kpi?.comments ? kpi?.comments : 'Not Available'"
+                                         class="new-line-property">
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </td>
+                <td *ngIf="isEditMode" class="text-nowrap">
+                    <ul class="actionButtonGroup icon">
+                        <li>
+                            <a class="hand-cursor" title="Edit Entry">
+                                <i (click)="editKpi(kpi, index)"
+                                   aria-hidden="true" class="fa fa-pencil"></i></a>
+                            <a (click)="selectedEntry=kpi;selectedIndex=index;"
+                               [attr.data-target]="'#deleteEntryModal' + kpiSummaryId"
+                               class="hand-cursor ml-3"
+                               data-toggle="modal" title="Delete Entry">
+                                <i aria-hidden="true" class="fa fa-trash-o"></i></a>
+                        </li>
+                    </ul>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <ng-container *ngIf="summaryDetail.length === 0">
+            <p class="p-3 text-center fs-13 bg-color mb-0 mt-2">No Entries Found.</p>
+        </ng-container>
+    </ng-container>
+</div>
+<ng-container *ngIf="isEditMode">
+<div class="modal fade bd-example-modal-lg mySkinDialog " id="form-modal{{kpiSummaryId}}">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{(selectedIndex === null ? 'Add' : 'Edit')}} Entry</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div>
+                <div>
+                    <div class="card mb-3 title-descriptions ">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="form-row">
+                                    <div class="col-12 form-group">
+                                        <label class="block-display" for="title{{kpiSummaryId}}"> <span
+                                                class="mandatory">*</span>
+                                            Title of Patent</label>
+                                        <div>
+                                            <input [(ngModel)]="formObject.title"
+                                                   [ngClass]="(formMap.get('title')) ? 'is-invalid d-block' : ''"
+                                                   class="form-control" id="title{{kpiSummaryId}}" placeholder="Title of Patent"
+                                                   type="text"/>
+                                            <div *ngIf="(formMap.get('title'))"
+                                                 class="invalid-feedback d-block">
+                                                * Please provide a Title of Patent.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col-6 form-group">
+                                        <label class="block-display" for="dateFiled{{kpiSummaryId}}"><span
+                                                class="mandatory">*</span>Date Filed</label>
+                                        <div>
+                                            <span class="dateField">
+                                                <input matInput [matDatepicker]="dateFiled" [(ngModel)]="formObject.dateFiled"
+                                                       [ngClass]="(formMap.get('dateFiled')) ? 'is-invalid d-block' : ''"
+                                                       (click)="dateFiled.open()" autocomplete="off"
+                                                       class="d-inline-block form-control"
+                                                       id="dateFiled{{kpiSummaryId}}"
+                                                       placeholder="{{datePlaceHolder}}">
+                                                <i (click)="dateFiled.open()" aria-hidden="true"
+                                                   class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                                   id="dateFiled-icon{{kpiSummaryId}}" title="Open Calendar"></i>
+                                                <mat-datepicker #dateFiled
+                                                               (opened)="setFocusToElement('dateFiled'+kpiSummaryId)">
+                                                </mat-datepicker>
+                                            </span>
+                                            <div *ngIf="(formMap.get('dateFiled'))"
+                                                 class="invalid-feedback d-block">
+                                                * Please pick a Date Filed.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 form-group">
+                                        <label class="block-display" for="dateGranted{{kpiSummaryId}}"><span
+                                                class="mandatory">*</span>Date Granted</label>
+                                        <div>
+                                            <span class="dateField">
+                                                <input matInput [matDatepicker]="dateGranted" [(ngModel)]="formObject.dateGranted"
+                                                       [ngClass]="(formMap.get('dateGranted')) ? 'is-invalid d-block' : ''"
+                                                       (click)="dateGranted.open()" autocomplete="off"
+                                                       class="d-inline-block form-control"
+                                                       id="dateGranted{{kpiSummaryId}}"
+                                                       placeholder="{{datePlaceHolder}}">
+                                                <i (click)="dateGranted.open()" aria-hidden="true"
+                                                   class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                                   id="dateGranted-icon{{kpiSummaryId}}" title="Open Calendar"></i>
+                                                <mat-datepicker #dateGranted (opened)="setFocusToElement('dateGranted'+kpiSummaryId)">
+                                                </mat-datepicker>
+                                            </span>
+                                            <div *ngIf="(formMap.get('dateGranted'))" class="invalid-feedback d-block">
+                                                * Please pick a Date Granted.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col-6 form-group">
+                                        <label class="block-display" for="ownership{{kpiSummaryId}}"> <span
+                                                class="mandatory">*</span>
+                                            Ownership</label>
+                                        <div>
+                                            <input [(ngModel)]="formObject.ownership"
+                                                   [ngClass]="(formMap.get('ownership')) ? 'is-invalid d-block' : ''"
+                                                   class="form-control" id="ownership{{kpiSummaryId}}" placeholder="Ownership"
+                                                   type="text"/>
+                                            <div *ngIf="(formMap.get('ownership'))" class="invalid-feedback d-block">
+                                                * Please provide an Ownership.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 form-group">
+                                        <label class="block-display" for="patentNumber{{kpiSummaryId}}"> <span
+                                                class="mandatory">*</span>
+                                            Patent Number</label>
+                                        <div>
+                                            <input [(ngModel)]="formObject.patentNumber"
+                                                   [ngClass]="(formMap.get('patentNumber')) ? 'is-invalid d-block' : ''"
+                                                   class="form-control" id="patentNumber{{kpiSummaryId}}"
+                                                   placeholder="Patent Number"
+                                                   type="text"/>
+                                            <div *ngIf="(formMap.get('patentNumber'))"
+                                                 class="invalid-feedback d-block">
+                                                * Please provide a Patent Number.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col-12 form-group">
+                                        <label class="block-display" for="description{{kpiSummaryId}}">
+                                            Description</label>
+                                        <textarea [(ngModel)]="formObject.description" placeholder="Description"
+                                                  class="form-control dateBox text-area-height"
+                                                  cols="30" id="description{{kpiSummaryId}}"
+                                                  rows="2"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col-12 form-group">
+                                        <label class="block-display" for="comments{{kpiSummaryId}}">
+                                            Comments</label>
+                                        <textarea [(ngModel)]="formObject.comments" [isShowLimiter]='true'
+                                                  [limit]=200 placeholder="Comments"
+                                                  appLengthValidator class="form-control dateBox text-area-height"
+                                                  cols="30" id="comments{{kpiSummaryId}}"
+                                                  rows="2"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-dismiss="modal" type="button">Close</button>
+                <button (click)="processRequest()" class="btn btn-primary-sub btn-sm"
+                        type="button">{{(selectedIndex === null ? 'Add' : 'Update')}}</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- DELETE MEMBER WARNING MODAL -->
+<div aria-hidden="true" aria-labelledby="deleteModalTitle" class="modal fade mySkinDialog modal-opacity"
+     id="deleteEntryModal{{kpiSummaryId}}" role="dialog"
+     tabindex="-1" tabindex="-1">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal"
+                        id="summary-entry-dlt-dismiss{{kpiSummaryId}}"
+                        type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this entry?</p>
+            </div>
+            <div class="modal-footer">
+                <button (click)="selectedIndex = null; selectedEntry = null;" class="btn btn-secondary"
+                        data-dismiss="modal" data-toggle="modal"
+                        id="summary-entry-close-btn{{kpiSummaryId}}" type="button">No
+                </button>
+                <button (click)="deleteEntry(selectedEntry, selectedIndex)" class="btn btn-primary-sub btn-sm"
+                        data-dismiss="modal"
+                        id="summary-entry-delete-btn{{kpiSummaryId}}" type="button">Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</ng-container>

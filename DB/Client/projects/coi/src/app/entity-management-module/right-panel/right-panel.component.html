@@ -1,0 +1,73 @@
+<div [id]="rightPanelId" class="card p-1 min-height-right-panel coi-entity-right-nav-sticky scrollbar-sm">
+    <div>
+        <div class="row fs-14 m-2 py-1 rounded-1 matching-card">
+            <div class="col-12">
+                <span class="coi-text-light d-block">DUNS Number</span>
+                <span class="d-flex">
+                    <span class="coi-text-light text-slice me-1 fw-500" [title]="dunsNumber">{{ dunsNumber || (!isEnableEntityDunsMatch ? '--' : '') }}</span>
+                    <ng-container *ngIf="isEnableEntityDunsMatch">
+                        <span *ngIf="dunsNumber && isDunsMatched" class="d-inline-flex align-items-center badge fw-normal fs-13 px-2 rounded-5 text-bg-light-success"
+                            title="The entity '{{ entityDetails?.entityName }}' is D&B Matched">
+                            <mat-icon class="me-1 fs-13">check_circle</mat-icon>
+                            <span>Matched</span>
+                        </span>
+                        <span *ngIf="!dunsNumber || !isDunsMatched" class="d-inline-flex align-items-center badge fw-normal fs-13 px-2 rounded-5 text-bg-light-danger"
+                            title="The entity '{{ entityDetails?.entityName }}' is not D&B Matched">
+                            <mat-icon class="me-1 fs-13">cancel</mat-icon>
+                            <span>Unmatched</span>
+                        </span>
+                    </ng-container>
+                </span>
+            </div>
+            <div class="col-12 mt-2">
+                <span class="coi-text-light d-block">Sponsor</span>
+                <span class="coi-text-light me-1 fw-500" *ngIf="tabDetails?.sponsor_code">#{{tabDetails?.sponsor_code}}</span>
+                <span class="align-items-center badge d-inline-flex fs-13 fw-normal px-2 rounded-5" 
+                    [ngClass]="(tabDetails?.sponsor_feed_status_code === FEED_STATUS_CODE?.READY_TO_FEED) ? 'bg-info-subtle text-info-emphasis' : 
+                    (tabDetails?.sponsor_feed_status_code == FEED_STATUS_CODE?.SUCCESS) ? 'text-bg-light-success' : 'text-bg-light-danger'">
+                    <mat-icon class="me-1 fs-13" *ngIf="(tabDetails?.sponsor_feed_status_code == FEED_STATUS_CODE?.READY_TO_FEED || tabDetails?.sponsor_feed_status_code == FEED_STATUS_CODE?.SUCCESS)">check_circle</mat-icon>
+                    <mat-icon class="me-1 fs-13" *ngIf="(tabDetails?.sponsor_feed_status_code == FEED_STATUS_CODE?.NOT_READY_TO_FEED || tabDetails?.sponsor_feed_status_code == FEED_STATUS_CODE?.ERROR || !tabDetails?.sponsor_feed_status_code)">cancel</mat-icon>
+                    <span>{{tabDetails?.sponsor_feed_status ? tabDetails?.sponsor_feed_status : 'Not Ready to Feed'}}</span>
+                </span>
+            </div>
+            <div class="col-12 mt-2">
+                <span class="coi-text-light d-block">Sub-award Organization</span>
+                <span class="coi-text-light me-1 fw-500" *ngIf="tabDetails?.organization_id">#{{tabDetails?.organization_id}}</span>
+                <span class="align-items-center badge d-inline-flex fs-13 fw-normal px-2 rounded-5"
+                    [ngClass]="(tabDetails?.organization_feed_status_code == FEED_STATUS_CODE?.READY_TO_FEED) ? 'bg-info-subtle text-info-emphasis' : 
+                    (tabDetails?.organization_feed_status_code == FEED_STATUS_CODE?.SUCCESS) ? 'text-bg-light-success' : 'text-bg-light-danger'">
+                    <mat-icon class="me-1 fs-13" *ngIf="(tabDetails?.organization_feed_status_code == FEED_STATUS_CODE?.READY_TO_FEED || tabDetails?.organization_feed_status_code == FEED_STATUS_CODE?.SUCCESS)">check_circle</mat-icon>
+                    <mat-icon class="me-1 fs-13" *ngIf="(tabDetails?.organization_feed_status_code == FEED_STATUS_CODE?.NOT_READY_TO_FEED || tabDetails?.organization_feed_status_code == FEED_STATUS_CODE?.ERROR || !tabDetails?.organization_feed_status_code)">cancel</mat-icon>
+                    <span>{{tabDetails?.organization_feed_status ? tabDetails?.organization_feed_status : 'Not Ready to Feed'}}</span>
+                </span>
+            </div>
+            <div *ngIf="entityDetails?.entitySourceType?.description" class="d-flex align-items-center col-auto gap-1 mt-2">
+                <mat-icon class="flex-shrink-0 coi-text-light coi-scale-9" aria-hidden="true">info</mat-icon>
+                <span [title]="'This entity is from ' + entityDetails?.entitySourceType?.description"
+                    class="coi-text-light">This entity is from <strong>{{ entityDetails?.entitySourceType?.description }}</strong></span>
+            </div>
+            <!-- Used in Engagement -->
+            <div *ngIf="hasPersonEntityLinked && entityDetails?.entityStatusTypeCode === entityStatus.UNVERIFIED" class="d-flex align-items-center col-auto gap-1 mt-2">
+                <span title="Used in Engagement"
+                    class="coi-text-light coi-ms-25px">Used in Engagement</span>
+                <span class="coi-circle-icons bg-success ms-1"><mat-icon
+                    aria-hidden="true" class="text-white flex-shrink-0 coi-scale-7">check</mat-icon></span>
+            </div>
+        </div>
+        <div class="row">
+            <div *ngFor="let section of sectionDetails; let isFirst = first; let sectionIndex = index" class="d-flex p-0">
+                <ng-container *ngIf="section?.sectionVisibility === 'SHOW'">
+                    <button id="{{rightPanelId}}-{{sectionIndex}}"
+                        class="d-flex btn-none border-bottom text-start fs-14 w-100 mx-2 py-3 coi-entity-right-panel-items" [class.border-top]="isFirst"
+                        (click)="scrollToSelectedSection(section.sectionId); entityManagementService.isExpandRightNav = false"
+                        [class.selected-section]="section.sectionId === entityManagementService.selectedSectionId">
+                        <mat-icon *ngIf="section.sectionId === entityManagementService.selectedSectionId"
+                            class="ms-2" aria-hidden="true">chevron_left</mat-icon>
+                        <span [class.left-padding]="section.sectionId !== entityManagementService.selectedSectionId"
+                            [class.ms-2]="section.sectionId === entityManagementService.selectedSectionId">{{section?.sectionName}}</span>
+                    </button>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</div>

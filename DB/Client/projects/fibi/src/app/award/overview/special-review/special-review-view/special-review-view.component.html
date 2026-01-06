@@ -1,0 +1,105 @@
+<!--SPECIAL REVIEW CODE STARTS-->
+<div id="Award113" class="card mb-3" [ngClass]="{'item-highlighted': isHighlighted}" *ngIf="result?.award?.awardId">
+    <div class="card-header px-4">
+        <h4 class="card-title"><ng-container i18n="@@COMMON_SPECIAL_REVIEW">Special Review</ng-container>
+            <span *ngIf="helpText?.specialReview?.helpTextInfo" class="d-inline-block icon-hover">
+                <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med hand-cursor" aria-hidden="true"></i>
+                    <div class="tooltiptext-left card card-inner p-15 text-left">
+                        <span class="font-cv">{{helpText?.specialReview?.helpTextInfo}}</span>
+                    </div>
+                </a>
+              </span>
+            <button id="specialReviewExpandBtn" class="updown-arrow"
+                (click)="isShowCollapse = !isShowCollapse">
+                <i [ngClass]="isShowCollapse?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                    class="fa-large" aria-hidden="true"></i>
+            </button>
+        </h4>
+    </div>
+    <div class="card-content" *ngIf="isShowCollapse">
+        <div class="card-body">
+            <div *ngIf="(result?.awardSpecialReviews?.length == 0 || !result?.awardSpecialReviews)" class="noDataExists px-2">
+                    <ng-container i18n="@@AWARD_NO_SPECIAL_REVIEW_ADDED_ERR">There are no special reviews added in this Award.</ng-container>
+            </div>
+            <div class="table-responsive">
+                <table class="table tableSkin grid2">
+                    <caption class="sr-only">Special Review</caption>
+                    <thead class="d-none">
+                        <tr>
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody *ngIf="result?.awardSpecialReviews?.length > 0">
+                        <tr>
+                            <th scope="col"><ng-container i18n="@@REVIEW_TYPE">Review Type</ng-container></th>
+                            <th scope="col">Approval Status</th>
+                            <th scope="col">Protocol Number</th>
+                            <th scope="col">Application Date</th>
+                            <th scope="col">Approval Date</th>
+                            <th scope="col">Expiration Date</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                        <tr *ngFor="let specialReview of result?.awardSpecialReviews;let i = index">
+                            <td>{{getReviewType(specialReview?.specialReviewCode)}}</td>
+                            <td>{{getApprovalStatus(specialReview?.approvalTypeCode)}}</td>
+                            <td>{{specialReview?.protocolNumber}}</td>
+                            <td>{{specialReview?.applicationDate | dateFormatter}}</td>
+                            <td>{{specialReview?.approvalDate | dateFormatter}}</td>
+                            <td>{{specialReview?.expirationDate | dateFormatter}}</td>
+                            <td>
+                                <ul class="actionButtonGroup">
+                                    <li><a data-toggle="modal" data-target="#modalShowComment" id="prop-special-revw-view-cmt-btn">
+                                    <i class="fa fa-commenting-o" aria-hidden="true" title="View Comments"
+                                        (click)="showSpecialReviewComment(specialReview)"></i>
+                                </a></li>
+                                    <li *ngIf="specialReview?.isProtocolIntegrated">
+                                        <a (click)="viewProtocolDetails(specialReview);" id="award-key-view-btn" tabindex="0">
+                                      <i class="fa fa-eye" aria-hidden="true" title="Click here to view"></i>
+                                    </a></li> 
+                                </ul>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div *ngIf="isViewProtocolDetails">
+    <app-link-compliance-view [viewProtocolDetails]="viewSpecialReview?.acProtocol ? viewSpecialReview?.acProtocol : viewSpecialReview?.irbProtocol"
+      (closeModal)="closeViewModal($event)"></app-link-compliance-view>
+  </div>
+
+<!-- SHOW SPECIAL REVIEW COMMENTS -->
+<div class="modal fade mySkinDialog modal-opacity" tabindex="-1"
+  id="modalShowComment" tabindex="-1" role="dialog" aria-labelledby="showCommentModalTitle" aria-hidden="true">
+  <div class="modal-dialog  modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Comments - {{savedSpecialReviewObject.title}}</h5>
+        <button type="button" class="close" id="prop-special-revw-cmt-dismiss-btn" data-dismiss="modal"
+          aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body modal-inner-scroll">
+        <p *ngIf="savedSpecialReviewObject.comment" class="new-line-property" >{{savedSpecialReviewObject.comment}}</p>
+        <!-- <p *ngIf="!savedSpecialReviewObject.comment">There are no comments for this special review.</p> -->
+        <div class="no-data-container" *ngIf="!savedSpecialReviewObject.comment">
+          <span class="no-data-icon-outer">
+              <div class="no-data-icon">
+                  <i class="fa fa-file-o" aria-hidden="true"></i>
+                  <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+              </div>
+          </span>
+          <h4>There is no comment.</h4>
+      </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="prop-special-revw-dlt-no-btn" class="btn btn-secondary" data-dismiss="modal"
+          data-toggle="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div> 
+

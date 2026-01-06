@@ -1,0 +1,172 @@
+<div class="push4slideMenu pageMinHeight">
+    <div class="container-fluid pushFixedHeaderFooter">
+        <div class="headerPush"></div>
+        <div class="card mb-15 mt-3 rounded-0">
+            <div class="card-content">
+                <div class="card-header d-flex justify-content-between px-3 py-2">
+                    <h4 class="card-title align-items-center d-flex">Training Maintenance</h4>
+                    <div class="text-right">
+                        <span [routerLink]="['person-detail']"
+                              class="btn btn-primary">
+                          Add Training
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <section class="form-row">
+                    <div class="col-md-4">
+                        <div class="form-check-inline">
+                            <label>
+                                <input (change)="changePersonType(personType)" [(ngModel)]="personType"
+                                       class="form-check-input" name="empOptradio"
+                                       type="radio" value="employee">
+                                <span>Employee</span>
+                            </label>
+                        </div>
+                        <div class="form-check-inline">
+                            <label>
+                                <input (change)="changePersonType(personType)" [(ngModel)]="personType"
+                                       class="form-check-input"
+                                       name="nonEmpOptradio"
+                                       type="radio" value="non-employee">
+                                <span>Non-Employee</span>
+                            </label>
+                        </div>
+                        <div class="position-relative">
+                            <app-elastic (selectedResult)="selectPersonElasticResult($event)" [clearField]="clearPersonField"
+                                         [options]="options"
+                                         [placeHolder]="elasticPlaceHolder"></app-elastic>
+                        </div>
+                    </div>
+                    <div class="col-md-5 d-flex align-items-end">
+                        <app-endpoint-search (onSelect)="selectedTraining($event)"
+                                             [clearField]="clearTrainingField"
+                                             [httpOptions]="trainingSearchOptions"
+                                             [placeHolder]="'Search for a training'"
+                                             class="w-100"></app-endpoint-search>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button (click)="getAdvanceSearchResult()" class="btn btn-primary mr-2">Search</button>
+                        <button (click)="clearAdvancedSearch()" class="btn btn-secondary">Clear</button>
+                    </div>
+                </section>
+                <section>
+                    <div *ngIf="isSearch" class="f-14 mb-3 mt-3 p-2 shadow-sm success-banner">
+                        <i aria-hidden="true" class="fa fa-user-o"> &nbsp;</i>Employee &nbsp;
+                        <i aria-hidden="true" class="fa fa-user-circle text-danger">&nbsp;</i>Non Employee
+                    </div>
+                    <div *ngIf="isSearch" id="topOfTrainingList">
+                        <div class="overflow-auto">
+                            <table class="table tableSkin mb-0">
+                                <caption class="sr-only">Training list</caption>
+                                <thead>
+                                <tr>
+                                    <th (click)="sortResult('personName')" class="hand-cursor" scope="col" tabindex="0">
+                                        Person Name
+                                        <i *ngIf="!requestObject.sort['personName']" aria-hidden="true"
+                                           class="fa fa-sort-alpha-asc blrcolor"></i>
+                                        <i [ngClass]="requestObject.sort['personName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                                           aria-hidden="true"></i>
+                                        <i [ngClass]="requestObject.sort['personName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                                           aria-hidden="true"></i>
+                                    </th>
+                                    <th (click)="sortResult('trainingDescription')" class="hand-cursor" scope="col"
+                                        tabindex="0">Training
+                                        <i *ngIf="!requestObject.sort['trainingDescription']" aria-hidden="true"
+                                           class="fa fa-sort-alpha-asc blrcolor"></i>
+                                        <i [ngClass]="requestObject.sort['trainingDescription'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                                           aria-hidden="true"></i>
+                                        <i [ngClass]="requestObject.sort['trainingDescription'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                                           aria-hidden="true"></i>
+                                    </th>
+                                    <th (click)="sortResult('followupDate')" class="hand-cursor" scope="col"
+                                        tabindex="0">
+                                        Expiration Date
+                                        <i *ngIf="!requestObject.sort['followupDate']" aria-hidden="true"
+                                           class="fa fa-sort-numeric-asc blrcolor"></i>
+                                        <i [ngClass]="requestObject.sort['followupDate'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"
+                                           aria-hidden="true"></i>
+                                        <i [ngClass]="requestObject.sort['followupDate'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"
+                                           aria-hidden="true"></i>
+                                    </th>
+                                    <th scope="col" style="width: 15%">Action</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <ng-container *ngIf="paginationData.page_number > 0">
+                                    <tr *ngFor="let personTraining of paginatedTrainingList">
+                                        <td class="align-middle"><i
+                                                [ngClass]="!personTraining.nonEmployee ? 'fa-user-o':'fa-user-circle text-danger'"
+                                                aria-hidden="true"
+                                                class="fa"></i> {{personTraining?.personName }}
+                                        </td>
+                                        <td class="align-middle">{{personTraining?.trainingDescription}}</td>
+                                        <td class="align-middle">{{personTraining?.followupDate | dateFormatter}}</td>
+                                        <td class="action-btn-list px-0" style="width:15%">
+                                            <ul class="actionButtonGroup">
+                                                <li *ngIf="hasEditRight">
+                                                    <a (click)="showTrainingDetails(personTraining)" title="Edit">
+                                                        <i aria-hidden="true" class="fa fa-pencil"></i>
+                                                    </a>
+                                                </li>
+                                                <li *ngIf="hasEditRight">
+                                                    <a (click)="deleteTrainingDetails(personTraining)"
+                                                       data-target="#deletewarningModal"
+                                                       data-toggle="modal"
+                                                       title="Delete">
+                                                        <i aria-hidden="true" class="fa fa-trash-o"></i>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </td>
+                                    </tr>
+                                </ng-container>
+                                <tr *ngIf="paginationData.page_number === 0"
+                                    class="bg-light">
+                                    <td class="text-center" colspan="4">No Training details to show</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <div *ngIf="paginationData.page_number > 0"
+                                 class="text-right m-8 txt-small float-right">
+                                <nav class="paginationSkin text-right p-0">
+                                    <app-pagination (pageChangeEvent)="trainingListPerPage($event)"
+                                                    [totalCount]="paginationData.page_number">
+                                    </app-pagination>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+        <div class="footerPush"></div>
+    </div>
+</div>
+
+<!--delete warning modal-->
+<div *ngIf="showPopup" aria-hidden="true" aria-labelledby="deleteModalTitle" class="modal fade mySkinDialog modal-opacity" id="deletewarningModal"
+     role="dialog" tabindex="-1">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header popup-header dotted-bottom">
+                <h5 class="modal-title thick txt-large">Want to delete?
+                </h5>
+                <button aria-label="Close" class="close modal-close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-pop-up">
+                <p>Are you sure you want to delete this item?</p>
+            </div>
+            <div class="modal-footer p-2">
+                <button (click)="showPopup = false" aria-label="Close" class="btn btn-secondary btn-sm"
+                        data-dismiss="modal">No
+                </button>
+                <button (click)="confirmDelete()" class="btn btn-primary-sub btn-sm" data-dismiss="modal">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>

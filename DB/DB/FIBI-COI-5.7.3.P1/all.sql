@@ -1,0 +1,12 @@
+\. ./FIBI-COI-5.7.3.P1/FC-1462/all.sql
+\. ./FIBI-COI-5.7.3.P1/FC-1441/all.sql
+\. ./FIBI-COI-5.7.3.P1/FC-1439/all.sql
+\. ./FIBI-COI-5.7.3.P1/FC-1463/all.sql
+\. ./FIBI-COI-5.7.3.P1/FC-1458-issue-fix/all.sql
+\. ./FIBI-COI-5.7.3.P1/FC-1411/all.sql
+\. ./FIBI-COI-5.7.3.P1/FC-1473/all.sql
+\. ./FIBI-COI-5.7.3.P1/FC-1474/all.sql
+\. ./FIBI-COI-5.7.3.P1/FC-1275/all.sql
+\. ./FIBI-COI-5.7.3.P1/FC-1451/all.sql
+\. ./FIBI-COI-5.7.3.P1/FC-1397/all.sql
+\. ./FIBI-COI-5.7.3.P1/FC-1437/all.sql

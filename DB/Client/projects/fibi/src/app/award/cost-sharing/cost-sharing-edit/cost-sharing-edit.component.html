@@ -1,0 +1,267 @@
+<div id="Award111" class="card mt-3" *ngIf="result?.award?.awardId">
+    <div class="card-header px-4">
+        <h4 class="card-title">Cost Sharing
+            <button id="costShareExpandBtn" class="updown-arrow"
+                (click)="isCostSharesWidgetOpen = !isCostSharesWidgetOpen">
+                <i [ngClass]="isCostSharesWidgetOpen?'fa fa-angle-double-down':'fa fa-angle-double-up'" class="fa-large"
+                    aria-hidden="true"></i>
+            </button>
+            <span *ngIf="isCostShareEdit || (index != null)">
+                <button class="btn btn-sm btn-tertiary ml-3 float-right mr-5" data-toggle="modal"
+                data-target="#add-subcontract-modal"> Add Cost Sharing</button>
+            </span>
+        </h4>
+    </div>
+    <div class="card-content" *ngIf="!isCostSharesWidgetOpen">
+        <div class="card-body">
+            <div class="table-responsive custom-table-responsive"
+                *ngIf="(!isCostSharesWidgetOpen) && (costShareData?.length > 0)">
+                <table class="table tableSkin grid2">
+                    <caption class="sr-only">Cost Sharing Details</caption>
+                    <thead class="d-none">
+                        <tr>
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="thead-light">
+                            <th scope="col">Type</th>
+                            <th scope="col">Source</th>
+                            <th scope="col">Destination</th>
+                            <th scope="col">Fiscal Year</th>
+                            <th scope="col">Verification Date</th>
+                            <th scope="col" class="text-right">Percentage(%)</th>
+                            <th scope="col" class="text-right">Commitment Amount ({{currency}})</th>
+                            <th scope="col" class="text-right">Cost Share Met ({{currency}})</th>
+                            <th scope="col">Comments</th>
+                            <th scope="col" style="width: 6%">Actions</th>
+                        </tr>
+                        <tr *ngFor="let costshares of costShareData;let i = index">
+                            <td>{{getCostshareTypes(costshares?.costShareTypeCode)}}</td>
+                            <td>{{costshares?.source}}</td>
+                            <td>{{costshares?.destination}} </td>
+                            <td>{{costshares?.projectPeriod}}</td>
+                            <td>{{costshares?.verificationDate | dateFormatter}}</td>
+                            <td class="text-right">{{costshares?.costSharePercentage}}</td>
+                            <td class="text-right">{{costshares?.commitmentAmount | customCurrency}}</td>
+                            <td class="text-right">{{costshares?.costShareMet | customCurrency}}</td>
+                            <td tabindex="0">
+                                <ul class="actionButtonGroup">
+                                    <li>
+                                        <div class="dropdown">
+                                            <a id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true"
+                                                aria-expanded="false">
+                                                <i class="fa fa-commenting-o hand-cursor hoverColor mr-1"
+                                                    aria-hidden="true" title="Comment"></i>
+                                            </a>
+                                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
+                                                <p class="new-line-property" [innerHTML]="costshares?.comments ? (costshares?.comments | customTagRemover: currentMethod) : 'Not Available'"></p>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </td>
+                            <td>
+                                <ul class="actionButtonGroup">
+                                    <li *ngIf="costshares.awardCostShareId != null">
+                                        <a href="#" id="award-project-team-delete-btn" data-toggle="modal"
+                                        data-target="#add-subcontract-modal">
+                                            <i class="fa fa-pencil hand-cursor hoverColor" aria-hidden="true"
+                                                title="Click here to edit Cost Share"
+                                                (click)="editCostShare(i);"></i>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a *ngIf="isCostShareEdit || (!isCostShareEdit && index !== i)" href="#"
+                                            id="award-project-team-delete-btn" data-toggle="modal"
+                                            data-target="#deleteCostShareModal"
+                                            (click)=" this.removeCostShareId = costshares.awardCostShareId;this.index = i;">
+                                            <i class="fa fa-trash-o" aria-hidden="true"
+                                                title="Click here to delete  Cost Share"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="6" class="totalText">
+                                <span>Cost Share Total</span>
+                            </td>
+                            <td class="totalText text-right">
+                                <span>{{commitmentSum| currency:currency}}</span>
+                            </td>
+                            <td colspan="1" class="totalText text-right">
+                                <span>{{costShareMetSum| currency:currency}}</span>
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div *ngIf="costShareData?.length == 0" class="no-data-container">
+                <span class="no-data-icon-outer">
+                    <div class="no-data-icon">
+                        <i aria-hidden="true" class="fa fa-file-o"></i>
+                        <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                    </div>
+                </span>
+                <h4>There is no information in this section.</h4>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- DELETE MEMBER WARNING MODAL -->
+<div class="modal fade mySkinDialog modal-opacity" tabindex="-1" id="deleteCostShareModal" tabindex="-1" role="dialog"
+    aria-labelledby="deleteModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete</h5>
+                <button id="award-dlt-member-dismiss" type="button" class="close" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this Cost Share ?</p>
+            </div>
+            <div class="modal-footer">
+                <button id="award-project-close-btn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                    data-toggle="modal">Cancel</button>
+                <button id="award-cost-share-delete-btn" type="button" class="btn btn-primary-sub btn-sm"
+                    data-dismiss="modal" (click)="deleteCostShare()">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add sub contract modal -->
+<div class="modal fade mySkinDialog" id="add-subcontract-modal" role="dialog" aria-labelledby="skippedSchedulesTitle"
+    aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{isCostShareEdit ? 'Add' : 'Update'}} Sub Contract</h5>
+                <button type="button" class="close" (click)="clearCostShareData()" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body py-1 px-3">
+                <div class="w-100">
+                    <div class="form-row">
+                        <div class="col-lg-4 col-md-3 col-sm-6 col-12">
+                            <label for="award-type">
+                                <span class="mandatory">*</span>Type</label>
+                            <select id="award-type" class="form-control"
+                                [ngClass]="(map.get('costsharetypecode')) ? 'is-invalid d-block' : ''"
+                                [(ngModel)]="costshare.costShareTypeCode"
+                                (ngModelChange)="_commonData.isAwardDataChange = true;">
+                                <option value="">--Select--</option>
+                                <option *ngFor="let costShareTypes of costShareResult?.costShareTypes"
+                                    [hidden]="costShareTypes.isActive != true"
+                                    [value]="costShareTypes.costShareTypeCode">
+                                    {{costShareTypes.description}}</option>
+                            </select>
+                            <div *ngIf="(map.get('costsharetypecode'))" class="invalid-feedback d-block">
+                                Please select a cost share type.
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-3 col-sm-6 col-12">
+                            <label for="award-fiscal-year">
+                                <span class="mandatory">*</span>Fiscal Year</label>
+                            <input type="number" id="award-fiscal-year" placeholder=""
+                                [ngClass]="(map.has('costshareprojectperiod')) ? 'is-invalid d-block' : ''"
+                                class="form-control" [(ngModel)]="costshare.projectPeriod" (ngModelChange)="validYear()"
+                                (ngModelChange)="_commonData.isAwardDataChange = true" />
+                            <div *ngIf="(map.has('costshareprojectperiod'))" class="invalid-feedback d-block">
+                                {{map.get('costshareprojectperiod')}}
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-3 col-sm-6 col-12">
+                            <label for="award-source-account">Source Account</label>
+                            <input type="text" id="award-source-account" placeholder="" class="form-control"
+                                [(ngModel)]="costshare.source" (ngModelChange)="_commonData.isAwardDataChange = true" />
+                        </div>
+                        <div class="col-lg-2 col-md-3 col-sm-6 col-12">
+                            <label for="award-dest-acc">Destination Account</label>
+                            <input type="text" id="award-dest-acc" placeholder="" class="form-control"
+                                [(ngModel)]="costshare.destination"
+                                (ngModelChange)="_commonData.isAwardDataChange = true" />
+                        </div>
+                        <div class="col-lg-2 col-md-3 col-sm-6 col-12 mb-0">
+                            <label for="award-percent">Percentage</label>
+                            <div class="searchBox" appKeyboardListener>
+                                <input id="award-percent" type="number" placeholder="eg: 100, 99.99, 10.22, 25 etc"
+                                    class="form-control" [(ngModel)]="costshare.costSharePercentage"
+                                    (ngModelChange)="_commonData.isAwardDataChange = true"
+                                    (keyup)="limitKeypress(costshare.costSharePercentage)" />
+                                <div *ngIf="isPercentageValueErrorMsg">
+                                    <span class="mandatory">{{isPercentageValueErrorMsg}}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-3 col-sm-6 col-12">
+                            <label for="award-sub-date">Verification Date</label>
+                            <span class="dateField">
+                                <input matInput [matDatepicker]="verificationDate" placeholder="dd/mm/yyyy"
+                                    id="award-sub-date" style="width: 100% !important"
+                                    class="d-inline-block form-control" [(ngModel)]="costshare.verificationDate"
+                                    (ngModelChange)="_commonData.isAwardDataChange = true"
+                                    (keypress)="_commonService._keyPress($event, 'date');"
+                                    (click)="verificationDate.open()" />
+                                <i id="award-sub-date-icon" aria-hidden="true" title="Open Calender"
+                                    class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                    (click)="verificationDate.open()"></i>
+                                <mat-datepicker #verificationDate
+                                    (opened)="setFocusToElement('award-sub-date')"></mat-datepicker>
+                            </span>
+                        </div>
+                        <div class="col-lg-4 col-md-3 col-sm-6 col-12">
+                            <label for="award-commit-amount">Commitment Amount ({{currency}})</label>
+                            <input id="award-commit-amount" type="text" placeholder="" class="form-control"
+                                [(ngModel)]="costshare.commitmentAmount" appCurrencyFormat
+                                [initialValue]="costshare.commitmentAmount"
+                                (ngModelChange)="inputDigitRestriction(costshare.commitmentAmount, 'commitmentAmount');_commonData.isAwardDataChange = true"
+                                [ngClass]="(map.get('commitmentAmount'))? 'is-invalid d-block' : ''" />
+                            <div *ngIf="(map.get('commitmentAmount'))" class="invalid-feedback d-block">
+                                {{map.get('commitmentAmount')}}</div>
+                        </div>
+                        <div class="col-lg-4 col-md-3 col-sm-6 col-12">
+                            <label for="award-cost-share">Cost Share Met ({{currency}})</label>
+                            <input type="text" id="award-cost-share" placeholder="" class="form-control"
+                                [(ngModel)]="costshare.costShareMet" appCurrencyFormat
+                                [initialValue]="costshare.costShareMet"
+                                (ngModelChange)="inputDigitRestriction(costshare.costShareMet, 'costShareMet');_commonData.isAwardDataChange = true"
+                                [ngClass]="(map.get('costShareMet')) ? 'is-invalid d-block' : ''" />
+                            <div *ngIf="(map.get('costShareMet'))" class="invalid-feedback d-block">
+                                {{map.get('costShareMet')}}</div>
+                        </div>
+                        <div class="col-lg-12 col-12">
+                            <label for="award-special-revw-comnt">Comments</label>
+                            <textarea id="award-special-revw-comnt" class="form-control"
+                                [(ngModel)]="costshare.comments" (ngModelChange)="_commonData.isAwardDataChange = true"
+                                maxlength="4000" appLengthValidator [isShowLimiter]='true' [limit]=4000></textarea>
+                        </div>
+                    </div>
+                    <div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="text-center text-md-right">
+                    <button id="award-key-personnel-cancel-btn" data-dismiss="modal"
+                        class="btn btn btn-secondary btn-xs mx-2" (click)="clearCostShareData()">Cancel</button>
+                    <button *ngIf="isCostShareEdit" id="award-key-personnel-add-btn" class="btn btn-primary-sub btn-xs"
+                        (click)="addCostShare()">
+                        Add Cost Share
+                    </button>
+                    <button *ngIf="!isCostShareEdit" id="award-key-personnel-update-btn"
+                        class="d-inline-block btn btn-primary-sub btn-xs px-2" (click)="addCostShare()">
+                        Update Cost Share
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

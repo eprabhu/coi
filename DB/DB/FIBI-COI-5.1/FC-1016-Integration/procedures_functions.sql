@@ -1,0 +1,6 @@
+\. ./FIBI-COI-5.1/FC-1016-Integration/Functions/COI_INT_PRSN_DISCL_EXP_DATE.sql
+\. ./FIBI-COI-5.1/FC-1016-Integration/Procedures/COI_INT_PROJECT_PRSN_DISCL_STATUS.sql
+\. ./FIBI-COI-5.1/FC-1016-Integration/Procedures/ENRICH_ENTITY_INDUSTRY_CATE.sql
+\. ./FIBI-COI-5.1/FC-1016-Integration/Procedures/ENRICH_ENTITY_REGISTRATION.sql
+\. ./FIBI-COI-5.1/FC-1016-Integration/Procedures/ENRICH_ENTITY_TELEPHONE.sql
+\. ./FIBI-COI-5.1/FC-1016-Integration/Procedures/ENRICH_TRADE_STYLE_NAME.sql

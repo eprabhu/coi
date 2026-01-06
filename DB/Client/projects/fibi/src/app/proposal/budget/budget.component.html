@@ -1,0 +1,273 @@
+<ng-container *ngIf="dataVisibilityObj?.isBudgetHeaderFound && budgetData?.budgetHeader">
+    <app-budget-versions-list *ngIf="budgetData?.budgetHeaderDetails" [dataVisibilityObj]="dataVisibilityObj"
+        [proposalStatusCode]="proposalStatusCode">
+    </app-budget-versions-list>
+    <app-budget-overview [helpText]="helpText"></app-budget-overview>
+    <section>
+        <div>
+            <ul class="subTabs mb-0">
+                <li routerLinkActive="active" id="periodsTotalProposal" *ngIf="budgetData.isPeriodTotalEnabled
+            && _proposalService.proposalSectionConfig['308']?.isActive">
+                    <a [routerLink]="['periods-total']" queryParamsHandling='merge' class="subTabLink"
+                        (click)="setNavigationTab('/fibi/proposal/budget/periods-total')">
+                        <ng-container i18n="@@COMMON_PERIODS_AND_TOTAL"> Periods & Total </ng-container>
+                    </a>
+                </li>
+                <li routerLinkActive="active" id="personnelProposal" *ngIf="budgetData.isDetailedBudgetEnabled
+          && _proposalService.proposalSectionConfig['309']?.isActive">
+                    <a [routerLink]="['personnel']" queryParamsHandling='merge' class="subTabLink"
+                        (click)="setNavigationTab('/fibi/proposal/budget/personnel')">
+                        Personnel
+                    </a>
+                </li>
+                <li routerLinkActive="active" id="detailedProposal" *ngIf="budgetData.isDetailedBudgetEnabled
+            && _proposalService.proposalSectionConfig['310']?.isActive">
+                    <a [routerLink]="['detailed-budget']" queryParamsHandling='merge' class="subTabLink"
+                        (click)="setNavigationTab('/fibi/proposal/budget/detailed-budget')">
+                        Detailed Budget
+                    </a>
+                </li>
+                <li routerLinkActive="active" id="simpleProposal" *ngIf="budgetData.isSimpleBudgetEnabled
+            && _proposalService.proposalSectionConfig['311']?.isActive">
+                    <a [routerLink]="['simple-budget']" queryParamsHandling='merge' class="subTabLink"
+                        (click)="setNavigationTab('/fibi/proposal/budget/simple-budget')">
+                        <ng-container i18n="@@PROPOSAL_SIMPLE_BUDGET">Simple Budget</ng-container>
+                    </a>
+                </li>
+                <li routerLinkActive="active" id="modularProposal" *ngIf="budgetData.isModularBudgetEnabled
+            && _proposalService.proposalSectionConfig['338']?.isActive">
+                    <a [routerLink]="['modular-budget']" queryParamsHandling='merge' class="subTabLink"
+                        (click)="setNavigationTab('/fibi/proposal/budget/modular-budget')">
+                        Modular Budget
+                    </a>
+                </li>
+                <li routerLinkActive="active" id="categoryTotalProposal" *ngIf="budgetData.isBudgetCategoryTotalEnabled
+                && _proposalService.proposalSectionConfig['339']?.isActive">
+                    <a [routerLink]="['category-total']" queryParamsHandling='merge' class="subTabLink"
+                        (click)="setNavigationTab('/fibi/proposal/budget/category-total')">
+                        Category Total
+                    </a>
+                </li>
+                <li routerLinkActive="active" id="summaryProposal" *ngIf="budgetData.isBudgetSummaryEnabled
+            && _proposalService.proposalSectionConfig['307']?.isActive">
+                    <a [routerLink]="['summary']" queryParamsHandling='merge' class="subTabLink"
+                        (click)="setNavigationTab('/fibi/proposal/budget/summary')">
+                        Budget Summary
+                    </a>
+                </li>
+                <div class="actions-outer ml-auto mr-4">
+                    <span class="budget-actions" tabindex="0"
+                        *ngIf="!_budgetDataService.isBudgetViewMode && _budgetDataService.BudgetTab == 'PERIODSTOTAL'"
+                        title="Add New Period"
+                        (click)="_budgetDataService.isPeriodOperationsProposalTrigger.next('ADDPERIOD');">
+                        <i class="fa fa-plus icon-actions" aria-hidden="true"></i>Add Period
+                    </span>
+                    <span tabindex="0"
+                        *ngIf="!_budgetDataService.isBudgetViewMode && _budgetDataService.BudgetTab == 'PERIODSTOTAL' && budgetData.isGeneratePeriodsEnabled"
+                        title="Generate All Periods" class="budget-actions"
+                        (click)="_budgetDataService.isPeriodOperationsProposalTrigger.next('GENERATEPERIOD');">
+                        <i class="fa fa-file-text-o icon-actions" aria-hidden="true"></i>Generate All Periods
+                    </span>
+                    <span *ngIf="_budgetDataService.BudgetTab === 'BUDGETSUMMARY'" class="ml-3">
+                        <span class="font text-nowrap">Export as:</span>
+                        <a title="Export budget summary to Excel sheet" class="exportIcon-margin  hand-cursor"
+                            id="export-budget-summary-excel-btn" (click)="printBudgetSummaryAsExcel()">
+                            <i class="fa fa-file-excel-o" aria-hidden="true"></i>
+                        </a>
+                        <a class="exportIcon-margin">|</a>
+                        <a title="Export budget summary to PDF document" class="hand-cursor"
+                            id="export-budget-summary-pdf-btn"
+                            (click)="printBudgetAsPdf('Budget_Summary','Y','N','N', 'N')">
+                            <i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+                        </a>
+                    </span>
+                    <span *ngIf="_budgetDataService.BudgetTab === 'SIMPLE'" class="ml-3">
+                        <span class="font text-nowrap">Export as:</span>
+                        <a title="Export simple budget to Excel sheet" class="exportIcon-margin  hand-cursor"
+                            id="export-simple-budget-excel-btn" (click)="generateProposalSimpleBudgetReport()">
+                            <i class="fa fa-file-excel-o" aria-hidden="true"></i>
+                        </a>
+                        <a class="exportIcon-margin">|</a>
+                        <a title="Export simple budget to PDF document" class="hand-cursor"
+                            id="export-simple-budget-pdf-btn"
+                            (click)="printBudgetAsPdf('Simple_Budget','N','N','Y', 'N')">
+                            <i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+                        </a>
+                    </span>
+                    <span *ngIf="_budgetDataService.BudgetTab === 'DETAILED'" class="ml-3">
+                        <span class="font text-nowrap">Export as:</span>
+                        <a title="Export detailed budget to Excel sheet" class="exportIcon-margin  hand-cursor"
+                            id="export-simple-budget-excel-btn" (click)="generateProposalDetailedBudgetReport()">
+                            <i class="fa fa-file-excel-o" aria-hidden="true"></i>
+                        </a>
+                        <a class="exportIcon-margin">|</a>
+                        <a title="Export detailed budget to PDF document" class="hand-cursor"
+                            id="export-detail-budget-pdf-btn"
+                            (click)="printBudgetAsPdf('Detailed_Budget','N','Y','N', 'Y')">
+                            <i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+                        </a>
+                    </span>
+                </div>
+            </ul>
+        </div>
+    </section>
+</ng-container>
+<ng-container *ngIf="!dataVisibilityObj?.isBudgetHeaderFound && !budgetData?.budgetHeader">
+    <div class="align">
+        <span>
+            <span>No budget versions created</span>
+            <button class="btn btn-primary btn-sm d-block mt-4" *ngIf="isCreateBudgetVersion" data-toggle="modal"
+                data-target="#budgetCreateModalProposal">
+                Create New Budget Version
+            </button>
+        </span>
+    </div>
+</ng-container>
+<router-outlet></router-outlet>
+
+<!-- In MIDDLE OF EDIT WARNING MODAL -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="budgetSaveModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="budgetSaveModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Are you sure you want to leave this page?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" *ngIf="_budgetDataService.budgetDataChanged">
+                <p>There are unsaved change{{autoSaveService.unSavedSections.length>1?'s':''}} in
+                    <strong>{{getUnsavedChanges()}}</strong>.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="discardChanges()" data-dismiss="modal">Leave
+                    without saving</button>
+                <button type="button" class="btn btn-primary-sub" (click)="_budgetService.navigationUrl = ''"
+                    data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SHOW RATES MODAL -->
+<div *ngIf="proposalId" class="modal fade mySkinDialog" id="show-rates-modal-proposal" tabindex="-1" role="dialog"
+    aria-labelledby="showRatesBudget" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="proposal-budget-rates">Rates</h5>
+                <button type="button" class="close" data-dismiss="modal" (click)="clearRateParam();">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div *ngIf="budgetData?.budgetHeader?.proposalRates?.length > 0" class="tabs m-0">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li *ngFor="let rateClassType of budgetData?.rateClassTypes" role="presentation"
+                            [ngClass]="selectedRateClassType == rateClassType?'activeTab':'inActiveTab'">
+                            <a href="" role="tab" data-toggle="tab"
+                                (click)="selectedRateClassType=rateClassType">{{rateClassType}}
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="fixed-header-table">
+                        <table id="ratesTable" aria-describedby="proposal-budget-rates"
+                            class="table tableStyle tableSkin mb-0"
+                            *ngIf="budgetData?.budgetHeader?.proposalRates?.length > 0">
+                            <thead>
+                                <tr class="thead-light">
+                                    <th scope="col" width="20%">Activity Type</th>
+                                    <th scope="col" width="20%">Rate Type</th>
+                                    <th scope="col" width="10%">Fiscal Year</th>
+                                    <th scope="col" width="20%">Start Date</th>
+                                    <th scope="col" width="15%">Institute Rate(%)</th>
+                                    <th scope="col" width="15%">Applicable Rate(%)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="td-bg-color">
+                                <tr *ngFor="let rate of budgetData?.budgetHeader?.proposalRates">
+                                    <ng-container *ngIf="rate.rateClass.description == selectedRateClassType">
+                                        <td>{{rate.activityType.description}}</td>
+                                        <td>{{rate.rateType.description}}</td>
+                                        <td>{{rate.fiscalYear}}</td>
+                                        <td>{{rate.startDate | dateFormatter}}</td>
+                                        <td>{{rate.instituteRate}}</td>
+                                        <td>
+                                            <input type="text" [(ngModel)]="rate.applicableRate"
+                                                (focus)="setTempBudgetRates()" (ngModelChange)="isApplyRates=true"
+                                                [disabled]="_budgetDataService.isBudgetViewMode"
+                                                class="form-control text-right" (keypress)="inputRestriction($event)" />
+                                        </td>
+                                    </ng-container>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="no-data-container p-3" *ngIf="budgetData?.budgetHeader?.proposalRates?.length == 0">
+                    <span class="no-data-icon-outer">
+                        <div class="no-data-icon">
+                            <i class="fa fa-file-o" aria-hidden="true"></i>
+                            <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                        </div>
+                    </span>
+                    <h4 class="text-content-color">There is no information in this section.</h4>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <ng-container *ngIf="budgetData?.budgetHeader?.proposalRates?.length > 0">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                        (click)="clearRateParam();">Close</button>
+                    <button type="button" *ngIf="isApplyRates"
+                        [disabled]="dataVisibilityObj.mode==='view' && _budgetDataService.isBudgetViewMode"
+                        class="btn btn-primary-sub btn-sm" title="Apply rates" (click)="applyRates()">Apply
+                        Rates</button>
+                    <button *ngIf="!_budgetDataService.isBudgetViewMode" type="button"
+                        class="btn btn-primary-sub btn-sm"
+                        [disabled]="dataVisibilityObj.mode==='view' && _budgetDataService.isBudgetViewMode"
+                        title="Reset Rates" (click)="resetBudgetRates()">Reset</button>
+                </ng-container>
+                <button *ngIf="!_budgetDataService.isBudgetViewMode" type="button" class="btn btn-primary-sub btn-sm"
+                    [disabled]="dataVisibilityObj.mode==='view' && _budgetDataService.isBudgetViewMode"
+                    title="Sync Rates" (click)="getSyncBudgetRates()">Sync Rates</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- SHOW RATES MODAL ENDS-->
+
+<!-- CREATE BUDGET MODAL -->
+<div *ngIf="proposalId" class="modal fade mySkinDialog" tabindex="-1" id="budgetCreateModalProposal" tabindex="-1"
+    role="dialog" data-backdrop="static" data-keyboard="false" aria-labelledby="budgetCreateModalProposal"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Budget Version</h5>
+                <button type="button" id="create-budget-close-btn" class="close" data-dismiss="modal" aria-label="Close"
+                    (click)="closeCreateModal()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <label class="font bold"><span class="mandatory">*</span>Description</label>
+                <textarea name="details" class=" forTextAreaEntry scheduleBoxes dateBox regularFont form-control"
+                    [(ngModel)]="budgetData.budgetDescription" appLengthValidator [isShowLimiter]='true'
+                    [limit]=4000></textarea>
+                <span class="invalid-feedback d-block" *ngIf="!isbudgetDescription">
+                    * Please provide a valid description
+                </span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="closeCreateModal()">Cancel</button>
+                <button type="button" class="btn btn-primary-sub" (click)="createProposalBudget()">Create</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- CREATE BUDGET MODAL ENDS-->
+
+<app-period-update *ngIf="budgetData && isShowPeriodsChangeModal" [budgetData]="budgetData"
+    [isBudgetIdRequired]="isBudgetIdRequired" (closeModal)="closeModal($event)"></app-period-update>

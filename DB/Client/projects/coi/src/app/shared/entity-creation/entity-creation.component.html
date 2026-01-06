@@ -1,0 +1,385 @@
+<div class="row row-gap-3" [class.pb-3]="entityCreationConfig?.isEditMode">
+    <!-- Entity Name -->
+    <div class="position-relative {{ entityCreationConfig?.fieldCustomClass?.['ENTITY_NAME'] }}">
+        <label class="d-block coi-text-dark" for="coi-entity-name">
+            <span *ngIf="entityCreationConfig?.isEditMode && entityCreationConfig?.mandatoryFieldsList.includes('entityName')" class="mandatory me-1">*</span>
+            <span>Entity Name</span>
+            <app-common-help-text [subSectionId]="2602" [elementId]="'coi-entity-name'"></app-common-help-text>
+        </label>
+        <input *ngIf="entityCreationConfig?.isEditMode" type="text" class="form-control" id="coi-entity-name" name="coi-entity-name"
+            [ngClass]="(mandatoryList?.has('entityName')) ? 'is-invalid d-block' : ''"
+            [(ngModel)]="entityUpdateObj.entityRequestFields.entityName" (ngModelChange)="changeEvent('entityName')"
+            appLengthValidator [limit]="500" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'" [disabled]="isDunsViewMode" [isShowLimiter]="!isDunsViewMode">
+        <span *ngIf="mandatoryList?.has('entityName')" class="invalid-feedback d-inline fs-13">
+            {{mandatoryList?.get('entityName')}}
+        </span>
+        <span *ngIf="!entityCreationConfig?.isEditMode" class="coi-text-light d-block fw-500">
+            <app-no-data-label [valueToShow]="entityUpdateObj.entityRequestFields.entityName"></app-no-data-label>
+        </span>
+    </div>
+    <!-- Entity Type -->
+    <div *ngIf="entityCreationConfig?.isEditMode && entityCreationConfig?.isShowCoiEntityType"
+        class="position-relative {{ entityCreationConfig?.fieldCustomClass?.['ENTITY_TYPE'] }}">
+        <label for="coi-entity-coi-entity-type" class="d-block coi-text-dark text-nowrap">
+            <span>Entity Type</span>
+            <app-common-help-text [subSectionId]="2645" [elementId]="'coi-GE-entity-type'"></app-common-help-text>
+        </label>
+        <!-- Select - Entity Type -->
+        <select [(ngModel)]="selectedCoiEntityType.code" id="coi-entity-coi-entity-type"
+            (ngModelChange)="onCoiEntityTypeSelect($event)" class="form-control w-100 form-select">
+            <option [ngValue]="null" selected>--Select--</option>
+            <ng-container *ngFor="let coiEntityType of coiEntityTypeLookup">
+                <option [ngValue]="coiEntityType?.code">{{ coiEntityType?.description }}</option>
+            </ng-container>
+        </select>
+        <span *ngIf="mandatoryList?.has('entityOwnershipTypeCode')" class="invalid-feedback d-inline fs-13">
+            {{mandatoryList?.get('entityOwnershipTypeCode')}}
+        </span>
+        <span *ngIf="!entityCreationConfig?.isEditMode" class="coi-text-light d-block fw-500">
+            <app-no-data-label [valueToShow]="selectedCoiEntityType?.description"></app-no-data-label>
+        </span>
+    </div>
+    <!-- Ownership Type -->
+    <div class="position-relative {{ entityCreationConfig?.fieldCustomClass?.['OWNERSHIP_TYPE'] }}">
+        <label class="d-block coi-text-dark text-nowrap" for="coi-entity-ownership-type">
+            <span *ngIf="entityCreationConfig?.isEditMode && entityCreationConfig?.mandatoryFieldsList.includes('entityOwnershipTypeCode')" class="mandatory me-1">*</span>
+            <span>Ownership Type</span>
+            <app-common-help-text [subSectionId]="2602"
+                [elementId]="'coi-entity-ownership-type'"></app-common-help-text>
+        </label>
+        <select *ngIf="entityCreationConfig?.isEditMode" [(ngModel)]="selectedOwnerShipType.ownershipTypeCode"
+            (ngModelChange)="onOwnerShipTypeSelect($event)" class="form-control w-100 form-select" [disabled]="isDunsViewMode"
+            id="coi-entity-ownership-type" [ngClass]="{'is-invalid d-block': mandatoryList?.has('entityOwnershipTypeCode')}">
+            <option [value]="null" disabled selected>--Select--</option>
+            <option [value]="ownershipType?.code" *ngFor="let ownershipType of ownershipTypeLookup">{{ownershipType?.description}}</option>
+        </select>
+        <span *ngIf="mandatoryList?.has('entityOwnershipTypeCode')" class="invalid-feedback d-inline fs-13">
+            {{mandatoryList?.get('entityOwnershipTypeCode')}}
+        </span>
+        <span *ngIf="!entityCreationConfig?.isEditMode" class="coi-text-light d-block fw-500">
+            <app-no-data-label [valueToShow]="selectedOwnerShipType?.description"></app-no-data-label>
+        </span>
+    </div>
+    <!-- Country -->
+    <div class="position-relative {{ entityCreationConfig?.fieldCustomClass?.['COUNTRY'] }}">
+        <label class="d-block coi-text-dark" for="coi-entity-country">
+            <span *ngIf="entityCreationConfig?.isEditMode && entityCreationConfig?.mandatoryFieldsList.includes('countryCode')" class="mandatory me-1">*</span>
+            <span>Country</span>
+            <app-common-help-text [subSectionId]="2602"
+                [elementId]="'coi-entity-country'"></app-common-help-text>
+        </label>
+        <ng-container *ngIf="entityCreationConfig?.isEditMode">
+            <app-endpoint-search [clearField]="clearCountryField" [uniqueId]="'coi-entity-country'"
+                [httpOptions]="countrySearchOption" (onSelect)="selectedCountryEvent($event)"
+                class="w-100 mt-4" [isError]="mandatoryList?.has('countryCode')" [isDisabled]="isDunsViewMode">
+            </app-endpoint-search>
+            <span *ngIf="mandatoryList?.has('countryCode')" class="invalid-feedback d-inline fs-13">
+                {{mandatoryList?.get('countryCode')}}
+            </span>
+        </ng-container>
+        <span *ngIf="!entityCreationConfig?.isEditMode" class="coi-text-light d-block fw-500">
+            <app-no-data-label [valueToShow]="countrySearchOption.defaultValue"></app-no-data-label>
+        </span>
+    </div>
+    <div class="col-12 mt-3">
+        <div class="card p-3">
+            <!-- Primary Address Header -->
+            <h4 class="relation-header px-2 coi-text-darker rounded" [class.coi-bg-gray-light]="!entityCreationConfig?.isCreateView">Primary Address</h4>
+            <div class="row row-gap-3" [class.pb-3]="!isShowAddressCheckBox">
+                <!-- Address Line 1 -->
+                <div class="position-relative {{ entityCreationConfig?.fieldCustomClass?.['ADDRESS_LINE_1'] }}">
+                    <label class="d-block coi-text-dark" for="coi-entity-address-1">
+                        <span *ngIf="entityCreationConfig?.isEditMode && entityCreationConfig?.mandatoryFieldsList.includes('primaryAddressLine1')" class="mandatory me-1">*</span>
+                        <span>Address Line 1</span>
+                        <app-common-help-text [subSectionId]="2602" [elementId]="'coi-entity-address-1'"></app-common-help-text>
+                    </label>
+                    <ng-container *ngIf="entityCreationConfig?.isEditMode">
+                        <textarea appAutoGrow rows="1" class="form-control" id="coi-entity-address-1" name="coi-entity-address-1"
+                            [ngClass]="(mandatoryList?.has('primaryAddressLine1')) ? 'is-invalid d-block' : ''"
+                            [(ngModel)]="entityUpdateObj.entityRequestFields.primaryAddressLine1"
+                            (ngModelChange)="changeEvent('primaryAddressLine1');" appLengthValidator [limit]="500"
+                            [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'" [disabled]="isDunsViewMode" [isShowLimiter]="!isDunsViewMode">
+                        </textarea>
+                        <span *ngIf="mandatoryList?.has('primaryAddressLine1')"
+                            class="invalid-feedback d-inline fs-13">{{mandatoryList?.get('primaryAddressLine1')}}</span>
+                    </ng-container>
+                    <span  *ngIf="!entityCreationConfig?.isEditMode" class="coi-text-light d-block fw-500">
+                        <app-no-data-label
+                            [valueToShow]="entityUpdateObj.entityRequestFields.primaryAddressLine1"></app-no-data-label>
+                    </span>
+                </div>
+                <!-- Address Line 2 -->
+                <div class="position-relative {{ entityCreationConfig?.fieldCustomClass?.['ADDRESS_LINE_2'] }}">
+                    <label class="d-block coi-text-dark" for="coi-entity-address-2">
+                        <span>Address Line 2</span>
+                        <app-common-help-text [subSectionId]="2602"
+                            [elementId]="'coi-entity-address-2'"></app-common-help-text>
+                    </label>
+                    <textarea *ngIf="entityCreationConfig?.isEditMode" appAutoGrow rows="1" type="text" class="form-control" id="coi-entity-address-2" name="coi-entity-address-2"
+                        [(ngModel)]="entityUpdateObj.entityRequestFields.primaryAddressLine2"
+                        (ngModelChange)="changeEvent('primaryAddressLine2')" appLengthValidator [limit]="500"
+                        [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'" [disabled]="isDunsViewMode" [isShowLimiter]="!isDunsViewMode">
+                    </textarea>
+                    <span *ngIf="!entityCreationConfig?.isEditMode" class="coi-text-light d-block fw-500">
+                        <app-no-data-label
+                            [valueToShow]="entityUpdateObj.entityRequestFields.primaryAddressLine2"></app-no-data-label>
+                    </span>
+                </div>
+                <!-- City -->
+                <div class="position-relative {{ entityCreationConfig?.fieldCustomClass?.['CITY'] }}">
+                    <label class="d-block coi-text-dark" for="coi-entity-city">
+                        <span *ngIf="entityCreationConfig?.isEditMode && entityCreationConfig?.mandatoryFieldsList.includes('city')" class="mandatory me-1">*</span>
+                        <span>City</span>
+                        <app-common-help-text [subSectionId]="2602" [elementId]="'coi-entity-city'"></app-common-help-text>
+                    </label>
+                    <input *ngIf="entityCreationConfig?.isEditMode" type="text" class="form-control" id="coi-entity-city"
+                        [ngClass]="(mandatoryList?.has('city')) ? 'is-invalid d-block' : ''"
+                        [(ngModel)]="entityUpdateObj.entityRequestFields.city" (ngModelChange)="changeEvent('city')"
+                        appLengthValidator [limit]="30" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'" [disabled]="isDunsViewMode" [isShowLimiter]="!isDunsViewMode">
+                    <span *ngIf="mandatoryList?.has('city')" class="invalid-feedback d-inline fs-13">
+                        {{mandatoryList?.get('city')}}
+                    </span>
+                    <span *ngIf="!entityCreationConfig?.isEditMode" class="coi-text-light d-block fw-500">
+                        <app-no-data-label [valueToShow]="entityUpdateObj.entityRequestFields.city"></app-no-data-label>
+                    </span>
+                </div>
+                <!-- State/Province/Region Lookup -->
+                <div class="position-relative {{ entityCreationConfig?.fieldCustomClass?.['STATE'] }}">
+                    <label class="d-block coi-text-dark" for="coi-entity-state">
+                        <span *ngIf="entityCreationConfig?.isEditMode && entityCreationConfig?.mandatoryFieldsList.includes('state')" class="mandatory me-1">*</span>
+                        <span>State/Province/Region</span>
+                        <app-common-help-text [subSectionId]="2602" [elementId]="'coi-entity-state'"></app-common-help-text>
+                    </label>
+                    <ng-container *ngIf="entityCreationConfig?.isEditMode">
+                        <app-endpoint-search [clearField]="clearStateField" [uniqueId]="'coi-entity-state'"
+                            [httpOptions]="stateSearchOption" (onSelect)="selectedStateEvent($event)" [searchLimiterOptions]="stateSearchLimiterOptions"
+                            class="w-100 mt-4" [isError]="mandatoryList?.has('state')" [isDisabled]="isDunsViewMode" [canEmitSearchText]="canEmitStateSearchText">
+                        </app-endpoint-search>
+                        <span *ngIf="mandatoryList?.has('state')" class="invalid-feedback d-inline fs-13">
+                            {{mandatoryList?.get('state')}}
+                        </span>
+                    </ng-container>
+                    <span *ngIf="!entityCreationConfig?.isEditMode" class="coi-text-light d-block fw-500">
+                        <app-no-data-label [valueToShow]="stateSearchOption?.defaultValue"></app-no-data-label>
+                    </span>
+                </div> 
+                <!-- ZIP/Postal Code -->
+                <div class="position-relative {{ entityCreationConfig?.fieldCustomClass?.['ZIP_CODE'] }}">
+                    <label class="d-block coi-text-dark" for="coi-entity-postCode">
+                        <span *ngIf="entityCreationConfig?.isEditMode && entityCreationConfig?.mandatoryFieldsList.includes('postCode')" class="mandatory me-1">*</span>
+                        <span>ZIP/Postal Code</span>
+                        <app-common-help-text [subSectionId]="2602"
+                            [elementId]="'coi-entity-postCode'"></app-common-help-text>
+                    </label>
+                    <ng-container *ngIf="entityCreationConfig?.isEditMode">
+                        <input type="text" class="form-control" id="coi-entity-postCode"
+                            [ngClass]="(mandatoryList?.has('postCode')) ? 'is-invalid d-block' : ''"
+                            [(ngModel)]="entityUpdateObj.entityRequestFields.postCode"
+                            (ngModelChange)="changeEvent('postCode')" appLengthValidator [limit]="15"
+                            [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'" [disabled]="isDunsViewMode" [isShowLimiter]="!isDunsViewMode">
+                        <span *ngIf="mandatoryList?.has('postCode')" class="invalid-feedback  d-inline fs-13">
+                            {{mandatoryList?.get('postCode')}}
+                        </span>
+                    </ng-container>
+                    <span *ngIf="!entityCreationConfig?.isEditMode" class="coi-text-light d-block fw-500">
+                        <app-no-data-label [valueToShow]="entityUpdateObj.entityRequestFields.postCode"></app-no-data-label>
+                    </span>
+                </div>
+                <!-- Primary address for -->
+                <div *ngIf="isShowAddressCheckBox && entityCreationConfig?.isEditMode" class="position-relative {{ entityCreationConfig?.fieldCustomClass?.['ADDRESS_CHECKBOX'] }}">
+                    <label class="d-block coi-text-dark" for="coi-entity-use-this-primary-addr">
+                        <span>Use this primary address for</span>
+                        <app-common-help-text [subSectionId]="2602" [elementId]="'coi-entity-use-this-addr'"></app-common-help-text>
+                    </label>
+                    <!-- inputs -->
+                    <div id="coi-entity-use-this-primary-addr" class="d-flex align-items-center gap-3">
+                        <ng-container *ngFor="let addressType of primaryAddressTypeList">
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="checkbox" [(ngModel)]="addressType.isChecked"
+                                    name="coi-entity-use-this-primary-addr-{{addressType?.addressTypeCode}}"
+                                    (ngModelChange)="saveAsPrimaryAddress(addressType?.addressTypeCode)"
+                                    [disabled]="commonService?.autoSaveSavingSpinner !== 'HIDE' || isSaving || isDisableCheckBox"
+                                    title="Click here to {{ addressType?.isChecked ? 'deselect' : 'select' }} {{ addressType?.description?.toLowerCase() }}"
+                                    attr.aria-label="Click here to {{ addressType?.isChecked ? 'deselect' : 'select' }} {{ addressType?.description?.toLowerCase() }}"
+                                    class="cursor-pointer" id="coi-entity-use-this-primary-addr-{{addressType?.addressTypeCode}}">
+                                <label for="coi-entity-use-this-primary-addr-{{addressType?.addressTypeCode}}" class="coi-text-lighter"
+                                    [class.cursor-pointer]="!(commonService?.autoSaveSavingSpinner !== 'HIDE' || isSaving || isDisableCheckBox)"
+                                    title="Click here to {{ addressType?.isChecked ? 'deselect' : 'select' }} {{ addressType?.description?.toLowerCase() }}">
+                                    <span>{{ addressType?.description }}</span>
+                                </label>
+                            </div>
+                        </ng-container>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Phone -->
+    <div class="position-relative {{ entityCreationConfig?.fieldCustomClass?.['PHONE'] }}">
+        <label class="d-block coi-text-dark" for="coi-entity-phone">
+            <span>Phone</span>
+            <app-common-help-text [subSectionId]="2602" [elementId]="'coi-entity-phone'"></app-common-help-text>
+        </label>
+        <ng-container *ngIf="entityCreationConfig?.isEditMode">
+            <input type="text" class="form-control" id="coi-entity-phone"
+                [ngClass]="(mandatoryList?.has('phoneNumber')) ? 'is-invalid d-block' : ''"
+                [(ngModel)]="entityUpdateObj.entityRequestFields.phoneNumber"
+                (ngModelChange)="validateAndAddPhoneNumber()" (keypress)="checkForValidPhoneNumber($event)"
+                appLengthValidator [limit]="20" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'" [disabled]="isDunsViewMode" [isShowLimiter]="!isDunsViewMode">
+            <span *ngIf="mandatoryList?.has('phoneNumber')" class="invalid-feedback  d-inline fs-13">
+                {{mandatoryList?.get('phoneNumber')}}
+            </span>
+        </ng-container>
+        <span *ngIf="!entityCreationConfig?.isEditMode" class="coi-text-light d-block fw-500">
+            <app-no-data-label [valueToShow]="entityUpdateObj.entityRequestFields.phoneNumber"></app-no-data-label>
+        </span>
+    </div>
+    <!-- Email Address -->
+    <div class="position-relative {{ entityCreationConfig?.fieldCustomClass?.['EMAIL_ADDRESS'] }}">
+        <label class="d-block coi-text-dark" for="coi-entity-certifiedEmail">
+            <span>Email Address</span>
+            <app-common-help-text [subSectionId]="2602"
+                [elementId]="'coi-entity-certifiedEmail'"></app-common-help-text>
+        </label>
+        <ng-container *ngIf="entityCreationConfig?.isEditMode">
+            <input type="text" class="form-control" id="coi-entity-certifiedEmail"
+                [ngClass]="(mandatoryList?.has('certifiedEmail')) ? 'is-invalid d-block' : ''"
+                [(ngModel)]="entityUpdateObj.entityRequestFields.certifiedEmail" (ngModelChange)="validateEmail();"
+                appLengthValidator [limit]="200" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'" [disabled]="isDunsViewMode" [isShowLimiter]="!isDunsViewMode">
+            <div *ngIf="mandatoryList?.has('certifiedEmail')" class="invalid-feedback d-block fs-13">
+                {{mandatoryList?.get('certifiedEmail')}}
+            </div>
+        </ng-container>
+        <span *ngIf="!entityCreationConfig?.isEditMode" class="coi-text-light d-block fw-500">
+            <app-no-data-label [valueToShow]="entityUpdateObj.entityRequestFields.certifiedEmail"></app-no-data-label>
+        </span>
+    </div>
+    <!-- Website -->
+    <div class="position-relative {{ entityCreationConfig?.fieldCustomClass?.['WEBSITE'] }}">
+        <label class="d-block coi-text-dark" for="coi-entity-websiteAddress">
+            <span>Website</span>
+            <app-common-help-text [subSectionId]="2602"
+                [elementId]="'coi-entity-websiteAddress'"></app-common-help-text>
+        </label>
+        <ng-container *ngIf="entityCreationConfig?.isEditMode">
+            <input  type="text" class="form-control" id="coi-entity-websiteAddress"
+                [ngClass]="(mandatoryList?.has('websiteAddress')) ? 'is-invalid d-block' : ''"
+                [(ngModel)]="entityUpdateObj.entityRequestFields.websiteAddress"
+                (ngModelChange)="validateWebsite()" [disabled]="isDunsViewMode"
+                appLengthValidator [limit]="500" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'" [isShowLimiter]="!isDunsViewMode">
+            <div *ngIf="mandatoryList?.has('websiteAddress')" class="invalid-feedback d-block fs-13">
+                {{mandatoryList?.get('websiteAddress')}}
+            </div>
+        </ng-container>        
+        <span *ngIf="!entityCreationConfig?.isEditMode" class="coi-text-light d-block fw-500">
+            <app-no-data-label [valueToShow]="entityUpdateObj.entityRequestFields.websiteAddress"></app-no-data-label>
+        </span>
+    </div>
+    <!-- DUNS Number -->
+    <div class="position-relative {{ entityCreationConfig?.fieldCustomClass?.['DUNS_NUMBER'] }}">
+        <label class="d-block coi-text-dark" for="coi-entity-dunsNumber">
+            <span>DUNS Number</span>
+            <app-common-help-text [subSectionId]="2602" [elementId]="'coi-entity-dunsNumber'"></app-common-help-text>
+        </label>
+        <ng-container *ngIf="entityCreationConfig?.isEditMode">
+            <input type="text" class="form-control" id="coi-entity-dunsNumber"
+                [(ngModel)]="entityUpdateObj.entityRequestFields.dunsNumber"
+                [ngClass]="(mandatoryList?.has('dunsNumber')) ? 'is-invalid d-block' : ''"
+                (ngModelChange)="validateAndSaveNumber('dunsNumber');" appLengthValidator [limit]="20"
+                [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'" [disabled]="isDunsViewMode" [isShowLimiter]="!isDunsViewMode">
+            <span *ngIf="mandatoryList?.has('dunsNumber')" class="invalid-feedback d-inline fs-13">
+                {{mandatoryList?.get('dunsNumber')}}
+            </span>
+        </ng-container>
+        <span *ngIf="!entityCreationConfig?.isEditMode" class="coi-text-light d-block fw-500">
+            <app-no-data-label [valueToShow]="entityUpdateObj.entityRequestFields.dunsNumber"></app-no-data-label>
+        </span>
+    </div>
+    <!-- UEI Number -->
+    <div class="position-relative {{ entityCreationConfig?.fieldCustomClass?.['UEI_NUMBER'] }}">
+        <label class="d-block coi-text-dark" for="coi-entity-UEI">
+            <span>UEI Number</span>
+            <app-common-help-text [subSectionId]="2602" [elementId]="'coi-entity-UEI'"></app-common-help-text>
+        </label>
+        <ng-container *ngIf="entityCreationConfig?.isEditMode">
+            <input type="text" class="form-control" id="coi-entity-UEI"
+                [(ngModel)]="entityUpdateObj.entityRequestFields.ueiNumber"
+                [ngClass]="(mandatoryList?.has('ueiNumber')) ? 'is-invalid d-block' : ''"
+                (ngModelChange)="validateAndSaveNumber('ueiNumber');" appLengthValidator [limit]="12"
+                [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'" [disabled]="isDunsViewMode" [isShowLimiter]="!isDunsViewMode">
+            <span *ngIf="mandatoryList?.has('ueiNumber')" class="invalid-feedback d-inline fs-13">
+                {{mandatoryList?.get('ueiNumber')}}
+            </span>
+        </ng-container>
+        <span *ngIf="!entityCreationConfig?.isEditMode" class="coi-text-light d-block fw-500">
+            <app-no-data-label [valueToShow]="entityUpdateObj.entityRequestFields.ueiNumber"></app-no-data-label></span>
+    </div>
+    <!-- CAGE Number -->
+    <div class="position-relative {{ entityCreationConfig?.fieldCustomClass?.['CAGE_NUMBER'] }}">
+        <label class="d-block coi-text-dark" for="coi-entity-CAGE">
+            <span>CAGE Number</span>
+            <app-common-help-text [subSectionId]="2602" [elementId]="'coi-entity-CAGE'"></app-common-help-text>
+        </label>
+        <ng-container *ngIf="entityCreationConfig?.isEditMode">
+            <input type="text" class="form-control" id="coi-entity-CAGE"
+                [ngClass]="(mandatoryList?.has('cageNumber')) ? 'is-invalid d-block' : ''"
+                [(ngModel)]="entityUpdateObj.entityRequestFields.cageNumber"
+                (ngModelChange)="validateAndSaveNumber('cageNumber');" appLengthValidator [limit]="20"
+                [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'" [disabled]="isDunsViewMode" [isShowLimiter]="!isDunsViewMode">
+            <span *ngIf="mandatoryList?.has('cageNumber')" class="invalid-feedback d-inline fs-13">
+                {{mandatoryList?.get('cageNumber')}}
+            </span>
+        </ng-container>
+        <span *ngIf="!entityCreationConfig?.isEditMode" class="coi-text-light d-block fw-500">
+            <app-no-data-label
+                [valueToShow]="entityUpdateObj.entityRequestFields.cageNumber"></app-no-data-label></span>
+    </div>
+    <!-- Global Entity Admin Fields -->
+    <ng-container *ngIf="!entityCreationConfig?.isCreateView && !entityCreationConfig?.isCreateEntityFromEngagement">
+        <!-- Human Sub Assurance -->
+        <div class="position-relative {{ entityCreationConfig?.fieldCustomClass?.['HUMAN_SUB_ASSURANCE'] }}">
+            <label class="d-block coi-text-dark" for="coi-entity-human-assurance">
+                <span>Human Sub Assurance</span>
+                <app-common-help-text [subSectionId]="2602"
+                    [elementId]="'coi-entity-human-assurance'"></app-common-help-text>
+            </label>
+            <input *ngIf="entityCreationConfig?.isEditMode" type="text" class="form-control" id="coi-entity-human-assurance"
+                [(ngModel)]="entityUpdateObj.entityRequestFields.humanSubAssurance"
+                (ngModelChange)="changeEvent('humanSubAssurance')" appLengthValidator [limit]="30"
+                [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'">
+            <span *ngIf="!entityCreationConfig?.isEditMode" class="coi-text-light d-block fw-500">
+                <app-no-data-label
+                    [valueToShow]="entityUpdateObj.entityRequestFields.humanSubAssurance"></app-no-data-label></span>
+        </div>
+        <!-- Animal Welfare Assurance -->
+        <div class="position-relative {{ entityCreationConfig?.fieldCustomClass?.['ANIMAL_WELFARE_ASSURANCE'] }}">
+            <label class="d-block coi-text-dark" for="coi-entity-animal-assurance">
+                <span>Animal Welfare Assurance</span>
+                <app-common-help-text [subSectionId]="2602"
+                    [elementId]="'coi-entity-animal-assurance'"></app-common-help-text>
+            </label>
+            <input *ngIf="entityCreationConfig?.isEditMode" type="text" class="form-control" id="coi-entity-animal-assurance"
+                [(ngModel)]="entityUpdateObj.entityRequestFields.anumalWelfareAssurance"
+                (ngModelChange)="changeEvent('anumalWelfareAssurance')" appLengthValidator [limit]="20"
+                [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'">
+            <span *ngIf="!entityCreationConfig?.isEditMode" class="coi-text-light d-block fw-500">
+                <app-no-data-label
+                    [valueToShow]="entityUpdateObj.entityRequestFields.anumalWelfareAssurance"></app-no-data-label></span>
+        </div>
+        <!-- AAALAC (Animal Accreditation) -->
+        <div class="position-relative {{ entityCreationConfig?.fieldCustomClass?.['AAALAC'] }}">
+            <label class="d-block coi-text-dark" for="coi-entity-aaalac">
+                <span>AAALAC (Animal Accreditation)</span>
+                <app-common-help-text [subSectionId]="2602" [elementId]="'coi-entity-aaalac'"></app-common-help-text>
+            </label>
+            <input *ngIf="entityCreationConfig?.isEditMode" type="text" class="form-control" id="coi-entity-aaalac"
+                [(ngModel)]="entityUpdateObj.entityRequestFields.animalAccreditation"
+                (ngModelChange)="changeEvent('animalAccreditation')" appLengthValidator [limit]="50"
+                [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'">
+    
+            <span *ngIf="!entityCreationConfig?.isEditMode" class="coi-text-light d-block fw-500">
+                <app-no-data-label [valueToShow]="entityUpdateObj.entityRequestFields.animalAccreditation"></app-no-data-label></span>
+        </div>
+    </ng-container>
+</div>
+

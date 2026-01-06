@@ -1,0 +1,1 @@
+INSERT INTO PARAMETER (`PARAMETER_NAME`, `VALUE`, `DESCRIPTION`, `UPDATE_TIMESTAMP`, `UPDATE_USER`) VALUES ('ENABLE_DISCLOSURE_UNIT_EDIT', 'Y', 'When this parameter is enabled, the COI "Disclose at Unit" section in the "Create Award Disclosure" popup is editable. If disabled, the entire section is hidden.', now(), 'admin');

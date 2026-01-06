@@ -1,0 +1,192 @@
+<!-- Last edited by Arun Raj on 22-07-2021(Thursday)
+    1. (Questionnaire engine Implementation - Popup shows when new version of questionnaire is created).
+    2. Formatted the code
+    3. Please refer the doc :- https://docs.google.com/document/d/1NxzGBeVRUd8QwGpxo3zptz0Tp1FC6dlMpqWC6safOo8/edit
+ -->
+<div class="card my-3">
+    <div class="card-header p-1">
+        <h4 class="card-title d-flex justify-content-between">
+            <span class="p-3">{{grantCallIOIId?'Edit Indication of Interest':'Create Indication of Interest'}}</span>
+            <span>
+                <button title="Back to IOI" class="btn mr-2 f-16" (click)="goBackToIOI()">
+                    <i class="fa fa-reply" aria-hidden="true"></i>
+                </button>
+            </span>
+        </h4>
+    </div>
+    <div class="card-body">
+        <div class="form-row">
+            <div class="col-12">
+                <label class="d-block">Title of Grant Call</label>
+                <span class="content-color">{{result?.grantCall?.grantCallName}}</span>
+            </div>
+            <div class="col-md-6 col-12">
+                <label class="d-block"><span class="mandatory">*</span>Project Title</label>
+                <input id="" placeholder="Type here for Project Title" type="text" class="form-control"
+                    [ngClass]="warningMsg.ioiValuesprojectTitle ? 'is-invalid d-block' : ''"
+                    [(ngModel)]="ioiFetchValues.grantCallIOI.projectTitle">
+                <div class="invalid-feedback d-block" *ngIf="warningMsg.ioiValuesprojectTitle">
+                    * Please provide a project title.
+                </div>
+            </div>
+            <div class="col-md-6 col-12" id="ioi-dept-pi">
+                <label class="d-block"><span class="mandatory">*</span>To be submitted through</label>
+                <app-endpoint-search id="ioi-pi-dept" [httpOptions]="deptHttpOptions" [clearField]="clearDeptField"
+                    [placeHolder]="'Search School/Department'" [isError]="warningMsg.submittingUnitNumber"
+                    (onSelect)="getDepartmentId($event)" class="d-block">
+                </app-endpoint-search>
+                <div class="invalid-feedback d-block" *ngIf="warningMsg.submittingUnitNumber">
+                    {{warningMsg.submittingUnitNumber}}
+                </div>
+            </div>
+            <div class="col-md-4 col-12">
+                <label><span class="mandatory">*</span>Direct Cost Requested ({{currency}})</label>
+                <input id="" type="text" class="form-control d-block" id="requestedDirectCost"
+                    [ngClass]="warningMsg.ioiValuesrequestedDirectCost ? 'is-invalid d-block' : ''" class="form-control"
+                    [(ngModel)]="ioiFetchValues.grantCallIOI.requestedDirectCost"
+                    (ngModelChange)="inputDigitRestriction(ioiFetchValues.grantCallIOI.requestedDirectCost)"
+                    appCurrencyFormat [initialValue]="ioiFetchValues.grantCallIOI.requestedDirectCost" maxlength="12">
+                <div class="invalid-feedback d-block" *ngIf="warningMsg.ioiValuesrequestedDirectCost">
+                    * {{warningMsg.ioiValuesrequestedDirectCost}}
+                </div>
+            </div>
+            <div class="col-md-4 col-12">
+                <label class="d-block"><span class="mandatory">*</span>Principal Investigator</label>
+                <app-elastic [options]="piElasticSearchOptions" [clearField]="clearPIField"
+                    [isError]="warningMsg.principalInvestigatorId" class="invalid-feedback d-block"
+                    [placeHolder]="'Search Principal Investigator'" (selectedResult)="selectedPiName($event)">
+                </app-elastic>
+                <div *ngIf="warningMsg.principalInvestigatorId" class="invalid-feedback d-block">
+                    {{warningMsg.principalInvestigatorId}}
+                </div>
+            </div>
+            <div class="col-md-4 col-12">
+                <label class="d-block"><span class="mandatory">*</span>School/Department</label>
+                <app-endpoint-search id="ioi-dept" [httpOptions]="piDeptHttpOptions"
+                    [isError]=" this.warningMsg.unitNumber" [clearField]="clearPiDeptField"
+                    [placeHolder]="'Search School/Department'" (onSelect)="getPiDepartmentId($event)"
+                    class="invalid-feedback d-block">
+                </app-endpoint-search>
+                <div class="invalid-feedback d-block" *ngIf=" this.warningMsg.unitNumber">
+                    {{this.warningMsg.unitNumber}}
+                </div>
+            </div>
+            <div class="col-12 text-md-right text-sm-center">
+                <button title="save" class="btn btn-primary-sub btn-xs" id="save-btn" (click)="saveDraft()">
+                    {{!ioiFetchValues?.grantCallIOI?.grantCallIOIId ? 'Proceed' : 'Save'}}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card mb-3" *ngIf="grantCallIOIId">
+    <div class="card-header">
+        <h4 class="card-title" id="ioi-edit-team-member">Team Member
+            <span class="float-right font-weight-normal mr-5">
+                <i aria-hidden="true" class="fa fa-user-o mr-2"></i>Employee |
+                <i aria-hidden="true" class="fa fa-user-circle text-danger ml-2 mr-2"></i>Non Employee
+            </span>
+        </h4>
+    </div>
+    <div class="card-content">
+        <div class="card-body">
+            <div class="form-row">
+                <div class="col-md-7 col-12">
+                    <div class="form-check-inline">
+                        <input type="radio" class="mr-2" name="inlineRadioOptions" id="inlineRadio1" [value]="false"
+                            [(ngModel)]="isNonEmployee" (ngModelChange)="getElasticForEmployeeAndNonEmployee()">
+                        <label class="form-check-label" for="inlineRadio1">Employee</label>
+                    </div>
+                    <div class="form-check-inline">
+                        <input type="radio" class="mr-2" name="inlineRadioOptions" id="inlineRadio2"
+                            [(ngModel)]="isNonEmployee" [value]="true" (ngModelChange)="getElasticForEmployeeAndNonEmployee()">
+                        <label class="form-check-label" for="inlineRadio2">Non-Employee</label>
+                    </div>
+
+                    <div class="position-relative" *ngIf="this.ioiFetchValues.grantCallIOIId != null">
+                        <app-elastic [options]="elasticSearchOptions" [clearField]="clearField"
+                            [placeHolder]="isNonEmployee ? 'Type here for an non-employee name': 'Type here for an employee name' "
+                            (selectedResult)="selectedMemberName($event)" [isError]="elasticSearchOptions.errorMessage">
+                        </app-elastic>
+                    </div>
+                    <div class="position-relative" *ngIf="ioiFetchValues.grantCallIOIId == null">
+                        <input type="text" class="form-control" placeHolder="Type here for an employee name"
+                            [disabled]="ioiFetchValues.grantCallIOIId == null">
+                    </div>
+                </div>
+                <div class="col-md-5 col-12">
+                    <label class=""><span class="mandatory">*</span>Role</label>
+                    <select id="ioi-project-role" class="form-control" [(ngModel)]="roleType"
+                        [ngClass]="memberRoleWarning ? 'is-invalid d-block' : ''">
+                        <option value=null>--Select--</option>
+                        <option *ngFor="let ioiRoles of ioiLookUps.proposalPersonRoles" [value]="ioiRoles.id">
+                            {{ ioiRoles.description }}
+                        </option>
+                    </select>
+                    <span class="invalid-feedback d-block" *ngIf="memberRoleWarning">
+                        {{memberRoleWarning}}
+                    </span>
+                </div>
+                <div class="col-12 text-md-right text-center">
+                    <button title="Add Person" class="btn btn-primary-sub btn-xs" id="addperson-btn"
+                        (click)="addPerson()" [disabled]="ioiFetchValues.grantCallIOIId == null">
+                        Add Person
+                    </button>
+                </div>
+            </div>
+            <table class="table tableSkin grid2" *ngIf="teamMemberList.length > 0" aria-describedby="ioi-edit-team-member">
+                <thead>
+                    <th scope="col" style="width:50%">Name</th>
+                    <th scope="col" style="width:40%">Role</th>
+                    <th scope="col" style="width:10%">Action</th>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let teamMember of teamMemberList; let index = index">
+                        <td><i class="mr-2" aria-hidden="true"
+                                [ngClass]="teamMember.isNonEmployee == true ?'fa fa-user-circle text-danger':'fa fa-user-o'"></i>
+                            {{ teamMember.memberName }}</td>
+                        <td>{{ teamMember.propPersonRole.description }}</td>
+                        <td>
+                            <ul class="actionButtonGroup">
+                                <li><a href="#" id="team-member-delete-btn" data-toggle="modal"
+                                        data-target="#deleteMemberModal"
+                                        (click)="sendDeleteData(index,teamMember?.grantIOIMemberId)"><i
+                                            class="fa fa-trash-o" aria-hidden="true"
+                                            title="Click here to delete {{teamMember?.memberName}}"></i></a>
+                                </li>
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<!-- DELETE MEMBER WARNING MODAL -->
+<div class="modal fade mySkinDialog modal-opacity" tabindex="-1" id="deleteMemberModal" tabindex="-1" role="dialog"
+    aria-labelledby="deleteModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete</h5>
+                <button id="ioi-dlt-member-dismiss" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this member?</p>
+            </div>
+            <div class="modal-footer">
+                <button id="ioi-project-close-btn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                    data-toggle="modal">No</button>
+                <button id="ioi-project-team-delete-btn" type="button" class="btn btn-primary-sub btn-sm"
+                    (click)="deletePerson()" data-dismiss="modal">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div *ngIf="grantCallIOIId">
+    <app-view-questionnaire-list [configuration] = "configuration" [isShowExportButton]='false'
+    (QuestionnaireSaveEvent)= "getSaveEvent($event)"></app-view-questionnaire-list>
+</div>
+

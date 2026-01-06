@@ -1,0 +1,576 @@
+<!-- Last updated by Krishnadas -->
+<!-- taskStatusCode :
+                        1 - Open
+                        2 - In progress
+                        3 - Approval in progress
+                        4 - Returned
+                        5 - Completed
+                        6 - Cancelled -->
+<!-- Last updated by Arun Raj (dates validation - validated task start and due date with
+                                award final expiration date. i.e., if we select a task start or due date after award final expiration date,
+                                then an error message will shows to re enter the dates.) on 26/03/2020 -->
+<div id="task-overview" class="card mt-3">
+    <div class="card-header px-4 py-2">
+        <div class="row">
+            <div class="col d-flex align-items-center">
+                <h4 *ngIf="!taskId" class="card-title pt-3 pb-3">Task Details
+                </h4>
+                <h4 *ngIf="taskId" class="card-title">{{taskId}} : {{taskDetails?.taskType?.description}}
+                    <span
+                        class="status-badge-{{getBadgeByStatusCode(taskDetails?.taskStatus?.taskStatusCode)}} rounded-icon"
+                        title="{{taskDetails?.taskStatus?.description}}">{{taskDetails?.taskStatus?.description}}</span>
+                </h4>
+            </div>
+            <div class="col text-right">
+                <button *ngIf="isShowNotfication" type="button" class="btn f-16" title="Notify" data-toggle="modal"
+                    data-target="#notifyTask"><i class="fa fa-bell i-theme-icon" aria-hidden="true"></i></button>
+                <button
+                    *ngIf="(isMaintainTask) && (taskDetails?.taskStatus?.taskStatusCode === '1' || taskDetails?.taskStatus?.taskStatusCode === '4') && isTaskFromSameModuleId "
+                    class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#cancelTask">Reject <span
+                        class="d-none d-md-inline-block"> Task</span></button>
+                <button *ngIf="(taskDetails?.taskStatus?.taskStatusCode === '1' || taskDetails?.taskStatus?.taskStatusCode === '4')
+                                                    && isAssignee && !isEditAssignee && isTaskFromSameModuleId" class="btn btn-primary btn-sm"
+                    data-toggle="modal" data-target="#startTask">Start
+                    <span class="d-none d-md-inline-block"> Task</span></button>
+                <button *ngIf="isAssignee && taskDetails?.taskStatus?.taskStatusCode === '2' && isTaskFromSameModuleId"
+                    class="btn btn-primary btn-sm" (click)='triggerCompleteModal()'>Complete <span
+                        class="d-none d-md-inline-block"> Task</span></button>
+                <button *ngIf="taskDetails?.taskStatus?.taskStatusCode === '3' && canApproveRouting === '1'&& isTaskFromSameModuleId"
+                    class="btn btn-secondary btn-sm" data-toggle="modal" (click)="rejectTaskItem()"
+                    data-target="#approveRejectTaskModal"><ng-container i18n="@@COMMON_RETURN">Return</ng-container> <span class="d-none d-md-inline-block">
+                        Task</span></button>
+                <button *ngIf="taskDetails?.taskStatus?.taskStatusCode === '3' && canApproveRouting === '1'"
+                    class="btn btn-primary btn-sm" data-toggle="modal" (click)="approveTaskItem()"
+                    data-target="#approveRejectTaskModal"><ng-container i18n="@@COMMON_APPROVE">Approve</ng-container> <span class="d-none d-md-inline-block">
+                        Task</span></button>
+                <button title="Show all task" *ngIf="taskId" class="btn btn-secondary"
+                    [routerLink]="['/fibi/award/task']" [queryParams]="{ 'taskId': null }"
+                    queryParamsHandling='merge'><i aria-hidden="true" class="fa fa-reply pr-3"></i>Show All <span
+                        class="d-none d-md-inline-block"> Task</span></button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body gridSkin">
+        <!-- edit -->
+        <div *ngIf="isEditMode || !taskId" class="form-row">
+            <div class="col-lg col-sm-6 col-12">
+                <label for="task-type"><span class="mandatory">*</span>Task Type</label>
+                <select id="task-type" class="form-control" [(ngModel)]="taskDetails.taskTypeCode"
+                    (change)="setTaskDescription()"
+                    [ngClass]="mandatoryList.get('taskType') ? 'is-invalid d-block' : ''">
+                    <option value=null>--Select--</option>
+                    <option *ngFor="let type of lookupData?.taskTypes" [ngValue]="type.taskTypeCode"
+                        [hidden]="type.isActive != true">
+                        {{type.description}}</option>
+                </select>
+                <div *ngIf="mandatoryList.get('taskType')">
+                    <span class="invalid-feedback d-block">{{mandatoryList.get('taskType')}}</span>
+                </div>
+            </div>
+            <div class="col-lg col-sm-6 col-12">
+                <label><span class="mandatory">*</span>Assignee</label>
+                <app-elastic [options]="elasticSearchOptions" [clearField]="clearField" [isError]="isError"
+                    [placeHolder]="'Search an employee'" (selectedResult)="selectedPerson($event)"></app-elastic>
+                <div *ngIf="mandatoryList.get('assigneePerson')">
+                    <span class="invalid-feedback d-block">{{mandatoryList.get('assigneePerson')}}</span>
+                </div>
+            </div>
+            <div *ngIf="!taskId" class="col-lg col-sm-6 col-12">
+                <span class="mandatory">*</span> <label for="task-start-date">Start Date</label>
+                <span class="dateField">
+                    <input matInput [matDatepicker]="openingStartDt" id="task-start-date" placeholder="st{{datePlaceHolder}}" autocomplete="off"
+                        (click)="openingStartDt.open()" [ngClass]="warningMessage.has('startDateWarningText') ?
+                                                        'd-inline-block form-control ng-pristine ng-valid is-invalid d-block ng-touched' :
+                                                        'd-inline-block form-control ng-pristine ng-valid ng-touched'"
+                        [ngClass]="warningMessage.has('startDateWarningTextAward') ?
+                                                         'd-inline-block form-control ng-pristine ng-valid is-invalid d-block ng-touched' :
+                                                         'd-inline-block form-control ng-pristine ng-valid ng-touched'"
+                        [(ngModel)]="taskDetails.startDate" (ngModelChange)="datesValidation()" />
+                    <span class="fa fa-calendar fa-large pointer insidePicker position hand-cursor"
+                        title="open calendar" (click)="openingStartDt.open()" tabindex="0"></span>
+                    <mat-datepicker #openingStartDt (opened)="setFocusToElement('task-start-date')">
+                    </mat-datepicker>
+                </span>
+                <div class="invalid-feedback block-display" *ngIf="warningMessage.has('startDateWarningText')">
+                    {{warningMessage.get('startDateWarningText')}}
+                </div>
+                <div class="invalid-feedback block-display" *ngIf="warningMessage.has('startDateWarningTextAward')">
+                    {{warningMessage.get('startDateWarningTextAward')}}
+                </div>
+            </div>
+            <div *ngIf="!taskId" class="col-lg col-sm-6 col-12">
+                <span class="mandatory">*</span> <label for="task-due-date">Due Date</label>
+                <span class="dateField">
+                    <input matInput [matDatepicker]="openingDueDt" id="task-due-date" placeholder="{{datePlaceHolder}}" autocomplete="off"
+                        (click)="openingDueDt.open()" [ngClass]="warningMessage.has('dueDateWarningText') ?
+                                                        'd-inline-block form-control ng-pristine ng-valid is-invalid d-block ng-touched' :
+                                                        'd-inline-block form-control ng-pristine ng-valid ng-touched'"
+                        [ngClass]="warningMessage.has('dueDateWarningTextAward') ?
+                                                        'd-inline-block form-control ng-pristine ng-valid is-invalid d-block ng-touched' :
+                                                        'd-inline-block form-control ng-pristine ng-valid ng-touched'"
+                        [(ngModel)]="taskDetails.dueDate" (ngModelChange)="datesValidation()" />
+                    <span class="fa fa-calendar fa-large pointer insidePicker position hand-cursor"
+                        title="open calendar" (click)="openingDueDt.open()" tabindex="0"></span>
+                    <mat-datepicker #openingDueDt (opened)="setFocusToElement('task-due-date')">
+                    </mat-datepicker>
+                </span>
+                <div class="invalid-feedback block-display" *ngIf="warningMessage.has('dueDateWarningText')">
+                    {{warningMessage.get('dueDateWarningText')}}
+                </div>
+                <div class="invalid-feedback block-display" *ngIf="warningMessage.has('dueDateWarningTextAward')">
+                    {{warningMessage.get('dueDateWarningTextAward')}}
+                </div>
+            </div>
+            <div *ngIf="taskId" class="col-lg-2 col-sm-6 col-12">
+                <span class="mandatory">*</span> <label>Start Date</label>
+                <span class="dateField">
+                    <input matInput [matDatepicker]="openingStartDt" id="task-start-date" placeholder="{{datePlaceHolder}}" autocomplete="off"
+                        (click)="openingStartDt.open()" [ngClass]="warningMessage.has('startDateWarningText') ?
+                                                        'd-inline-block form-control ng-pristine ng-valid is-invalid d-block ng-touched' :
+                                                        'd-inline-block form-control ng-pristine ng-valid ng-touched'"
+                        [ngClass]="warningMessage.has('startDateWarningTextAward') ?
+                                                         'd-inline-block form-control ng-pristine ng-valid is-invalid d-block ng-touched' :
+                                                         'd-inline-block form-control ng-pristine ng-valid ng-touched'"
+                        [(ngModel)]="taskDetails.startDate" (ngModelChange)="datesValidation()">
+                    <span class="fa fa-calendar fa-large pointer insidePicker position hand-cursor"
+                        title="open calendar" (click)="openingStartDt.open()"></span>
+                    <mat-datepicker #openingStartDt (opened)="setFocusToElement('task-start-date')">
+                    </mat-datepicker>
+                </span>
+                <div class="invalid-feedback block-display" *ngIf="warningMessage.has('startDateWarningText')">
+                    {{warningMessage.get('startDateWarningText')}}
+                </div>
+                <div class="invalid-feedback block-display" *ngIf="warningMessage.has('startDateWarningTextAward')">
+                    {{warningMessage.get('startDateWarningTextAward')}}
+                </div>
+            </div>
+            <div *ngIf="taskId" class="col-lg-2 col-sm-6 col-12">
+                <span class="mandatory">*</span> <label>Due Date</label>
+                <span class="dateField">
+                    <input matInput [matDatepicker]="openingDueDt" id="task-due-date" placeholder="{{datePlaceHolder}}" autocomplete="off"
+                        (click)="openingDueDt.open()" [ngClass]="warningMessage.has('dueDateWarningText') ?
+                                                        'd-inline-block form-control ng-pristine ng-valid is-invalid d-block ng-touched' :
+                                                        'd-inline-block form-control ng-pristine ng-valid ng-touched'"
+                        [ngClass]="warningMessage.has('dueDateWarningTextAward') ?
+                                                        'd-inline-block form-control ng-pristine ng-valid is-invalid d-block ng-touched' :
+                                                        'd-inline-block form-control ng-pristine ng-valid ng-touched'"
+                        [(ngModel)]="taskDetails.dueDate" (ngModelChange)="datesValidation()" />
+                    <span class="fa fa-calendar fa-large pointer insidePicker position hand-cursor"
+                        title="open calendar" (click)="openingDueDt.open()"></span>
+                    <mat-datepicker #openingDueDt (opened)="setFocusToElement('task-due-date')">
+                    </mat-datepicker>
+                </span>
+                <div class="invalid-feedback block-display" *ngIf="warningMessage.has('dueDateWarningText')">
+                    {{warningMessage.get('dueDateWarningText')}}
+                </div>
+                <div class="invalid-feedback block-display" *ngIf="warningMessage.has('dueDateWarningTextAward')">
+                    {{warningMessage.get('dueDateWarningTextAward')}}
+                </div>
+            </div>
+            <div *ngIf="taskDetails.taskId" class="col-lg col-sm-6 col-12">
+                <label class="d-block">Created by</label>
+                <span class="content-color">{{taskDetails?.createUserFullName}} on
+                    {{taskDetails?.createTimestamp | dateFormatterWithTimeZone:'long'}}</span>
+            </div>
+        </div>
+        <!-- view -->
+        <div *ngIf="!isEditMode && taskId" class="row">
+            <div class="col-lg col-sm-6 col-12">
+                <label class="d-block">Task Type</label>
+                <span class="d-sm-block">{{taskDetails?.taskType?.description}}</span>
+            </div>
+            <div class="col-lg col-sm-6 col-12">
+                <label class="d-block">Assignee</label>
+                <div class="row">
+                    <span *ngIf="isEditAssignee" class="mr-3">
+                        <app-elastic [options]="elasticSearchOptions" [clearField]="clearField" [isError]="isError"
+                            [placeHolder]="'Search an employee'" (selectedResult)="selectedPerson($event)">
+                        </app-elastic>
+                    </span>
+                    <span *ngIf="!isEditAssignee" class="mr-3">{{taskDetails?.assigneeFullName}}</span>
+                    <a class="anchor-link hand-cursor"><i aria-hidden="true" class="fa fa-pencil rounded-icon"
+                            *ngIf="!isEditAssignee && isAssignee && (taskDetails?.taskStatus?.taskStatusCode == '1' || taskDetails?.taskStatus?.taskStatusCode == '4')"
+                            (click)="isEditAssignee = true"></i></a>
+                    <a class="anchor-link hand-cursor"> <i aria-hidden="true"
+                            class="fa fa-remove rounded-icon mr-3 mt-3" *ngIf="isEditAssignee"
+                            (click)="isEditAssignee = false; changeBackAssigneeName()"></i></a>
+                    <a class="anchor-link hand-cursor"><i aria-hidden="true" class="fa fa-save rounded-icon mt-3"
+                            *ngIf="isEditAssignee && taskDetails?.assigneePersonId" (click)="reAssignTask()"></i></a>
+                </div>
+            </div>
+            <div class="col-lg-2 col-sm-6 col-12">
+                <label class="d-block">Start Date</label>
+                <span>{{taskDetails?.startDate | dateFormatter}}</span>
+            </div>
+            <div class="col-lg-2 col-sm-6 col-12">
+                <label class="d-block">Due Date</label>
+                <span>{{taskDetails?.dueDate | dateFormatter}}</span>
+            </div>
+            <div class="col-lg col-sm-6 col-12">
+                <label class="d-block">Created by</label>
+                <span>{{taskDetails?.createUserFullName}} on
+                    {{taskDetails?.createTimestamp | dateFormatterWithTimeZone:'long'}}</span>
+            </div>
+        </div>
+        <div *ngIf="isAssignee && taskDetails?.taskStatus?.taskStatusCode === '2' && sectionEditableList && sectionEditableList.length > 0"
+            class="row ml-0">
+            <i aria-hidden="true" class="fs-14 pt-3 mr-2">You can make necessary changes
+                in the relevant field(s) of the following section(s) </i>
+            <a class="mt-3 anchor-link" *ngFor="let item of sectionEditableList">
+                <span *ngIf="item.variableType === 'T'" class="mr-2 hand-cursor"
+                    (click)="_navigationService.navigateToDocumentRoutePath(item.routeName, item.documentId , taskDetails.moduleItemId)">
+                    {{item.name}}</span></a>
+        </div>
+        <div [ngClass]="(isEditMode || !taskId) ? 'form-row' : 'row'">
+            <div class="col-12">
+                <label class="d-block">Description</label>
+                <textarea [(ngModel)]="taskDetails.description" class="form-control"
+                    placeholder="Description" rows="2" appLengthValidator [isShowLimiter]='isEditMode || !taskId'
+                    [limit]=4000 [disabled]="!isEditMode && taskId"></textarea>
+            </div>
+        </div>
+        <div *ngIf="!taskDetails.description && !isEditMode && taskId">
+            <h4 class="noDataExists pl-2 ml-1">There is no information in this section.</h4>
+        </div>
+        <div [ngClass]="(isEditMode || !taskId) ? 'form-row' : 'row'">
+            <div class="col-12 no-hover-effect mb-0">
+                <label>Attachments</label>
+                <app-file-drop *ngIf="isEditMode || !taskId" [multiple]="true"
+                    (filesDropEvent)="prepareAttachment($event)"></app-file-drop>
+            </div>
+        </div>
+        <div class="gridSkin">
+            <div class="row">
+                <div *ngIf="uploadedFile.length > 0" class="col-8 d-flex fileChips justify-content-start" style="word-break: break-all;">
+                    <br>
+                    <span style="padding:6px 8px;" *ngFor="let item of uploadedFile; let i=index">{{item?.name}}
+                        <i aria-hidden="true" class="fa fa-close pointer" title="Remove Attachment"
+                            (click)="uploadedFile.splice(i, 1)"></i>
+                    </span>
+                </div>
+                <div *ngIf="isEditMode || !taskId" class="col text-center text-md-right">
+                    <button class="btn btn-secondary btn-xs mr-2" [routerLink]="['/fibi/award/task']"
+                        [queryParams]="{ 'taskId': null }" queryParamsHandling='merge'>
+                        Cancel
+                    </button>
+                    <button (click)="validateCreateTasks()" class="btn btn-primary-sub btn-xs">
+                        {{taskId ? 'Update' : 'Save'}}
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div *ngIf="!isEditMode && taskId && taskAttachments?.length == 0">
+            <h4 class="noDataExists pl-2 ml-1">There is no information in this section.</h4>
+        </div>
+        <div class="table-responsive" *ngIf="taskAttachments?.length > 0">
+            <table class="table tableSkin grid2">
+                <caption class="sr-only">Task Attachments</caption>
+                <thead>
+                    <tr class="header-border">
+                        <th scope="col">File Name</th>
+                        <th scope="col">Updated By</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let attachmentItem of taskAttachments;let i = index">
+                        <td>{{attachmentItem.fileName}}</td>
+                        <td>{{attachmentItem.lastUpdateUserFullName}} on
+                            {{attachmentItem.updateTimestamp | dateFormatterWithTimeZone: 'long'}}
+                        </td>
+                        <td>
+                            <ul class="actionButtonGroup">
+                                <li>
+                                    <a class="fa fa-trash-o hand-cursor" title="Click here to delete attachmnet"
+                                        id="task-delete-btn" *ngIf="isEditMode || !taskId"
+                                        (click)="deleteFromUploadedFileList(attachmentItem)" tabindex="0"></a>
+                                </li>
+                                <li *ngIf="attachmentItem.attachmentId">
+                                    <a id="task-download-btn" class="hand-cursor"
+                                        (click)="downloadAttachments(attachmentItem)" class="fa fa-download hand-cursor"
+                                        title="Click here to download attachmnet" tabindex="0"></a>
+                                </li>
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div *ngIf="attachmentWarningMsg != null">
+                <span class="mandatory font">{{attachmentWarningMsg}}</span>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Tabs -->
+<div *ngIf="taskId" class="row pt-3">
+    <div class="col-xl-9 col-lg-9 col-md-9 col-sm-9 col-9">
+        <ul class="subTabs mb-0">
+            <li role="presentation" routerLinkActive="active">
+                <a id="task-comment" class="subTabLink" title="Task Comments"
+                    [routerLink]="['/fibi/award/task/details/comments']" queryParamsHandling='merge'>
+                    Comments</a>
+            </li>
+            <li *ngIf="taskDetails?.taskStatus?.taskStatusCode !== '1' || taskDetails?.taskStatus?.taskStatusCode !== '2' "
+                role="presentation" routerLinkActive="active">
+                <a id="task-route" class="subTabLink" title="Task Route Log"
+                    [routerLink]="['/fibi/award/task/details/route-log']" queryParamsHandling='merge'>
+                    Route Log</a>
+            </li>
+            <li role="presentation" routerLinkActive="active">
+                <a id="task-history" class="subTabLink" title="Task History"
+                    [routerLink]="['/fibi/award/task/details/history']" queryParamsHandling='merge'>
+                    History</a>
+            </li>
+        </ul>
+    </div>
+</div>
+<!-- Start Task -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="startTask" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Start Task</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to start the task?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" data-dismiss="modal" data-toggle="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="startTask()"
+                    data-dismiss="modal">Start Task</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--  Complete Task -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="completeTaskModal" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog" [ngClass]='validationObject?.validationMsg?.length ? "modal-lg" : ""' role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" *ngIf="validationObject?.validationMsg?.length == 0">Complete Task</h5>
+                <h5 class="modal-title" *ngIf="validationObject?.validationMsg?.length != 0">Validation</h5>
+                <button type="button" class="close" data-dismiss="modal" (click)="isSaving=false" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12">
+                        <p *ngIf="validationObject?.validationMsg?.length == 0">Are you sure you want to complete the
+                            task?</p>
+                        <div *ngIf="validationObject?.validationMsg?.length != 0">
+                            <ng-container *ngFor="let msg of validationObject?.errorList">
+                                <div class="alert alert-danger p-2" role="alert">
+                                    <i class="fa fa-exclamation-circle icon text-danger" aria-hidden="true"></i>
+                                    <strong>Error:</strong>
+                                    {{msg.validationMessage}}
+                                </div>
+                            </ng-container>
+                            <ng-container *ngFor="let msg of validationObject?.warningList">
+                                <div class="alert alert-warning p-2" role="alert">
+                                    <i class="fa fa-exclamation-triangle icon text-warning" aria-hidden="true"></i>
+                                    <strong> Warning: </strong>{{msg.validationMessage}}
+                                </div>
+                            </ng-container>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <ng-container *ngIf="validationObject?.validationMsg?.length == 0">
+                    <button type="button" class="btn-secondary" data-dismiss="modal" data-toggle="modal" (click)="isSaving=false">Cancel</button>
+                    <button type="button" class="btn btn-primary-sub btn-sm" (click)="completeTask()"
+                        data-dismiss="modal">Complete
+                        Task</button>
+                </ng-container>
+                <ng-container
+                    *ngIf="(validationObject?.warningList?.length > 0 && validationObject?.errorList?.length > 0) ||
+                                                                (validationObject?.warningList?.length == 0 && validationObject?.errorList?.length > 0)">
+                    <button class="btn btn-secondary btn-sm" data-dismiss="modal" (click)="isSaving=false">Close</button>
+                </ng-container>
+                <ng-container
+                    *ngIf="(validationObject?.warningList?.length > 0 && validationObject?.errorList?.length == 0)">
+                    <button class="btn btn-secondary btn-sm" data-dismiss="modal" (click)="isSaving=false">Cancel</button>
+                    <button (click)="validationObject = {};validationObject.validationMsg = []"
+                        class="btn btn-primary-sub btn-sm">Continue to Complete</button>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- APPROVE-REJECT MODAL -->
+<div class="modal fade mySkinDialog" id="approveRejectTaskModal" tabindex="-1" role="dialog"
+    aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    {{modalAproveHeading}} <span>Task
+                        #{{taskId}}</span>
+                </h5>
+                <button type="button" id="task-approve-reject-btn" class="close" data-dismiss="modal" aria-label="Close"
+                    (click)="closeApproveDisapproveModal();">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-inner-scroll">
+                <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 viewMode resultCard">
+                    <div class="row">
+                        <div class="col-xl-4 col-lg-2 col-md-6 col-sm-6 col-6">
+                            <label>Task ID</label>
+                            <span>{{taskId}}</span>
+                        </div>
+                        <div class="col-xl-4 col-lg-3 col-md-6 col-sm-6 col-6">
+                            <label>Assignee</label>
+                            <span class="d-block">{{taskDetails?.assigneeFullName}}</span>
+                        </div>
+                        <div class="col-xl-4 col-lg-7 col-md-4 col-sm-4 col-4">
+                            <label>Task Type</label>
+                            <span class="d-block">{{taskDetails?.taskType?.description}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <label class="mySkinDialog ">
+                            <p class="m-0">
+                                <strong>Comments</strong>
+                            </p>
+                        </label>
+                        <textarea appAutoGrow id="task-approve-comments" placeholder=""
+                            class="col-12 col-lg-12 commentBox form-control auto-grow-height" rows="2"
+                            [ngClass]="isEmptyCommentArea ? 'is-invalid d-block' : ''" cols="20" appLengthValidator
+                            [isShowLimiter]='true' [limit]=2000 [(ngModel)]="requestObject.approveComment"></textarea>
+                        <span class="invalid-feedback d-block" *ngIf="isEmptyCommentArea">*Please add a
+                            comment.</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <label class="mySkinDialog">
+                            <p class="m-0">
+                                <strong>Add files</strong>
+                            </p>
+                        </label>
+                        <app-file-drop [multiple]="true" (filesDropEvent)="fileDrop($event)"></app-file-drop>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <div class="fileChips regularFont">
+                            <span *ngFor="let item of approveModalUploadedFile; let index=index">{{
+                                item?.name }} <i id="task-approve-attach-delete" class="fa fa-close hand-cursor"
+                                    aria-hidden="true" title="Remove File"
+                                    (click)="deleteFromApproveModalUploadedFile(item)"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="taskAttachmentWarningMsg != null">
+                    <span class="mandatory font">{{taskAttachmentWarningMsg}}</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="task-approve-close" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                    (click)="closeApproveDisapproveModal()">Close</button>
+                <button type="button" id="task-approve-reject-btn" class="btn btn-primary-sub btn-sm"
+                    (click)="maintainTaskWorkFlow()">{{modalAproveHeading}}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<button type="button" id="confirm-btn" [hidden]="true" data-toggle="modal" data-target="#completeTaskModal"></button>
+<button type="button" id="approve-btn" [hidden]="true" data-toggle="modal"
+    data-target="#approveRejectAwardModal"></button>
+<!-- Cancel Task -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="cancelTask" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reject Task</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to reject the task?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" data-dismiss="modal" data-toggle="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="cancelTask()"
+                    data-dismiss="modal">Reject Task</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Notify Task -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="notifyTask" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Notify</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Do you want to notify asignee again?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" data-dismiss="modal" data-toggle="modal">No</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" data-dismiss="modal"
+                    (click)="notifyAssignee()">Notify</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Validate Start Task -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="validateStartTask" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Validation</h5>
+                <button type="button" class="close" data-dismiss="modal" (click)="isSaving=false" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12">
+                        <ng-container *ngFor="let msg of createTaskValidations">
+                            <div *ngIf="msg.type == 'A'" class="alert alert-primary p-2" role="alert">
+                                <i class="fa fa-check-square icon" aria-hidden="true"></i>
+                                <strong> Acknowledgment: </strong>{{msg.message}}
+                            </div>
+                            <div *ngIf="msg.type == 'E'" class="alert alert-danger p-2" role="alert">
+                                <i class="fa fa-exclamation-circle icon text-danger" aria-hidden="true"></i>
+                                <strong>Error:</strong>
+                                {{msg.message}}
+                            </div>
+                            <div *ngIf="msg.type == 'W'" class="alert alert-warning p-2" role="alert">
+                                <i class="fa fa-exclamation-triangle icon text-warning" aria-hidden="true"></i>
+                                <strong> Warning: </strong>{{msg.message}}
+                            </div>
+                        </ng-container>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <ng-container
+                    *ngIf="checkErrorExistsInCreation()">
+                    <button class="btn btn-secondary btn-sm" data-dismiss="modal" (click)="isSaving=false">Close</button>
+                </ng-container>
+                <ng-container
+                    *ngIf="!checkErrorExistsInCreation()">
+                    <button class="btn btn-secondary btn-sm" data-dismiss="modal" (click)="isSaving = false">Cancel</button>
+                    <button (click)="saveTask(); createTaskValidations = []" data-dismiss="modal"
+                        class="btn btn-primary-sub btn-sm">Create Task</button>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</div>

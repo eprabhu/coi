@@ -1,0 +1,1027 @@
+<div class="push4slideMenu pageMinHeight" id="scrollToTop">
+  <div class="container-fluid pushFixedHeaderFooter">
+    <div class="headerPush"></div>
+    <section class="row">
+      <div id="agreementSection" class="col-12">
+        <div class="sticky-top-nav mb-2 header-outline">
+          <div class="row">
+            <div class="text-left col-12">
+              <h2 *ngIf="!result?.agreementHeader?.agreementRequestId" title="[Untitled]" class="title-primary fs-20">
+                [Untitled]
+              </h2>
+              <h2 *ngIf="result?.agreementHeader?.agreementRequestId"
+                title="{{result?.agreementHeader?.agreementRequestId}}:{{result?.agreementHeader?.title}}"
+                class="title-primary fs-20 text-justify">
+                #{{result?.agreementHeader?.agreementRequestId}}:<span *ngIf="result?.agreementHeader?.title" class="ml-2">
+                {{(result?.agreementHeader?.title.length>200)?(result?.agreementHeader?.title |slice:0:200)+'...':(result?.agreementHeader?.title)}} 
+        </span>
+         </h2>
+            </div>
+          </div>
+          <div class="row mb-2 pl-4">
+            <div class="col-auto badge-title bg-transparent pl-0 pr-4 fs-14"
+              *ngIf="result?.agreementHeader?.agreementRequestId && result?.agreementHeader?.requestorName">
+              <i class="fa fa-user text-primary mr-1" aria-hidden="true"></i>
+              <span class="d-none d-md-inline-block">Requestor :</span>
+              <span class="fw-700">{{result?.agreementHeader?.requestorName}}</span>
+            </div>
+            <div *ngIf="result?.agreementHeader?.agreementStatusCode"
+              class="col-auto badge-title bg-transparent pl-0 pr-4 fs-14"
+              title="{{result?.agreementHeader?.agreementStatus?.description}}">
+              <i class="fa fa-bookmark text-primary"></i>
+              <span class="d-none d-md-inline-block">Status :</span>
+              <span
+                class="status-badge-{{getBadgeByStatusCode(result?.agreementHeader?.agreementStatusCode)}} fs-14-nav badge-pill">{{result?.agreementHeader?.agreementStatus?.description}}</span>
+            </div>
+            <div *ngIf="result?.agreementHeader?.agreementWorkflowStatus?.description && (isAgreementAdministrator || isGroupAdministrator)"
+              class="col-auto badge-title bg-transparent mr-0 fs-14 px-0 px-md-2 px-1">
+              <i class="fa fa-history text-primary" aria-hidden="true"></i>
+              <span class="d-none d-md-inline-block">Review Status :</span>
+              <span class="fw-700">{{result?.agreementHeader?.agreementWorkflowStatus?.description}}</span>
+            </div>
+            <div class="col-auto badge-title bg-transparent mr-0 fs-14 px-3" *ngIf="result?.agreementHeader?.agreementRequestId &&
+              result?.agreementHeader?.adminName">
+              <i class="fa fa-user-o" aria-hidden="true"></i>
+              <span class="d-none d-md-inline-block">Administrator :</span>
+              <span class="fw-700">{{result?.agreementHeader?.adminName}}</span>
+            </div>
+            <div class="col-auto pl-2 badge-title bg-transparent fs-14" *ngIf="result?.agreementHeader?.agreementRequestId &&
+            result?.agreementHeader?.adminGroupId && result?.agreementHeader?.agreementAdminGroup && (isAgreementAdministrator || isGroupAdministrator)">
+              <img class="activity-icon" src="{{deployMap}}assets/images/multiple-admin-1.svg"
+                alt="add-adminGroup icon">
+              <span class="d-none d-md-inline-block">Admin Group :</span>
+              <span class="fw-700">{{result?.agreementHeader?.agreementAdminGroup?.adminGroupName}}</span>
+            </div>
+            <div *ngIf="getPendingLocations().length && (isAgreementAdministrator || isGroupAdministrator)" class="col-auto badge-title bg-transparent pr-1 fs-14-nav">
+              <i class="fa fa-map-marker text-primary mr-1" aria-hidden="true"></i>
+              <span class="d-none d-md-inline-block">Location :</span>
+              <span *ngFor="let location of getPendingLocations(); let isLast = last">
+                <span class="fw-700">{{location}}{{isLast ? '' : ', '}}</span>
+              </span>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-lg col-auto pr-0">
+              <div class="collapse navbar-toggleable-xs mt-5 mt-lg-0 mb-1" id="navbarResponsive">
+                <ul class="menu-responsive tabs fit-content tabs-collapsed mb-0">
+                  <li routerLinkActive="active" (click)="checkForSaveButton()">
+                    <a 
+                      [routerLink]="['/fibi/agreement/form']" queryParamsHandling='merge'>
+                      Agreement
+                    </a>
+                  </li>
+                  <li
+                    *ngIf="result?.agreementHeader?.agreementRequestId && (isAgreementAdministrator || isGroupAdministrator)"
+                    (click)="isNegotiation = true;" routerLinkActive="active">
+                    <a 
+                      [routerLink]="['/fibi/agreement/negotiation']" queryParamsHandling='merge'>
+                      Negotiation & Review
+                    </a>
+                  </li>
+                  <li *ngIf="result?.agreementHeader?.agreementRequestId" routerLinkActive="active">
+                    <a 
+                      [routerLink]="['/fibi/agreement/attachments']" queryParamsHandling='merge'>
+                      Attachments
+                    </a>
+                  </li>
+                  <li
+                    *ngIf="result?.agreementHeader?.agreementRequestId && result?.workflow?.workflowId && result?.workflow?.workflowDetails.length > 0"
+                    routerLinkActive="active">
+                    <a [routerLink]="['/fibi/agreement/route-log']" queryParamsHandling='merge'>
+                      Route log
+                    </a>
+                  </li>
+                  <li *ngIf="result?.agreementHeader?.agreementRequestId" routerLinkActive="active">
+                    <a 
+                      [routerLink]="['/fibi/agreement/history']" queryParamsHandling='merge'>
+                      History
+                    </a>
+                  </li>
+                  <li *ngIf="result?.agreementHeader?.agreementRequestId && _commonService.isShowAgreementSupport" routerLinkActive="active">
+                    <a 
+                      [routerLink]="['/fibi/agreement/support']" queryParamsHandling='merge'>
+                      <ng-container i18n="@@COMMON_SUPPORT">Support</ng-container>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="col-lg-auto col-12 my-2">
+              <button #mainHeaders id="responsiveColapse"
+              class="navbar-toggler hidden-sm-up px-0 d-inline-block d-lg-none float-left mt-2"
+              type="button" data-toggle="collapse" data-target="#navbarResponsive"
+              aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+              <i class="fa fa-bars f-14 text-muted mx-colr" aria-hidden="true"
+                  title="Click for more pages"></i>
+             </button>
+             <span class="float-right">
+              <button type="button" class="btn btn-primary-sub btn-sm add-activity-button"
+                *ngIf="isShowReviewCommentsButton"
+                title="Add Activity" id="add-activity"
+                (mouseenter)="isShowReviewActions = false;isShowAgreementActions = false" (click)="isShowActivityModal = true">
+                <p><img class="activity-icon" src="{{deployMap}}assets/images/playlist (1).svg" alt="add-activity icon">
+                </p>
+              </button>
+              <button type="button" id="agreement-save-btn" title="Save"
+                *ngIf="_commonAgreementData.isShowSaveButton && result?.agreementHeader?.agreementRequestId"
+                class="btn btn-primary-sub btn-sm" (click)="initiateSaveInChildComponents()">Save</button>
+              <button *ngIf="isShowApproveDisapproveButton" type="button" id="agreement-disapprove-btn"
+                class="btn btn-secondary btn-sm fs-14-nav" (click)="disapproveAgreement()"><ng-container i18n="@@COMMON_RETURN">Return</ng-container></button>
+              <button *ngIf="isShowApproveDisapproveButton" type="button" id="agreement-approve-btn"
+                class="btn btn-primary btn-sm fs-14-nav" (click)="approveAgreement()">
+                <ng-container i18n="@@COMMON_APPROVE">Approve</ng-container>
+            </button>
+              <button *ngIf="isShowSubmitButton" title="Submit Request" (click)="triggerSubmitModal();clickedOption = 'Submit'" type="button"
+                class="btn btn-primary btn-sm">Submit Request</button>
+              <span *ngIf="result?.agreementHeader?.agreementRequestId" #moreOptions class="position-relative">
+                <button title="More Actions" class="btn more-btn"
+                  (click)="isShowMoreOptions = !isShowMoreOptions;isShowMore = false;isShowOtherActions = false;isShowReviewActions = false;isShowAgreementActions = false;"><i class="fa fa-ellipsis-v" aria-hidden="true"></i></button>
+                <ul id="moreOptions-list" class="more-options-box" *ngIf="isShowMoreOptions"
+                  [ngClass]="result?.agreementHeader?.agreementStatus?.agreementStatusCode=='2' && isShowMore ? 'list-of-actions' : ''">
+                  <li title="{{result?.isAgreementCreatedOnce ? 'Regenerate Document' : 'Generate Document'}}"
+                    (mouseenter)="isShowReviewActions = false;isShowAgreementActions = false;isShowOtherActions = false"
+                    *ngIf="result.agreementHeader.agreementRequestId && isShowGenerateDocumentButton">
+                    <a class="dropdown-item hand-cursor" href="" id="generate-regenerate-btn"
+                      (click)="isGeneratedBtnClick = true;isModalOpen = true;" data-toggle="modal"
+                      data-target="#generateAgreementModal">
+                      <img class="generate-icon-more mr-2" alt="generate/regenerate icon"
+                        title="Click here to generate document"
+                        src="{{deployMap}}assets/images/Regenerate_updated.svg">{{result.isAgreementCreatedOnce ?
+                      'Regenerate Document' : 'Generate Document'}}
+                    </a>
+                  </li>
+                  <li title="Assign Administrator/Admin Group"
+                    (mouseenter)="isShowReviewActions = false;isShowAgreementActions = false;isShowOtherActions = false"
+                    *ngIf="result?.agreementHeader?.agreementRequestId && (isAgreementAdministrator || isGroupAdministrator) &&
+                      (result?.agreementHeader?.agreementStatus?.agreementStatusCode =='7' || result?.agreementHeader?.agreementStatus?.agreementStatusCode=='2'
+                      || result?.agreementHeader?.agreementStatus?.agreementStatusCode=='1')">
+                    <a class="dropdown-item hand-cursor" href="" id="assign-admin-btn"
+                      (click)="isShowMoreOptions = !isShowMoreOptions;checkForAdmin();" data-toggle="modal"
+                      data-target="#assign-to-admin-modal">
+                      <i class="fa fa-user-o" aria-hidden="true"></i>Assign Administrator/Admin Group
+                    </a>
+                  </li>
+                  <li title="Add Attachments"
+                  (mouseenter)="isShowReviewActions = false;isShowAgreementActions = false;isShowOtherActions = false"
+                  *ngIf="result?.agreementHeader?.agreementRequestId">
+                  <a class="dropdown-item hand-cursor"
+                    (click)="isShowMoreOptions = !isShowMoreOptions;isShowAddAttachmentModal = true;" >
+                    <i class="fa fa-paperclip" aria-hidden="true"></i>Add Attachments
+                  </a>
+                  </li>
+                  <li title="Add Activity" *ngIf="isShowReviewCommentsButton">
+                    <a class="dropdown-item hand-cursor"
+                      id="return-to-pi"
+                      (mouseenter)="isShowReviewActions = false;isShowAgreementActions = false;isShowOtherActions = false"
+                      (click)="isShowMoreOptions = !isShowMoreOptions;isShowActivityModal = true">
+                      <img class="activity-icon-more mr-2" alt="add-activity icon" title="Click here to add activity"
+                        src="{{deployMap}}assets/images/playlist.svg">Add Activity</a>
+                  </li>
+                  <li title="Print Agreement Summary">
+                    <a class="dropdown-item hand-cursor" id="notify-btn"
+                      (mouseenter)="isShowReviewActions = false;isShowAgreementActions = false;isShowOtherActions = false"
+                      title="Print Agreement Summary"
+                      (click)="generateAgreementSummary();isShowMoreOptions = !isShowMoreOptions">
+                      <i class="fa fa fa-print" aria-hidden="true"></i>Print Agreement Summary</a>
+                  </li>
+                  <li title="Copy Agreement"
+                    *ngIf="result?.agreementHeader?.agreementRequestId && (isAgreementAdministrator || isGroupAdministrator)">
+                    <a class="dropdown-item hand-cursor" href="" id="agreement-copy-btn"
+                      (click)="isShowMoreOptions = !isShowMoreOptions"
+                      (mouseenter)="isShowReviewActions = false;isShowAgreementActions = false;isShowOtherActions = false"
+                      title="Copy Agreement" data-toggle="modal"
+                      data-target="#copyAgreementModal">
+                      <i class="fa fa-copy" aria-hidden="true"></i>Copy Agreement</a>
+                  </li>
+                  <li title="Delete Agreement"
+                    *ngIf="isShowDeleteButton">
+                    <a class="dropdown-item hand-cursor" id="agreement-delete-btn"
+                      (click)="isShowMoreOptions = !isShowMoreOptions"
+                      (mouseenter)="isShowReviewActions = false;isShowAgreementActions = false;isShowOtherActions = false"
+                      title="Delete Agreement" data-toggle="modal"
+                      data-target="#deleteAgreementModal">
+                      <i class="fa fa-trash-o" aria-hidden="true"></i>Delete Agreement</a>
+                  </li>
+                  <li><span class="separator"></span></li>
+                  <li title="Review Actions" class="dropdown-submenu long-submenu" *ngIf="checkForSubmitPermission()">
+                    <a class="dropdown-item hand-cursor" id="notify-btn"
+                      (mouseenter)="isShowReviewActions = !isShowReviewActions;isShowAgreementActions = false;isShowOtherActions = false"
+                      [ngClass]=" isShowReviewActions ? 'active' : ''">
+                      <i class="fa fa-angle-left" aria-hidden="true"></i>Review Actions</a>
+                    <ul *ngIf="isShowReviewActions" class="submenu more-options-box">
+                      <li [title]="reviewTypes?.description" *ngFor="let reviewTypes of result.agreementReviewTypes" [hidden]="reviewTypes.isActive != true">
+                        <a class="dropdown-item hand-cursor" *ngIf="checkForSubmitPermission()" data-toggle="modal"
+                          data-target="#ConfirmSubmitReviewModal" id="submit-department-btn"
+                          (click)="isShowMoreOptions = !isShowMoreOptions;reviewType =reviewTypes.description ;isShowReviewActions = !isShowReviewActions;isModalOpen = true;reviewObject.agreementNote.note=null">
+                          <i class="fa fa-file-text-o" aria-hidden="true"></i>{{reviewTypes.description}}</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li class="dropdown-submenu long-submenu" title="Agreement Actions" *ngIf="(isAgreementAdministrator || isGroupAdministrator) && ((result.agreementHeader.agreementRequestId && result.agreementHeader.agreementStatusCode == '3' )||
+               isShowTransferOption||isShowTerminateOption||isShowAbandonOption||isShowReadyToExecuteButton
+               ||isShowReopenButton)">
+                    <a class="dropdown-item hand-cursor" id="notify-btn"
+                      [ngClass]="isShowAgreementActions ? 'active' : ''"
+                      (mouseenter)="isShowAgreementActions = !isShowAgreementActions;isShowReviewActions = false;isShowOtherActions = false">
+                      <i class="fa fa-angle-left" aria-hidden="true"></i>Agreement Actions</a>
+                    <ul *ngIf="isShowAgreementActions" class="submenu more-options-box">
+                      <li title="Finalize">
+                        <a class="dropdown-item hand-cursor"
+                          *ngIf="result.agreementHeader.agreementRequestId && isShowFianlizeOption && (isAgreementAdministrator || isGroupAdministrator)"
+                          (click)="isFinalWarning = null;validatesBeforeAction();
+                          isShowAgreementActions = !isShowAgreementActions;
+                          clickedOption = 'Finalize';isShowMoreOptions = !isShowMoreOptions"><i
+                            class="fa fa-flag-checkered"></i>Finalize</a>
+                      </li>
+                      <li title="Ready to Execute"><a class="dropdown-item hand-cursor"
+                          *ngIf="isShowReadyToExecuteButton" (click)="isShowMoreOptions = !isShowMoreOptions;clickedOption = 'Execute';
+                          isShowAgreementActions = !isShowAgreementActions;
+                          validatesBeforeAction();">
+                          <i class="fa fa-thumbs-up"></i>Ready to Execute</a></li>
+                      <li title="Transfer" *ngIf="result?.agreementHeader?.agreementRequestId &&
+                (isAgreementAdministrator || isGroupAdministrator) && isShowTransferOption"
+                        [ngClass]=" 'isTerminals' ? 'd-block' : 'd-none'">
+                        <a class="dropdown-item hand-cursor" id="transfer-agreement-btn" data-toggle="modal"
+                          data-target="#terminalActions" (click)="isShowMoreOptions = !isShowMoreOptions;
+                          isShowAgreementActions = !isShowAgreementActions;isTransfer = true;
+                          terminalActionObject.agreementNote.note = null">
+                          <i class="fa fa-share" aria-hidden="true"></i>Transfer</a>
+                      </li>
+                      <li title="Terminate" *ngIf="result?.agreementHeader?.agreementRequestId &&
+                (isAgreementAdministrator || isGroupAdministrator) && isShowTerminateOption"
+                        [ngClass]=" 'isTerminals' ? 'd-block' : 'd-none'">
+                        <a class="dropdown-item hand-cursor" id="terminate-agreement-btn" data-toggle="modal"
+                          data-target="#terminalActions"
+                          (click)="isShowMoreOptions = !isShowMoreOptions;isShowAgreementActions = !isShowAgreementActions;isTerminate = true;terminalActionObject.agreementNote.note = null">
+                          <i class="fa fa-hand-paper-o" aria-hidden="true"></i>Terminate</a>
+                      </li>
+                      <li title="Abandon" *ngIf="result?.agreementHeader?.agreementRequestId &&
+               (isAgreementAdministrator || isGroupAdministrator) && isShowAbandonOption"
+                        [ngClass]=" 'isTerminals' ? 'd-block' : 'd-none'">
+                        <a class="dropdown-item hand-cursor" id="abandon-agreement-btn" data-toggle="modal"
+                          data-target="#terminalActions"
+                          (click)="isShowMoreOptions = !isShowMoreOptions;isShowAgreementActions = !isShowAgreementActions;isAbandon = true;terminalActionObject.agreementNote.note = null">
+                          <i class="fa fa-ban" aria-hidden="true"></i>Abandon</a>
+                      </li>
+                      <li title="Reopen"
+                        *ngIf="result?.agreementHeader?.agreementRequestId && (isAgreementAdministrator || isGroupAdministrator) && isShowReopenButton">
+                        <a class="dropdown-item hand-cursor" href="" id="reopen-agreement-btn" data-toggle="modal"
+                          data-target="#reOpen-agreement"
+                          (click)="isShowMoreOptions = !isShowMoreOptions;isShowAgreementActions = !isShowAgreementActions;checkForAdmin();clearAllReopenFields();">
+                          <i class="fa fa-folder-open" aria-hidden="true"></i>Reopen</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li class="dropdown-submenu" title="Other Ations">
+                    <a class="dropdown-item hand-cursor" id="notify-btn" [ngClass]="isShowOtherActions ? 'active' : ''"
+                      (mouseenter)="isShowOtherActions = !isShowOtherActions;isShowReviewActions = false;isShowAgreementActions = false">
+                      <i class="fa fa-angle-left" aria-hidden="true"></i>Other Actions</a>
+                    <ul *ngIf="isShowOtherActions" class="submenu more-options-box">
+                      <li title="Return to PI">
+                        <a *ngIf="isShowReturnToPI" class="dropdown-item hand-cursor" data-toggle="modal"
+                          data-target="#returnToPiModal" id="return-to-pi"
+                          (mouseenter)="isShowReviewActions = false;isShowAgreementActions = false"
+                          (click)="isShowMoreOptions = !isShowMoreOptions;isShowOtherActions = false">
+                          <i class="fa fa-file-text-o" aria-hidden="true"></i>Return to PI</a>
+                      </li>
+                      <li title="Notify" *ngIf="result?.agreementHeader?.agreementRequestId && _commonService.isShowAgreementNotifyAction">
+                        <a class="dropdown-item hand-cursor" id="notify-btn"
+                          (click)="isShowMoreOptions = !isShowMoreOptions;isShowNotificationModal=true;isShowOtherActions = false"
+                          (mouseenter)="isShowReviewActions = false;isShowAgreementActions = false">
+                          <i class="fa fa-bell-o" aria-hidden="true"></i>Notify</a>
+                      </li>
+                      <li title="Export Agreement Files">
+                        <a class="dropdown-item hand-cursor" id="notify-btn"
+                          (mouseenter)="isShowReviewActions = false;isShowAgreementActions = false"
+                          title="Export Agreement Files #{{result?.agreementHeader?.agreementRequestId}}"
+                          (click)="exportAgreement();isShowMoreOptions = !isShowMoreOptions;isShowOtherActions = false">
+                          <i class="fa fa-file-zip-o" aria-hidden="true"></i>Export Agreement Files</a>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </span>
+              <button type="button" class="btn more-btn" [routerLink]="['/fibi/dashboard/agreementsList']"
+                title="Back to dashboard"><i class="fa fa-reply" aria-hidden="true"></i></button>
+             </span>
+            </div>
+          </div>
+        </div>
+        <router-outlet></router-outlet>
+      </div>
+    </section>
+    <div class="footerPush"></div>
+  </div>
+</div>
+
+<!--Add Attachment Modal-->
+<app-common-attchments *ngIf="isShowAddAttachmentModal"
+[result] = "result" [isReplaceAttachment] = 'false'
+(attachmentSave) = "updateAddedAttachments($event)">
+</app-common-attchments>
+
+<!-- Terminal actions modal -->
+<div class="modal fade mySkinDialog" id="terminalActions" role="dialog">
+  <div class="modal-dialog modal-lg">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header ct-footer-padding">
+        <h4 class="modal-title">Confirmation
+        </h4>
+        <button type="button" class="close" data-dismiss="modal" id="dissmiss-btn" aria-label="Close"
+          (click)="resetTerminalActionFlags()">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body ct-modal-padding">
+        <div class="form-row">
+          <div class="row mt-2 mb-0">
+            <div class="col-lg-12">
+              <p>Are you sure you want to {{isTransfer ? 'transfer' : isTerminate ? 'terminate' : 'abandon'}} this
+                Agreement?</p>
+            </div>
+          </div>
+          <div class="col-12 my-0">
+            <label>Comments</label>
+            <textarea appLengthValidator [isShowLimiter]="true" [limit]=4000 class="form-control"
+              [(ngModel)]="terminalActionObject.agreementNote.note"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer ct-footer-padding">
+        <button id="terminal-actions-btn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
+          (click)="resetTerminalActionFlags()">No</button>
+        <button type="button" class="btn btn-primary-sub btn-sm" (click)="terminalActions()"
+          data-dismiss="modal">{{isTransfer ? 'Continue To Transfer' : isTerminate ? 'Continue To Terminate' : 'Continue To Abandon'}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ASSIGN TO ADMIN MODAL -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="assign-to-admin-modal" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Assign Administrator/Admin Group</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+          (click)="isAssigntoMe = false;clearAssignFields()">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-5">
+            <span class="mt-4 py-3 ml-4">
+              <input type="checkbox" class="form-check-input" name="assignToMe" id="exampleCheck1"
+                [checked]="isAssigntoMe" (change)="assignToMeEvent($event);">
+              <label class="form-check-label ml-2" for="exampleCheck1">Assign to me</label>
+            </span>
+          </div>
+        </div>
+        <div class="row mt-3">
+          <label class="d-block ml-4"><span class="mandatory">*</span>Select Administrator</label>
+          <div class="col-md-12 col-sm-4 col-12">
+            <app-autocompleter [completerOptions]="adminSearchOptions" [clearField]="clearField"
+              [placeHolder]="'Search for admin'" (onSelect)="adminSelectFunction($event)"
+              [ngClass]="(assignAdminMap.get('adminName'))? 'is-invalid d-block' : ''"></app-autocompleter>
+            <div *ngIf="assignAdminMap.has('adminName')" class="invalid-feedback d-block">Please select an admin.</div>
+          </div>
+        </div>
+        <div class="row mt-3">
+          <label class="d-block ml-4">Select Admin Group</label>
+          <div class="col-md-12 col-sm-4 col-12">
+            <app-autocompleter [completerOptions]="adminGroupSearchOptions" [clearField]="clearAdminGroupField"
+              [placeHolder]="'Search for admin group'" (onSelect)="adminGroupSelectFunction($event)">
+            </app-autocompleter>
+          </div>
+        </div>
+        <div *ngIf="isShowWarningMessage"
+          class="success-banner px-3 my-2 d-flex justify-content-between align-items-center">
+          <div>
+            <i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i>
+            <em>{{warningMessage}}</em>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" title="Cancel" data-dismiss="modal" data-toggle="modal"
+          (click)="isAssigntoMe = false;isShowWarningMessage = false;clearAssignFields()">Cancel</button>
+        <button type="button" class="btn btn-primary-sub btn-sm" (click)="assignToAgreementAdmin()">Assign
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RE-OPEN MODAL -->
+<div class="modal fade mySkinDialog" id="reOpen-agreement" role="dialog" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header ct-footer-padding">
+        <h4 class="modal-title">Reopen Agreement
+        </h4>
+        <button type="button" class="close" (click)="isModalOpen = false;isAssigntoMe = false;clearAssignFields()"
+          data-dismiss="modal" id="dissmiss-btn" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body ct-modal-padding">
+        <div class="row">
+          <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <label class="mySkinDialog ">
+              <p class="m-0">
+                <strong>Comments</strong>
+              </p>
+            </label>
+            <textarea appAutoGrow id="return-agreement-approve-comments" placeholder="Type comments here"
+              class="col-12 col-lg-12 commentBox form-control h-auto" rows="3" appLengthValidator [isShowLimiter]='true'
+              [limit]=2000 [(ngModel)]="assignObject.agreementNote.note"></textarea>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-5">
+            <span class="mt-4 py-3 ml-4">
+              <input type="checkbox" class="form-check-input" name="assignToMe" id="exampleCheck1"
+                [checked]="isAssigntoMe" (change)="assignToMeEvent($event); ">
+              <label class="form-check-label ml-2" for="exampleCheck1">Assign to me</label>
+            </span>
+          </div>
+        </div>
+        <div class="row mt-3">
+          <label class="d-block ml-4"><span class="mandatory">*</span>Select Administrator</label>
+          <div class="col-md-12 col-sm-4 col-12">
+            <app-autocompleter [completerOptions]="adminSearchOptions" [clearField]="clearField"
+              [placeHolder]="'Search for admin'" (onSelect)="adminSelectFunction($event)"
+              [ngClass]="(assignAdminMap.get('adminRequired'))? 'is-invalid d-block' : ''"></app-autocompleter>
+            <div *ngIf="assignAdminMap.has('adminRequired')" class="invalid-feedback d-block">An admin is required for
+              reopen action.</div>
+          </div>
+        </div>
+        <div class="row mt-3">
+          <label class="d-block ml-4">Select Admin Group</label>
+          <div class="col-md-12 col-sm-4 col-12">
+            <app-autocompleter [completerOptions]="adminGroupSearchOptions" [clearField]="clearAdminGroupField"
+              [placeHolder]="'Search for admin group'" (onSelect)="adminGroupSelectFunction($event)">
+            </app-autocompleter>
+          </div>
+        </div>
+        <div *ngIf="isShowWarningMessage"
+          class="success-banner px-3 my-2 d-flex justify-content-between align-items-center">
+          <div>
+            <i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i>
+            <em>{{warningMessage}}</em>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer mt-2">
+        <button type="button" id="agreement-approve-close" class="btn btn-secondary btn-sm" data-dismiss="modal"
+          (click)="closeReopenModal();isShowWarningMessage = false;clearAssignFields();">Close</button>
+        <button type="button" id="agreement-approve-disapprove-btn" class="btn btn-primary-sub btn-sm"
+          (click)="reOpenAgreement()">Reopen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Return to PI modal -->
+<div class="modal fade mySkinDialog" id="returnToPiModal" tabindex="-1" role="dialog"
+  aria-labelledby="skippedSchedulesTitle" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="skippedSchedulesLongTitle">Return to PI</h5>
+        <button type="button" id="agreement-approve-dismiss-btn" class="close" data-dismiss="modal" aria-label="Close"
+          (click)="closeApproveDisapproveModal();">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body modal-inner-scroll">
+        <div class="row">
+          <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <label class="mySkinDialog ">
+              <p class="m-0">
+                <strong>Comments</strong>
+              </p>
+            </label>
+            <textarea appAutoGrow id="return-agreement-approve-comments" placeholder=""
+              class="col-12 col-lg-12 commentBox form-control h-auto"
+              [ngClass]="warningMessageObject?.isEmptyCommentArea ? 'is-invalid d-block' : ''" rows="3"
+              appLengthValidator [isShowLimiter]='true' [limit]=2000
+              [(ngModel)]="requestObject.approveComment"></textarea>
+            <span class="invalid-feedback d-block" *ngIf="warningMessageObject?.isEmptyCommentArea">*Please add a
+              comment.</span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <label class="mySkinDialog">
+              <p class="m-0">
+                <strong>Add files</strong>
+              </p>
+            </label>
+            <app-file-drop [multiple]="true" (filesDropEvent)="fileDropApproveOrReturn($event)"></app-file-drop>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <div class="fileChips regularFont" *ngIf="uploadedFile.length > 0">
+              <span *ngFor="let item of uploadedFile; let index=index">{{
+                item?.name }} <i id="agreement-approve-attach-delete" class="fa fa-close hand-cursor" aria-hidden="true"
+                  title="Remove File" (click)="deleteFromUploadedFileList(index)"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="warningMessageObject.attachmentWarningMsg != null">
+          <span class="mandatory font">{{warningMessageObject.attachmentWarningMsg}}</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="agreement-approve-close" class="btn btn-secondary btn-sm" data-dismiss="modal"
+          (click)="closeApproveDisapproveModal()">Close</button>
+        <button type="button" id="agreement-approve-disapprove-btn" class="btn btn-primary-sub btn-sm"
+          (click)="returnToPI()">Return</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<app-negotiationActivity *ngIf="negotiationLookup && isShowActivityModal"
+[negotiationLookUp]="negotiationLookup"
+(updatedActivities)="updateNegotiationActivity($event)">
+</app-negotiationActivity>
+
+<!-- Confirmation Modal for unsaved changes and submit -->
+<div class="modal fade mySkinDialog" id="confirm-agreement-save-submit-modal" role="dialog" data-backdrop="static"
+  data-keyboard="false">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header ct-footer-padding">
+        <h4 class="modal-title">Confirmation</h4>
+        <button type="button" class="close" data-dismiss="modal" id="dissmiss-btn" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body ct-modal-padding">
+        <div class="row mt-2 mb-0">
+          <div class="col-lg-12">
+            <p>You have unsaved changes in <strong>{{_autoSaveService.getUnsavedChanges()}}</strong>. Do you want to Submit this agreement without the changes?</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer ct-footer-padding">
+        <button id="nego-sumbit-no-btn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary-sub btn-sm" (click)="triggerValidation()"
+          data-dismiss="modal">Continue to Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade mySkinDialog" id="confirm-agreement-submit-modal" role="dialog" data-backdrop="static"
+  data-keyboard="false">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header ct-footer-padding">
+        <h4 class="modal-title">Confirmation
+        </h4>
+        <button type="button" class="close" data-dismiss="modal" id="dissmiss-btn" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body ct-modal-padding">
+        <div class="row mt-2 mb-0">
+          <div class="col-lg-12">
+            <p>Do you want to Submit this agreement?</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer ct-footer-padding">
+        <button id="nego-sumbit-no-btn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary-sub btn-sm" (click)="submitAgreement()"
+          data-dismiss="modal">Continue to Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Notify Modal-->
+<app-notify *ngIf="isShowNotificationModal" [moduleItemKey]="result?.agreementHeader?.agreementRequestId"
+  [moduleCode]="13" [moduleName]="'Agreement'" (isShowNotificationModal)="showAgreementNotificationModal($event)">
+</app-notify>
+
+<!--  generate agreement modal -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="generateAgreementModal" role="dialog" aria-hidden="true"
+  data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content" *ngIf="isModalOpen">
+      <div class="modal-header">
+        <h5 class="modal-title">{{result.isAgreementCreatedOnce ? 'Regenerate Document' : 'Generate Document'}}
+        </h5>
+        <button type="button" (click)="generateAgreementObject = {};" class="close" data-dismiss="modal"
+          id="dissmiss-btn" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="success-banner px-3 mb-3 ">
+          <i aria-hidden="true" class="fa fa-info-circle mr-1 info-icon"></i>
+          <em>New document version will be created with filled data.</em>
+        </div>
+        <div class="col-12 p-0">
+          <div class="form-row">
+            <div class="col-12 my-0">
+              <label>Comments</label>
+              <textarea class="form-control" appLengthValidator [isShowLimiter]="true" [limit]="1000"
+                [(ngModel)]="generateAgreementObject.comment"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
+          (click)="generateAgreementObject = {}">Cancel</button>
+        <button class="btn btn-primary-sub btn-sm mt-0"
+          *ngIf="result.agreementHeader.agreementRequestId && result?.agreementHeader?.agreementStatus?.agreementStatusCode !== '4'"
+          (click)="documentPreview()">Preview Document
+        </button>
+        <button type="button" class="btn btn-primary btn-sm" data-dismiss="modal"
+          (click)="generateAgreement()">{{result.isAgreementCreatedOnce ? 'Regenerate' : 'Generate'}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM SUBMIT REVIEW MODAL -->
+<div class="modal fade mySkinDialog" id="ConfirmSubmitReviewModal" role="dialog">
+  <div class="modal-dialog modal-lg">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header ct-footer-padding">
+        <h4 class="modal-title">Confirmation
+        </h4>
+        <button type="button" class="close" data-dismiss="modal" id="dissmiss-btn" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body ct-modal-padding" *ngIf="isModalOpen">
+        <div class="row mt-2 mb-0">
+          <div class="col-lg-12">
+            <p>Are you sure you want to submit this Agreement to {{reviewType}} for review?</p>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="col-12 my-0">
+            <label>Comments</label>
+            <textarea appLengthValidator [isShowLimiter]='true' [limit]="4000" class="form-control"
+              [(ngModel)]="reviewObject.agreementNote.note"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer ct-footer-padding">
+        <button id="nego-sumbit-no-btn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">No</button>
+        <button type="button" class="btn btn-primary-sub btn-sm" (click)="submitForReview()"
+          data-dismiss="modal">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button id="agreementTabChangebutton" [hidden]="true" data-toggle="modal"
+  data-target="#agreementTabChangeConfirmModal"></button>
+
+<!-- In MIDDLE OF EDIT WARNING MODAL -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="agreementTabChangeConfirmModal" tabindex="-1" role="dialog"
+  data-backdrop="static" data-keyboard="false" aria-labelledby="AgreementTabChange" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirmation</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>You have unsaved changes in <strong>{{_autoSaveService.getUnsavedChanges()}}</strong>. 
+          Do you want want to leave the page without saving?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Stay on Page</button>
+        <button type="button" class="btn btn-primary-sub btn-sm" (click)="navigateUsingRedirectRoute()"
+          data-dismiss="modal">Leave Page</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FINALIZE ACTION MODAL -->
+<div class="modal fade mySkinDialog" id="finalizeActionModal" tabindex="-1" data-backdrop="static" data-keyboard="false"
+  role="dialog" aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><span>Finalize Agreement</span></h5>
+        <button type="button" id="agreement-finalize-dismiss-btn" class="close" data-dismiss="modal"
+          (click)="uploadedFile = [];isFinalWarning = null;">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="card">
+        <div class="card-content">
+          <div class="card-body">
+            <div class="col-xl-12 col-lg-7 col-12 mb-2">
+              <label class="fs-14">Comments</label>
+              <textarea appLengthValidator [isShowLimiter]="true" [limit]=4000 id="prop-review-comments"
+                placeholder="Write your comments" class="col-12 col-lg-12 mb-2 commentBox comments-box" rows="2"
+                cols="20" [(ngModel)]="finalizeAgreementObject.comment"></textarea>
+            </div>
+            <div class="col-xl-12 col-lg-7 col-12 mb-2">
+              <label class="fs-14">Attachments</label>
+              <app-file-drop [multiple]="false" (filesDropEvent)="fileDropEvent($event)"></app-file-drop>
+            </div>
+            <div class="col-xl-12 col-lg-7 col-12 mb-2">
+              <div class="fileChips regularFont" *ngIf="uploadedFile.length >0">
+                <span *ngFor="let item of uploadedFile; let i=index">{{item.name}} <i class="fa fa-close hand-cursor"
+                    aria-hidden="true" title="Remove File" id="prop-review-attach-remove"
+                    (click)="deleteFromUploadedFileList(item)"></i>
+                </span>
+              </div>
+            </div>
+
+            <div *ngIf="isFinalWarning"><span class="mandatory font ml-4">{{isFinalWarning}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-6"><span class="calc-check"><input id="final"
+              type="checkbox" [(ngModel)]='finalizeAgreementObject.isFinal' /></span>
+          <label for="final"><span class="font pl-1">Final contract document</span></label>
+        </div>
+        <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-6 text-right">
+          <button type="button" id="agreement-finalize-btn" title="Finalize Agreement"
+            class="btn btn-primary-sub btn-sm rate-float" (click)="finalizeAgreement()">Finalize</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Execute confirm modal-->
+<div class="modal fade mySkinDialog" id="confirm-execute-modal" role="dialog">
+  <div class="modal-dialog modal-lg">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header ct-footer-padding">
+        <h4 class="modal-title">Confirmation
+        </h4>
+        <button type="button" class="close" data-dismiss="modal" id="dissmiss-btn" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body ct-modal-padding">
+        <div class="success-banner px-3 mb-3 " *ngIf="isReviewPending">
+          <i aria-hidden="true" class="fa fa-info-circle mr-1 info-icon"></i>
+          <em>There are some pending reviews in this agreement.</em>
+        </div>
+        <div class="form-row">
+          <div class="row mt-2 mb-0">
+            <div class="col-lg-12">
+              <p>Are you sure you want to execute this Agreement?</p>
+            </div>
+          </div>
+          <div class="col-12 my-0">
+            <label>Comments</label>
+            <textarea appLengthValidator [isShowLimiter]="true" [limit]=4000 class="form-control"
+              [(ngModel)]="readyToExecuteObject.agreementNote.note"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer ct-footer-padding">
+        <button id="nego-sumbit-no-btn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">No</button>
+        <button type="button" class="btn btn-primary-sub btn-sm" (click)="readyToExecute()"
+          data-dismiss="modal">Continue To Execute</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Copy Agreement -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="copyAgreementModal" tabindex="-1" role="dialog"
+  data-backdrop="static" data-keyboard="false" aria-labelledby="AgreementCopy" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Copy Agreement</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to copy this Agreement?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary-sub btn-sm" (click)="copyAgreement()" data-dismiss="modal">Copy
+          Agreement</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Route Log approve disapprove-->
+<button type="button" id="agreementApproveBtn" [hidden]="true" data-toggle="modal"
+  data-target="#approveDisapproveAgreementModal"></button>
+<div class="modal fade mySkinDialog" id="approveDisapproveAgreementModal" tabindex="-1" role="dialog"
+  aria-labelledby="skippedSchedulesTitle" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="skippedSchedulesLongTitle">
+          {{modalApproveHeading}} <span>Agreement
+            #{{result?.agreementHeader?.agreementRequestId}}</span>
+        </h5>
+        <button type="button" id="agreement-approve-dismiss-btn" class="close" data-dismiss="modal" aria-label="Close"
+          (click)="closeApproveDisapproveModal();">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 viewMode resultCard">
+          <div class="row">
+            <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6">
+              <label>Category</label>
+              <span>{{result?.agreementHeader?.agreementCategory?.description}}</span>
+            </div>
+            <div class="col-xl-3 col-lg-3 col-md-4 col-sm-4 col-4">
+              <label>Type of Agreement</label>
+              <span class="d-block">{{result?.agreementHeader?.agreementType?.description}}</span>
+            </div>
+            <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6">
+              <label>Lead Unit</label>
+              <span *ngIf="result?.agreementHeader?.unit?.unitName">{{result?.agreementHeader?.unit?.unitName}}</span>
+              <span *ngIf="!result?.agreementHeader?.unit?.unitName" class="noDataExists">Unit Name Not Specified</span>
+            </div>
+            <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6">
+              <label>Status</label>
+              <span class="d-block">{{result?.agreementHeader?.agreementStatus?.description}}</span>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <label class="mySkinDialog ">
+              <p class="m-0">
+                <strong>Comments</strong>
+              </p>
+            </label>
+            <textarea appAutoGrow id="agreement-approve-comments" placeholder="Type comments"
+              class="col-12 col-lg-12 commentBox form-control h-auto"
+              [ngClass]="warningMessageObject?.isEmptyCommentArea ? 'is-invalid d-block' : ''" rows="3"
+              appLengthValidator [isShowLimiter]='true' [limit]=2000
+              [(ngModel)]="requestObject.approveComment"></textarea>
+            <span class="invalid-feedback d-block" *ngIf="warningMessageObject?.isEmptyCommentArea">*Please add a
+              comment.</span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <label class="mySkinDialog">
+              <p class="m-0">
+                <strong>Add files</strong>
+              </p>
+            </label>
+            <app-file-drop [multiple]="true" (filesDropEvent)="fileDropApproveOrReturn($event)"></app-file-drop>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <div class="fileChips regularFont" *ngIf="uploadedFile.length > 0">
+              <span *ngFor="let item of uploadedFile; let index=index">{{
+                item?.name }} <i id="agreement-approve-attach-delete" class="fa fa-close hand-cursor" aria-hidden="true"
+                  title="Remove File" (click)="deleteFromUploadedFileList(index)"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="warningMessageObject.attachmentWarningMsg != null">
+          <span class="mandatory font">{{warningMessageObject.attachmentWarningMsg}}</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="agreement-approve-close" class="btn btn-secondary btn-sm" data-dismiss="modal"
+          (click)="closeApproveDisapproveModal()">Close</button>
+        <button type="button" id="agreement-approve-disapprove-btn" class="btn btn-primary-sub btn-sm"
+          (click)="maintainAgreementWorkFlow()">{{modalApproveHeading}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button id="agreementApproveWithoutBtn" [hidden]="true" data-toggle="modal"
+  data-target="#approveOrDisapproveWithoutSaveModal"></button>
+<!-- Approve/Return actions without save confirmation -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="approveOrDisapproveWithoutSaveModal" tabindex="-1" role="dialog"
+  data-backdrop="static" data-keyboard="false" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" *ngIf="_commonAgreementData.isAgreementDataChange">
+          Are you sure you want to {{modalApproveHeading}}?
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>You have unsaved changes. Do you want to {{modalApproveHeading}} without saving?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="cancel-approve-without-save" class="btn btn-secondary btn-sm"
+          data-dismiss="modal">Cancel</button>
+        <button type="button" id="confirm-approve-without-save" class="btn btn-primary-sub btn-sm"
+          (click)="onApproveOrReturnWithoutSave()" data-dismiss="modal">Continue to
+          {{modalApproveHeading}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--VALIDATION MODAL-->
+<div class="modal fade mySkinDialog" tabindex="-1" id="agreement-validation-modal" tabindex="-1" role="dialog"
+  data-backdrop="static" data-keyboard="false" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Validation</h5>
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-12 ">
+            <div *ngIf="validationObject?.validationMsg?.length > 0">
+              <ng-container *ngFor="let msg of validationObject?.errorList">
+                <div class="alert alert-danger" role="alert">
+                  <i class="fa fa-exclamation-circle icon text-danger" aria-hidden="true"></i>
+                  <strong>Error: </strong><span [innerHTML]="msg.validationMessage"></span>
+                </div>
+              </ng-container>
+              <ng-container *ngFor="let msg of validationObject?.warningList">
+                <div class="alert alert-warning" role="alert">
+                  <i class="fa fa-exclamation-triangle icon text-warning" aria-hidden="true"></i>
+                  <strong>Warning: </strong><span [innerHTML]="msg.validationMessage"></span>
+                </div>
+              </ng-container>
+            </div>
+            <div *ngIf="validationObject?.validationMsg?.length == 0">
+              <div class="alert alert-info" role="alert">
+                <i class="fa fa-info-circle icon text-info" aria-hidden="true"></i>
+                <strong>Success: </strong>Agreement successfully validated.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <ng-container *ngIf="(validationObject?.warningList?.length > 0 && validationObject?.errorList?.length > 0) || (validationObject?.warningList?.length == 0
+                    && validationObject?.errorList?.length > 0) || validationObject?.validationMsg?.length == 0">
+          <button class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+        </ng-container>
+          <ng-container *ngIf="(validationObject?.warningList?.length > 0 && validationObject?.errorList?.length == 0)">
+            <button class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+            <button *ngIf="result?.canApproveRouting !== '1'" (click)="continueToSubmit()"
+              class="btn btn-primary-sub btn-sm">Continue to {{clickedOption}}</button>
+          </ng-container>
+         </div>
+    </div>
+  </div>
+</div>
+  <!--VALIDATION MODAL ENDS-->
+
+<div class="modal fade mySkinDialog" tabindex="-1" id="deleteAgreementModal" tabindex="-1" role="dialog"
+  data-backdrop="static" data-keyboard="false" aria-labelledby="AgreementCopy" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete Agreement</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this agreement?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="cancel-approve-without-save" class="btn btn-secondary btn-sm"
+        data-dismiss="modal">No</button>
+      <button type="button" id="confirm-approve-without-save" class="btn btn-primary-sub btn-sm"
+        (click)="deleteAgreement()" data-dismiss="modal">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>

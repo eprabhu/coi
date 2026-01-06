@@ -1,0 +1,388 @@
+<section id="coi-management-plan-{{managementPlan.plan?.cmpId}}" class="d-flex flex-column gap-2"
+    aria-label="Management Plan">
+    <div id="coi-management-plan-header" class="header-sticky">
+        <!-- header -->
+        <app-management-plan-header></app-management-plan-header>
+        <!-- info -->
+        <div *ngIf="!isLoading && infoText && (actionBtnConfig.isShowGenerateBtn || actionBtnConfig.isShowUploadBtn || uploadedAttachment?.length)"
+            class="coi-box-red d-flex align-items-center p-2 my-1">
+            <!-- icon -->
+            <mat-icon class="mat-icon material-icons flex-shrink-0" aria-hidden="true">info</mat-icon>
+            <p class="d-inline-flex align-items-center fs-14 mb-0 ms-2 col">
+                <!-- text -->
+                <span [innerHTML]="infoText" class="pe-2"></span>
+                <span class="d-inline-flex align-items-center gap-2 ms-auto">
+                    <!-- Upload Btn -->
+                    <button *ngIf="actionBtnConfig.isShowUploadBtn" (click)="openUploadConfirmationModal('UPLOAD')"
+                        id="cmp-screen-upload-btn-{{ managementPlan.plan?.cmpId }}"
+                        class="btn btn-outline-grey coi-btn-sm d-inline-flex align-items-center fs-14 gap-2"
+                        title="Click here to upload {{ CMP_LOCALIZE.TERM_CMP }} document"
+                        attr.aria-label="Click here to upload {{ CMP_LOCALIZE.TERM_CMP }} document">
+                        <span>Upload</span>
+                    </button>
+                    <!-- Generate Btn -->
+                    <button *ngIf="actionBtnConfig.isShowGenerateBtn"
+                        (click)="openGenerateConfirmationModal('GENERATE')"
+                        id="cmp-screen-generate-btn-{{ managementPlan.plan?.cmpId }}"
+                        class="btn btn-outline-grey coi-btn-sm d-inline-flex align-items-center fs-14 gap-2"
+                        title="Click here to generate {{ CMP_LOCALIZE.TERM_CMP }} document"
+                        attr.aria-label="Click here to generate {{ CMP_LOCALIZE.TERM_CMP }} document">
+                        <span>Generate {{ CMP_LOCALIZE.TERM_CMP }} Document</span>
+                    </button>
+                    <ng-container *ngIf="uploadedAttachment?.length">
+                        <!-- Pdf -->
+                        <button (click)="downloadCmpAttachment(uploadedAttachment[0])"
+                            id="cmp-screen-pdf-btn-{{ managementPlan.plan?.cmpId }}"
+                            class="btn btn-outline-grey coi-btn-icon-sm d-inline-flex align-items-center fs-14 gap-2"
+                            title="Click here to download {{ CMP_LOCALIZE.TERM_CMP }} document as pdf."
+                            attr.aria-label="Click here to download {{ CMP_LOCALIZE.TERM_CMP }} document as pdf.">
+                            <img src="{{deployMap}}assets/images/adobe-pdf.svg" aria-hidden="true"
+                                class="coi-height-20px" alt="Logo" />
+                        </button>
+                        <!-- version -->
+                        <!-- <button (click)="openCmpVersionModal()"
+                            id="cmp-screen-version-btn-{{ managementPlan.plan?.cmpId }}"
+                            class="btn btn-outline-grey coi-btn-icon-sm d-inline-flex align-items-center fs-14 gap-2"
+                            title="Click here to {{ CMP_LOCALIZE.TERM_CMP }} document versions."
+                            attr.aria-label="Click here to {{ CMP_LOCALIZE.TERM_CMP }} document versions.">
+                            <mat-icon aria-hidden="true" class="flex-shrink-0">difference</mat-icon>
+                        </button> -->
+                        <button *ngIf="actionBtnConfig.isShowReplaceBtn || actionBtnConfig.isShowReGenerateBtn"
+                            [matMenuTriggerFor]="cmpMoreOptions" id="cmp-screen-more-action-btn"
+                            class="btn btn-outline-grey coi-btn-icon-sm d-inline-flex align-items-center fs-14 gap-2"
+                            title="Click here for more actions" aria-label="Click here for more actions">
+                            <mat-icon aria-hidden="true" class="flex-shrink-0 moreActionIcon">more_vert</mat-icon>
+                        </button>
+                    </ng-container>
+                    <mat-menu #cmpMoreOptions="matMenu" xPosition="before">
+                        <!-- Replace Document -->
+                        <ng-container *ngIf="actionBtnConfig.isShowReplaceBtn">
+                            <button mat-menu-item
+                                id="cmp-screen-more-action-replace-{{sectionDetails?.cmpSectionRelId}}"
+                                class="more-action" title="Click here to replace {{ CMP_LOCALIZE.TERM_CMP }} document."
+                                attr.aria-label="Click here to replace {{ CMP_LOCALIZE.TERM_CMP }} document."
+                                (click)="openUploadConfirmationModal('REPLACE')">
+                                <span class="fw-medium fs-14">Replace Document</span>
+                            </button>
+                        </ng-container>
+                        <!-- Regenerate Document -->
+                        <ng-container *ngIf="actionBtnConfig.isShowReGenerateBtn">
+                            <button mat-menu-item
+                                id="cmp-screen-more-action-regenerate-{{sectionDetails?.cmpSectionRelId}}"
+                                class="more-action"
+                                title="Click here to regenerate {{ CMP_LOCALIZE.TERM_CMP }} document."
+                                attr.aria-label="Click here to regenerate {{ CMP_LOCALIZE.TERM_CMP }} document."
+                                (click)="openGenerateConfirmationModal('REGENERATE')">
+                                <span class="fw-medium fs-14">Regenerate Document</span>
+                            </button>
+                        </ng-container>
+                    </mat-menu>
+                </span>
+            </p>
+        </div>
+        <!-- sub nav head -->
+        <app-management-plan-nav></app-management-plan-nav>
+    </div>
+
+    <!-- body content -->
+    <div>
+        <router-outlet></router-outlet>
+    </div>
+</section>
+
+<!-- Assigned task list modal start-->
+<app-common-modal *ngIf="personTaskListModalConfig?.isShowModal" [modalConfig]="personTaskListModalConfig.modalConfig"
+    (modalAction)="assignedTaskDetailsModalAction($event)">
+    <ng-container modal-header>
+        <span>Task Assigned</span>
+    </ng-container>
+    <ng-container modal-body>
+        <div class="task-assigned-container">
+            <!-- Info Banner -->
+            <div role="alert"
+                class="d-flex align-items-center justify-content-between alert alert-primary mb-0 py-2 gap-2">
+                <div class="d-flex justify-content-between gap-2">
+                    <mat-icon role="img" class="flex-shrink-0" aria-hidden="true">info</mat-icon>
+                    <!-- message -->
+                    <p class="fs-14 mb-0">
+                        <span class="new-line-property">You have been assigned the following tasks for
+                            completion.</span>
+                    </p>
+                </div>
+            </div>
+            <!-- Task List -->
+            <div class="task-list d-flex flex-column gap-3">
+                <div *ngFor="let task of loggedPersonPendingTaskList" class="card coi-card-regular">
+                    <div class="card-body px-3 py-2">
+                        <div class="row align-items-center">
+                            <!-- Task Type -->
+                            <div class="col-md-3">
+                                <label class="d-block coi-text-dark">Task Type</label>
+                                <app-no-data-label [valueToShow]="task?.cmpTaskType?.description">
+                                    <span class="coi-text-light text-slice" [title]="task?.cmpTaskType?.description">{{
+                                        task?.cmpTaskType?.description }}</span>
+                                </app-no-data-label>
+                            </div>
+                            <!-- Assignee -->
+                            <div class="col-md-3">
+                                <label class="d-block coi-text-dark">Assignee</label>
+                                <app-no-data-label [valueToShow]="task?.assigneePersonName">
+                                    <span class="coi-text-light text-slice" [title]="task?.assigneePersonName">{{
+                                        task?.assigneePersonName }}</span>
+                                </app-no-data-label>
+                            </div>
+                            <!-- Assigned On -->
+                            <div class="col-md-3">
+                                <label class="d-block coi-text-dark">Assigned On</label>
+                                <app-no-data-label [valueToShow]="task?.assignedOn">
+                                    <span class="coi-text-light text-slice" [title]="task?.assignedOn |
+                                        dateFormatterWithTimeZone">{{ task?.assignedOn |
+                                        dateFormatterWithTimeZone }}</span>
+                                </app-no-data-label>
+                            </div>
+                            <!-- Action Button -->
+                            <div class="col-md-3 text-end d-flex justify-content-end align-items-center gap-2">
+                                <button id="cmp-task-goto-btn" class="btn btn-primary btn-sm"
+                                    (click)="navigateToTask(task?.taskId)">
+                                    Go To Task
+                                </button>
+                                <button id="cmp-task-expand-btn"
+                                    class="btn btn-light btn-sm rounded-circle p-1 d-flex align-items-center justify-content-center"
+                                    (click)="task.isQuestionsExpanded = !task.isQuestionsExpanded">
+                                    <mat-icon>{{ task.isQuestionsExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Description & Details (Collapsible) -->
+                        <div class="row mt-3" *ngIf="task.isQuestionsExpanded">
+                            <div class="col-md-3 col-sm-6 col-12">
+                                <label class="d-block coi-text-dark">Description</label>
+                                <app-no-data-label [valueToShow]="task?.description">
+                                    <span class="coi-text-light text-slice" [title]="task?.description">{{
+                                        task?.description }}</span>
+                                </app-no-data-label>
+                            </div>
+                            <!-- Task status -->
+                            <div class="col-md-3 col-sm-6 col-12">
+                                <span class="d-block coi-text-dark">Status</span>
+                                <app-no-data-label [valueToShow]="task?.cmpTaskStatus?.description">
+                                    <span class="coi-text-light text-slice" [title]="task?.cmpTaskStatus?.description">
+                                        <span [class]="taskStatusBadge[task?.cmpTaskStatus?.taskStatusCode]"></span>
+                                        <span class="ms-2">{{ task?.cmpTaskStatus?.description }}</span>
+                                    </span>
+                                </app-no-data-label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+</app-common-modal>
+<!-- Assigned task list modal ends-->
+
+<!-- confirmation Modal -->
+<app-common-modal [modalConfig]="managementPlanService.confirmationModal.modalConfig"
+    (modalAction)="postConfirmation($event)">
+    <!-- modal-header -->
+    <ng-container modal-header>
+        <span>{{ managementPlanService.confirmationModal.modalHeader }}</span>
+        <!-- header help text -->
+        <app-common-help-text *ngIf="managementPlanService.confirmationModal.modalHelpTextConfig?.subSectionId"
+            [elementId]="managementPlanService.confirmationModal.modalHelpTextConfig?.elementId"
+            [subSectionId]="managementPlanService.confirmationModal.modalHelpTextConfig?.subSectionId">
+        </app-common-help-text>
+    </ng-container>
+    <!-- modal body -->
+    <ng-container modal-body>
+        <div class="d-flex flex-column gap-3">
+            <app-cmp-header-card [managementPlan]="managementPlan"></app-cmp-header-card>
+            <p *ngIf="managementPlanService.confirmationModal.modalBody" class="fs-14 mb-0"
+                [innerHTML]="managementPlanService.confirmationModal.modalBody | safe"></p>
+            <!-- description -->
+            <ng-container *ngIf="managementPlanService.confirmationModal.visibleFieldsList?.length">
+                <fieldset class="row g-3">
+                    <legend class="visually-hidden">{{ managementPlanService.confirmationModal.modalHeader }}</legend>
+                    <!-- Approval Date -->
+                    <div *ngIf="managementPlanService.confirmationModal.visibleFieldsList?.includes('APPROVAL_DATE')"
+                        class="col-md-6 col-12">
+                        <label class="d-block pb-1" for="cmp-confirm-approval-date">
+                            <span
+                                *ngIf="managementPlanService.confirmationModal.mandatoryFieldsList?.includes('APPROVAL_DATE')"
+                                class="mandatory" aria-label="Mandatory field">*</span>
+                            <span>{{ managementPlanService.confirmationModal.approvalDateLabel }}</span>
+                        </label>
+                        <span class="dateField">
+                            <!-- date picker input -->
+                            <input #approvalDateInput id="cmp-confirm-approval-date" class="form-control d-inline-block"
+                                matInput [matDatepicker]="APPROVAL_DATE" (click)="APPROVAL_DATE.open()"
+                                [(ngModel)]="managementPlanService.confirmationModal.approvalDate"
+                                (ngModelChange)="validateDateFormat('APPROVAL_DATE')"
+                                (blur)="validateDateFormat('APPROVAL_DATE')"
+                                (dateChange)="validateDateFormat('APPROVAL_DATE')"
+                                (keypress)="commonService._keyPress($event, 'date')" placeholder="{{datePlaceHolder}}">
+                            <!-- date picker icon btn -->
+                            <button id="cmp-confirm-approval-date-btn" class="btn-none insidePicker"
+                                (click)="APPROVAL_DATE.open()"
+                                title="Click here to open date picker for {{ managementPlanService.confirmationModal.approvalDateLabel }}"
+                                attr.aria-label="Click here to open date picker for {{ managementPlanService.confirmationModal.approvalDateLabel }}">
+                                <mat-icon aria-hidden="true"
+                                    class="coi-mat-icon-size coi-text-light">calendar_month</mat-icon>
+                            </button>
+                            <!-- date picker -->
+                            <mat-datepicker #APPROVAL_DATE></mat-datepicker>
+                        </span>
+                        <!-- error -->
+                        <span *ngIf="managementPlanService.confirmationModal.errorMsgMap.has('APPROVAL_DATE')"
+                            class="d-block fs-13 invalid-feedback ps-1">{{
+                            managementPlanService.confirmationModal.errorMsgMap.get('APPROVAL_DATE') }}</span>
+                    </div>
+                    <!-- Expiration Date -->
+                    <div *ngIf="managementPlanService.confirmationModal.visibleFieldsList?.includes('EXPIRATION_DATE')"
+                        class="col-md-6 col-12">
+                        <label class="d-block pb-1" for="cmp-confirm-expiration-date">
+                            <span
+                                *ngIf="managementPlanService.confirmationModal.mandatoryFieldsList?.includes('EXPIRATION_DATE')"
+                                class="mandatory" aria-label="Mandatory field">*</span>
+                            <span>{{ managementPlanService.confirmationModal.expirationDateLabel }}</span>
+                        </label>
+                        <span class="dateField">
+                            <!-- date picker input -->
+                            <input #expirationDateInput id="cmp-confirm-expiration-date"
+                                class="form-control d-inline-block" matInput [matDatepicker]="EXPIRATION_DATE"
+                                (click)="EXPIRATION_DATE.open()"
+                                [(ngModel)]="managementPlanService.confirmationModal.expirationDate"
+                                (ngModelChange)="validateDateFormat('EXPIRATION_DATE')"
+                                (blur)="validateDateFormat('EXPIRATION_DATE')"
+                                (dateChange)="validateDateFormat('EXPIRATION_DATE')"
+                                (keypress)="commonService._keyPress($event, 'date')" placeholder="{{datePlaceHolder}}">
+                            <!-- date picker icon btn -->
+                            <button id="cmp-confirm-expiration-date-btn" class="btn-none insidePicker"
+                                (click)="EXPIRATION_DATE.open()"
+                                title="Click here to open date picker for {{ managementPlanService.confirmationModal.expirationDateLabel }}"
+                                attr.aria-label="Click here to open date picker for {{ managementPlanService.confirmationModal.expirationDateLabel }}">
+                                <mat-icon aria-hidden="true"
+                                    class="coi-mat-icon-size coi-text-light">calendar_month</mat-icon>
+                            </button>
+                            <!-- date picker -->
+                            <mat-datepicker #EXPIRATION_DATE></mat-datepicker>
+                        </span>
+                        <!-- error -->
+                        <span *ngIf="managementPlanService.confirmationModal.errorMsgMap.has('EXPIRATION_DATE')"
+                            class="d-block fs-13 invalid-feedback ps-1">{{
+                            managementPlanService.confirmationModal.errorMsgMap.get('EXPIRATION_DATE') }}</span>
+                    </div>
+                    <!-- Description -->
+                    <div *ngIf="managementPlanService.confirmationModal.visibleFieldsList?.includes('CMP_ACTION_DESCRIPTION')"
+                        class="position-relative col-12" [class.pb-2]="managementPlanService.confirmationModal.errorMsgMap.has('CMP_ACTION_DESCRIPTION')
+                            || !managementPlanService.confirmationModal.visibleFieldsList?.includes('ATTACHMENT')">
+                        <div class="coi-text-dark d-flex pb-1">
+                            <label for="cmp-confirm-description" class="coi-text-dark">
+                                <span
+                                    *ngIf="managementPlanService.confirmationModal.mandatoryFieldsList?.includes('CMP_ACTION_DESCRIPTION')"
+                                    class="mandatory me-1" aria-label="Mandatory field">*</span>
+                                <span>{{ managementPlanService.confirmationModal.descriptionLabel }}</span>
+                            </label>
+                            <!-- header help text -->
+                            <app-common-help-text
+                                *ngIf="managementPlanService.confirmationModal.descriptionHelpTextConfig?.subSectionId"
+                                [elementId]="managementPlanService.confirmationModal.descriptionHelpTextConfig?.elementId"
+                                [subSectionId]="managementPlanService.confirmationModal.descriptionHelpTextConfig?.subSectionId">
+                            </app-common-help-text>
+                        </div>
+                        <textarea class="form-control" id="cmp-confirm-description" rows="5"
+                            name="cmp-confirm-description"
+                            [(ngModel)]="managementPlanService.confirmationModal.description" appLengthValidator
+                            [limit]="2000" autocomplete="off"
+                            (ngModelChange)="managementPlanService.confirmationModal.description = managementPlanService.confirmationModal.description.trim();"
+                            [placeholder]="managementPlanService.confirmationModal.textAreaPlaceholder"
+                            [attr.aria-label]="managementPlanService.confirmationModal.description"
+                            [styleList]="'position-absolute end-0 pe-2 float-end word-count'"
+                            [class.is-invalid]="managementPlanService.confirmationModal.errorMsgMap.has('CMP_ACTION_DESCRIPTION')">
+                        </textarea>
+                        <!-- description error -->
+                        <span *ngIf="managementPlanService.confirmationModal.errorMsgMap.has('CMP_ACTION_DESCRIPTION')"
+                            class="position-absolute invalid-feedback d-inline fs-13">{{
+                            managementPlanService.confirmationModal.errorMsgMap.get('CMP_ACTION_DESCRIPTION') }}</span>
+                    </div>
+                    <!-- warning -->
+                    <div *ngIf="managementPlanService.confirmationModal.warningText" class="col-12 pt-2">
+                        <div class="d-flex align-items-center alert alert-warning mb-0 py-2">
+                            <!-- icon -->
+                            <mat-icon class="mat-icon material-icons flex-shrink-0" aria-hidden="true">info</mat-icon>
+                            <!-- text -->
+                            <p class="d-inline-flex align-items-center fs-14 mb-0 ms-2 col">
+                                <span [innerHTML]="managementPlanService.confirmationModal.warningText"></span>
+                            </p>
+                        </div>
+                    </div>
+                    <!-- info -->
+                    <div *ngIf="managementPlanService.confirmationModal.InfoText" class="col-12 pt-2">
+                        <div class="d-flex align-items-center alert alert-primary mb-0 py-2">
+                            <!-- icon -->
+                            <mat-icon class="mat-icon material-icons flex-shrink-0" aria-hidden="true">info</mat-icon>
+                            <!-- text -->
+                            <p class="d-inline-flex align-items-center fs-14 mb-0 ms-2 col">
+                                <span [innerHTML]="managementPlanService.confirmationModal.InfoText"></span>
+                            </p>
+                        </div>
+                    </div>
+                    <!-- File Upload -->
+                    <div *ngIf="managementPlanService.confirmationModal.visibleFieldsList?.includes('ATTACHMENT')"
+                        class="position-relative col-12">
+                        <!-- Attachment -->
+                        <div class="col-12">
+                            <label for="cmp-confirm-att" class="coi-text-dark pb-1">
+                                <span
+                                    *ngIf="managementPlanService.confirmationModal.mandatoryFieldsList?.includes('ATTACHMENT')"
+                                    class="mandatory me-1" aria-label="Mandatory field">*</span>
+                                <span>{{ managementPlanService.confirmationModal.attachmentLabel }}</span>
+                                <app-common-help-text></app-common-help-text>
+                            </label>
+                            <!-- file drop -->
+                            <div>
+                                <app-file-drop [multiple]="true" [fileAccept]="CMP_GENERATE_FILE_TYPE"
+                                    (filesDropEvent)="fileDrop($event)"></app-file-drop>
+                            </div>
+                        </div>
+                        <!-- files -->
+                        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                            <div *ngIf="managementPlanService.confirmationModal.uploadedFiles?.length"
+                                class="coi-file-chip-container">
+                                <ng-container
+                                    *ngFor="let file of managementPlanService.confirmationModal.uploadedFiles; let fileIndex = index;">
+                                    <span class="coi-file-chips rounded-pill">
+                                        <span class="me-1 fs-12">{{file?.name}}</span>
+                                        <button id="coi-foreign-name-delete-{{fileIndex}}" class="d-flex btn-none"
+                                            (click)="deleteFromUploadedFileList(fileIndex)"
+                                            title="click here to remove file: {{file?.name}}"
+                                            attr.aria-label="click here to remove file: {{file?.name}}">
+                                            <mat-icon class="fileChips-close fs-13" aria-hidden="true">clear</mat-icon>
+                                        </button>
+                                    </span>
+                                </ng-container>
+                            </div>
+                        </div>
+                        <!-- error -->
+                        <span *ngIf="managementPlanService.confirmationModal.errorMsgMap.has('ATTACHMENT')"
+                            class="mandatory fs-14">{{
+                            managementPlanService.confirmationModal.errorMsgMap.get('ATTACHMENT') }}</span>
+                    </div>
+                </fieldset>
+            </ng-container>
+        </div>
+    </ng-container>
+    <!--  modal additional footer buttons -->
+    <ng-container *ngIf="managementPlanService.confirmationModal.additionalFooterBtns?.length"
+        modal-additional-footer-buttons>
+        <ng-container *ngFor="let btnType of managementPlanService.confirmationModal.additionalFooterBtns">
+            <button type="button" class="btn fs-14 {{btnType?.event?.btnClass}}"
+                id="cmp-confirm-modal-btn-{{btnType?.action}}" (click)="performCmpDocAction(btnType?.action)"
+                title="Click here to {{ btnType?.event?.buttonName }}"
+                aria-label="Click here to {{ btnType?.event?.buttonName }}">
+                {{ btnType?.event?.buttonName }}
+            </button>
+        </ng-container>
+    </ng-container>
+</app-common-modal>

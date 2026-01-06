@@ -1,0 +1,180 @@
+<div class="card rounded-0">
+  <div class="card-content">
+    <div class="card-header py-2">
+      <h4 class="card-title align-items-center d-flex">
+        <span class="mr-auto width-80 mt-0">Actual Amount
+          <ng-container *ngIf="internalOrderCode?.length"> of </ng-container>
+           {{internalOrderCode}}</span>
+        <span
+          *ngIf="awardBudgetTransactionDetails?.expenseTransactions?.length > 0"
+          class= "exportButton">
+          <span class="exportIcon-margin">Export as :</span>
+          <a title="Export data to Excel sheet" class="exportIcon-margin  hand-cursor" id="export-award-excel-btn"
+            (click)="exportcomitted('xlsx')" tabindex="0">
+            <i aria-hidden="true" class="fa fa-file-excel-o"></i>
+          </a>
+          <a class="exportIcon-margin">|</a>
+          <a title="Export data to PDF document" class="hand-cursor" id="export-award-pdf-btn"
+            (click)="exportcomitted('pdf')" tabindex="0"><i aria-hidden="true" class="fa fa-file-pdf-o"></i></a>
+        </span>
+          <button type="button" class="btn more-btn ml-4"  (click)="redirectionPath()" title="'Back to' {{tab == 'P' ? 'purchase' : 'expense'}}"><i
+              class="fa fa-reply" aria-hidden="true"></i></button>
+      </h4>
+    </div>
+    <div class="card card-inner">
+      <div class="card-content">
+        <div class="card-body">
+          <div class="fixed-header-table">
+            <div class="form-row">
+              <div class="col">
+                <label class="d-block">WBS Number (for OFIN use)</label>
+                <app-look-up [options]='ioCodeOptions' [selectedLookUpList]="ioCodeList" (selectedResult)="onLookupSelect($event)"
+                  [externalArray]="getAllIOCodes" [isExternalArray]="true">
+                </app-look-up>
+              </div>
+              <div class="col-auto">
+                <label class="d-block">Posting Date</label>
+                <span class=" d-inline-block dateField">
+                  <input matInput [matDatepicker]="postingDateFrom" id="actual-posting-date-from" [(ngModel)]="filterpostingdatefrom"
+                    class="form-control" autocomplete="off" (click)="postingDateFrom.open()"
+                    (keypress)="_commonService._keyPress($event, 'date')" (ngModelChange)="dateValidation()"
+                    placeholder="{{datePlaceHolder}}" />
+                  <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor" title="open calendar"
+                    (click)="postingDateFrom.open()"></span>
+                  <mat-datepicker #postingDateFrom (opened)="setFocusToElement('actual-posting-date-from')">
+                  </mat-datepicker>
+                </span>
+                <label class="d-none d-sm-inline-block">-</label>
+                <span class="d-inline-block dateField">
+                  <input matInput [matDatepicker]="postingDateTo" id="actual-posting-date-to" [(ngModel)]="filterpostingdateto"
+                    class="form-control" autocomplete="off" (click)="postingDateTo.open()"
+                    (keypress)="_commonService._keyPress($event, 'date')" (ngModelChange)="dateValidation()"
+                    placeholder="{{datePlaceHolder}}" [ngClass]="{'is-invalid d-block': !isDateValid}" />
+                  <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor" title="open calendar"
+                    (click)="postingDateTo.open()"></span>
+                  <mat-datepicker #postingDateTo (opened)="setFocusToElement('actual-posting-date-to')">
+                  </mat-datepicker>
+                </span>
+              </div>
+              <span class="ml-2 mt-4 p-2">
+                <button id="search-award-transaction" title="Search" class="btn btn-primary btn-xs mb-1"
+                  (click)="filterTransaticonData()">Search</button>
+              </span>
+              <div class="invalid-feedback block-display" *ngIf="!isDateValid">
+                Please select the To date after From date.
+              </div>
+            </div>
+            <table class="tableStyle" *ngIf="(awardBudgetTransactionDetails?.expenseTransactions?.length > 0); else noData">
+              <caption class="sr-only">Actual amount</caption>
+              <thead class="thead-light">
+                <tr class="th-seperation line-height">
+                  <th style="width:5%" scope="col">WBS Number (for OFIN use)</th>
+                  <th style="width:8%" scope="col">GL Account</th>
+                  <th style="width:10%" scope="col">Bank Clearing Date</th>
+                  <th style="width:8%" scope="col">Document Date</th>
+                  <th style="width:8%" scope="col">Source Doc ref</th>
+                  <th style="width:6%" scope="col">Posting Date</th>
+                  <th style="width:8%" scope="col">System Doc ref</th>
+                  <th style="width:6%" scope="col">Amount</th>
+                  <th class="text-align-left pl-3" scope="col">Vendor </th>
+                  <th class="text-align-left pl-3" scope="col">Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <ng-container>
+                <tr class="th-seperation"
+                  *ngFor="let transactions of awardBudgetTransactionDetails?.expenseTransactions">
+                  <td>{{transactions?.internalOrderCode}}</td>
+                  <td>{{transactions?.fiGlAccount }}</td>
+                  <td>{{transactions?.bankClearingDate | dateFormatter}}</td>
+                  <td>{{transactions?.documentDate | dateFormatter}}</td>
+                  <td>{{transactions?.transactionReferenceNumber}}</td>
+                  <td>{{transactions?.fmPostingDate | dateFormatter}}</td>
+                  <td>{{transactions?.documentNumber}}</td>
+                  <td class="text-right">{{transactions?.amountInFmacurrency | currency}}</td>
+                  <td>{{transactions?.vendorCode}}<span
+                      *ngIf="transactions?.vendorCode && transactions?.vendorName"> -
+                    </span>{{transactions?.vendorName}}
+                  </td>
+                  <td>{{transactions?.remarks}}</td>
+                </tr>
+                </ng-container>
+                <!-- <ng-container
+                  *ngIf="(awardBudgetTransactionDetails?.sapTransactions?.length > 0 && awardBudgetTransactionDetails?.nonSapTransactions?.length > 0)">
+                  <ng-container *ngIf="awardBudgetTransactionDetails?.sapTransactions.length > 0">
+                    <tr class="th-seperation">
+                      <td colspan="12" class="text-center">
+                        <span>Committed Expense from SAP</span></td>
+                    </tr>
+                    <tr class="th-seperation"
+                      *ngFor="let transactions of awardBudgetTransactionDetails?.sapTransactions">
+                      <td>{{transactions?.fiGlAccount }}</td>
+                      <td>{{transactions?.bankClearingDate | dateFormatter}}</td>
+                      <td>{{transactions?.documentDate | dateFormatter}}</td>
+                      <td>{{transactions?.transactionReferenceNumber}}</td>
+                      <td>{{transactions?.fmPostingDate | dateFormatter}}</td>
+                      <td>{{transactions?.documentNumber}}</td>
+                      <td class="text-right">{{transactions?.amountInFmacurrency | currency}}</td>
+                      <td class="text-left">{{transactions?.vendorCode}}<span
+                          *ngIf="transactions?.vendorCode && transactions?.vendorName"> -
+                        </span>{{transactions?.vendorName}}
+                      </td>
+                      <td class="text-left">{{transactions?.fiGlDescription}}</td>
+                    </tr>
+                  </ng-container>
+                  <ng-container *ngIf="awardBudgetTransactionDetails?.nonSapTransactions?.length > 0">
+                    <tr class="th-seperation">
+                      <td colspan="12" class="text-center">
+                        <label class="width-max">Manually entered committed items</label>
+                      </td>
+                    </tr>
+                    <tr class="th-seperation"
+                      *ngFor="let transactions of awardBudgetTransactionDetails?.nonSapTransactions">
+                      <td>{{transactions?.fiGlAccount }}</td>
+                      <td>{{transactions?.bankClearingDate | dateFormatter}}</td>
+                      <td>{{transactions?.documentDate | dateFormatter}}</td>
+                      <td>{{transactions?.transactionReferenceNumber}}</td>
+                      <td>{{transactions?.fmPostingDate | dateFormatter}}</td>
+                      <td>{{transactions?.documentNumber}}</td>
+                      <td class="text-right">{{transactions?.amountInFmacurrency | currency}}</td>
+                      <td class="text-left">{{transactions?.vendorCode}}<span
+                          *ngIf="transactions?.vendorCode && transactions?.vendorName"> -
+                        </span>{{transactions?.vendorName}}
+                      </td>
+                      <td class="text-left">{{transactions?.fiGlDescription}}</td>
+                    </tr>
+                  </ng-container>
+                </ng-container> -->
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td style="width:5%"></td>
+                  <td style="width:8%"></td>
+                  <td style="width:10%"></td>
+                  <td style="width:8%"></td>
+                  <td style="width:8%"></td>
+                  <td style="width:6%"></td>
+                  <td style="width:8%">Total</td>
+                  <td style="width:6%" class="text-right">{{totalExpenses?.amountInFmacurrency | currency}}</td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ng-template #noData>
+      <div class="no-data-container">
+        <span class="no-data-icon-outer">
+          <div class="no-data-icon">
+            <i class="fa fa-file-o" aria-hidden="true"></i>
+            <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+          </div>
+        </span>
+        <h4>There is no information in this section.</h4>
+      </div>
+    </ng-template>
+  </div>
+</div>

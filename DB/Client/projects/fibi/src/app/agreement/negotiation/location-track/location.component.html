@@ -1,0 +1,294 @@
+<!-- Location -->
+    <div class="card mb-3">
+      <div class="card-header px-4 py-2 ">
+        <h4 class="card-title review-title">
+          <div class="justify-content-between row">
+            <div class="col-auto">Review Location</div>
+            <div class="col-auto" *ngIf="!isLocationViewMode">
+              <button class="btn btn-tertiary btn-sm mt-0 button-right"  data-toggle="modal"  title="Add Review Location"
+              data-target="#add-location-modal" *ngIf="!isLocationViewMode" (click)="initializeValues();isLocationEdit=false;">
+                Add Review Location
+               </button>
+            </div>
+            <button class="updown-arrow mt-1" (click)="isLocation = !isLocation">
+              <i [ngClass]="!isLocation?'fa-large fa fa-angle-double-down':'fa-large fa fa-angle-double-up'"
+                class="fa-large" aria-hidden="true"></i>
+            </button>
+          </div>
+        </h4>
+      </div>
+      <div class="card-body" *ngIf="isLocation">
+       <div *ngIf="(negotiationLookUp?.negotiationsLocations?.length == 0 && isLocationViewMode) || (negotiationLookUp?.negotiationsLocations?.length == 0) || (!isAgreementAdministrator && !isGroupAdministrator)">
+          <div class="noDataExists">
+            <div class="no-data-container">
+              <span class="no-data-icon-outer">
+                      <div class="no-data-icon">
+                          <i aria-hidden="true" class="fa fa-file-o"></i>
+                          <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                      </div>
+               </span>
+               <h4>There is no information in this section.</h4>
+           </div>  
+          </div>
+        </div>
+        <table *ngIf="negotiationLookUp?.negotiationsLocations?.length > 0"
+          class = " table tableSkin">
+          <caption class="sr-only">Location</caption>
+          <thead>
+            <tr>
+              <th scope="col" id="sort-by-agreementType" (click)="isDesc = !isDesc;sortResult('negotiationsLocationType')">
+                <span class="hand-cursor" title="Click to sort by location name">Location</span>
+                <i aria-hidden="true"
+                  [ngClass]="((sortBy == 'negotiationsLocationType') ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+              </th>
+              <th scope="col" (click)="isDesc = !isDesc;sortResult('person')">
+                <span class="hand-cursor" title="Click to sort by assignee name">Assignee</span>
+                <i aria-hidden="true"
+                  [ngClass]="((sortBy == 'person') ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon':'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+              </th>
+              <th scope="col" (click)="isDesc = !isDesc;sortResult('createTimestamp')">
+                <span class="hand-cursor" title="Click to sort by assignedDate">Assigned On</span>
+                <i aria-hidden="true"
+                  [ngClass]="((sortBy == 'createTimestamp') ? (isDesc ? 'fa fa-sort-numeric-asc sortIcon' : 'fa fa-sort-numeric-desc sortIcon' ) : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                </th>
+                <th scope="col" class="text-center" (click)="isDesc = !isDesc;sortResult('numberOfDays')">
+                  <span class="hand-cursor" title="Click to sort by numberOfDays">Days at Location</span>
+                  <i aria-hidden="true"
+                    [ngClass]="((sortBy == 'numberOfDays') ? (isDesc ? 'fa fa-sort-numeric-asc sortIcon' : 'fa fa-sort-numeric-desc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                </th>
+              <th scope="col" (click)="isDesc = !isDesc;sortResult('negotiationLocationStatus')">
+                <span class="hand-cursor" title="Click to sort by status">Status</span>
+                <i aria-hidden="true"
+                  [ngClass]="((sortBy == 'negotiationLocationStatus') ? (isDesc ?  'fa fa-sort-alpha-asc sortIcon':'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+              </th>
+              <th scope="col" class="text-right" *ngIf="!isLocationViewMode">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let history of negotiationLookUp?.negotiationsLocations | orderBy: {property: sortBy , direction: direction}; let i = index">
+              <td>{{history?.negotiationsLocationType?.description}}<span
+                  *ngIf="history?.description">({{history?.description}})</span></td>
+              <td>{{history?.person?.fullName}}</td>
+              <td>{{history?.createTimestamp | dateFormatterWithTimeZone: 'long' }}</td>
+              <td class="text-center">{{history?.numberOfDays}}</td>
+              <td>
+                <span *ngIf="history.locationStatusCode == '1'"
+                  class=" fw-600 text-warning">{{history?.negotiationLocationStatus?.description}}</span>
+                <span *ngIf="history.locationStatusCode == '2' "
+                  class="fw-600 text-primary">{{history?.negotiationLocationStatus?.description}}</span>
+                <span *ngIf="history.locationStatusCode == '3'"
+                  class="fw-600 text-success">{{history?.negotiationLocationStatus?.description}}</span>
+              </td>
+              <td class="text-right" *ngIf="!isLocationViewMode">
+                <ul class="actionButtonGroup" style="position: relative;">
+                  <li
+                  *ngIf="(history?.negotiationLocationStatus.locationStatusCode != '3' &&
+                  (history.assigneePersonId === currentUserId || isAgreementAdministrator || isGroupAdministrator ))">
+                  <a id="edit-location-btn" (click)="editLocation(i)" data-toggle="modal"
+                    data-target="#add-location-modal">
+                    <i class="fa fa-pencil" aria-hidden="true" title="Click here to edit "></i>
+                  </a>
+                </li>
+                  <li *ngIf="(history.assigneePersonId === currentUserId || isAgreementAdministrator || isGroupAdministrator)"
+                   class="hand-cursor add-activity-button">
+                    <a id="add-activity-btn" (click)="setLocationDataForActivity(i);isLocationEdit=false;isShowActivityModal = true;
+                    ">
+                      <img class="activity-icon" src="{{deployMap}}assets/images/playlist (2).svg" alt="add-activity icon" title="Click here to add activity">
+                    </a>
+                  </li>
+                
+                  <li>
+                   <span class="d-inline-block dropdown">
+                    <button class="btn btn-sm dropdown-toggle icons-toggle more-btn list-more-btn ml-1"
+                      *ngIf="(history.assigneePersonId === currentUserId || isAgreementAdministrator || isGroupAdministrator) && !isLocationViewMode"
+                      type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" title="More Actions"
+                      aria-expanded="false">
+                      <i aria-hidden="true" class="fa fa-ellipsis-v" aria-hidden="true"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right action-dropdown-menu"
+                      aria-labelledby="dropdownMenuButton">
+                      <ul class="location-options">
+                        <li class="hand-cursor" title="Start review"
+                          *ngIf="history.locationStatusCode === '1' && (history.assigneePersonId === currentUserId || isAgreementAdministrator || isGroupAdministrator)
+                          && !isLocationViewMode">
+                          <a id="start-review-btn" class="dropdown-item"
+                            (click)="startReview(history.negotiationLocationId)">
+                            <i class="fa fa-play-circle mr-2" aria-hidden="true"> </i>
+                            <span>Start Review</span>
+                          </a>
+                        </li>
+                        <li class="hand-cursor" title="Complete Review"
+                          *ngIf="history.locationStatusCode === '2' && (history.assigneePersonId === currentUserId || isAgreementAdministrator || isGroupAdministrator) 
+                          && !isLocationViewMode">
+                          <a id="complete-review-btn" class="dropdown-item" data-toggle="modal"
+                            data-target="#CompleteReviewModal"
+                            (click)="completeLocationId = history?.negotiationLocationId">
+                            <i class="fa fa-stop-circle-o mr-2" aria-hidden="true">
+                            </i>
+                            <span>Complete Review</span>
+                          </a>
+                        </li>
+                        <li class="hand-cursor" title="Add Activity">
+                          <a id="add-activity-btn" class="dropdown-item add-activity-button" (click)=" isShowActivityModal = true;
+                          setLocationDataForActivity(i);isLocationEdit=false;">
+                            <img class="activity-icon" src="{{deployMap}}assets/images/playlist.svg" alt="add-activity icon">
+                            <span>Add Activity</span>
+                          </a>
+                        </li>
+                        <li *ngIf="(history?.negotiationLocationStatus.locationStatusCode != '3' && !isLocationViewMode && 
+                        (isAgreementAdministrator || isGroupAdministrator|| (history.assigneePersonId === currentUserId)))" title="Edit Location" class="hand-cursor">
+                          <a class="dropdown-item" id="edit-location-btn" (click)="editLocation(i)" data-toggle="modal"
+                            data-target="#add-location-modal">
+                            <i class="fa fa-pencil mr-2" aria-hidden="true"></i>
+                            <span>Edit Location</span>
+                          </a>
+                        </li>
+                        <li title="Delete Location" *ngIf="history?.negotiationLocationStatus.locationStatusCode != '3' && !isLocationViewMode &&  (isAgreementAdministrator|| isGroupAdministrator || (history.assigneePersonId === currentUserId))" class="hand-cursor">
+                          <a class="dropdown-item" id="delete-location-btn" data-toggle="modal" data-target="#deleteLocationModal"
+                            (click)="deleteindex = i;map.clear();">
+                            <i class="fa fa-trash-o mr-2" aria-hidden="true"></i>
+                            <span>Delete Location</span>
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </span>
+                  </li>
+                </ul>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+<!-- Location Ends-->
+<!-- DELETE MEMBER WARNING MODAL -->
+<div class="modal fade mySkinDialog modal-opacity" tabindex="-1" id="deleteLocationModal" tabindex="-1" role="dialog"
+  aria-labelledby="deleteModalTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete</h5>
+        <button id="prop-dlt-member-dismiss" type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this location?</p>
+      </div>
+      <div class="modal-footer">
+        <button id="coi-location-warning-modal-cancel-btn" type="button" class=" btn-secondary btn-sm" data-dismiss="modal"
+          data-toggle="modal">Cancel</button>
+        <button id="coi-location-warning-modal-delete-btn" type="button" class="btn btn-primary-sub btn-sm"
+          (click)="deleteLocation(deleteindex)" data-dismiss="modal">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Complete review modal -->	
+  <div class="modal fade mySkinDialog" id="CompleteReviewModal" role="dialog">	
+    <div class="modal-dialog modal-lg">	
+      <!-- Modal content-->	
+      <div class="modal-content">	
+        <div class="modal-header ct-footer-padding">	
+          <h4 class="modal-title">Confirmation	
+          </h4>	
+          <button type="button" class="close" data-dismiss="modal" id="dissmiss-btn" aria-label="Close">	
+            <span aria-hidden="true">&times;</span>	
+          </button>	
+        </div>	
+        <div class="modal-body ct-modal-padding">	
+          <div class="row mt-2 mb-0">	
+            <div class="col-lg-12">	
+              <p>Are you sure you want to complete this review?</p>	
+            </div>	
+          </div>	
+          <div class="form-row">	
+            <div class="col-12 my-0">	
+              <label>Comments</label>	
+              <textarea class="form-control" appLengthValidator [isShowLimiter]="true" [limit]="4000"	
+                [(ngModel)]="completeReviewObject.agreementNote.note"></textarea>	
+            </div>	
+          </div>	
+        </div>	
+        <div class="modal-footer ct-footer-padding">	
+          <button id="nego-sumbit-no-btn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">No</button>	
+          <button type="button" class="btn btn-primary-sub btn-sm" (click)="completeReview()"	
+            data-dismiss="modal">Complete</button>
+        </div>
+        </div>
+    </div>
+  </div>
+
+  <app-negotiationActivity *ngIf="negotiationLookUp && isShowActivityModal" 
+  [negotiationLookUp]= 'negotiationLookUp' 
+  (updatedActivities)="updateNegotiationActivity($event)" 
+  [locationTypeCode]="locationTypeCode" 
+  [negotiationLocationId]="negotiationLocationId">
+  </app-negotiationActivity>
+
+<div class="modal fade mySkinDialog" id="add-location-modal" role="dialog"
+  aria-labelledby="skippedSchedulesTitle" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ isLocationEdit ? 'Edit Location' : 'Add Location' }}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" 
+        (click)="clearLocationObject();">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div id="locationId" class="form-group col-xl-4 col-lg-4 col-md-4 col-sm-6 col-12">
+            <label class="d-block"> <span class="mandatory">*</span>Location:</label>
+            <select class="form-control" [(ngModel)]="locationData" [ngClass]="(map.get('location')) ? 'is-invalid d-block' : ''">
+              <option value=null>--Select--</option>
+              <option [ngValue]="location" *ngFor="let location of filterLocationLookUp()"[hidden]="location.isActive != true">
+                {{location?.description}}
+              </option>
+            </select>
+            <div *ngIf="map.get('location')">
+              <span class="mandatory d-inline-block">{{map.get('location')}}</span>
+            </div>
+          </div>
+          <div class="col-4">
+            <label class="d-block">Assignee:</label>
+            <app-elastic [options]="elasticSearchOptions" [clearField]="clearField" [placeHolder]="'Search Assignee'"
+            (selectedResult)="selectUserElasticResult($event)" >
+            </app-elastic>
+          </div>
+          <div class="form-group col-xl-4 col-lg-4 col-md-4 col-sm-6 col-12">
+            <label class="d-block"> <span class="mandatory">*</span>Status:</label>
+            <select class="form-control" [(ngModel)]="statusData" [ngClass]="(map.get('status')) ? 'is-invalid d-block' : ''">
+              <option value=null>--Select--</option>
+              <option [ngValue]="status" *ngFor="let status of negotiationLookUp.negotiationLocationStatuses">
+                {{status?.description}}
+              </option>
+            </select>
+            <div *ngIf="map.get('status')">
+              <span class="mandatory">{{map.get('status')}}</span>
+            </div>
+          </div>
+      </div>
+      <div class="form-row">
+        <div class="col-12">
+          <label class="block-display">
+            Description</label>
+          <textarea [(ngModel)]="description" appLengthValidator [isShowLimiter]="true" [limit]="20" rows="1" class="form-control nego-txtarea-ht"></textarea>
+      </div>
+      </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-dismiss="modal" id="agreement-approve-close"
+          type="button" (click)="clearLocationObject();">Close</button>
+        <button id="agreement-approve-disapprove-btn" class="btn btn-primary-sub btn-sm"
+          (click)="saveLocation();" type="button">
+          {{ isLocationEdit ? 'Update' : 'Add' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,189 @@
+<!-- last updated by Ramlekshmy on 13-02-2020 -->
+<!--Adds area of research-->
+<div class="card mb-3" *ngIf="researchType"
+    style="z-index: 1;">
+    <div class="card-header p-2 px-4">
+        <h4 class="card-title d-inline-block title" id="proposal-research-area-edit-details">
+            <ng-container i18n="@@COMMON_AREA_OF_RESEARCH/SOCIETAL_CHALLENGE_AREA">Area of Research/Societal Challenge
+                Area</ng-container></h4>
+            <div class="float-right">
+            <button id="prop-add-area-of-research-btn" *ngIf="!editIndex" class="btn btn-tertiary btn-sm mt-0 button-right"
+                data-toggle="modal" data-target="#add-area-modal">
+                Add Area </button>
+            </div>
+            <button id="area-of-research-expnd-btn" class="updown-arrow"
+                (click)="dataVisibilityObj.isAreaOfResearchWidgetOpen = !dataVisibilityObj.isAreaOfResearchWidgetOpen">
+                <i [ngClass]="dataVisibilityObj.isAreaOfResearchWidgetOpen?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                    aria-hidden="true" class="fa-large"></i>
+            </button>
+    </div>
+    <div *ngIf="dataVisibilityObj.isAreaOfResearchWidgetOpen" class="card-content">
+        <div class="card-body p-2">
+              <div class="noDataOnChart noDataExists p-2" *ngIf="result?.proposalResearchAreas?.length == 0">
+                <div class="no-data-container">
+                  <span class="no-data-icon-outer">
+                    <div class="no-data-icon">
+                      <i aria-hidden="true" class="fa fa-file-o"></i>
+                      <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                    </div>
+                  </span>
+                  <h4>There is no information in this section.</h4>
+                </div>
+              </div>
+            <table class="table tableSkin grid2" aria-describedby="proposal-research-area-edit-details"
+                *ngIf="dataVisibilityObj.isAreaOfResearchWidgetOpen && result?.proposalResearchAreas?.length > 0">
+                <caption class="sr-only">Area of Research/Societal Challenge Area</caption>
+                <thead class="thead-light">
+                    <th scope="col">Type</th>
+                    <th scope="col">Area</th>
+                    <th scope="col">Sub-Area</th>
+                    <th scope="col">Actions</th>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let researchArea of result?.proposalResearchAreas;let i = index;">
+                        <td>{{researchArea?.researchType?.description}}</td>
+                        <td>{{researchArea?.researchTypeArea?.description}}</td>
+                        <td *ngIf="researchArea?.researchTypeSubArea?.description">
+                            {{researchArea?.researchTypeSubArea?.description}}</td>
+                        <td *ngIf="!researchArea?.researchTypeSubArea?.description"><span class="noDataExists">No
+                                subarea selected</span></td>
+                        <td>
+                            <ul class="actionButtonGroup">
+                                <li>
+                                    <a id="prop-area-of-research-edit-btn" data-toggle="modal" data-target="#add-area-modal">
+                                        <i class="fa fa-pencil" aria-hidden="true"
+                                            (click)="editAreaOfResearch(i)"
+                                            title="Edit this Research Area"></i>
+                                    </a>
+                                </li>
+                                <li><a href="#" id="prop-area-of-research-delete-btn" data-toggle="modal"
+                                        data-target="#deleteResearchArea"
+                                        (click)="temporarySaveAreaOfResearch($event,researchArea)"><i
+                                            class="fa fa-trash-o" aria-hidden="true"
+                                            title="{{researchArea?.researchTypeCode == 1? 'Remove this Research Area' : 'Remove this Societal Challenge Area'}}"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="bg-white card mb-3 px-2 pt-3" *ngIf="dataVisibilityObj.isMoreInfoWdgtOpen">
+        <h4 class="card-title pb-3 f-13 px-3" id="area-more-information">More Information</h4>
+        <div class="media-card gridSkin p-2 m-0">
+            <div class="row">
+                <div class="col-12">
+                    <label>
+                        <ng-container i18n="@@COMMON_STUDY_SOCIETAL_CHALLENGE_DESCRIPTION_ERR">Elaborate on how the proposed
+                            study may contribute to the Societal Challenge and/or
+                            Research Area</ng-container>
+                    </label>
+                    <textarea id="prop-area-of-research-desc" name="description" autocomplete="off"
+                        [(ngModel)]="result.proposal.researchDescription" class="form-control"
+                        (ngModelChange)="setUnsavedChanges(true);"
+                        appLengthValidator [isShowLimiter]='true' [limit]=4000
+                        i18n-placeholder='@@COMMON_STUDY_SOCIETAL_CHALLENGE_DESCRIPTION_PLHDR'
+                        placeholder="Elaborate on how the proposed study may contribute to the Societal Challenge and/or Research Area"></textarea>
+                </div>
+                <div class="col-12">
+                    <label>Indicate if the application is a multi-disciplinary project and elaborate</label>
+                    <textarea id="prop-area-of-research-milti-desc" name="areadescription" autocomplete="off"
+                        (ngModelChange)="setUnsavedChanges(true);"
+                        [(ngModel)]="result.proposal.multiDisciplinaryDescription" class="form-control" appLengthValidator
+                        [isShowLimiter]='true' [limit]=4000
+                        placeholder="Indicate if the application is a multi-disciplinary project and elaborate"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DELETE RESEARCH AREA WARNING MODAL -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="deleteResearchArea" tabindex="-1" role="dialog"
+    aria-labelledby="deleteModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete</h5>
+                <button type="button" id="prop-area-of-research-dismiss" class="close" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this item?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="prop-area-of-research-close-btn" class="btn btn-secondary"
+                    data-dismiss="modal">No</button>
+                <button type="button" id="prop-area-of-research-delete" class="btn btn-primary-sub btn-sm"
+                    (click)="deleteAreaOfResearch()" data-dismiss="modal">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Area Modal -->
+<div class="modal fade mySkinDialog" id="add-area-modal" role="dialog" aria-labelledby="skippedSchedulesTitle"
+    aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{editIndex !== null ? 'Update' : 'Add'}} Area of Research/Societal Challenge Area</h5>
+                <button type="button" class="close" (click)="resetAreaOfResearch()" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body py-1 px-3">
+                <app-proposal-overview-modal-card></app-proposal-overview-modal-card>
+                <div class="w-100">
+                    <div class="form-row">
+                        <div class="col-12 mt-3">
+                            <label for="prop-area-of-research-type">Type</label>
+                            <select class="form-control" id="prop-area-of-research-type"
+								[(ngModel)]="researchType" (change)="researchTypeChange()">
+								<option *ngFor="let type of result?.researchTypes" [hidden]="type.isActive != true"
+									[value]="type.researchTypeCode">
+									{{type.description}}</option>
+							</select>
+                        </div>
+                        <div class="col-12">
+                            <label>
+                                <span class="mandatory">*</span>Area:
+                            </label>
+                            <div class="searchBox">
+                             <app-endpoint-search [isError]="isError" id="prop-area-of-research"
+								[clearField]="clearAreaField" [httpOptions]="areaHttpOptions"
+								[placeHolder]="'Type here for Area'" (onSelect)="researchAreaSelectedFunction($event)"
+								[searchOnFocus]=true></app-endpoint-search>
+							<div class="invalid-feedback d-block" *ngIf="researchWarningMsg != null">
+								{{researchWarningMsg}}</div>
+							</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="margin-left-label">
+                                Sub-Area</label>
+                            <app-endpoint-search id="prop-sub-area-of-research" [clearField]="clearSubAreaField"
+                                [httpOptions]="subAreaHttpOptions" [placeHolder]="'Type here for Sub-Area'"
+                                (onSelect)="researchSubAreaSelectedFunction($event)" [searchOnFocus]=true>
+                            </app-endpoint-search>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer mt-4">
+                <div class="text-center text-md-right">
+                    <button id="prop-cancel-area-of-research-btn" class="btn btn-secondary btn-sm  btn-xs mr-2"
+                        data-dismiss="modal" (click)="resetAreaOfResearch()">Cancel</button>
+                    <button class="btn btn-primary-sub btn-xs" id="prop-edit-area-of-research-btn"
+                        (click)="validateAndSetReqObject()">
+                        {{editIndex !== null ? 'Update' : 'Add'}}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

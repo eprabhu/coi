@@ -1,0 +1,156 @@
+<div class="card">
+    <div class="card-content">
+        <div class="no-data-container" *ngIf="customElements == null || customElements?.length == 0">
+            <span class="no-data-icon-outer">
+                <div class="no-data-icon">
+                    <i class="fa fa-file-o" aria-hidden="true"></i>
+                    <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                </div>
+            </span>
+            <h4>There is no information in this section.</h4>
+        </div>
+        <div class="card card-body preview-container" *ngIf="customElements != null && customElements?.length != 0">
+            <div class="form-row">
+                <div *ngFor="let list of customElements; let index = index" appDragNDrag
+                    [draggingNode]="list"
+                    [ngClass]="(list.filterType =='Text')? 'col-12' : 'col-xl-3 col-lg-4 col-sm-6 col-12'"
+                    [dragCollection]="customElements">
+                    <div [ngSwitch]="true" [ngClass]="list.isActive === 'N' ? 'in-active': ''" class = "p-3">
+                        <div class="d-flex">
+                            <div class="mr-auto">
+                                <span class="mandatory" *ngIf="list.isRequired === 'Y'">*</span>
+                                <label class="f-16">{{ list.columnName }}</label>
+                            </div>
+                            <span class="d-inline-block dropdown">
+                                <button aria-expanded="true" aria-haspopup="true"
+                                    class="btn btn-sm icons-toggle more-btn list-more-btn" data-toggle="dropdown"
+                                    id="dropdownMenuButton" title="More Actions" type="button">
+                                    <i aria-hidden="true" class="fa fa-ellipsis-v"></i>
+                                </button>
+                                <div aria-labelledby="dropdownMenuButton"
+                                class="dropdown-menu action-dropdown-menu more-options-aligned
+                                moreActionBtnGroup custom-dropdown-action-menu f-16">
+                                    <ul class="more-actions-menu">
+                                        <li class="">
+                                            <div class="ng-star-inserted">
+                                                <label class="px-2">Required</label>
+                                                <a *ngIf="list.isRequired == 'Y'">
+                                                    <label class="switch">
+                                                        <input type="checkbox" id={{list.customDataElementId}}
+                                                            (click)="toggleCustomDataRequired(list.isRequired, list.customDataElementId, index, list.customElementName)"
+                                                            checked>
+                                                        <span class="slider round"><small>Yes</small></span>
+                                                    </label>
+                                                </a>
+                                                <a *ngIf="list.isRequired == 'N'">
+                                                    <label class="switch">
+                                                        <input type="checkbox" id={{list.customDataElementId}}
+                                                            (click)="toggleCustomDataRequired(list.isRequired, list.customDataElementId, index, list.customElementName)">
+                                                        <span class="slider round"><small
+                                                                class="deactivate-text">No</small></span>
+                                                    </label>
+                                                </a>
+                                            </div>
+
+                                        </li>
+                                        <li class="pointer" (click)="customDataElementEdit(list.customDataElementId)">
+                                            <a class="pointer" title="Edit custom data">
+                                                <i aria-hidden="true" class="fa fa-pencil" tabindex="0"></i>
+                                            </a>
+                                            <label class="px-2 pointer">Edit</label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </span>
+                        </div>
+                        <div *ngSwitchCase="list.filterType == 'String' || list.filterType =='Number'">
+                            <span>
+                                <input type="text" id="adv-search-proposal-no" placeholder="{{ list.columnName }}"
+                                    [disabled]="list.isActive === 'N'" [ngClass]="list.isActive === 'N'? 'in-active':''"
+                                    class="form-control mb-2 " />
+                            </span>
+                        </div>
+                        <div *ngSwitchCase="list.filterType =='Text'">
+                            <span>
+                                <textarea type="text" appAutoGrow appLengthValidator [isShowLimiter]='true' rows="4"
+                                 id="adv-search-proposal-no" placeholder="{{ list.columnName }}"
+                                    [disabled]="list.isActive === 'N'" [ngClass]="list.isActive === 'N'? 'in-active':''"
+                                    class="form-control mb-2 cus-ele-textarea"></textarea>
+                            </span>
+                        </div>
+                        <div *ngSwitchCase="list.filterType == 'Date'">
+                            <span class="coloumn-font">
+                                <span class="dateField mr-1">
+                                    <input matInput [matDatepicker]="customDt" placeholder="From ({{datePlaceHolder}})"
+                                        id="{{ list.columnName }}" [disabled]="list.isActive === 'N'" [ngClass]="list.isActive === 'N'? 'in-active':''"
+                                        class="d-inline-block form-control" [ngModel]="list.defaultValue"
+                                        (click)="customDt.open()">
+                                    <span class="fa fa-calendar fa-large insidePicker hand-cursor" aria-hidden="true" (click)="customDt.open()"></span>
+                                    <mat-datepicker #customDt (opened)="setFocusToElement(list.columnName)"></mat-datepicker>
+                                </span>
+                            </span>
+                        </div>
+                        <div *ngSwitchCase="list.filterType == 'Check Box'">
+                            <span *ngIf="list.options.length > 0">
+                                <div class="checkbox-inline col-12"
+                                    *ngFor="let option of list.options;  let checkBoxIndex=index">
+                                    <input type="checkbox" [disabled]="viewMode == 'view'" id="{{option.optionName}}{{index}}" 
+                                    [disabled]="list.isActive === 'N'" [ngClass]="list.isActive === 'N'? 'in-active':''"/>
+                                    <label for="{{option.optionName}}{{index}}"
+                                        [ngClass]="{'hand-cursor': viewMode != 'view' }">{{option.optionName}}</label>
+                                </div>
+                            </span>
+                        </div>
+                        <div *ngSwitchCase="list.filterType == 'Radio Button'">
+                            <span *ngIf="list.options.length > 0">
+                                <div class="checkbox-inline col-12" *ngFor="let option of list.options">
+                                    <input type="radio" [disabled]="viewMode == 'view'" [value]="option.optionName"
+                                    [disabled]="list.isActive === 'N'" [ngClass]="list.isActive === 'N'? 'in-active':''"
+                                        name="{{option.optionName}}{{index}}" id="{{option.optionName}}{{index}}" />
+                                    <label for="{{option.optionName}}{{index}}"
+                                        [ngClass]="{'hand-cursor': viewMode != 'view' }">{{option.optionName}}</label>
+                                </div>
+                            </span>
+                        </div>
+                        <div *ngSwitchCase="list.filterType == 'System Dropdown' || list.filterType == 'User Dropdown'">
+                            <span class="coloumn-font">
+                                <span>
+                                    <app-look-up [options]='list.lookupArgument'>
+                                    </app-look-up>
+                                </span>
+                            </span>
+                        </div>
+                        <div *ngSwitchCase="list.filterType == 'Elastic Search'">
+                            <span class="coloumn-font">
+                                <span>
+                                    <div class="position-relative">
+                                        <app-elastic [options]="elasticSearchOptions[list.columnName]"
+                                            [placeHolder]="'Type here for ' + list.columnName">
+                                        </app-elastic>
+                                    </div>
+                                </span>
+                            </span>
+                        </div>
+                        <div *ngSwitchCase="list.filterType == 'Autosuggest'">
+                            <span class="coloumn-font">
+                                <span>
+                                    <div class="position-relative">
+                                        <app-endpoint-search [httpOptions]="endPointSearchOptions[list.columnName]"
+                                            [placeHolder]="'Type here for ' + list.columnName">
+                                        </app-endpoint-search>
+                                    </div>
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 mt-3">
+                <div class="row flex-column flex-sm-row justify-content-md-end justify-content-center">
+                    <button class="btn btn-primary-sub mb-3 mb-sm-0 mr-sm-3 btn-sm"
+                        (click)="saveCustomDataSort()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

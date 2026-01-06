@@ -1,0 +1,206 @@
+<div class="push4slideMenu pageMinHeight">
+  <div class="container-fluid pushFixedHeaderFooter">
+      <div class="headerPush"></div>
+      <div class="row">
+          <div class="col">
+              <div class="row">
+                  <div class="dual-list list-left col-12">
+                      <div class="card mt-3">
+                          <div class="card-header position-relative">
+                              <h4 class="card-title">
+                                  <ng-container *ngIf="sponsorDetails.sponsorCode == null" class="pd-chg col-12">Add
+                                      New
+                                      Sponsor
+                                      <button class="btn more-btn back-btn-header" title="Add new sponsor"
+                                          (click)="isSponsorView = false; loadSponsor();">
+                                          <i class="fa fa-reply" aria-hidden="true"></i>
+                                      </button>
+                                  </ng-container>
+                                  <ng-container *ngIf="sponsorDetails.sponsorCode !== null" class="pd-chg col-12">
+                                      Edit Sponsor
+                                      <span *ngIf="sponsorDetails.updateUser !== null" class="float-right mr-5">
+                                          <label class="text-right">Last Updated by
+                                          </label>
+                                          <span>{{sponsorDetails?.updateUser}}</span>
+                                          <span *ngIf="sponsorDetails.updateTimestamp !== null"> on
+                                              {{sponsorDetails?.updateTimestamp | dateFormatterWithTimeZone
+                                              :'long'}}</span>
+                                      </span>
+                                      <button class="btn more-btn back-btn-header" title="Back"
+                                          (click)="isSponsorView = false;loadSponsor();">
+                                          <i class="fa fa-reply" aria-hidden="true"></i>
+                                      </button>
+                                  </ng-container>
+                              </h4>
+                          </div>
+                          <div class="card-content">
+                              <div class="card-body">
+                                  <div class="form-row">
+                                      <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                                          <label class="block-display">Sponsor Code</label>
+                                          <input type="text" id="sponsor-id" disabled placeholder=""
+                                              [(ngModel)]="sponsorDetails.sponsorCode"
+                                              class="form-group form-control" />
+                                      </div>
+                                      <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                                          <label class="block-display">
+                                              <span class="mandatory">*</span>Sponsor Name</label>
+                                          <input class="form-group form-control" type="text"
+                                              [(ngModel)]="sponsorDetails.sponsorName"
+                                              [ngClass]="(map.get('sponsorname')) ? 'is-invalid d-block' : ''"
+                                              id="sponsor-name" placeholder="" />
+                                          <div *ngIf="(map.get('sponsorname'))" class="invalid-feedback d-block">
+                                              Please select sponsor name.
+                                          </div>
+                                      </div>
+                                      <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                                          <label class="block-display">Acronym</label>
+                                          <input type="text" id="sponsor-id" placeholder=""
+                                              [(ngModel)]="sponsorDetails.acronym" class="form-group form-control"
+                                              [ngClass]="(map.get('acronym')) ? 'is-invalid d-block' : ''"
+                                              (ngModelChange)="inputLengthRestrictionAcronym(sponsorDetails.acronym)" />
+                                          <div class="invalid-feedback d-block" *ngIf="map.has('acronym')">
+                                              <span class="mandatory">{{map.get('acronym')}}</span>
+                                          </div>
+                                      </div>
+                                      <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                                          <label class="block-display">Active</label>
+                                          <div class="form-check form-check-inline">
+                                              <input class="radio-inline" type="radio"
+                                                  [(ngModel)]="sponsorDetails.active" name="inlineRadioOptions"
+                                                  id="inlineRadio1" [value]="true">
+                                              <label class="ml-2 form-check-label" for="inlineRadio1">Yes</label>
+                                          </div>
+                                          <div class="form-check form-check-inline">
+                                              <input class="radio-inline" type="radio"
+                                                  [(ngModel)]="sponsorDetails.active" name="inlineRadioOptions"
+                                                  id="inlineRadio2" [value]="false">
+                                              <label class="ml-2 form-check-label" for="inlineRadio2">No</label>
+                                          </div>
+                                      </div>
+                                      <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                                          <label class="d-block"><span class="mandatory">*</span>Sponsor Type</label>
+                                          <span>
+                                              <select [(ngModel)]="sponsorDetails.sponsorTypeCode"
+                                                  class="form-group form-control ng-pristine ng-valid ng-touched wd-100"
+                                                  [ngClass]="(map.get('sponsortype')) ? 'is-invalid d-block' : ''">
+                                                  <option value=null>--Select--</option>
+                                                  <option [value]="type.code"
+                                                      *ngFor="let type of sponsorDetails.sponsorTypes"
+                                                      [hidden]="type.isActive != true">
+                                                      {{type.description}}
+                                                  </option>
+                                              </select>
+                                              <div *ngIf="(map.get('sponsortype'))" class="invalid-feedback d-block">
+                                                  Please select sponsor type.
+                                              </div>
+                                          </span>
+                                      </div>
+                                      <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                                        <label class="block-display">Sponsor Group</label>
+                                        <input type="text" id="sponsor-loc"
+                                            [(ngModel)]="sponsorDetails.sponsorGroup" placeholder=""
+                                            class="form-group form-control" />
+                                      </div>
+                                      <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                                          <label class="block-display">Department</label>
+                                              <div class="searchBox">
+                                                <app-endpoint-search [httpOptions]="departmentSearchOptions" [clearField]="clearField"
+                                                    [placeHolder]="'Type here for Department with Department Name, Department Id'"
+                                                    (onSelect)="departmentChangeFunction($event)">
+                                                </app-endpoint-search>
+                                            </div>
+                                      </div>
+                                      <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                                          <label class="block-display">
+                                              Country</label>
+                                          <div class="searchBox">
+                                            <app-autocompleter [completerOptions]="countrySearchOptions" [clearField]="countryClearField"
+                                            [placeHolder]="'Type here for Country'" (onSelect)="countryChangeFunction($event)"
+                                           ></app-autocompleter>
+                                          </div>
+                                      </div>
+                                      <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                                          <label class="block-display">Address Line 1</label>
+                                          <input [(ngModel)]="sponsorDetails.addressLine1" id="sponsor-address1"
+                                              placeholder="" maxlength="80" class="form-group form-control" />
+                                      </div>
+                                      <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                                          <label class="block-display">Address Line 2</label>
+                                          <input rows="1" id="sponsor-address2"
+                                              [(ngModel)]="sponsorDetails.addressLine2" placeholder="" maxlength="80"
+                                              class="form-group form-control" />
+                                      </div>
+                                      <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                                          <label class="block-display">Address Line 3</label>
+                                          <input rows="1" id="sponsor-address3"
+                                              [(ngModel)]="sponsorDetails.addressLine3" placeholder="" maxlength="80"
+                                              class="form-group form-control" />
+                                      </div>
+                                      <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                                          <label class="block-display">Sponsor Location</label>
+                                          <input type="text" id="sponsor-loc"
+                                              [(ngModel)]="sponsorDetails.sponsorLocation" placeholder=""
+                                              class="form-group form-control" />
+                                      </div>
+                                    <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                                        <label class="d-block">Contact Person</label>
+                                        <input type="text" [(ngModel)]="sponsorDetails.contactPerson" class="form-control" />
+                                    </div>
+                                      <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                                          <label class="block-display">Phone Number</label>
+                                          <div>
+                                              <input type="text" id="sponsor-phn"
+                                                  [(ngModel)]="sponsorDetails.phoneNumber" placeholder=""
+                                                  class="form-group form-control"
+                                                  (keyup)="phoneNumberValidationChecking(sponsorDetails.phoneNumber,'phoneNumberWarning')"
+                                                  [ngClass]="map.has('phoneNumberWarning') ? 
+                                                  'd-inline-block form-control ng-pristine ng-valid is-invalid d-block ng-touched' : 
+                                                  'd-inline-block form-control ng-pristine ng-valid ng-touched'" />
+                                          </div>
+                                          <div class="invalid-feedback block-display"
+                                              *ngIf="map.has('phoneNumberWarning')">
+                                              {{map.get('phoneNumberWarning')}}
+                                          </div>
+                                          <div class="invalid-feedback block-display"
+                                              *ngIf="map.has('phoneNumberWarningAlphabets')">
+                                              {{map.get('phoneNumberWarningAlphabets')}}
+                                          </div>
+                                      </div>
+                                      <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                                          <label class="block-display">Email Address</label>
+                                          <input type="text" id="sponsor-email" 
+                                              [(ngModel)]="sponsorDetails.emailAddress" placeholder=""
+                                              class="form-group form-control" />
+                                          <div *ngIf="map.has('email')">
+                                              <span
+                                                  class="invalid-feedback d-block">{{map.get('email')}}</span>
+                                          </div>
+                                      </div>
+                                    <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                                        <label class="d-block">Postal Code</label>
+                                        <input type="text" class="form-control" [(ngModel)]="sponsorDetails.postalCode" maxlength="15" />
+                                    </div>
+                                  </div>
+                                  <div class="col-12">
+                                      <div class="row flex-column flex-sm-row justify-content-md-end justify-content-center">
+                                          <button (click)="loadSponsor();"
+                                              class="btn btn-secondary mb-3 mb-sm-0 mr-sm-3 btn-sm">Cancel</button>
+                                          <button *ngIf="!sponsorId"
+                                              class="btn btn-primary-sub mb-3 mb-sm-0 mr-sm-3 btn-sm"
+                                              (click)="maintainSponsor('I')">Add Sponsor</button>
+                                          <button *ngIf="sponsorId"
+                                              class="btn btn-primary-sub mb-3 mb-sm-0 mr-sm-3 btn-sm"
+                                              (click)="maintainSponsor('U')">Update Sponsor</button>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+      <div class="footerPush"></div>
+  </div>
+</div>

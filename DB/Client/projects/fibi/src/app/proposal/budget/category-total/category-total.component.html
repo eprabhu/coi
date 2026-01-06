@@ -1,0 +1,171 @@
+<!-- Last Updated By Ramlekshmy I on 16-01-2020 -->
+<div id="proposal-budget-category-total" class="card-widget-container mb-3">
+    <div class="card h-100">
+        <div class="card-body pt-0">
+            <div>
+                <div class="row my-md-3 my-2">
+                    <div class="col-lg-6 col-md-6 col-sm-6 col-6 colorBlack">
+                        <h4 class="card-title" id="proposal-budget-category-versions">Budget Category Total: Version
+                            {{budgetData?.budgetHeader?.versionNumber}}</h4>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-6 col-6 float-right">
+                        <span class="bold font float-right">Total
+                            Cost: {{budgetData?.budgetHeader?.totalCost| currency: currency}}</span>
+                    </div>
+                </div>
+                <div>
+                    <!-- 2 views for BUDGET CATEGORY TOTAL TAB: editabled(for External Type Grant call linked) & disabled(for Internal & Other Type Grant call linked) view -->
+                    <div class=""
+                        *ngIf="(budgetData.categoryCode === 2 || budgetData?.isSinglePeriodBudgetEnabled); else disabled_view">
+                        <table aria-describedby="proposal-budget-category-versions" class="tableStyle">
+                            <thead>
+                                <tr class="th-seperation">
+                                    <th scope="col" style="width:40%">Category</th>
+                                    <th scope="col">Justification</th>
+                                    <th scope="col" style="width:20%">Total</th>
+                                    <th scope="col" *ngIf="!_budgetDataService.isBudgetViewMode">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngIf="!_budgetDataService.isBudgetViewMode">
+                                    <td style="width:20%">
+                                        <div class="bt-ctset searchBox mt-2"
+                                            [ngClass]="isInvalidLineItem.budgetCategory?'invalid-FieldBorder':''">
+                                            <app-autocompleter [completerOptions]="completerOptions"
+                                                [clearField]="clearField"
+                                                [placeHolder]="'Type here for Budget Categories'"
+                                                (onSelect)="budgetCategoryChange($event)">
+                                            </app-autocompleter>
+                                        </div>
+                                    </td>
+                                    <td><input type="text" class="form-control"
+                                            [(ngModel)]="budgetDetail.lineItemDescription" /></td>
+                                    <td style="width:20%"><input appCurrencyFormat type="text"
+                                            class="form-control text-right"
+                                            [ngClass]="isInvalidLineItem.cost?'invalid-FieldBorder':''"
+                                            [(ngModel)]="budgetDetail.lineItemCost"
+                                            (keypress)="inputRestriction($event)"
+                                            [initialValue]="budgetDetail.lineItemCost" /></td>
+                                    <td style="width:10%" class="text-center">
+                                        <i class="fa fa-plus hoverColor mr-1" title="Add Budget Category Cost"
+                                            (click)="addBudgetDetail()" aria-hidden="true"
+                                            [ngClass]="!_budgetDataService.isBudgetViewMode?'hand-cursor' : 'pointer-disabled'"></i>
+                                        <i class="fa fa-times hoverColor" title="Clear" aria-hidden="true"
+                                            (click)="clearFields()" aria-hidden="true"
+                                            [ngClass]="!_budgetDataService.isBudgetViewMode?'hand-cursor' : 'pointer-disabled'"></i>
+                                    </td>
+                                </tr>
+                                <tr *ngIf="(isInvalidLineItem.warningMsg != null && !_budgetDataService.isBudgetViewMode)"
+                                    class="mandatory">
+                                    <td colspan="4">{{isInvalidLineItem.warningMsg}}</td>
+                                </tr>
+                                <tr
+                                    *ngIf="_budgetDataService.isBudgetViewMode && budgetData?.budgetHeaders?.budgetPeriods[0]?.budgetDetails?.length == 0">
+                                    <td colspan="4">
+                                        <div class="noDataExists">
+                                            <span>No budget category totals added.</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <ng-container
+                                    *ngFor="let lineItem of budgetData?.budgetHeader?.budgetPeriods[0]?.budgetDetails; let i=index;">
+                                    <tr>
+                                        <td class="bt-ctset">
+                                            <div class="searchBox memberSearchBox mb-0" appKeyboardListener>
+                                                <input type="text" [(ngModel)]="lineItem.costElement.description"
+                                                    disabled (ngModalChange)="setUnsavedChanges(true)"
+                                                    class="form-control member_search ng-pristine ng-valid ng-touched" />
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control"
+                                                (ngModelChange)="setUnsavedChanges(true)"
+                                                [disabled]="_budgetDataService.isBudgetViewMode"
+                                                [(ngModel)]="lineItem.lineItemDescription" />
+                                        </td>
+                                        <td style="width:20%"><input appCurrencyFormat type="text"
+                                                [disabled]="_budgetDataService.isBudgetViewMode"
+                                                class="form-control text-right" [(ngModel)]="lineItem.lineItemCost"
+                                                [initialValue]="lineItem.lineItemCost"
+                                                (keypress)="inputRestriction($event)" (ngModelChange)="lineItem.lineItemCost = lineItem.lineItemCost == null || lineItem.lineItemCost == '' ? 0 : lineItem.lineItemCost;
+                      calculateTotalCost();setUnsavedChanges(true)" /></td>
+                                        <td class="no-border pd-bt text-center"
+                                            *ngIf="!_budgetDataService.isBudgetViewMode">
+                                            <i class="fa fa-trash hand-cursor hoverColor mr-1"
+                                                title="Delete Budget Category"
+                                                *ngIf="lineItem?.isSystemGeneratedCostElement===false"
+                                                aria-hidden="true" data-toggle="modal"
+                                                data-target="#budgetCategoryDeleteModal"
+                                                (click)="tempSaveLineItem(i, lineItem)"></i>
+                                        </td>
+                                    </tr>
+                                </ng-container>
+                            </tbody>
+                        </table>
+                    </div>
+                    <ng-template #disabled_view>
+                        <table class="tableStyle" aria-describedby="proposal-budget-category-versions">
+                            <thead>
+                                <tr class="th-seperation">
+                                    <th scope="col" style="width:40%">Category</th>
+                                    <th scope="col" style="width:20%">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody *ngIf="simpleBudgetVo?.length > 0; else no_data">
+                                <tr *ngFor="let categoryDetail of simpleBudgetVo">
+                                    <td>
+                                        <input type="text" class="form-control" readonly
+                                            [value]="categoryDetail?.categoryName" />
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control" readonly
+                                            [value]="categoryDetail?.totalCategoryCost" />
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <ng-template #no_data>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="2">
+                                            <div class="noDataExists"><span>No data added yet.</span></div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </ng-template>
+                        </table>
+                    </ng-template>
+                </div>
+            </div>
+            <!-- <div>
+        <button class="btn btn-primary-sub btn-sm float-right mt-2 mb-2" (click)="saveOrUpdateProposalBudget()"
+          *ngIf="(budgetData.categoryCode === 2 || budgetData?.isSinglePeriodBudgetEnabled)&&  !_budgetDataService.isBudgetViewMode">Save</button>
+      </div> -->
+        </div>
+
+    </div>
+</div>
+
+<!-- ACTIONS MODAL -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="budgetCategoryDeleteModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="budgetCategoryDeleteModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Category</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    (click)="index = lineItem = null">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this Budget Category?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                    (click)="index = lineItem = null">Cancel</button>
+                <button type="button" class="btn btn-primary-sub" data-dismiss="modal"
+                    (click)="deleteLineItem()">OK</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,237 @@
+<div [ngClass]="config.isNestedMode? 'm-0 border':'mt-3 budget-list-outer'" class="mt-3 shadow-sm p-0">
+
+    <div class="success-banner pl-4 py-2 d-flex justify-content-between align-items-center ">
+        <div><span class="font-bold">Invoice Line Items</span></div>
+        <span class="d-block d-sm-block float-sm-right font-weight-normal fs-14 mr-3">
+            <button (click)="cancelLineItem()" *ngIf="config.isEditMode && config.headerPostingKey"
+                    class="ml-2 btn btn-primary-sub btn-small fs-14-nav" data-target="#line-item-modal"
+                    data-toggle="modal" title="Add Line Item" type="button">
+                <span><i aria-hidden="true" class="fa fa-plus pr-2"></i></span>Add Line Item
+            </button>
+            <button *ngIf="config.invoiceLineItems?.length"
+                    (click)="toggleShowAllDescription()"
+                    [title]="(isShowAllDescription? 'Collapse': 'Expand') + ' All Descriptions'"
+                    class="btn btn-secondary btn-small fs-14-nav ml-1">
+                <i [ngClass]="isShowAllDescription ? 'fa-chevron-up' : 'fa-chevron-down'" aria-hidden="true"
+                   class="fa"></i>
+                {{(isShowAllDescription? 'Collapse':'Expand')}} Desc</button>
+        </span>
+    </div>
+
+    <div *ngIf="config.invoiceLineItems?.length" class="form-row m-0 p-0">
+        <div class="table-responsive p-0 ml-1">
+            <table class="table tableSkin grid2 mb-0 invoice-table table-inner">
+                <caption class="sr-only">Invoice Line Item Details</caption>
+                <thead class="text-center">
+                <tr>
+                    <th scope="col">WBS Number</th>
+                    <th scope="col">GL Account</th>
+                    <th scope="col">Tax Code</th>
+                    <th scope="col">Amount (Exclude Tax Amount)</th>
+                    <th scope="col">Sub Contract Amount</th>
+                    <th class="transparent-border" scope="col">Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <ng-container
+                    *ngFor="let lineItem of config.invoiceLineItems; let index = index;">
+                    <tr>
+                        <td>{{lineItem?.grtWbs}}</td>
+                        <td>{{lineItem?.claimGlAccount?.glAccountCode}}
+                            - {{lineItem?.claimGlAccount?.description}} </td>
+                        <td>{{lineItem?.taxCode}} - {{lineItem?.claimOutputGstTaxCode?.taxDescription}}</td>
+                        <td class="text-right">{{lineItem?.claimAmount | currency: _commonService.currencyFormat}}</td>
+                        <td class="text-right">{{lineItem?.subContractAmount | currency: _commonService.currencyFormat}}</td>
+                        <td>
+                            <span class="justify-content-around d-flex mt-2 action-gap">
+                                <ng-container *ngIf="config.isEditMode">
+                                     <i (click)="editLineItem(lineItem, index)" aria-hidden="true"
+                                        class="fa fa-pencil hand-cursor hoverColor action-icons"
+                                        data-target="#line-item-modal" data-toggle="modal"
+                                        title="Edit Line Item"></i>
+                                    <i (click)="deleteLineItemPrep(index)"
+                                       aria-hidden="true" class="fa fa-trash hand-cursor hoverColor action-icons"
+                                       data-target="#deleteLineItem"
+                                       data-toggle="modal"
+                                       title="Delete Line Item"></i>
+                                </ng-container>
+                                <i (click)="showDescription(index)"
+                                   [class.comment-width]="config.isEditMode"
+                                   [class.red-notification]="lineItem?.description?.trim()?.length"
+                                   [title]="(isDescriptionShown[index]? 'Hide': 'Show') + ' description'"
+                                   aria-hidden="true" class="fa fa-commenting-o hand-cursor"></i>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr *ngIf="isDescriptionShown[index]" class="bg-light">
+                        <td>
+                            <label>Description</label>
+                        </td>
+                        <td colspan="5">
+                            <span *ngIf="lineItem?.description"
+                                  class="new-line-property">{{lineItem?.description}}</span>
+                            <span *ngIf="!lineItem?.description"
+                                  class="noDataExists">No description available.</span>
+                        </td>
+                    </tr>
+                </ng-container>
+                <tr class="fw-700 border-style text-right">
+                    <td [class.p-2]="config.isNestedMode" colspan="3">Total</td>
+                    <td [class.p-2]="config.isNestedMode">{{totalAmounts.claimAmount | currency: _commonService.currencyFormat}}</td>
+                    <td [class.p-2]="config.isNestedMode">{{totalAmounts.subContractAmount | currency: _commonService.currencyFormat}}</td>
+                    <td [class.p-2]="config.isNestedMode">{{totalAmounts.finalClaimAmount | currency: _commonService.currencyFormat}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div *ngIf="!config.invoiceLineItems?.length" class="f-14 text-center p-3">
+        <span class="noDataExists">No Line Item Added</span>
+    </div>
+
+
+    <ng-container *ngIf="config.isEditMode">
+        <!-- Line item modal start -->
+        <div aria-hidden="true" class="modal fade show mySkinDialog modal-opacity mt-3"
+             id="line-item-modal" role="dialog" tabindex="-1" data-backdrop="static" data-keyboard="false">
+            <div class="modal-dialog modal-xl" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"
+                            id="skippedSchedulesLongTitleAdd">
+                            {{!isIndex(selectedInvoiceIndex)?'Add':'Edit'}} Line Item
+                        </h5>
+                        <button (click)="cancelLineItem()" aria-label="Close" class="close" data-dismiss="modal"
+                                id="special-revw-close-btn"
+                                type="button">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-row">
+                            <div class="form-group col-md-6 col-12">
+                                <label for="wbs"><span class="mandatory">*</span>WBS Number:</label>
+                                <input [(ngModel)]="modalInvoiceLineItem.grtWbs"
+                                       [ngClass]="(lineItemValidationMap.get('grtWbs')) ? 'is-invalid d-block' : ''"
+                                       class="form-control"
+                                       id="wbs"
+                                       maxlength="20" type="text">
+                                <div *ngIf="(lineItemValidationMap.get('grtWbs'))" class="invalid-feedback d-block">
+                                    Please enter a valid WBS number.
+                                </div>
+                            </div>
+                            <div class="form-group col-md-6 col-12">
+                                <label for="glAccount"><span class="mandatory">*</span>GL Account:</label>
+                                <select [(ngModel)]="modalInvoiceLineItem.glAccountCode"
+                                        [ngClass]="(lineItemValidationMap.get('glAccountCode')) ? 'is-invalid d-block' : ''"
+                                        class="form-control"
+                                        id="glAccount">
+                                    <option [ngValue]="null" disabled>--Select--</option>
+                                    <ng-container *ngFor="let glAccount of config.lookups.glAccountCode">
+                                        <!--Only isControlledGL FALSE values should be shown in this dropdown(line item requirement)-->
+                                        <option *ngIf="!glAccount.isControlledGl" [hidden]="!glAccount.isActive"
+                                                [value]="glAccount.glAccountCode">{{glAccount.glAccountCode}} - {{glAccount.description}}</option>
+                                    </ng-container>
+                                </select>
+                                <div *ngIf="(lineItemValidationMap.get('glAccountCode'))"
+                                     class="invalid-feedback d-block">
+                                    Please select GL account.
+                                </div>
+                            </div>
+                            <div class="form-group col-xl-6 col-12">
+                                <label for="taxCode"><span class="mandatory">*</span>Tax Code:</label>
+                                <select [(ngModel)]="modalInvoiceLineItem.taxCode"
+                                        [ngClass]="(lineItemValidationMap.get('taxCode')) ? 'is-invalid d-block' : ''"
+                                        class="form-control"
+                                        id="taxCode">
+                                    <option [ngValue]="null" disabled>--Select--</option>
+                                    <ng-container *ngFor="let taxCode of config.lookups.taxCodes">
+                                        <option [hidden]="!taxCode.isActive"
+                                                [value]="taxCode.taxCode">{{taxCode.taxCode}} - {{taxCode.taxDescription}}</option>
+                                    </ng-container>
+                                </select>
+                                <div *ngIf="(lineItemValidationMap.get('taxCode'))" class="invalid-feedback d-block">
+                                    Please select tax code.
+                                </div>
+                            </div>
+                            <div class="form-group col-xl-3 col-sm-6 col-12">
+                                <label for="amount"><span class="mandatory">*</span>Amount (Exclude Tax Amount) :</label>
+                                <input [(ngModel)]="modalInvoiceLineItem.claimAmount"
+                                       [initialValue]="modalInvoiceLineItem.claimAmount"
+                                       [ngClass]="(lineItemValidationMap.get('claimAmount')) ? 'is-invalid d-block' : ''"
+                                       (ngModelChange)="amountValidation(modalInvoiceLineItem.claimAmount ,'claimAmount');"
+                                       allowNegative="true" maxlength="13"
+                                       appCurrencyFormat
+                                       class="form-control" id="amount"
+                                       type="text">
+                                <div *ngIf="(lineItemValidationMap.get('claimAmount'))"
+                                     class="invalid-feedback d-block">
+                                    Please enter a valid amount.
+                                </div>
+                            </div>
+                            <div class="form-group col-xl-3 col-sm-6 col-12">
+                                <label for="subContractAmount">Sub Contract Amount:</label>
+                                <input [(ngModel)]="modalInvoiceLineItem.subContractAmount"
+                                       [initialValue]="modalInvoiceLineItem.subContractAmount"
+                                       [ngClass]="(lineItemValidationMap.get('subContractAmount')) ? 'is-invalid d-block' : ''"
+                                       (ngModelChange)="amountValidation(modalInvoiceLineItem.subContractAmount ,'subContractAmount');"
+                                       allowNegative="true" maxlength="13"
+                                       appCurrencyFormat class="form-control"
+                                       id="subContractAmount"
+                                       type="text">
+                                <div *ngIf="(lineItemValidationMap.get('subContractAmount'))"
+                                     class="invalid-feedback d-block">
+                                    Please enter a valid sub contract amount.
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label for="description">Description:</label>
+                                <textarea [(ngModel)]="modalInvoiceLineItem.description" [limit]="50" appLengthValidator
+                                          class="form-control" id="description"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button (click)="cancelLineItem()" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                                id="close-report-modal" type="button">
+                            Cancel
+                        </button>
+                        <button (click)="saveLineItem()" class="btn btn-primary-sub btn-sm" type="button">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Line item modal end -->
+        <!-- DELETE ATTACHMENT WARNING MODAL START-->
+        <div aria-hidden="true" aria-labelledby="deleteModalTitle"
+             class="modal fade mySkinDialog" id="deleteLineItem"
+             role="dialog" tabindex="-1">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete</h5>
+                        <button aria-label="Close" class="close" data-dismiss="modal" id="award-doc-dlt-dismiss"
+                                type="button">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete this item?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button (click)="cancelLineItem()" class="btn btn-secondary btn-sm"
+                                data-dismiss="modal"
+                                data-toggle="modal"
+                                id="award-doc-dlt-no-btn" type="button">Cancel
+                        </button>
+                        <button (click)="confirmDeleteLineItem()" class="btn btn-primary-sub btn-sm"
+                                data-dismiss="modal"
+                                id="award-doc-dlt-yes-btn" type="button">Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- DELETE ATTACHMENT WARNING MODAL END -->
+    </ng-container>
+</div>

@@ -1,0 +1,263 @@
+<div ng class="card-body gridSkin pr-2 " [ngClass]="last ? '' : 'pb-0'" *ngFor="let reportTrackingList of childReport.awardReportTracking; let i = index ; let last = last;">
+	<div class="form-row">
+		<div class="col-1 d-flex justify-content-center pr-0">
+			<div class="form-row">
+				<div class="mt-2">
+					<span><label for="dueDate">Due Date</label>
+						 <!-- <span id="point">-----</span> -->
+						</span>
+					<div class="data-exist" id="dueDate">
+						{{reportTrackingList?.dueDate | dateFormatterWithTimeZone}}
+					</div>
+					<div *ngIf="reportTrackingList.progressReportId && !reportTrackingList.awardReportTermsId" id="adhocReport">
+						<span class="adhoc-status ">
+							   Ad Hoc
+						   </span>
+					   
+				   </div>
+				</div>
+			</div>
+		</div>
+		<div class="col-11 pr-0">
+			<div class="card">
+				<div class="card-body shadow-sm">
+					<div class="form-row">
+						<div class="col-1">
+							<div *ngIf="(childReport.reportClass.attachmentOrReport == 'A' || childReport.reportClass.attachmentOrReport == 'E') && !reportTrackingList.progressReportId" id="status">
+								
+									<span class="entity-status"
+										[ngClass]="getColorForStatus(reportTrackingList.statusCode, reportTrackingList.progressReportId)">{{getStatus(reportTrackingList.statusCode)}}</span>
+							</div>
+							<div *ngIf="reportTrackingList.progressReportId" id="progressReportstatus">
+								 <span class="entity-status  "
+										[ngClass]="getColorForStatus(reportTrackingList?.awardProgressReport?.progressReportStatus?.progressReportStatusCode, reportTrackingList.progressReportId)">
+										{{reportTrackingList?.awardProgressReport?.progressReportStatus?.description}}
+									</span>
+								
+							</div>									
+						</div>
+						<div class="col-9 ">
+							<div class="form-row">
+								
+								<div class="col-3" *ngIf="childReport.reportClass.attachmentOrReport == 'R' || reportTrackingList.progressReportId">
+									<div>
+
+										<label for="progressReportNumber"> Progress Report </label>
+										<div id="progressReportNumber" class="data-exist">
+											{{reportTrackingList?.awardProgressReport?.progressReportNumber}}</div>
+									</div>
+									<div class="noDataExists " *ngIf="!reportTrackingList?.awardProgressReport?.progressReportNumber">
+										No data available
+									</div>
+
+								</div>
+
+								<div class="col-3" *ngIf="childReport.reportClass.attachmentOrReport == 'R' || reportTrackingList.progressReportId ">
+									<label for="reportingPeriod"> Reporting Period</label>
+									<div class="" id="reportingPeriod" class="data-exist">
+										{{reportTrackingList?.awardProgressReport?.reportStartDate | dateFormatter}}
+										<span *ngIf="reportTrackingList?.awardProgressReport?.reportStartDate">-</span>
+										{{reportTrackingList?.awardProgressReport?.reportEndDate | dateFormatter}}
+									</div>
+									<div class="noDataExists " *ngIf="!reportTrackingList?.awardProgressReport?.reportStartDate || !reportTrackingList?.awardProgressReport?.reportEndDate">
+										No data available
+									</div>
+									
+								</div>
+								<div class="col-6" *ngIf="(childReport.reportClass.attachmentOrReport == 'A' || childReport.reportClass.attachmentOrReport == 'E') && !reportTrackingList.progressReportId">
+									<div>
+										<label class="d-block" for="attachmentView">Attachment</label>
+										<span>
+											<span *ngIf="reportTrackingList.awardReportTrackingFile" id="attachmentView"
+												class="fileChipsView regularFont"><span>{{(reportTrackingList?.awardReportTrackingFile?.fileName?.length
+													> 45) ? (reportTrackingList?.awardReportTrackingFile?.fileName|
+													slice:0:45) + '...' :
+													(reportTrackingList?.awardReportTrackingFile?.fileName)}}</span>
+
+											</span>
+											<span *ngIf="reportTrackingList.awardReportTrackingFile"
+												class="action-icon">
+												<a>
+													<i (click)="downloadReportAttachment(reportTrackingList?.awardReportTrackingFile)"
+														aria-hidden="true" class="fa fa-download pointer" title="Click here to download {{(reportTrackingList?.awardReportTrackingFile?.fileName.length > 55)?
+													   (reportTrackingList?.awardReportTrackingFile?.fileName | slice:0:55)+'...':
+													   (reportTrackingList?.awardReportTrackingFile?.fileName)}}"></i>
+												</a>
+											</span>
+										</span>
+										<div class="noDataExists " *ngIf="!reportTrackingList.awardReportTrackingFile">
+											No data available
+										</div>
+									</div>
+
+
+								</div>
+								<div *ngIf="(childReport.reportClass.attachmentOrReport == 'A' || childReport.reportClass.attachmentOrReport == 'E') && !reportTrackingList.progressReportId" class="col-2"></div>
+								<div class="col-2 " *ngIf="(childReport.reportClass.attachmentOrReport == 'A' || childReport.reportClass.attachmentOrReport == 'E') && !reportTrackingList.progressReportId">
+									<div>
+
+										<label for="preparerName"> Preparer</label>
+										<div *ngIf="reportTrackingList?.preparerName" id="preparerName"
+											class="data-exist">
+											{{reportTrackingList?.preparerName}}
+										</div>
+										<div class="noDataExists " *ngIf="!reportTrackingList?.preparerName">
+											No data available
+										</div>
+									</div>
+								</div>
+
+								<div class="col-2 " *ngIf="childReport.reportClass.attachmentOrReport == 'R' || reportTrackingList.progressReportId">
+									<div>
+										<label for="approvalDate"> Approval Date</label>
+										<div class="data-exist" id="approvalDate">
+											<ng-container
+												*ngIf="reportTrackingList?.awardProgressReport?.progressReportStatus?.progressReportStatusCode === '4'">
+												{{reportTrackingList?.awardProgressReport?.updateTimeStamp |
+												dateFormatter}}
+											</ng-container>
+										</div>
+										<div class="noDataExists "
+											*ngIf="reportTrackingList?.awardProgressReport?.progressReportStatus?.progressReportStatusCode != '4'">
+											No data available
+										</div>
+									</div>
+								</div>
+
+								<div class="col-2 " *ngIf="childReport.reportClass.attachmentOrReport == 'R' || reportTrackingList.progressReportId">
+									<div>
+
+										<label for="createdBy"> Created By</label>
+										<div class="data-exist"
+											*ngIf="reportTrackingList?.awardProgressReport?.createUser" id="createdBy">
+											{{reportTrackingList?.awardProgressReport?.createUser}}
+										</div>
+										<div class="noDataExists "
+											*ngIf="!reportTrackingList?.awardProgressReport?.createUser">
+											No data available
+										</div>
+									</div>
+								</div>
+
+								<div class="col-2 " *ngIf="childReport.reportClass.attachmentOrReport == 'R' || reportTrackingList.progressReportId">
+									<div>
+
+										<label for="createdOn"> Created On</label>
+										<div class="data-exist"
+											*ngIf="reportTrackingList?.awardProgressReport?.createTimeStamp"
+											id="createdOn">{{reportTrackingList?.awardProgressReport?.createTimeStamp |
+											dateFormatter}}
+										</div>
+										<div class="noDataExists "
+											*ngIf="!reportTrackingList?.awardProgressReport?.createTimeStamp">
+											No data available
+										</div>
+									</div>
+								</div>
+
+								<div class="col-2 " *ngIf="(childReport.reportClass.attachmentOrReport == 'A' || childReport.reportClass.attachmentOrReport == 'E') && !reportTrackingList.progressReportId">
+									<div class="">
+										<label for="activityDate"> Activity Date</label>
+										<div *ngIf="reportTrackingList.activityDate" id="activityDate"
+											class="data-exist">
+											{{reportTrackingList?.activityDate | dateFormatterWithTimeZone}}
+										</div>
+										<div class="noDataExists " *ngIf="!reportTrackingList.activityDate">
+											No data available
+										</div>
+									</div>
+								</div>
+
+							</div>
+							<div class="form-row pt-2">
+								<div *ngIf="(childReport.reportClass.attachmentOrReport == 'A' || childReport.reportClass.attachmentOrReport == 'E') && !reportTrackingList.progressReportId"
+									class="col-12">
+										<label class="d-block" for="comment"> Comment 
+										</label> 
+										<div class="data-exist comment-overflow"
+										[class.text-nowrap]="!isExpandComment[i]"																	
+										  *ngIf="reportTrackingList.comments" id="comment">
+										  <span *ngIf="!isExpandComment[i]" >{{reportTrackingList.comments.length>30 && !isExpandComment[i] ? (reportTrackingList.comments | slice:0:30)+'...' : reportTrackingList.comments}}
+										</span>
+										<span *ngIf="isExpandComment[i]" >{{reportTrackingList.comments}}</span>
+											<span *ngIf="reportTrackingList.comments.length>30" [class.float-right]="isExpandComment[i]" class="hand-cursor italian black-medium "
+												(click)="expandComment(i)">{{isExpandComment[i] ? '...Show less' : 'Read more'}}
+
+											  </span>
+
+										</div>
+										<div class="noDataExists " *ngIf="!reportTrackingList.comments">
+											No data available
+										</div>
+								</div>
+
+							</div>
+						</div>
+						<div class="col-2 d-flex flex-column align-items-end justify-content-center">
+
+							<button (click)="openDueDateEditModal(reportTrackingList)"
+								*ngIf="(!reportTrackingList.progressReportId && (( isEditMode && hasRight) || (manageOnActiveAward && isActiveReport)) && isEditEnabledForSection && reportTrackingList?.statusCode == '1') "
+								class="btn btn-tertiary btn-small m-1 action-button-width" title="Edit due date">
+								Edit Due Date
+							</button>
+							<button
+								*ngIf="(childReport.reportClass.attachmentOrReport == 'A' || childReport.reportClass.attachmentOrReport == 'E' ) && !reportTrackingList.progressReportId && isActiveReport && !isEditMode && isReportCreatable "
+								(click)="openFormModalForNonProgressReport(reportTrackingList)"
+								class="btn btn-tertiary btn-small m-1 action-button-width" title="upload Report">
+								{{reportTrackingList.awardReportTrackingFile || reportTrackingList.comments ||
+								reportTrackingList.preparerName || reportTrackingList.activityDate ||
+								reportTrackingList.statusCode != '1' ? 'Edit Report' : 'Upload Report' }}
+							</button>
+							<button (click)="navigateToReport(reportTrackingList.progressReportId)"
+								*ngIf="reportTrackingList.progressReportId"
+								class="btn btn-tertiary btn-small m-1 action-button-width" title="View Report">
+								View Report
+							</button>
+							<button (click)="openCreateProgressReportModal(reportTrackingList);"
+								*ngIf="(childReport.reportClass.attachmentOrReport == 'R' || childReport.reportClass.attachmentOrReport == 'E') && (!reportTrackingList.progressReportId && !reportTrackingList.awardReportTrackingFile && reportTrackingList.createProgressReport && isActiveReport && !isEditMode && isReportCreatable )"
+								class="btn btn-tertiary btn-small m-1 action-button-width" title="Create Report">
+								Create Report
+							</button>
+							<button *ngIf="!reportTrackingList.progressReportId && isEditMode && hasRight && isEditEnabledForSection "
+								(click)="isDeleteAttachment=false;deleteTrackingModal(reportTrackingList)"
+								class="btn btn-tertiary btn-small m-1 action-button-width" title="Delete Entry">
+								Delete Tracking
+							</button>
+
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+</div>
+<ng-container *ngIf="childReport?.awardReportTracking?.length === 0">
+	<div class="no-data-container">
+
+		<h4>No due dates found</h4>
+	</div>
+</ng-container>
+
+<div [id]="'confirmCreateReportModal'+ childReport.reportClassCode + childReport.reportCode "
+	class="modal fade mySkinDialog " data-backdrop="static">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Confirm</h5>
+				<button aria-label="Close" class="close" data-dismiss="modal" type="button">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<P>Are you sure that you want to Create Report?</P>
+			</div>
+			<div class="modal-footer">
+				<button  class="btn btn-secondary" data-dismiss="modal" type="button">
+					No
+				</button>
+				<button class="btn btn-primary-sub btn-sm" type="button">Yes</button>
+			</div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,219 @@
+<div class="card mb-3">
+    <div class="card-header p-2 px-4">
+        <h4 class="card-title title">Point of Contact
+            <span class="d-block d-sm-block float-sm-right font-weight-normal mr-sm-5 fs-14">
+                <span class="mr-4">
+                    <i aria-hidden="true" class="fa fa-user-o mr-2"></i>Employee |
+                    <i aria-hidden="true" class="fa fa-user-circle text-danger ml-2 mr-2"></i>Non Employee </span>
+                <button *ngIf="mode" class="btn btn-sm btn-tertiary float-right mt-0 mr-3 button-right"
+                    title="Add Point of Contact" id="POC-add-btn" data-toggle="modal"
+                    data-target="#add-point-of-contact-modal"> Add Point of Contact</button>
+            </span>
+            <button id="pointOfContactAddBtn" class="updown-arrow hand-cursor"
+                (click)="pocObject.isShowAddPointOfContact = !pocObject.isShowAddPointOfContact">
+                <i class="fa-large" aria-hidden="true"
+                    [ngClass]="pocObject.isShowAddPointOfContact?'fa fa-angle-double-up':'fa fa-angle-double-down'"></i>
+            </button>
+        </h4>
+    </div>
+    <div class="card-content" *ngIf="pocObject.isShowAddPointOfContact">
+        <div class="card-body p-2">
+            <div class="noDataOnChart noDataExists p-2" *ngIf="result?.grantCallContacts?.length == 0">
+                <div class="no-data-container">
+                    <span class="no-data-icon-outer">
+                        <div class="no-data-icon">
+                            <i aria-hidden="true" class="fa fa-file-o"></i>
+                            <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                        </div>
+                    </span>
+                    <h4>There is no information in this section.</h4>
+                </div>
+            </div>
+            <div class="table-responsive mt-3"
+                *ngIf="pocObject.isShowAddPointOfContact && result?.grantCallContacts?.length > 0">
+                <table class="table tableSkin grid2">
+                    <caption class="sr-only">Point of Contact</caption>
+                    <thead>
+                        <tr class="thead-light">
+                            <th scope="col">Name</th>
+                            <th scope="col">Designation</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Phone Number</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let pointOfContact of result?.grantCallContacts; let i = index;">
+                            <td><i aria-hidden="true" class="mr-2"
+                                    [ngClass]="pointOfContact.isEmployee ? 'fa fa-user-o' : 'fa fa-user-circle text-danger'"></i>{{pointOfContact.fullName}}
+                            </td>
+                            <td><span
+                                    *ngIf="pointOfContact?.designation else nodesignation">{{pointOfContact.designation}}</span>
+                                <ng-template #nodesignation>
+                                    <span class="noDataExists">No designation specified</span>
+                                </ng-template>
+                            </td>
+                            <td><span *ngIf="pointOfContact?.email else noemail">{{pointOfContact.email}}</span>
+                                <ng-template #noemail>
+                                    <span class="noDataExists">No email specified</span>
+                                </ng-template>
+                            </td>
+                            <td><span *ngIf="pointOfContact?.mobile else nomobile">{{pointOfContact.mobile}}</span>
+                                <ng-template #nomobile>
+                                    <span class="noDataExists">No phone number specified</span>
+                                </ng-template>
+                            </td>
+                            <td>
+                                <ul class="actionButtonGroup">
+                                    <li>
+                                        <a href="#" id="poc-view-btn" data-toggle="modal"
+                                            (click)="fetchPersonDetails(pointOfContact)">
+                                            <i class="fa fa-eye" aria-hidden="true"
+                                                title="Click here to view {{pointOfContact?.fullName}}"></i>
+                                        </a>
+                                    </li>
+                                    <li *ngIf="mode">
+                                        <a id="prop-point-of-contact-edit-btn">
+                                            <i class="fa fa-pencil" data-toggle="modal"
+                                                data-target="#add-point-of-contact-modal" aria-hidden="true"
+                                                (click)="editPointOfContact(i)"
+                                                title="Click here to edit {{pointOfContact?.fullName}}"></i>
+                                        </a>
+                                    </li>
+                                    <li *ngIf="mode"><a href="#" data-toggle="modal" id="POC-delete-btn" data-target="#deleteGrantPOC"
+                                            (click)="setPOCObject(pointOfContact.grantContactId, i)"><i class="fa fa-trash-o pointer" aria-hidden="true"
+                                                title="Remove this person"></i></a>
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- DELETE POC WARNING MODAL -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="deleteGrantPOC" tabindex="-1" role="dialog"
+    aria-labelledby="deleteModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete</h5>
+                <button type="button" class="close" data-dismiss="modal" id="prop-doc-dlt-dismiss" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this item?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="prop-doc-dlt-no-btn" class="btn btn-secondary" data-dismiss="modal"
+                    data-toggle="modal">No</button>
+                <button type="button" id="prop-doc-dlt-yes-btn" class="btn btn-primary-sub btn-sm" (click)="deletePOC()"
+                    data-dismiss="modal">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<app-address-book *ngIf="showAddToAddressBookModal" [isAddNonEmployeeModal]="showAddToAddressBookModal"
+    (rolodexResult)="setRolodexTeamObject($event)"></app-address-book>
+
+<app-person-rolodex-view (personRolodexViewModal)="setPersonRolodexModalView($event)" *ngIf="isRolodexViewModal"
+    [personRolodexType]="type" [personRolodexId]="rolodexId" [personRolodexIsTraining]="isTraining"
+    [personRolodexPersonDescription]="personDescription"></app-person-rolodex-view>
+
+<!-- Add Point Of Contact Modal -->
+<div class="modal fade mySkinDialog" id="add-point-of-contact-modal" role="dialog"
+    aria-labelledby="skippedSchedulesTitle" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{isEditIndex == null ? 'Add' : 'Update'}} Point of Contact</h5>
+                <button type="button" class="close" (click)="resetPointOfContactFields()" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body py-1 px-3">
+                <app-grant-call-modal-card></app-grant-call-modal-card>
+                <div class="w-100">
+                    <div class="form-row">
+                        <div class="col-lg-6 col-md-6 col-sm-12 col-12 mt-3">
+                            <div class="form-check form-check-inline">
+                                <input type="radio" id="ptEmployee" name="contact-person" [value]="true"
+                                    [(ngModel)]="isPOCEmployeeChecked" (ngModelChange)="onPersonTypeChange()">
+                                <label class="form-check-label pl-2" for="ptEmployee">Employee</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="radio" id="ptNonEmployee" name="contact-person" [value]="false"
+                                    [(ngModel)]="isPOCEmployeeChecked" (ngModelChange)="onPersonTypeChange()">
+                                <label class="form-check-label pl-2" for="ptNonEmployee">Non-Employee</label>
+                            </div>
+                            <div class="position-relative">
+                                <app-elastic [options]="elasticSearchOptions" [clearField]="clearField"
+                                    [isError]="isElasticError"
+                                    [placeHolder]="!isPOCEmployeeChecked ? 'Type here for an non-employee name': 'Type here for an employee name' "
+                                    (selectedResult)="selectedPOC($event)">
+                                </app-elastic>
+                                <a id="grant-non-employee-add-btn" class="anchor-link fs-14"
+                                    (click)="isShowElasticResults = false; switchToNonEmployeeModal();"
+                                    *ngIf="!isPOCEmployeeChecked && commonService.isEnableAddtoAddressBook"><i
+                                        aria-hidden="true" class="fa fa-user-plus"></i>
+                                    <ng-container i18n="@@COMMON_ADD_TO_ADDRESS_BOOK">Add to Address
+                                        Book</ng-container></a>
+                                <div class="invalid-feedback d-block f-13" *ngIf="POCWarningMsg">
+                                    {{POCWarningMsg}}</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-12 col-12 mt-3">
+                            <label for="POC-designation" class="block-display">Designation</label>
+                            <input type="text" id="POC-designation" class="form-control mt-1" placeholder=""
+                                autocomplete="off" [(ngModel)]="pointOfContactObject.designation">
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-12 col-12 mt-3">
+                            <label for="POC-email" class="block-display">Email</label>
+                            <input type="text" id="POC-email" class="form-control mt-1" autocomplete="off"
+                                [disabled]="isPOCEmployeeChecked" [(ngModel)]="pointOfContactObject.email"
+                                [ngClass]="(POCMailWarningMsg) ? 'is-invalid d-block' : ''">
+                            <div class="invalid-feedback d-block" *ngIf="POCMailWarningMsg">
+                                {{POCMailWarningMsg}}</div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-12 col-12 mt-3">
+                            <label for="POC-phone" class="block-display">Phone</label>
+                            <div>
+                                <input type="text" id="POC-phone" class="form-control mt-1" autocomplete="off"
+                                    maxlength="20" [(ngModel)]="pointOfContactObject.mobile"
+                                    (keyup)="inputRestriction(pointOfContactObject.mobile)" [ngClass]="warningMessage.has('phoneNumberWarning') ? 
+                                        'd-inline-block form-control ng-pristine ng-valid is-invalid d-block ng-touched' : 
+                                        'd-inline-block form-control ng-pristine ng-valid ng-touched'">
+                            </div>
+                            <div class="invalid-feedback block-display"
+                                *ngIf="warningMessage.has('phoneNumberWarning')">
+                                {{warningMessage.get('phoneNumberWarning')}}
+                            </div>
+                            <div class="invalid-feedback block-display"
+                                *ngIf="warningMessage.has('phoneNumberWarningAlphabets')">
+                                {{warningMessage.get('phoneNumberWarningAlphabets')}}
+                            </div>
+                        </div>
+                        <div class="col-12" *ngIf="isShowElasticResults">
+                            <app-person-rolodex-card (ShowElasticResults)="setShowElasticResults($event)"
+                                [personRolodexObject]="selectedContactMember"></app-person-rolodex-card>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="text-center text-md-right">
+                    <button class="btn btn btn-secondary btn-xs mx-2" data-dismiss="modal"
+                        (click)="resetPointOfContactFields()">Cancel</button>
+                    <button class="btn btn-primary-sub btn-xs" (click)="addPointOfContact()"> {{isEditIndex == null ?
+                        'Add' : 'Update'}}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

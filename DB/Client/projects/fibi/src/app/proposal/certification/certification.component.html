@@ -1,0 +1,101 @@
+<ng-container id="proposal-certification" *ngIf="_proposalService.proposalSectionConfig['346'].isActive">
+    <section class="form-row mx-0">
+        <aside class="col-3 px-0 card shadow-sm">
+            <div class="align-items-center border-bottom d-flex justify-content-between pl-1 pr-3">
+                <h1 class="f-14 bold p-3 m-0">Key Personnel</h1>
+                <!--<button (click)="notifyAllPersons()" *ngIf="proposalPersons.length > 0"
+                        class="btn btn-small btn-tertiary mt-0 pointer">Notify All
+                </button>-->
+            </div>
+            <div class="m-3 mx-4">
+                <div *ngFor="let person of proposalPersons;let i = index;let isLast = last;"
+                    [class.current-selected-person]="selectedPerson.proposalPersonId === person.proposalPersonId"
+                    [class.mb-2]="!isLast" class="form-row hover-person pointer pr-2">
+                    <div (click)="selectPerson(person)" class="col px-3 py-2 f-14">
+                        <p class="b-600 m-0"><i
+                                [ngClass]="person?.rolodexId ? 'fa fa-user-circle text-danger':'fa fa-user-o text-dark'"
+                                [title]="person?.rolodexId ? 'Non-Employee':'Employee'" aria-hidden="true" class="mr-1"></i>
+                            {{person?.fullName}}</p>
+                        <p class="bold-600 m-0 text-secondary">{{person?.proposalPersonRole?.description}}</p>
+                    </div>
+                    <div class="col-auto flex-center">
+                        <div *ngIf="isQuestionnaireEditMode(person.personId)">
+                            <i class="fa fa-pencil" aria-hidden="true" data-toggle="modal" (click)="personDetails = person"
+                                data-target="#confirmation-modal" title="Edit certificate"></i>
+                        </div>
+                        <div (click)="selectPerson(person)" class="align-items-center d-flex justify-content-end ml-3">
+                            <i (click)="showNotificationLog(person)" (mouseout)="bellIconHover[i]=false"
+                                (mouseover)="bellIconHover[i]=true" *ngIf="!person?.rolodexId"
+                                [ngClass]="bellIconHover[i] ? 'fa-bell' : 'fa-bell-o'" aria-hidden="true"
+                                class="fa hover-icon pointer" title="Certification reminder notification"></i>
+                            <i *ngIf="person?.rolodexId" aria-hidden="true" class="fa fa-bell-slash-o text-invisible"
+                                title="Notification Unavailable"></i>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="proposalPersons.length === 0" class="form-row">
+                    <p class="bg-color bold-600 f-13 flex-center p-4 text-black-50 w-100">No Key personnel found</p>
+                </div>          
+            </div>
+        </aside>
+        <main class="col-9 pr-0">
+            <div class="border card gridSkin p-2 section-highlight shadow-sm mb-2">
+                <div class="row">
+                    <div class="col">
+                        <label class="block-display">Name</label>
+                        <span *ngIf="selectedPerson?.fullName">{{selectedPerson?.fullName}}</span>
+                        <span *ngIf="!selectedPerson?.fullName" class="noDataExists">No Name Found</span>
+                    </div>
+                    <div class="col">
+                        <label class="block-display">Designation</label>
+                        <span *ngIf="selectedPerson?.designation">{{selectedPerson?.designation}}</span>
+                        <span *ngIf="!selectedPerson?.designation" class="noDataExists">No Designation Found</span>
+                    </div>
+                    <div class="col">
+                        <label class="block-display">Home Unit</label>
+                        <span *ngIf="selectedPerson?.units[0]?.unit?.unitName">
+                        {{concatUnitNumberAndUnitName(selectedPerson?.units[0]?.unit?.unitNumber, selectedPerson?.units[0]?.unit?.unitName)}}</span>
+                        <span *ngIf="!selectedPerson?.units[0]?.unit?.unitName"
+                              class="noDataExists">No Home Unit Found</span>
+                    </div>
+                    <div class="col">
+                        <label class="block-display">Email Address</label>
+                        <span *ngIf="selectedPerson?.emailAddress">{{selectedPerson?.emailAddress}}</span>
+                        <span *ngIf="!selectedPerson?.emailAddress" class="noDataExists">No Email Address Found</span>
+                    </div>
+                    <div class="col">
+                        <label class="block-display">Certification</label>
+                        <span>{{!selectedPerson?.personCertified ? 'Incomplete' : 'Completed'}}</span>
+                    </div>
+                </div>
+            </div>
+            <app-view-questionnaire-list (QuestionnaireSaveEvent)="updatePersonCertificationStatus($event)"
+                                         [externalSaveEvent] = '_autoSaveService.autoSaveTrigger$'
+                                         [isShowSave]=false
+                                         (QuestionnaireEditEvent) = "markQuestionnaireAsEdited($event)"
+                                         (questionnaireCompletionStatusEvent)="updatePersonCertificationStatus($event)"
+                                         [configuration]="configuration"></app-view-questionnaire-list>
+        </main>
+    </section>
+</ng-container>
+
+<div class="modal fade mySkinDialog" id="confirmation-modal" role="dialog">
+    <div class="modal-dialog">
+       <div class="modal-content">
+          <div class="modal-header">
+             <h5 class="modal-title">Edit certificate</h5>
+             <button aria-label="Close" class="close" data-dismiss="modal" id="prop-dlt-member-dismiss" type="button">
+                <span aria-hidden="true">×</span>
+             </button>
+          </div>
+          <div class="modal-body">
+             <p>Are you sure you want to edit this certification?</p>
+          </div>
+          <div class="modal-footer">
+             <button class="btn btn-secondary btn-sm" data-dismiss="modal" data-toggle="modal"
+                type="button">No</button>
+             <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" (click)="editCertification()" type="button">Yes</button>
+          </div>
+       </div>
+    </div>
+  </div>

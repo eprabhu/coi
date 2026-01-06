@@ -1,0 +1,21 @@
+\. ./FIBI-COI-5.1.4/FC-1142-DNB-Changes/all.sql
+\. ./FIBI-COI-5.1.4/FC-1102-Person-Feed-Integration/all.sql
+\. ./FIBI-COI-5.1.4/FC-1177-New-Engagement-Flow/all.sql
+\. ./FIBI-COI-5.1.4/FC-1192-Award-Screening-Questionnaire/all.sql
+\. ./FIBI-COI-5.1.4/FC-1187-Overall-Disclosure-History/all.sql
+\. ./FIBI-COI-5.1.4/FC-1165-CITI-TRAINING/all.sql
+\. ./FIBI-COI-5.1.4/FC-1198-UI-Updates/all.sql
+\. ./FIBI-COI-5.1.4/FC-862-Entity-Comments/all.sql
+\. ./FIBI-COI-5.1.4/FC-1141-Entity-Address-Vallidation/all.sql
+\. ./FIBI-COI-5.1.4/FC-1143/all.sql
+\. ./FIBI-COI-5.1.4/FC-775-Connection-Pool-IssueFixes/all.sql
+\. ./FIBI-COI-5.1.4/FC-1109-Questionnaire-BugFixes/all.sql
+\. ./FIBI-COI-5.1.4/FC-1183-Rereview-changes/scripts.sql
+\. ./FIBI-COI-5.1.4/FC-1081-Issue-Fix/all.sql
+\. ./FIBI-COI-5.1.4/FC-1119-Issue-Fixes/all.sql
+\. ./FIBI-COI-5.1.4/FC-1199-Project-Dashbaord/all.sql
+\. ./FIBI-COI-5.1.4/FC-1152-Bug-Fix/all.sql
+\. ./FIBI-COI-5.1.4/FC-1203-Award-dashboard/all.sql
+\. ./FIBI-COI-5.1.4/FC-1177-New-Engagement-Flow/all.sql
+\. ./FIBI-COI-5.1.4/FC-1195-Project-Dashbaord/all.sql
+INSERT INTO build_details (`BUILD_ID`, `BUILD_VERSION`, `STATUS`, `APPLICATION_NAME`, `BUILD_UPDATE_TIMESTAMP`) VALUES (NULL, 'Fibi COI 5.1.4', 'Success', 'COI', now());

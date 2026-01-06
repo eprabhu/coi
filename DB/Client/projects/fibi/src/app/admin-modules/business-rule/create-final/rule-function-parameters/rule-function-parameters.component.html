@@ -1,0 +1,107 @@
+<div class="modal fade mySkinDialog" id="add-function-parameters" role="dialog" data-backdrop="static"
+    data-keyboard="false" aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>
+                    <h5 class="modal-title">
+                        {{functionParameterData?.functionName}}
+                    </h5>
+                    <div class="fs-13 fw-500 text-break text-capitalize"
+                        *ngIf="functionDetails?.singleRule?.EXPRESSION_TYPE_CODE == 'F' && functionDetails?.singleRule?.FUNCTION_DESCRIPTION">
+                        {{functionDetails?.singleRule?.FUNCTION_DESCRIPTION}}
+                    </div>
+                </span>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning my-0 py-1" role="alert">
+                    <i aria-hidden="true" class="fa fa-info-circle mr-1 info-icon"></i>
+                    <em>Following are the Argument(s) for the function selected. Please provide the values for the
+                        arguments and click on proceed.</em>
+                </div>
+                <ng-container *ngFor="let parameter of functionParameterData?.functionArguments; let i = index">
+                    <div class="row mt-3">
+                        <div class="col">
+                            <input class="form-control" type="text" disabled [(ngModel)]="parameter.ARGUMENT_LABEL">
+                            <span *ngIf="parameter.DESCRIPTION" class="d-inline-block icon-hover searchButton parameter-description">
+                                <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med"
+                                    aria-hidden="true"></i>
+                                  <div class="tooltiptext-left card card-inner p-15 text-left">
+                                    <span class="font-cv">{{parameter.DESCRIPTION}}</span>
+                                  </div>
+                                </a>
+                              </span>
+                        </div>
+                        <div class="col">
+
+                            <div [ngSwitch]="true">
+                                <div
+                                    *ngSwitchCase="parameter.LOOKUP_TYPE == 'String' || parameter.LOOKUP_TYPE =='Number'">
+                                    <input [type]="parameter.LOOKUP_TYPE == 'String' ? 'text' : 'number'"
+                                        id="parameter-input" [(ngModel)]="parameter.VALUE" [(ngModel)]="parameter.VALUE_DESCRIPTION"
+                                        [ngClass]="validationMap.has(parameter.ARGUMENT_LABEL) ? 'is-invalid d-block' : ''"
+                                        placeholder="{{parameter.ARGUMENT_LABEL}}" class="form-control mb-2" />
+                                </div>
+                                <div *ngSwitchCase="parameter.LOOKUP_TYPE == 'Date'">
+                                    <span class="dateField mr-1">
+                                        <input matInput [matDatepicker]="functionParameterDate" placeholder="From ({{datePlaceHolder}})"
+                                            id="{{ parameter.ARGUMENT_LABEL }}"
+                                            class="d-inline-block form-control" [(ngModel)]="parameter.VALUE"
+                                            (ngModelChange)="parameter.VALUE = parameter.VALUE_DESCRIPTION = parseDateWithoutTimestamp(parameter.VALUE)"
+                                            (keypress)="_commonService._keyPress($event, 'date');"
+                                            [ngClass]="validationMap.has(parameter.ARGUMENT_LABEL) ? 'is-invalid d-block' : ''"
+                                            (click)="functionParameterDate.open()">
+                                        <span class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                            (click)="functionParameterDate.open()" aria-hidden="true"></span>
+                                        <mat-datepicker #functionParameterDate
+                                            (opened)="setFocusToElement( parameter.ARGUMENT_LABEL )">
+                                        </mat-datepicker>
+                                    </span>
+                                </div>
+                                <div
+                                    *ngSwitchCase="parameter.LOOKUP_TYPE == 'System' || parameter.LOOKUP_TYPE == 'User'">
+                                    <app-look-up [options]='parameter.LOOKUP_WINDOW_NAME'
+                                        [defaultValue]='parameter.VALUE_DESCRIPTION'
+                                        [isError]="validationMap.has(parameter.ARGUMENT_LABEL)"
+                                        (selectedResult)="onLookupSelect($event, parameter)">
+                                    </app-look-up>
+                                </div>
+                                <div *ngSwitchCase="parameter.LOOKUP_TYPE == 'Elastic'">
+                                    <div class="position-relative">
+                                        <app-elastic [options]="elasticSearchOptions[parameter.ARGUMENT_LABEL]"
+                                            [placeHolder]="'Type here for ' + parameter.ARGUMENT_LABEL"
+                                            [isError]="validationMap.has(parameter.ARGUMENT_LABEL)"
+                                            (selectedResult)="setSearchFilterValue($event, parameter)">
+                                        </app-elastic>
+                                    </div>
+                                </div>
+                                <div *ngSwitchCase="parameter.LOOKUP_TYPE == 'EndPoint'">
+                                    <div class="position-relative">
+                                        <app-endpoint-search
+                                            [httpOptions]="endPointSearchOptions[parameter.ARGUMENT_LABEL]"
+                                            [placeHolder]="'Type here for ' + parameter.ARGUMENT_LABEL"
+                                            [isError]="validationMap.has(parameter.ARGUMENT_LABEL)"
+                                            (onSelect)="setSearchFilterValue($event, parameter)">
+                                        </app-endpoint-search>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </ng-container>
+                <div *ngIf="validationMap.size" class="invalid-feedback d-block">
+                    * Please fill all the information before continuing
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal"
+                    data-toggle="modal" (click)="clearFunctionDetails()">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="emitDataChange()">Proceed</button>
+            </div>
+        </div>
+    </div>
+</div>

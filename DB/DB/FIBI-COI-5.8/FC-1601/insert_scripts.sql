@@ -1,0 +1,1 @@
+INSERT IGNORE INTO `message` (`MESSAGE_TYPE_CODE`, `DESCRIPTION`, `UPDATE_TIMESTAMP`, `UPDATE_USER`) VALUES ('8034', 'COI Annual Disclosure Required', UTC_TIMESTAMP(), 'quickstart');

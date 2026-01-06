@@ -1,0 +1,206 @@
+<div class="row" id="agreement-basicdetails mt-3">
+  <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+    <div class="card mb-3">
+      <div class="card-header p-2 px-3">
+        <h4 class="card-title d-inline-block person-title ml-3">People</h4>
+        <div class="float-right" [ngClass] = "isPersonEditMode ? '' : 'mt-1'">
+          <span class="fs-14" [ngClass] = "isPersonEditMode ? 'mr-2' : 'mr-5 pr-3'">
+            <i aria-hidden="true" class="fa fa-user-o mr-2 pl-sm-2"></i>Employee |
+            <i aria-hidden="true" class="fa fa-user-circle text-danger mr-2"></i>Non-Employee
+          </span>
+          <button class="btn btn-tertiary btn-sm mt-0 button-right" *ngIf="isPersonEditMode" data-toggle="modal" data-target="#add-people-modal"
+            (click)="clearPersonData();setDefaultPersonType();" title="Add People">
+              <span>Add People</span>
+          </button>
+        </div>
+        <button class="updown-arrow" (click)="isShowPerson = !isShowPerson">
+          <i [ngClass]="!isShowPerson?'fa-large fa fa-angle-double-down':'fa-large fa fa-angle-double-up'"
+            class="fa-large" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="card-content" *ngIf="isShowPerson">
+        <div class="card-body pt-2 px-4">
+          <div class="align-items-center d-flex justify-content-between ng-star-inserted px-3 py-2 success-banner mb-2">
+            <div>
+              <i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i>
+              <em>Enter the Principal Investigator and any additional people associated with this Agreement.</em>
+            </div>
+          </div>
+          <div class="noDataOnChart noDataExists p-2" *ngIf="result?.agreementPeoples?.length == 0">
+            <div class="no-data-container">
+              <span class="no-data-icon-outer">
+                <div class="no-data-icon">
+                  <i aria-hidden="true" class="fa fa-file-o"></i>
+                  <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                </div>
+              </span>
+              <h4>There is no information in this section.</h4>
+            </div>
+          </div>
+          <div *ngIf="result?.agreementPeoples?.length > 0" class="table-responsive mt-3">
+            <table aria-describedby="agreement-sponsor-header-id" class="table tableSkin ">
+              <thead>
+                <tr class="thead-light">
+                  <th scope="col">Name</th>
+                  <th scope="col">Role</th>
+                  <th scope="col">Department / Organization</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Phone</th>
+                  <th *ngIf="isPersonEditMode" scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let person of result?.agreementPeoples ; let id=index">
+                  <td><i class="mr-2" aria-hidden="true"
+                    [ngClass]="person.rolodexId ? 'fa fa-user-circle text-danger':'fa fa-user-o'"></i>{{person?.fullName}}</td>
+                  <td>{{person?.agreementPeopleType?.description}}</td>
+                  <td>
+                    <span *ngIf="person?.department" class="d-block">{{person?.department}} </span>
+                    <span *ngIf="!person?.department" class="d-block noDataExists">No Department Specified</span>
+                  </td>
+                  <td>
+                    <span *ngIf="person?.email" class="d-block">{{person?.email}} </span>
+                    <span *ngIf="!person?.email" class="d-block noDataExists">No Email Address Specified</span>
+                  </td>
+                  <td>
+                    <span *ngIf="person?.phoneNumber" class="d-block">{{person?.phoneNumber}} </span>
+                    <span *ngIf="!person?.phoneNumber" class="d-block noDataExists">No Phone Number Specified</span>
+                  </td>
+                  <td *ngIf="isPersonEditMode">
+                    <ul class="actionButtonGroup">
+                      <li>
+                        <a href="#" id="poc-view-btn" data-toggle="modal"
+                          (click)="fetchPersonDetails(person)">
+                          <i class="fa fa-eye" aria-hidden="true"
+                            title="Click here to view {{person?.fullName}}"></i>
+                        </a>
+                      </li>
+                      <li>
+                        <a data-toggle="modal">
+                          <i class="fa fa-pencil pointer" title="edit this person" aria-hidden="true" data-toggle="modal" data-target="#add-people-modal"
+                            (click)="editPerson(person, id)"></i>
+                        </a>
+                      </li>
+                      <li><a data-toggle="modal" data-target="#deleteAgreementPersonModal"
+                          (click)="deletePersonId = person.agreementPeopleId">
+                          <i class="fa fa-trash-o pointer" title="remove this person" aria-hidden="true"></i></a>
+                      </li>
+                    </ul>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE PERSON MODAL -->
+<div class="modal fade mySkinDialog" id="deleteAgreementPersonModal" role="dialog" data-backdrop="static"
+  data-keyboard="false">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header ct-footer-padding">
+        <h4 class="modal-title">Delete</h4>
+      </div>
+      <div class="modal-body ct-modal-padding">
+        <div class="row">
+          <div class="col-lg-12">
+            <p>Are you sure you want to delete this?</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer ct-footer-padding">
+        <button id="deleteassociationId" type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+        <button (click)="deleteAgreementPeople()" type="button" class="btn btn-primary-sub"
+          data-dismiss="modal">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- DELETE PERSON MODAL ENDS-->
+
+<div class="modal fade mySkinDialog" id="add-people-modal" role="dialog" aria-labelledby="skippedSchedulesTitle"
+  aria-hidden="true" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add People</h5>
+        <button type="button" class="close" (click)="clearPersonData()" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="w-100" *ngIf="isPersonEditMode">
+          <div class="form-row">
+            <div class="col-md-6 col-12">
+              <label><span class="mandatory">*</span>Role</label>
+              <select [(ngModel)]="agreementPerson.peopleTypeId"
+                class="form-control ng-pristine ng-valid ng-touched wd-100"
+                [ngClass]="{'lineItem-mandatory' : map.has('type')}">
+                <option value=null>--Select--</option>
+                <option [value]="type.peopleTypeId" *ngFor="let type of result?.agreementPeopleType" [hidden]="type.isActive != true">
+                  {{type.description}}
+                </option>
+              </select>
+              <div *ngIf="map.has('type')">
+                <span class="mandatory">{{map.get('type')}}</span>
+              </div>
+            </div>
+            <div class="col-md-6 col-sm-4 col-12">
+              <label>
+                  <input id="employee" type="radio" name='employee_non_employee' [value]="'EMPLOYEE'" 
+                    [(ngModel)]="personType"
+                    checked="true" (ngModelChange)="setPersonSearchOptions();clearPersonDetails()">
+                  <label for="employee" class="mr-3">
+                    Employee
+                  </label>
+                  <input id="non-employee" type="radio" name='employee_non_employee' [value]="'NON_EMPLOYEE'"
+                  [(ngModel)]="personType"
+                  (ngModelChange)="setPersonSearchOptions();clearPersonDetails()">
+                  <label for="non-employee">
+                    Non-Employee
+                  </label>
+                </label>
+              <app-elastic [options]="personElasticSearchOptions"  
+                [placeHolder]="personType != 'EMPLOYEE' ? 'Type here for an non-employee name': 'Type here for an employee name'"
+                (selectedResult)="selectedPerson($event)"
+                [isError]="map.has('personId') ? true : false">
+              </app-elastic>
+              <a id="grant-non-employee-add-btn" class="anchor-link fs-14" (click)="hideAddPeopleModal();"
+              *ngIf="personType != 'EMPLOYEE' && _commonService.isEnableAddtoAddressBook"><i aria-hidden="true" class="fa fa-user-plus"></i>
+              <ng-container i18n="@@COMMON_ADD_TO_ADDRESS_BOOK">Add to Address Book</ng-container></a>        
+              <div *ngIf="map.has('personId')">
+                <span class="mandatory">{{map.get('personId')}}</span>
+              </div>
+            </div>
+          </div>         
+          <div *ngIf="map.has('person')">
+            <span class="mandatory">{{map.get('person')}}</span>
+          </div>
+          <div class="mt-3" *ngIf="isShowElasticResults">
+            <app-person-rolodex-card (ShowElasticResults)="setShowElasticResults($event)"
+              [personRolodexObject]="selectedContactMember"></app-person-rolodex-card>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm  btn-xs mr-2" data-dismiss="modal"
+          (click)="clearPersonData()">Close</button>
+        <button class="btn btn-primary-sub btn-xs" (click)="saveOrUpdatePerson()">
+          {{editPersonIndex == null ? 'Add Person' : 'Update Person'}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<app-person-rolodex-view (personRolodexViewModal)="setPersonRolodexModalView($event)"
+*ngIf="isRolodexViewModal" [personRolodexType]="type" [personRolodexId]="id" [personRolodexIsTraining]="isTraining" 
+[personRolodexPersonDescription]="personDescription" ></app-person-rolodex-view>
+
+<app-address-book *ngIf="showAddToAddressBookModal == true" [isAddNonEmployeeModal]="showAddToAddressBookModal"
+  (rolodexResult)="setRolodexTeamObject($event)"></app-address-book>

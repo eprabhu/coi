@@ -1,0 +1,203 @@
+pipeline {
+    agent any
+    tools {
+        nodejs "Node16" 
+    }     
+
+    stages {
+        stage('Read Yaml file') {
+            steps {
+               
+
+                    script {
+                        def yamlData = readYaml file: 'release-frontend.yml'
+
+                        env.SSH_USER = yamlData.config.username
+                        env.BRANCH = yamlData.config.branch
+                        env.IP = yamlData.config.ip
+                        env.MAIL_ID = yamlData.config.mail_id
+                        env.BACKUP_PATH = yamlData.config.backup_path
+                        env.WEBAPP_PATH = yamlData.config.webapp_path
+                        env.BUILD_NAME = yamlData.config.build_name
+
+                        echo "Server Username = ${env.SSH_USER}"
+                        echo "Branch = ${env.BRANCH}"
+                        echo "IP = ${env.IP}"
+                        echo "Mail Id = ${env.MAIL_ID}"
+                        echo "Backup path = ${env.BACKUP_PATH}"
+                        echo "Webapp path = ${env.WEBAPP_PATH}"
+                        echo "build name = ${env.BUILD_NAME}"
+                    }
+
+
+
+                
+                
+            }
+        }
+        stage('Git Checkout') {
+            steps {
+                git branch: "${env.BRANCH}", url: "git@github.com:Polus-Software/Fibi.git" // SSH URL for Git
+            }
+        }
+
+        
+
+
+
+        stage ('Check the frontend changes') {
+
+            steps {
+                script {
+                    def changedFiles = sh(
+                    script: "git diff --name-only HEAD^1 HEAD",
+                    returnStdout: true
+                    ).trim()
+
+                    echo "Changed Files: ${changedFiles}"
+
+                    // Determine if there are relevant changes
+                    def relevantChanges = changedFiles.split('\n').findAll { it.startsWith('Client/') }
+                   
+                    echo "Relevant Changes: ${relevantChanges}" 
+
+                    if (relevantChanges.isEmpty()) {
+                    echo "No changes in Client folder. Stopping the pipeline."
+                    currentBuild.result = 'NOT_BUILT' // Mark the build as not built
+                    //error("Pipeline stopped: No relevant changes detected or only changes to Jenkinsfile and release.yml.") // Halt the pipeline
+                    return
+		            } else {
+                        echo "changes in Client folder. Proceeding with next stage."
+                    }
+                }
+            }
+        }
+
+
+        stage('Build') {
+
+         when {
+                expression { currentBuild.result != 'NOT_BUILT' }
+            }
+
+            steps {
+                dir('Client') {
+
+
+                    script {
+                        sh '''
+                             npm install
+                             npm run-script build
+                         '''
+                    }
+
+
+                }
+                
+            }
+        }
+
+
+        stage('Deployment') {
+
+         when {
+                expression { currentBuild.result != 'NOT_BUILT' }
+            }
+
+            steps {
+
+                dir('Client') {
+
+                    script {
+
+                            sh """
+                            ssh "${env.SSH_USER}@${env.IP}" "cd ${env.BACKUP_PATH}; rm -rf ${env.BUILD_NAME}; mv ${env.WEBAPP_PATH}${env.BUILD_NAME} ${env.BACKUP_PATH};"
+                            ssh "${env.SSH_USER}@${env.IP}" "mkdir -p ${env.WEBAPP_PATH}${env.BUILD_NAME}"
+                            scp -r dist/coi/* "${env.SSH_USER}@${env.IP}:${env.WEBAPP_PATH}${env.BUILD_NAME}"
+                            """
+
+                    }
+
+                    
+                }
+
+                
+            }
+        }
+    }
+    
+    post {
+         always {
+            script {
+                multibranchFolder = env.JOB_NAME.split("/")[0]
+                encodedBranchName = java.net.URLEncoder.encode(env.BRANCH_NAME, "UTF-8")
+                consoleUrl = "http://192.168.1.253:8080/job/${multibranchFolder}/job/${encodedBranchName}/${env.BUILD_NUMBER}/console"
+                buildUrl = "http://192.168.1.253:8080/job/${multibranchFolder}/job/${encodedBranchName}/${env.BUILD_NUMBER}/"
+            }
+        }
+        success {
+            emailext attachLog: true, 
+                body: '<h1 style="color:green;">Build Success</h1>', 
+                subject: "Frontend Build ${env.BRANCH} Success", 
+                to: "${env.MAIL_ID}"
+                
+            office365ConnectorSend(
+                webhookUrl: 'https://polussoftware0.webhook.office.com/webhookb2/4b5bab47-7e0c-4f1a-a301-ab5f41c615f9@74324cf0-bf2f-47cc-bdc3-b8d07890b569/JenkinsCI/a30626b683af4b7bbcc7d4183489f900/96535c2e-42d9-4a97-adec-bf6c28ac4a8f/V2UI5F1Lfm--kvgGUsD5o3orM4ceEgX7HM4P-ihrZj-eM1',
+                message: """
+                <html>
+                    <body>
+                        <p><strong>Build Status:</strong> SUCCESS</p>
+                        <p><strong>Branch:</strong> ${env.BRANCH}</p>
+                        <p><strong>Console Output:</strong> <a href="${consoleUrl}">View Log</a></p>
+                        <p><strong>Build Detail Output:</strong> <a href="${buildUrl}">View Build</a></p>
+                    </body>
+                </html>
+                """
+            )
+        }
+
+        notBuilt {
+            emailext attachLog: true, 
+                body: '<h1 style="color:red;">Not Builded</h1><p>Please check the attached log for more details.</p>', 
+                subject: "Frontend Build ${env.BRANCH} Not Built", 
+                to: "${env.MAIL_ID}"
+                
+            office365ConnectorSend(
+                webhookUrl: 'https://polussoftware0.webhook.office.com/webhookb2/4b5bab47-7e0c-4f1a-a301-ab5f41c615f9@74324cf0-bf2f-47cc-bdc3-b8d07890b569/JenkinsCI/a30626b683af4b7bbcc7d4183489f900/96535c2e-42d9-4a97-adec-bf6c28ac4a8f/V2UI5F1Lfm--kvgGUsD5o3orM4ceEgX7HM4P-ihrZj-eM1',
+                message: """
+                <html>
+                    <body>
+                        <p><strong>Build Status:</strong> NOT BUILT</p>
+                        <p><strong><span style="color: green;"> No Changes in the Client Folder </span></p>
+                        <p><strong>Branch:</strong> ${env.BRANCH}</p>
+                        <p><strong>Console Output:</strong> <a href="${consoleUrl}">View Log</a></p>
+                        <p><strong>Build Detail Output:</strong> <a href="${buildUrl}">View Build</a></p>
+                    </body>
+                </html>
+                """
+            )
+        }
+
+
+        failure {
+            emailext attachLog: true, 
+                body: '<h1 style="color:red;">Build Failed</h1><p>Please check the attached log for more details.</p>', 
+                subject: "Frontend Build ${env.BRANCH} Failure", 
+                to: "${env.MAIL_ID}"
+                
+            office365ConnectorSend(
+                webhookUrl: 'https://polussoftware0.webhook.office.com/webhookb2/4b5bab47-7e0c-4f1a-a301-ab5f41c615f9@74324cf0-bf2f-47cc-bdc3-b8d07890b569/JenkinsCI/a30626b683af4b7bbcc7d4183489f900/96535c2e-42d9-4a97-adec-bf6c28ac4a8f/V2UI5F1Lfm--kvgGUsD5o3orM4ceEgX7HM4P-ihrZj-eM1',
+                message: """
+                <html>
+                    <body>
+                        <p><strong>Build Status:</strong> FAILURE</p>
+                        <p><strong>Branch:</strong> ${env.BRANCH}</p>
+                        <p><strong>Console Output:</strong> <a href="${consoleUrl}">View Log</a></p>
+                        <p><strong>Build Detail Output:</strong> <a href="${buildUrl}">View Build</a></p>
+                    </body>
+                </html>
+                """
+            )
+        }
+    }
+}

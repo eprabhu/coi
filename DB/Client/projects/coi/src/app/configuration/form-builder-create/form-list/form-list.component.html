@@ -1,0 +1,153 @@
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+                <p class="fb-mb-0 fw-500">Forms</p>
+            <div class=" d-flex justify-content-end">
+                <button id="FB-create-form-btn" class="btn btn-primary-sub btn-sm" title="Click here to create new form" aria-label="Click here to create new form"
+                        data-target="#FB-create-form-modal" data-toggle="modal">
+                    <i class="fa fa-plus p-2"></i>
+                    <span>Create Form</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="form-group searchBox">
+            <input type="text" aria-label="Search form by form title or created by" placeholder="Search form by form title or created by"
+                class="form-control" [(ngModel)]="searchText">
+                <button id="FB-form-list-search-clear" class="searchButton" (click)="searchText = ''"
+                [title]="searchText ? 'Clear search' : ''" [attr.aria-label]="searchText ? 'Clear search text' : ''">
+                    <i [ngClass]="{'fa-times': searchText, 'fa-search': !searchText}" aria-hidden="true" class="fa fa-med"></i>
+                </button>
+        </div>
+        <ng-container *ngFor=" let form of $formList | async | SearchFilter : searchText : ['title', 'createUser']">
+        <div class="card fb-form-list-card-color fb-mb-3">
+            <div class="d-flex justify-content-between align-items-center p-20">
+            <div class="form-info">
+                <div class="form-title d-flex align-items-center">
+                    <p class="fb-mb-0 fw-500">{{form?.title |slice:0:45}} <span *ngIf="(form?.title?.length) > 45">...</span></p>
+                </div>
+                <div class="form-creator-info d-flex align-items-center fb-pt-3">
+                    <div class="form-creator-name fb-mr-2">
+                        <small class="fb-card-text">Created By:</small>
+                        <small class="fw-500">{{form?.createUser}}</small>
+                    </div>
+                    <ng-container *ngIf="form.versionStatus ==='ACTIVE'">
+                        <small class="fb-card-text fb-mr-1">|</small>
+                        <small class="fb-card-text">Published On :</small>
+                        <small class="fw-500">{{form?.publishedDate |dateFormatterWithTimeZone:'long'}}</small>
+                    </ng-container>
+                    <small class="fb-card-text fb-ml-2">|</small>
+                    <div class="form-version fb-pl-2 fb-mr-2">
+                        <span class="badge-pill f-12 status-badge-success" [ngClass]="{'non-Active-version-color':form?.isActive === 'N'}">
+                            Version {{form?.versionNumber}}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-actions d-flex align-items-center">
+                <div class="form-activate d-flex align-items-center" *ngIf="form.versionStatus ==='ACTIVE'">
+                    <small class="fw-500 fb-mr-2">
+                        Activate:
+                    </small>
+                        <div class="fb-mt-3">
+                            <a *ngIf="form?.isActive === 'N'">
+                                <label class="switch">
+                                    <input type="checkbox" (click)="form.isActive = 'Y';activateOrDeactivateForm('Y',form)">
+                                    <span class="slider round">
+                                        <small class="deactivate-text fb-mt-1">No</small></span>
+                                </label>
+                            </a>
+                            <a *ngIf="form?.isActive === 'Y'">
+                                <label class="switch">
+                                    <input type="checkbox" checked (click)="form.isActive = 'N';activateOrDeactivateForm('N',form)">
+                                    <span class="slider round"><small class="fb-mt-1">Yes</small></span>
+                                </label>
+                            </a>
+                        </div>
+                </div>
+                <div class="view-form">
+                    <ul class="actionButtonGroup">
+                        <li>
+                            <i role="button" tabindex="0" title="Click here to view the form" aria-label="Click here to view the form" class="fa fa-eye pointer" aria-hidden="true"
+                               [routerLink]="['../../form-builder-create/form-editor']"
+                               [queryParams]={formBuilderId:(form.pendingVersionId||form.formBuilderId)}></i>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            </div>
+        </div>
+        </ng-container>
+        <ng-container *ngIf="($formList | async | SearchFilter : searchText : ['title', 'createUser'])?.length === 0">
+            <div class="no-data-container">
+                <span class="no-data-icon-outer">
+                    <div class="no-data-icon">
+                        <i class="fa fa-file-o" aria-hidden="true"></i>
+                        <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                    </div>
+                </span>
+                <h4>There is no information in this section.</h4>
+            </div>
+        </ng-container>
+    </div>
+</div>
+
+<!--create Form Modal-->
+<div class="modal fade mySkinDialog" id="FB-create-form-modal" role="dialog" tabindex="-1" aria-hidden="true"
+     data-backdrop="static"
+     data-keyboard="false">
+    <div class="modal-dialog modal-lg" appModalDrag>
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Create Form
+                </h4>
+                <button (click)="cancelCreateForm()" type="button" class="close" id="FB-dismiss-create-modal-btn" aria-label="Click here to close"
+                        title="Click here to close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row fb-mt-2 fb-mb-0">
+                    <div class="col-12">
+                        <div class="fb-mb-3">
+                            <label for="FB-new-form-title"><span class="fb-mandatory">*</span>Title</label>
+                            <input id="FB-new-form-title" name="title" autocomplete="off" class="form-control"
+                                   placeholder="Title" [(ngModel)]="createForm.title"
+                                   appTailingSpaceRemover appLengthValidator
+                                   [limit]="1000" [ngClass]="{'is-invalid' :formValidationMap.get('title') }">
+                            <span *ngIf="formValidationMap.get('title')"
+                                  class="text-danger fs-14 d-inline-block">
+                                {{ formValidationMap.get('title') }}</span>
+                        </div>
+                        <div class="fb-mb-3">
+                            <label for="FB-new-form-description"><span class="fb-mandatory">*</span>Description</label>
+                            <textarea id="FB-new-form-description" name="description" autocomplete="off"
+                                      class="form-control" [(ngModel)]="createForm.description"
+                                      placeholder="Description"
+                                      [ngClass]="{'is-invalid' :formValidationMap.get('description') }"
+                                      appTailingSpaceRemover appLengthValidator [limit]="4000" rows="3">
+                            </textarea>
+                            <span *ngIf="formValidationMap.get('description')"
+                                  class="text-danger fs-14 d-inline-block">
+                                {{formValidationMap.get('description')}}</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="FB-create-form-cancel-button" type="button" class="btn btn-secondary btn-sm" title="Click here to cancel"
+                        aria-label="Click here to cancel" data-dismiss="modal"
+                        (click)="cancelCreateForm()">Cancel
+                </button>
+                <button id="FB-create-form-proceed-button" type="button" class="btn btn-primary-sub btn-sm"
+                        aria-label="Click here to proceed" title="Click here to proceed"
+                        (click)="createNewForm()">Proceed
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+

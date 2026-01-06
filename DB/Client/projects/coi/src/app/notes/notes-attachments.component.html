@@ -1,0 +1,40 @@
+<div class="row mb-2" [id]="'person-notes'">
+    <!-- no info card -->
+
+     <!-- In full Page View no data card is shown with add button with slider -->
+    <ng-container *ngIf="!notesList?.length && !isSliderView">
+        <app-no-information [isBorderNeeded]="false" [canShowAddButton]="isEditMode"
+            [buttonName]="'Add New Note'" (buttonAction)="openEditorSlider()">
+        <span>{{ noDataMessage?.['NO_NOTES_ADDED'] }}</span></app-no-information>
+    </ng-container>
+
+    <!-- No data card without add button for full page view, in view mode, slider view without add btn -->
+    <ng-container *ngIf="!notesList?.length && (isSliderView && !canShowAddButton)">
+        <app-no-information>
+            <span>{{ noDataMessage?.['NO_EXISTING_NOTES_IN_SLIDER'] }}</span>
+        </app-no-information>
+    </ng-container>
+
+    <!-- In full page if no data is there, above no data card will be show, if slider view no data will show add option-->
+    <ng-container *ngIf="notesList?.length || (isSliderView && canShowAddButton)">
+        <app-notes-list [isSliderView]="isSliderView"
+            [gridClass]="gridClass" [notesAPICalls]="notesAPICallsForList"
+            (emitDeletedList)="emitDeletedList($event)" [canShowAddButton]="isSliderView ? canShowAddButton : true" (emitAddAction)="openEditorSlider($event)"
+            [stickyClass]="isSliderView ? 'sticky-top-slider': 'sticky-top-51'">
+
+            <ng-container note-add>
+                <ng-container *ngIf="isShowAddNoteCard && isSliderView">
+                    <app-notes-edit-slider [sliderId]="'entity-add-note-slider'" (emitSliderAction)="updateAndCloseSlider($event)"
+                        [notesAPICalls]="notesAPICallsForList" [noteEditorView]="'CARD'" (cancelActionEmit)="cancelAddNote($event)"></app-notes-edit-slider>
+                </ng-container>
+            </ng-container>
+
+        </app-notes-list>
+    </ng-container>
+</div>
+
+<ng-container *ngIf="isShowDisAddNoteSlider && !isSliderView">
+    <app-notes-edit-slider [sliderId]="'entity-add-note-slider'" (emitSliderAction)="updateAndCloseSlider($event)"
+        [notesAPICalls]="notesAPICallsForEditor"></app-notes-edit-slider>
+</ng-container>
+

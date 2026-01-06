@@ -1,0 +1,572 @@
+<div class="row">
+    <div class="col-lg-12 col-12 form-outer irb-qst-form-outer">
+        <div class="row">
+            <div @items *ngFor='let question of questionnaire.questions;let i = index' class="col-12 p-0 mt-2">
+                <div id="{{question.QUESTION_ID}}" class="col-lg-12 section-form irb-qst-leftline form-G0"
+                    *ngIf=" editIndex == question.QUESTION_ID">
+                    <div class="mb-10">
+                        <div class="new-qst-1" id="basic-addon1">
+                            <div class="row">
+                                <div class="col-md col-12 text-right text-md-left">
+                                    <span>
+                                        Question Number &nbsp; <strong> {{question.QUESTION_ID}} &nbsp;</strong>
+                                    </span>
+                                </div>
+                                <span [class.mr-3]="isViewMode" class="badge badge-new badge-info badge-border mt-2 pointer" *ngIf="question.RULE_ID" 
+                                (click)="isShowSummaryModal = true; setQuestionToRemoveRuleId(question)">
+                                <i class="fa fa-eye"></i>
+                                Business Rule Applied</span>                             	
+                                <app-rule-summary *ngIf="isShowSummaryModal && question.RULE_ID"	
+                                [isViewMode]="isViewMode" 	
+                                [ruleId]="question.RULE_ID" 	
+                                (emitCloseModal)="closeModal($event)"	
+                                [isShowModalView]="isShowSummaryModal"
+                                [isRuleAvailable]="isRuleAvailable">	
+                                </app-rule-summary>
+                                <div class="col-md-auto col-12 text-md-right text-muted" *ngIf="!isViewMode">
+                                    <span class="delete-question"><a (click)="setDeleteData(question,'question')"
+                                            class="" data-toggle="modal" data-target="#confirmDeleteModal"><i
+                                                class="fa fa-trash-o btn-hover px-3 py-2" title="delete" aria-hidden="true"></i></a>
+                                    </span>
+                                    <span class="dropdown">
+                                        <span class="delete-question" id="questdropdownMenuButton"
+                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <i class="fa fa-ellipsis-v hand-cursor btn-hover px-3 py-2" title="More Actions"
+                                                aria-hidden="true"></i>
+                                        </span>
+                                        <div class="dropdown-menu qst-dropdown-patch f-14"
+                                            aria-labelledby="questdropdownMenuButton">
+                                            <a class="dropdown-item"
+                                                (click)="selectedQuestionIndex = i; updateEditorContent()"
+                                                data-toggle="modal" data-toggle="modal"
+                                                data-target="#moreDetailsModal">More Details</a>
+                                            <a class="dropdown-item"
+                                                (click)="addConditionBasedQuestion(i-1,question.GROUP_NAME,question.PARENT_QUESTION_ID)">
+                                                Add a Question above</a>
+                                            <a class="dropdown-item"
+                                                (click)="addConditionBasedQuestion(i,question.GROUP_NAME,question.PARENT_QUESTION_ID)">
+                                                Add a Question below</a>
+                                            <a class="dropdown-item" (click)="addBusinessRule(i);" data-toggle="modal" data-toggle="modal"	
+                                            data-target="#viewBusinessRulesModal">	
+                                                Link / Replace Business Rule</a>
+                                        </div>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-lg-8 col-md-7 col-sm col-12">
+                            <textarea appAutoGrow appLengthValidator [isShowLimiter]='!isViewMode'
+                                [styleList]="'p2 text-right word-count'" class="form-control custom-input"
+                                [disabled]="isViewMode" [(ngModel)]="question.QUESTION" type="text"
+                                placeholder="Question" id="question{{question.QUESTION_ID}}" rows="1"></textarea>
+                            <span class="bar"></span>
+                        </div>
+                        <div class="col-lg-4 col-md-5 col-sm-4 col-12 text-md-left text-center">
+                            <div class="dropdown">
+                                <select class="form-control f-14" [disabled]="isViewMode"
+                                    [(ngModel)]="question.ANSWER_TYPE"
+                                    (ngModelChange)="changeQuestionType(question.ANSWER_TYPE,question.QUESTION_ID, i);">
+
+                                    <option value="Checkbox">Multiple choice/Check box</option>
+                                    <option value='Date'>Date</option>
+                                    <option value='elastic'>Elastic Search</option>
+                                    <option value='endpoint'>Endpoint Search</option>
+                                    <option value='Attachment'>File upload</option>
+                                    <option value='Radio'>Radio Button</option>
+                                    <option value='Textarea'>Paragraph</option>
+                                    <option value='Text'> Short answer</option>
+                                    <option value='SystemLookup'>System Lookup</option>
+                                    <option value='Table'>Table (Grid)</option>
+                                    <option value='UserLookup'>User Lookup</option>
+                                    <option value='Y/N'>Yes/No</option>
+                                    <option value='Y/N/NA'>Yes/No/N/A</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Elastic and Endpoint-->
+                    <div class="form-row"
+                        *ngIf="question.ANSWER_TYPE == 'elastic' || question.ANSWER_TYPE == 'endpoint'">
+                        <div class="form-group col-md-6 col-sm-6 col-12">
+                            <label class="block-display">Lookup Type</label>
+                            <select class="form-control dateBox mt-2" [(ngModel)]="question.LOOKUP_TYPE"
+                                (ngModelChange)="question.LOOKUP_NAME = null;configureSearchOptions(question, false);setDefaultSearchValueOptions(question.LOOKUP_TYPE);"
+                                [disabled]="isViewMode">
+                                <option value="null">--Select--</option>
+                                <option *ngFor="let lookUp of lookUpDetails" [value]="lookUp.code"
+                                    [hidden]="lookUp.questionType !== question.ANSWER_TYPE">
+                                    {{lookUp.description}}</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-6 col-sm-6 col-12">
+                            <label class="block-display">Default Value</label>
+                            <select class="form-control dateBox mt-2" [(ngModel)]="question.LOOKUP_NAME"
+                                [disabled]="isViewMode" (ngModelChange)="configureSearchOptions(question, false)">
+                                <option value="null">--Select--</option>
+                                <option *ngFor="let defaultValue of defaultValueOptions" [value]="defaultValue.value">
+                                    {{defaultValue.key}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- System Lookup and User Lookups-->
+                    <div class="row"
+                        *ngIf="question.ANSWER_TYPE == 'SystemLookup' || question.ANSWER_TYPE == 'UserLookup'">
+                        <div class="form-group col-md-6 col-sm-6 col-12">
+                            <label class="block-display">Lookup Type</label>
+                            <select class="form-control  dateBox" [(ngModel)]="question.LOOKUP_TYPE"
+                                [disabled]="isViewMode" (ngModelChange)="configureSearchOptions(question, false)">
+                                <option value="null">--Select--</option>
+                                <option *ngFor="let lookUp of lookUpDetails" [value]="lookUp.code"
+                                    [hidden]="lookUp.questionType !== question.ANSWER_TYPE">
+                                    {{lookUp.description}}</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label class="d-block">Is Multiple ?</label>
+                            <span>
+                                <a *ngIf="question.ANSWER_LENGTH === 0 || question.ANSWER_LENGTH === null">
+                                    <label class="switch">
+                                        <input type="checkbox" (click)="checkForMultiSelect(1, question)">
+                                        <span class="slider round"><small class="deactivate-text">No</small></span>
+                                    </label>
+                                </a>
+                                <a *ngIf="question.ANSWER_LENGTH === 1">
+                                    <label class="switch">
+                                        <input type="checkbox" (click)="checkForMultiSelect(0, question)" checked>
+                                        <span class="slider round"><small>Yes</small></span>
+                                    </label>
+                                </a>
+                            </span>
+                        </div>
+                    </div>
+                    <!-- Radio, Checkbox, Y/N, Y/N/NA -->
+                    <div class="row" *ngIf="question.ANSWER_TYPE == 'Radio' || question.ANSWER_TYPE == 'Checkbox' ||
+                                      question.ANSWER_TYPE == 'Y/N'|| question.ANSWER_TYPE == 'Y/N/NA'">
+                        <div class="col-12 options">
+                            <ng-container *ngFor="let option of questionnaire.options;let optionIndex = index">
+                                <div class="input-group mb-3" *ngIf="option.QUESTION_ID == question.QUESTION_ID">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text" id="basic-addon1"><i class="fa fa-circle"
+                                                aria-hidden="true"></i></span>
+                                    </div>
+                                    <div class="col px-0">
+                                        <input type="text" id="option{{option.QUESTION_OPTION_ID}}"
+                                            [disabled]="isViewMode" [(ngModel)]="option.OPTION_LABEL"
+                                            (ngModelChange)="updateOptionACType(optionIndex)"
+                                            class="form-control custom-input" placeholder="Options"
+                                            aria-label="Username" aria-describedby="basic-addon1">
+                                        <span class="bar"></span>
+                                    </div>
+                                    <div class="input-group-append">
+                                        <span class="input-group-text"><a *ngIf="!isViewMode"
+                                                (click)="setDeleteData(option,'option')" data-toggle="modal"
+                                                data-target="#confirmDeleteModal"><i class="fa fa-times"
+                                                    title="Delete Option" aria-hidden="true"></i></a></span>
+                                    </div>
+                                </div>
+                            </ng-container>
+                        </div>
+                        <div class="col-12 options" *ngIf="!isViewMode">
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text" id="basic-addon1"><i class="fa fa-circle"
+                                            aria-hidden="true"></i></span>
+                                </div>
+                                <span class="input-group-text" tabindex="2"><button class="btn-blank"
+                                        (click)="addOption(question.QUESTION_ID)">ADD "OTHER"</button></span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Table / Grid -->
+                    <div *ngIf="question.ANSWER_TYPE == 'Table'" class="row">
+                        <div class="col-12 options">
+                            <ng-container *ngFor="let option of questionnaire.options;let optionIndex = index;">
+                                <div *ngIf="option.QUESTION_ID == question.QUESTION_ID" class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text" id="basic-addon1">
+                                            <i aria-hidden="true" class="fa fa-circle"></i></span>
+                                    </div>
+                                    <div class="col px-0">
+                                        <input (ngModelChange)="updateOptionACType(optionIndex)"
+                                            [(ngModel)]="option.OPTION_LABEL" [disabled]="isViewMode"
+                                            aria-describedby="basic-addon1" aria-label="columnName"
+                                            class="form-control custom-input" id="option{{option.QUESTION_OPTION_ID}}"
+                                            placeholder="Column Name" type="text">
+                                        <span class="bar"></span>
+                                    </div>
+                                    <div class="input-group-append">
+                                        <span class="input-group-text">
+                                            <a (click)="setDeleteData(option,'option', question)" *ngIf="!isViewMode"
+                                                data-target="#confirmDeleteModal" data-toggle="modal">
+                                                <i aria-hidden="true" class="fa fa-times"
+                                                    title="Delete Coumn"></i></a></span>
+                                    </div>
+                                </div>
+                            </ng-container>
+                        </div>
+                        <div *ngIf="!isViewMode && !question.IS_LIMIT_REACHED" class="col-12 options">
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text" id="basic-addon1"><i aria-hidden="true"
+                                            class="fa fa-circle"></i></span>
+                                </div>
+                                <span class="input-group-text" tabindex="2"><button (click)="addOption(question.QUESTION_ID, null);
+                                        setOptionLimit(question, TABLE_COLUMN_LIMIT);
+                                        updateOptionNumberToOptions(question.QUESTION_ID)" class="btn-blank">Add one
+                                        more column</button></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row margin-bottom" *ngIf="question.ANSWER_TYPE != 'Table'">
+                        <div class="col-12 text-md-right text-center qst-two-btn">
+                            <button type="button" (click)="addBranching(question.QUESTION_ID,i)"
+                                *ngIf="!isViewMode && enableBranching(question.QUESTION_ID,  question.ANSWER_TYPE, question.LOOKUP_TYPE)"
+                                class="btn btn-sm btn-tertiary" title="Add branching"><i class="fa fa-sitemap"
+                                    aria-hidden="true"></i>
+                                Add Branch</button>
+                        </div>
+                    </div>
+                    <div class="row" *ngIf="question.HAS_CONDITION == 'Y'">
+                        <div class="col-lg-12 card-details">
+                            <div class="accordion" id="accordionExample">
+                                <div class="card">
+                                    <div class="card-header qst-branch-header" id="headingOne">
+                                        <h5 class="mb-0 card-down">
+                                            <span class="mr-2"><a data-toggle="modal" data-target="#conditionModel">
+                                                    <i class="fa fa-info-circle text-muted float-none"
+                                                        aria-hidden="true"></i>
+                                                </a></span>
+                                            <span class="f-16 font-weight-bold">Branch</span>
+                                            <i class="fa fa-chevron-down" data-toggle="collapse"
+                                                [attr.data-target]="'#condition' + i" aria-expanded="true"
+                                                aria-controls="collapseOne" aria-hidden="true"></i>
+                                        </h5>
+                                    </div>
+                                </div>
+                                <div id="condition{{i}}" class="collapse show" aria-labelledby="headingOne"
+                                    data-parent="#accordionExample">
+                                    <div class="card-body">
+                                        <div @items
+                                            *ngFor="let condition of questionnaire.conditions; let conditionIndex = index">
+                                            <div class="row margin-bottom"
+                                                *ngIf="condition.QUESTION_ID == question.QUESTION_ID">
+                                                <div
+                                                    class="col-lg-auto col-md-auto col-sm-auto col-auto mt-3 d-flex justify-content-start align-items-center">
+                                                    <span> If answer</span>
+                                                </div>
+                                                <div class="col-lg-4 col-md-4 col-sm-4 col-9 mt-3">
+                                                    <select [disabled]="isViewMode"
+                                                        [(ngModel)]="condition.CONDITION_TYPE"
+                                                        (ngModelChange)="updateConditionACType(conditionIndex)"
+                                                        class="form-control w-100">
+                                                        <option value="null">-select--</option>
+                                                        <option *ngFor=" let option of optionsArray">{{option}}
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-lg-4 col-md-4 col-sm-4 col-8 mt-3" *ngIf="(question.ANSWER_TYPE == 'Radio' || question.ANSWER_TYPE == 'Checkbox' ||
+                                    question.ANSWER_TYPE == 'Y/N'|| question.ANSWER_TYPE == 'Y/N/NA')">
+                                                    <select class="form-control w-100 f-14" [disabled]="isViewMode"
+                                                        [(ngModel)]="condition.CONDITION_VALUE"
+                                                        (ngModelChange)="updateConditionACType(conditionIndex)">
+                                                        <option value="null">--select--</option>
+                                                        <option value="{{options.OPTION_LABEL}}"
+                                                            *ngFor=" let options of  getOptions(question.QUESTION_ID)">
+                                                            {{options.OPTION_LABEL}}
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div *ngIf="question.ANSWER_TYPE == 'Text' || question.ANSWER_TYPE == 'Textarea'"
+                                                    class="col-lg-4 col-md-5 col-sm col-4 mt-3">
+                                                    <input class="form-control custom-input f-14"
+                                                        [disabled]="isViewMode" [(ngModel)]="condition.CONDITION_VALUE"
+                                                        (ngModelChange)="updateConditionACType(conditionIndex)"
+                                                        type="text">
+                                                </div>
+                                                <div *ngIf="question.ANSWER_TYPE === 'Date'">
+                                                    <div
+                                                        class="answer-field p-0 ml-4 col-lg-4 col-md-5 col-sm col-4 mt-3">
+                                                        <div class="qst-date-dv">
+                                                            <input matInput [matDatepicker]="dt3" class="qst-date-picker px-3"
+                                                                [(ngModel)]="condition.CONDITION_VALUE"
+                                                                (keypress)="_commonService._keyPress($event, 'date')"
+                                                                placeholder="{{datePlaceHolder}}"
+                                                                id="ans_{{question.QUESTION_ID}}" (click)="dt3.open()">
+                                                            <span class="trigger qst-date-i" (click)="dt3.open()">
+                                                                <i aria-hidden="true" class="fa fa-calendar"></i>
+                                                            </span>
+                                                            <mat-datepicker #dt3 (opened)="setFocusToElement('ans_'+question.QUESTION_ID)"
+                                                                (closed)="setDateFormat(i, condition)">
+                                                            </mat-datepicker>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div *ngIf="question.ANSWER_TYPE === 'elastic'"
+                                                    class="col-lg-4 col-md-5 col-sm col-4 mt-3">
+                                                    <app-elastic
+                                                        [options]="searchOptions[condition.QUESTION_CONDITION_ID]"
+                                                        (selectedResult)="onSearchSelectEvent($event, question, condition)">
+                                                    </app-elastic>
+                                                </div>
+                                                <div *ngIf="question.ANSWER_TYPE === 'endpoint'"
+                                                    class="col-lg-4 col-md-5 col-sm col-4 mt-3">
+                                                    <app-endpoint-search
+                                                        [httpOptions]="searchOptions[condition.QUESTION_CONDITION_ID]"
+                                                        (onSelect)="onSearchSelectEvent($event, question, condition)">
+                                                    </app-endpoint-search>
+                                                </div>
+                                                <div *ngIf="question.ANSWER_TYPE === 'SystemLookup' || question.ANSWER_TYPE === 'UserLookup'"
+                                                    class="col-lg-4 col-md-5 col-sm-4 col-4 mt-3">
+                                                    <app-look-up [options]="question.LOOKUP_TYPE"
+                                                        [defaultValue]="condition.CONDITION_VALUE"
+                                                        (selectedResult)="onLookupSelect($event, condition)">
+                                                    </app-look-up>
+                                                </div>
+                                                <div class="col-lg-auto col-md-auto col-sm-auto col-auto mt-3">
+                                                    <span> Then {{condition.GROUP_LABEL}}</span>
+                                                </div>
+                                                <div class="col-lg-auto col-md-auto col-sm-auto col-auto mt-3"
+                                                    *ngIf="!isViewMode">
+                                                    <button class="sub-add btn-blank"
+                                                        (click)="addConditionBasedQuestion(i,condition.GROUP_NAME,question.QUESTION_ID)"><i
+                                                            class="fa fa-plus" title="Create New Question"
+                                                            aria-hidden="true"></i></button>
+                                                    <button class="sub-add btn-blank"
+                                                        (click)="setDeleteData(condition,'condition')"
+                                                        data-toggle="modal" data-target="#confirmDeleteModal"><i
+                                                            class="fa fa-times close-icon" title="Cancel Branching"
+                                                            aria-hidden="true"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="{{question.QUESTION_ID}}" class="col-lg-12" *ngIf="editIndex != question.QUESTION_ID"
+                    (click)="changeEditQuestion(question.QUESTION_ID, 'question'+question.QUESTION_ID, question)">
+                    <span class="font-bold">Q </span>{{question.QUESTION_ID}}.
+                    <input appAutoGrow type="text" class="quest-custom-input-box border-none qst-custom-margin ml-2"
+                        [(ngModel)]="question.QUESTION" placeholder="Question" name="name"
+                        (focus)="changeEditQuestion(question.QUESTION_ID, 'question'+question.QUESTION_ID, question)" />
+                    <div *ngIf="question.ANSWER_TYPE == 'Text'" class="ml-4">
+                        <input type="text" class="quest-custom-input-box" placeholder="Short answer" />
+                    </div>
+                    <div *ngIf="question.ANSWER_TYPE == 'Radio' || question.ANSWER_TYPE == 'Y/N'||
+                question.ANSWER_TYPE == 'Y/N/NA' || question.ANSWER_TYPE == 'Checkbox' || question.ANSWER_TYPE == 'Table'"
+                        class="ml-4">
+                        <ng-container *ngFor=" let option of questionnaire.options">
+                            <div *ngIf="question.QUESTION_ID == option.QUESTION_ID" class="qst-display-flex options"
+                                (click)="changeEditQuestion(question.QUESTION_ID,'option'+ option.QUESTION_OPTION_ID, question)">
+                                <span class="input-group-text pl-0" id="basic-addon1"><i class="fa fa-circle"
+                                        aria-hidden="true"></i></span>
+                                <input type="text" class="quest-custom-input-box d-inline-block"
+                                    name="{{option.QUESTION_ID}}" placeholder="option"
+                                    [(ngModel)]="option.OPTION_LABEL" />
+                            </div>
+                        </ng-container>
+                    </div>
+                    <div *ngIf="question.ANSWER_TYPE == 'Attachment'" class="ml-4 mb-3">
+                        <input type="text" class="quest-custom-input-box" placeholder="Attachment" />
+                    </div>
+                    <div *ngIf="question.ANSWER_TYPE == 'Textarea'" class="ml-4 mb-3">
+                        <input type="text" class="quest-custom-input-box" placeholder="Paragraph" />
+                    </div>
+                    <div *ngIf="question.ANSWER_TYPE == 'Date'" class="ml-4 mb-3">
+                        <input type="text" class="quest-custom-input-box" placeholder="Date" />
+                    </div>
+                    <div *ngIf="['SystemLookup', 'UserLookup','endpoint','elastic'].includes(question.ANSWER_TYPE)"
+                        class="ml-4 mb-3">
+                        <input type="text" class="quest-custom-input-box" placeholder="Search Field" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal for more details -->
+<div *ngIf="questionnaire.questions.length != 0" aria-hidden="true" aria-labelledby="moreDetailsModal"
+    class="modal fade show mySkinDialog" id="moreDetailsModal" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Additional Info</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="col-12  mb-20">
+                    <label class="help-header">Help Text </label>
+                    <ng-container *ngIf="!_commonService.isIE">
+                        <div class="alert alert-warning p-1 f-15 mb-2 d-flex align-items-center">
+                            <i aria-hidden="true" class="fa fa-info-circle info-icon mx-2 mt-1"></i>
+                            <em>The editor does not support images.</em>
+                        </div>
+                        <ckeditor (ready)="onReady($event)"
+                            [(ngModel)]=" questionnaire?.questions[selectedQuestionIndex].DESCRIPTION"
+                            [config]="editorConfig" [disabled]="isViewMode" [editor]="Editor">
+                        </ckeditor>
+                    </ng-container>
+                    <textarea *ngIf="_commonService.isIE"
+                        [(ngModel)]=" questionnaire?.questions[selectedQuestionIndex].DESCRIPTION"
+                        class="ngx-textarea form-control" rows="10"></textarea>
+                </div>
+                <div class="col-12">
+                    <div *ngIf="['Text', 'Table'].includes(questionnaire.questions[selectedQuestionIndex].ANSWER_TYPE)"
+                        class="row pb-3 pl-4">
+                        <label class="help-header">
+                            Number of answers :
+                        </label>
+                        <div *ngIf="questionnaire.questions[selectedQuestionIndex].ANSWER_TYPE == 'Text'" class="col">
+                            <input (ngModelChange)="commonValues.isQuestionEdited = true"
+                                [(ngModel)]="questionnaire.questions[selectedQuestionIndex].NO_OF_ANSWERS"
+                                [disabled]="isViewMode" class="form-control custom-input" placeholder="" type="number">
+                        </div>
+                        <div *ngIf="questionnaire.questions[selectedQuestionIndex].ANSWER_TYPE == 'Table'" class="col">
+                            <input (ngModelChange)="commonValues.isQuestionEdited = true;
+                                   resetNoOfAnswerIfEmpty(questionnaire.questions[selectedQuestionIndex])"
+                                [(ngModel)]="questionnaire.questions[selectedQuestionIndex].NO_OF_ANSWERS"
+                                [disabled]="isViewMode" class="form-control custom-input" maxlength="10"
+                                placeholder="Number of answers" type="number">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="row pl-4">
+                        <label class="help-header">
+                            Help Link :
+                        </label>
+                        <div class="col">
+                            <input [(ngModel)]=" questionnaire.questions[selectedQuestionIndex].HELP_LINK"
+                                [disabled]="isViewMode" class="form-control custom-input" placeholder="help link"
+                                type="text">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button (click)="updateEditorContent()" class="btn btn-primary fibi-btn-size btn-primary-sub"
+                    data-dismiss="modal" type="button">Add
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- modal for confirm delete  -->
+<div class="modal fade show mySkinDialog" id="confirmDeleteModal" tabindex="-1" role="dialog"
+    aria-labelledby="confirmDeleteModal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                Do you want to delete ?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                <button type="button" (click)="deleteAttribute()" data-dismiss="modal"
+                    class="btn btn-primary-sub btn-sm">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- condition explain modal -->
+<div class="modal fade show mySkinDialog" id="conditionModel" tabindex="-1" role="dialog"
+    aria-labelledby="conditionModel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                Contains the branching logic for the question
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade mySkinDialog" tabindex="-1" id="viewBusinessRulesModal" tabindex="-1" role="dialog" data-backdrop="static"
+    data-keyboard="false" aria-labelledby="viewBusinessRulesModal" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Link / Replace Business Rule</h5>
+                <button type="button" id="create-budget-close-btn" class="close" (click)="cancelAddBusinessRule()"
+                     aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" *ngIf="businessRules?.length>0">
+                <app-rule-summary 
+                *ngIf="questionnaire.questions[selectedQuestionIndex].RULE_ID && isShowRule" 
+                [ruleId]="questionnaire.questions[selectedQuestionIndex].RULE_ID"  
+                [isViewMode]="isViewMode"
+                [isShowModalView]="isShowSummaryModal"
+                [isRuleAvailable]="isRuleAvailable">
+                </app-rule-summary>
+                <div class="form-group searchBox">
+                    <input type="text" placeholder="Search by Description"
+                        class="ng-pristine ng-valid ng-touched form-control" [(ngModel)]="searchText">
+                    <a *ngIf="!searchText" class="searchButton">
+                        <i class="fa fa-search fa-med mr-4 pt-2 hand-icon" aria-hidden="true"></i>
+                    </a>
+                    <a *ngIf="searchText" class="searchButton" (click)="searchText = ''">
+                        <i class="fa fa-close" aria-hidden="true"></i>
+                    </a>
+                </div>
+                <div class="card">
+                    <div class="table-data-scroll">
+                        <div class="table-responsive">
+                            <table class="table tableSkin mb-0">
+                                <caption class="sr-only">Business Rule</caption>
+                                <thead>
+                                    <tr class="header-border sticky-top">
+                                        <th>Select</th>
+                                        <th scope="col" class="table-border-bottom hand-icon"
+                                            (click)="sortBy('RULE')">
+                                            Business Rules<i aria-hidden="true" class="hand-icon"
+                                                [ngClass]="((!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon'))"></i>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        *ngFor="let rule of businessRules
+                                                        | SearchFilter : searchText : ['RULE']
+                                                        | orderBy: {property: 'RULE', direction: direction} ; let index=index">
+                                        <td>
+                                            <li class="nolist">
+                                                <input type="radio" class="radio-inline" name="selectedRule" (ngModelChange)="getIsRuleAvailable(rule.RULE_ID)"
+                                                    [value]="rule.RULE_ID" [(ngModel)]="questionnaire.questions[selectedQuestionIndex].RULE_ID">
+                                            </li>
+                                        </td>
+                                        <td>{{rule.RULE}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body" *ngIf="businessRules?.length == 0">
+                <div class="no-data-container p-3">
+                    <span class="no-data-icon-outer">
+                        <div class="no-data-icon">
+                            <i class="fa fa-file-o" aria-hidden="true"></i>
+                            <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                        </div>
+                    </span>
+                    <h4 class="text-content-color">There is no information in this section.</h4>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="cancelAddBusinessRule()">Cancel</button>
+                <button type="button" *ngIf="businessRules.length > 0" class="btn btn-primary-sub"
+                   (click)="addBusinessRuleValidation()">Add</button>
+            </div>
+        </div>
+    </div>
+</div>

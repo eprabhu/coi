@@ -1,0 +1,1769 @@
+<!-- Last updated by Krishnanunni on 19-11-2019 -->
+<div class="push4slideMenu pageMinHeight" id="scrollToTop">
+    <div class="container-fluid pushFixedHeaderFooter">
+        <div class="headerPush"></div>
+        <section class="row">
+            <div id="myaward" class="col-12">
+                <!-- header start -->
+                <div class="sticky-top-nav mb-3 header-outline" id="stickyAwardHeader">
+                    <!-- title -->
+                    <div class="row">
+                        <div class="text-left col">
+                            <h2 *ngIf="result?.award?.awardId == null" title="[Untitled]" class="title-primary fs-20">
+                                <span *ngIf="!_commonData.awardTitle.title">[Untitled]</span>
+                                <span *ngIf="_commonData.awardTitle.title">{{_commonData.awardTitle.title}}</span>
+                            </h2>
+                            <h2 *ngIf="result?.award?.awardId != null"
+                                title="{{result?.award?.awardNumber}}:{{result?.award?.title}}"
+                                class="title-primary fs-20 text-justify">
+                                #{{result?.award?.awardNumber}}:{{_commonData.awardTitle.title}}
+                            </h2>
+                        </div>
+                        <div class="text-right col-auto"
+                            *ngIf="result?.award?.workflowAwardStatusCode && result?.award?.workflowAwardStatusCode !== '1'
+                         && result?.award?.workflowAwardStatusCode !== '3' && result?.award?.awardSequenceStatus !== 'ARCHIVE'">
+                            <span class="badge-title bg-transparent mr-0 fs-14-nav px-0"><i
+                                    class="fa fa-bookmark text-primary" aria-hidden="true"></i>
+                                Workflow <span class="d-none d-md-inline-block">Status</span> :
+                            </span>
+                            <span
+                                class="status-badge-{{getWorkFlowStatusCode(result?.award?.awardWorkflowStatus?.workflowAwardStatusCode)}} fs-14-nav px-0 bg-transparent">
+                                {{result?.award?.awardWorkflowStatus.description}}</span>
+                        </div>
+                        <div class="text-right col-auto" *ngIf="result?.award?.sapFeedStatus?.feedStatusCode && result?.award?.workflowAwardStatusCode == '3' &&
+                            result?.award?.sapFeedStatus?.feedStatusCode != 'R' && result?.award?.awardSequenceStatus !== 'ACTIVE'">
+                            <span class="badge-title bg-transparent mr-0 fs-14-nav px-0"><i
+                                    class="fa fa-bookmark text-primary" aria-hidden="true"></i>
+                                Feed <span class="d-none d-md-inline-block">Status</span> :
+                            </span>
+                            <span
+                                class="status-badge-{{getSapFeedStatusCode(result?.award?.sapFeedStatus?.feedStatusCode)}} fs-14-nav px-0 bg-transparent">
+                                {{result?.award?.sapFeedStatus?.description}}</span>
+                        </div>
+                        <div class="col-1" *ngIf="_commonService.isEnableLock && !webSocket.isLockAvailable('Award' + '#' +result?.award?.awardId) && webSocket.isServerAvailable">
+                            <span *ngIf="result?.award?.awardId" class=" blink icon-hover text-right">
+                                <a class="tooltip "><i class="fa fa-lock fs-20" aria-hidden="true"></i>
+                                    <div class="tooltiptext-right card card-inner p-15 text-left">
+                                        <span class="font-cv">Locked</span>
+                                        <span class="font-cv font-weight-bold">This document has a lock currently owned
+                                            by {{webSocket.currentLockedModule['Award' + '#' + result?.award?.awardId]?.currentUser}} as
+                                            of
+                                            {{webSocket.currentLockedModule['Award' + '#' + result?.award?.awardId]?.createTimeStamp |
+                                            date: 'medium'}}
+                                        </span>
+                                    </div>
+                                </a>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 col-lg">
+                            <div class="float-left d-inline-block">
+                                <span class="badge-title bg-transparent px-0 fs-14-nav"
+                                    *ngIf="result?.award?.awardId">
+                                    <i class="fa fa-clock-o text-primary mr-1" aria-hidden="true"></i>
+                                    <span class="d-none d-md-inline-block">Period : </span>
+                                      {{_commonData?.beginDate | dateFormatter}} -
+	                                    {{_commonData?.finalExpirationDate | dateFormatter}}
+                                </span>
+                                <span class="badge-title bg-transparent px-1 px-md-3 px-lg-4 fs-14-nav"
+                                    *ngIf="result?.award?.principalInvestigator">
+                                    <i class="fa fa-user text-primary mr-1" aria-hidden="true"></i>
+                                    <span class="d-none d-md-inline-block">PI : </span>
+                                    {{result?.award?.principalInvestigator}}
+                                </span>
+                                <span class="badge-title bg-transparent px-1 px-md-3 px-lg-4 fs-14-nav"
+                                    *ngIf="result?.award?.leadUnit?.unitName">
+                                    <i class="fa fa-home text-primary mr-1" aria-hidden="true"></i>
+                                    <span class="d-none d-md-inline-block">Lead Unit : </span>
+                                    {{concatUnitNumberAndUnitName(result?.award?.leadUnit?.unitNumber, result?.award?.leadUnit?.unitName)}}
+                                </span>
+                                <span class="badge-title bg-transparent px-1 fs-14-nav"
+                                    *ngIf="result?.award?.awardStatus?.statusCode">
+                                    <i class="fa fa-bookmark text-primary mr-1" aria-hidden="true"></i>
+                                    <span class="d-none d-md-inline-block">
+                                        <ng-container i18n="@@AWARD_AWARD_STATUS">Award Status</ng-container> :
+                                    </span>
+                                    <span
+                                        class="status-badge-{{getBadgeByStatusCode(result?.award?.awardStatus?.statusCode)}} fs-14-nav px-0 bg-transparent">
+                                        {{result?.award?.awardStatus?.description}}</span>
+                                </span>
+                                <span class="badge-title bg-transparent px-4 fs-14-nav"
+                                    *ngIf="result?.award?.budgetStatus?.budgetStatusCode && result?.award?.awardSequenceStatus !== 'ACTIVE' ">
+                                    <i class="fa fa-bookmark text-primary mr-1" aria-hidden="true"></i>
+                                    <span class="d-none d-md-inline-block">Budget Status : </span>
+                                    <span
+                                        class="status-badge-{{getBadgeByBudgetStatusCode(result?.award?.budgetStatus?.budgetStatusCode)}} fs-14-nav px-0 bg-transparent">
+                                        {{result?.award?.budgetStatus?.description}}</span>
+                                </span>
+                                <!-- Status -->
+                            </div>
+                            <span *ngIf="result?.award?.awardSequenceStatus"
+                                class="badge-title bg-transparent px-1 fs-14-nav  float-right">
+                                <i class="fa fa-bookmark text-primary mr-1" aria-hidden="true"></i>
+                                <span class="d-none d-md-inline-block">Version Status : </span>
+                                <span
+                                    class="status-badge-{{getVersionStatusCode(result?.award?.awardSequenceStatus)}} fs-14-nav px-0 bg-transparent"
+                                    title="{{result?.award?.awardSequenceStatus}}">{{result?.award?.awardSequenceStatus}}
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <!-- nav links -->
+                        <div class="col-lg col-auto pr-0">
+                            <div class="collapse navbar-toggleable-xs mt-5 mt-lg-0 mb-1" id="navbarResponsive">
+                                <ul class="menu-responsive tabs fit-content tabs-collapsed">
+                                    <li *ngIf="result?.award?.awardId && _commonData.awardSectionConfig?.AW119?.isActive" routerLinkActive="active">
+                                        <a [routerLink]="['/fibi/award/comparison']" queryParamsHandling='merge'>
+                                            <ng-container i18n="@@AWARD_AWARD_COMPARISON">Award</ng-container>
+                                        </a>
+                                    </li>
+                                    <li routerLinkActive="active" *ngIf="_commonData.awardSectionConfig?.AW101?.isActive">
+                                        <a (click)=" getSectionDescriptionFromCode(101);"
+                                            [routerLink]="['/fibi/award/overview']" queryParamsHandling='merge'>
+                                            <i *ngIf="isOverviewHighlighted" class="fa fa-exclamation-circle text-info"
+                                                aria-hidden="true"></i>
+                                            Overview
+                                        </a>
+                                    </li>
+                                    <li routerLinkActive="active" *ngIf="result?.award?.awardId != null && _commonData.awardSectionConfig?.AW120?.isActive">
+                                        <a (click)="getSectionDescriptionFromCode(120);"
+                                            [routerLink]="['/fibi/award/other-information']"
+                                            queryParamsHandling='merge'>
+                                            <i *ngIf="isCustomDataHighlighted"
+                                                class="fa fa-exclamation-circle text-info" aria-hidden="true"></i>
+                                            Other Information </a>
+                                    </li>
+                                    <li *ngIf="result?.award?.awardId != null && _commonData.awardSectionConfig?.AW102?.isActive" routerLinkActive="active">
+                                        <a class="notification"
+                                            (click)="getSectionDescriptionFromCode(101);"
+                                            [routerLink]="['/fibi/award/task']" [queryParams]="{ 'taskId': null }"
+                                            queryParamsHandling='merge'>
+                                            Tasks
+                                            <span class="badge"
+                                                *ngIf="_commonData?.taskCount > 0">{{_commonData?.taskCount}}</span>
+                                        </a>
+                                    </li>
+                                    <li routerLinkActive="active" *ngIf="result?.award?.awardId != null && _commonData.awardSectionConfig?.AW103?.isActive">
+                                        <a (click)="getSectionDescriptionFromCode(108);"
+                                            [routerLink]="['/fibi/award/dates']" queryParamsHandling='merge'>
+                                            <i *ngIf="isDatesAndAmountHighlighted"
+                                                class="fa fa-exclamation-circle text-info" aria-hidden="true"></i>
+                                            Dates & Amounts
+                                        </a>
+                                    </li>
+                                    <li routerLinkActive="active" *ngIf="result?.award?.awardId != null && _commonData.awardSectionConfig?.AW104?.isActive">
+                                        <a (click)=" getSectionDescriptionFromCode(102);"
+                                            [routerLink]="['/fibi/award/budget-expense']" queryParamsHandling='merge'>
+                                            <i *ngIf="isBudgetHighlighted" class="fa fa-exclamation-circle text-info"
+                                                aria-hidden="true"></i>
+                                            Budget & Expenses
+                                        </a>
+                                    </li>
+                                    <li *ngIf="result?.award?.awardId != null && _commonService.isManpowerEnabled && _commonData.awardSectionConfig?.AW105?.isActive" routerLinkActive="active">
+                                        <a (click)="getSectionDescriptionFromCode(131)"
+                                            [routerLink]="['/fibi/award/manpower']" queryParamsHandling='merge'>
+                                            <i *ngIf="isManpowerHighlighted" class="fa fa-exclamation-circle text-info"
+                                                aria-hidden="true"></i>
+                                            Manpower </a>
+                                    </li>
+                                    <li routerLinkActive="active" *ngIf="result?.award?.awardId != null && _commonData.awardSectionConfig?.AW106?.isActive">
+                                        <a (click)="getSectionDescriptionFromCode(111);"
+                                            [routerLink]="['/fibi/award/cost-share']" queryParamsHandling='merge'>
+                                            <i *ngIf="isCostShareHighlighted" class="fa fa-exclamation-circle text-info"
+                                                aria-hidden="true"></i>
+                                            Cost Share
+                                        </a>
+                                    </li>
+                                    <li routerLinkActive="active" *ngIf="result?.award?.awardId != null && _commonData.awardSectionConfig?.AW107?.isActive">
+                                        <a (click)="getSectionDescriptionFromCode(103);"
+                                            [routerLink]="['/fibi/award/attachments']" queryParamsHandling='merge'>
+                                            <i *ngIf="isAttachmentHighlighted"
+                                                class="fa fa-exclamation-circle text-info" aria-hidden="true"></i>
+                                            Attachments
+                                        </a>
+                                    </li>
+                                     <li routerLinkActive="active" *ngIf="result?.award?.awardId != null && _commonData.awardSectionConfig?.AW122?.isActive">
+                                        <a 
+                                            [routerLink]="['/fibi/award/comments']" queryParamsHandling='merge'>
+                                                Comments
+                                        </a>
+                                    </li>
+                                    <li routerLinkActive="active" *ngIf="result?.award?.awardId != null && _commonData.awardSectionConfig?.AW109?.isActive">
+                                        <a (click)="getSectionDescriptionFromCode(124);"
+                                            [routerLink]="['/fibi/award/questionnaire']" queryParamsHandling='merge'>
+                                            <i *ngIf="isQuestionnaireHighlighted"
+                                                class="fa fa-exclamation-circle text-info" aria-hidden="true"></i>
+                                            Questionnaire
+                                        </a>
+                                    </li>
+                                    <!-- <li routerLinkActive="active" *ngIf="result?.award?.awardId != null && _commonData.awardSectionConfig?.AW125?.isActive">
+                                        <a  [routerLink]="['/fibi/award/summary-report']" queryParamsHandling='merge'>
+                                            Report Summary
+                                        </a>
+                                    </li> -->
+                                    <li routerLinkActive="active" *ngIf="result?.award?.awardId != null && _commonData.awardSectionConfig?.AW110?.isActive">
+                                        <a (click)="getSectionDescriptionFromCode(101)"
+                                            [routerLink]="['/fibi/award/reports']" queryParamsHandling='merge'>
+                                            <i *ngIf="isReportsHighlighted" class="fa fa-exclamation-circle text-info"
+                                                aria-hidden="true"></i>
+                                            Report Req.
+                                        </a>
+                                    </li>
+                                    <li routerLinkActive="active" *ngIf="result?.award?.awardId != null && _commonData.awardSectionConfig?.AW111?.isActive">
+                                        <a (click)="getSectionDescriptionFromCode(121);
+                                        " [routerLink]="['/fibi/award/payments']" queryParamsHandling='merge'>
+                                            <i *ngIf="isPaymentsHighlighted" class="fa fa-exclamation-circle text-info"
+                                                aria-hidden="true"></i>
+                                            Payments
+                                        </a>
+                                    </li>
+                                    <li routerLinkActive="active" *ngIf="result?.award?.awardId != null && _commonData.awardSectionConfig?.AW112?.isActive">
+                                        <a (click)="getSectionDescriptionFromCode(110);"
+                                            [routerLink]="['/fibi/award/terms-approval']" queryParamsHandling='merge'>
+                                            <i *ngIf="isTermsHighlighted" class="fa fa-exclamation-circle text-info"
+                                                aria-hidden="true"></i>
+                                            Terms
+                                        </a>
+                                    </li>
+                                    <li routerLinkActive="active" *ngIf="result?.award?.awardId != null && _commonData.awardSectionConfig?.AW113?.isActive">
+                                        <a (click)="getSectionDescriptionFromCode(115);"
+                                            [routerLink]="['/fibi/award/project-outcome']" queryParamsHandling='merge'>
+                                            <i *ngIf="isOutcomeHighlighted" class="fa fa-exclamation-circle text-info"
+                                                aria-hidden="true"></i>
+                                            Outcomes
+                                        </a>
+                                    </li>
+                                    <li routerLinkActive="active" *ngIf="result?.award?.awardId != null && _commonData.awardSectionConfig?.AW114?.isActive">
+                                        <a (click)="getSectionDescriptionFromCode(101)"
+                                            [routerLink]="['/fibi/award/permissions']" queryParamsHandling='merge'>
+                                            <i *ngIf="isRolesHighlighted" class="fa fa-exclamation-circle text-info"
+                                                aria-hidden="true"></i>
+                                            <ng-container i18n="@@COMMON_PERMISSIONS">Permissions</ng-container>
+                                        </a>
+                                    </li>
+                                     <li routerLinkActive="active" *ngIf="result?.award?.awardId != null && _commonData.awardSectionConfig?.AW121?.isActive">
+                                        <a 
+                                            [routerLink]="['/fibi/award/review']" queryParamsHandling='merge'>
+                                            Review
+                                        </a>
+                                    </li>
+                                    <li *ngIf="result?.award?.awardId != null && _commonData.awardSectionConfig?.AW115?.isActive" routerLinkActive="active">
+                                        <a (click)="getSectionDescriptionFromCode(101)"
+                                            [routerLink]="['/fibi/award/hierarchy']" queryParamsHandling='merge'>
+                                            <i *ngIf="isHierarchyHighlighted" class="fa fa-exclamation-circle text-info"
+                                                aria-hidden="true"></i> Hierarchy
+                                        </a>
+                                    </li>
+                                    <li *ngIf="result?.award?.awardId != null && _commonData.awardSectionConfig?.AW116?.isActive" routerLinkActive="active">
+                                        <a (click)="getSectionDescriptionFromCode(101)"
+                                            [routerLink]="['/fibi/award/medusa']" queryParamsHandling='merge'>
+                                            Medusa </a>
+                                    </li>
+                                    <li *ngIf="result?.award?.awardId != null && _commonData.awardSectionConfig?.AW117?.isActive" routerLinkActive="active">
+                                        <a (click)="getSectionDescriptionFromCode(101)"
+                                            [routerLink]="['/fibi/award/award-history']" queryParamsHandling='merge'>
+                                            History </a>
+                                    </li>
+                                    <li *ngIf="result?.award?.awardId != null && result?.award?.awardWorkflowStatus?.workflowAwardStatusCode !== '1'
+                                    && result?.workflow?.workflowId && _commonData.awardSectionConfig?.AW118?.isActive"
+                                        routerLinkActive="active">
+                                        <a (click)="getSectionDescriptionFromCode(101)"
+                                            [routerLink]="['/fibi/award/route-log']" queryParamsHandling='merge'>
+                                            Route Log
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <!-- submit,return button -->
+                        <div class="col-lg-auto col-12 my-2">
+                            <button #mainHeaders id="responsiveColapse"
+                                class="navbar-toggler hidden-sm-up px-0 d-inline-block d-lg-none float-left mt-2"
+                                type="button" data-toggle="collapse" data-target="#navbarResponsive"
+                                aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                                <i class="fa fa-bars f-14 text-muted mx-colr" aria-hidden="true"
+                                    title="Click for more pages"></i>
+                            </button>
+                            <!-- Cancelled status is added to the buttons to avoid it to be  displayed on sequence status CANCELLED (which was introduced lately)  -->
+                            <span class="float-right">
+                                <button type="button" title="Validate Award" id="validation-btn" i18n-title="@@AWARD_VALIDATE_AWARD_TLP"
+                                    (click)='evaluateValidation(true);'
+                                    *ngIf="isLocked &&((result?.award?.workflowAwardStatusCode === '1'|| result?.award?.workflowAwardStatusCode === '4'  || result?.award?.workflowAwardStatusCode === '7')
+                                    && (result?.award?.awardSequenceStatus !== 'CANCELLED'))"
+                                    class="btn btn-secondary btn-sm fs-14-nav">Validate</button>
+                                <button *ngIf="isLocked && ((result?.award?.workflowAwardStatusCode === '1'|| result?.award?.workflowAwardStatusCode === '4' || result?.award?.workflowAwardStatusCode === '7') &&
+                                result?.award?.principalInvestigator && (isSubmit || currentUser === result?.award?.createUser || isModifyAward)
+                                && result?.award?.awardSequenceStatus !== 'CANCELLED' )" type="button"
+                                    class="btn btn-primary btn-sm fs-14-nav" id="award-submit-btn"
+                                    (click)="triggerSubmitModal()">Submit
+                                    <span *ngIf="result?.award?.awardDocumentTypeCode == '1'"
+                                        class="d-none d-md-inline-block">
+                                        <ng-container i18n="@@AWARD_SUBMIT_AWARD">Award</ng-container>
+                                    </span>
+                                    <span *ngIf="result?.award?.awardDocumentTypeCode == '2'"
+                                        class="d-none d-md-inline-block">
+                                        <ng-container i18n="@@AWARD_SUBMIT_ADMIN_CORRECTION">Admin Correction
+                                        </ng-container>
+                                    </span>
+                                    <span
+                                        *ngIf="result?.award?.awardDocumentTypeCode == '3' && result?.award?.serviceRequestType?.typeCode != 7"
+                                        class="d-none d-md-inline-block">Variation Request</span>
+                                    <span
+                                        *ngIf="result?.award?.awardDocumentTypeCode == '3' && result?.award?.serviceRequestType?.typeCode == 7"
+                                        class="d-none d-md-inline-block">
+                                        <ng-container i18n="@@AWARD_SUBMIT_AWARD_CLOSURE">Award Closure</ng-container>
+                                    </span>
+                                </button>
+                                <button *ngIf="isShowApproveDisapproveButton" type="button" id="award-disapprove-btn"
+                                    class="btn btn-secondary btn-sm fs-14-nav"
+                                    (click)="disapproveAward()"><ng-container i18n="@@COMMON_RETURN">Return</ng-container></button>
+                                <button *ngIf="isShowApproveDisapproveButton" type="button" id="award-approve-btn"
+                                    class="btn btn-primary btn-sm fs-14-nav" (click)="approveAward()">
+                                    <ng-container i18n="@@COMMON_APPROVE">Approve</ng-container>
+                                </button>
+                                <button *ngIf="result?.award?.awardId && _commonData.awardSectionConfig?.AW102?.isActive" title="Task List" class="btn task-btn p-0"
+                                    (click)="showNavBar()">
+                                    <img alt="Task List" src="{{deployUrl}}assets/images/task-icon-14px.svg"
+                                        aria-hidden="true"> Tasks
+                                    <span *ngIf="_commonData.taskCount"
+                                        class="nav-bar-count">{{_commonData.taskCount}}</span>
+                                </button>
+                                <span *ngIf="result?.award?.awardId != null" #moreOptions class="position-relative">
+                                    <button *ngIf="result?.award?.awardId" title="More Actions" class="btn more-btn"
+                                        (click)="isShowMoreOptions = !isShowMoreOptions">
+                                        <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+                                    </button>
+                                    <ul id="moreOptions-list" class="more-options-box" *ngIf="isShowMoreOptions">
+                                        <li *ngIf="result?.award?.awardId && result?.award?.awardSequenceStatus == 'ACTIVE' && isCreateVariationRequest">
+                                            <a class="dropdown-item" href="" id="award-create-variation-btn"
+                                                title="Create variation request for Award #{{result?.award?.awardId}}"
+                                                i18n-title="'@@AWARD_CREATE_VARIATION_REQUEST + `# ${result?.award?.awardId}`"
+                                                data-toggle="modal" data-target="#createVariationRequestModal"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions; isCreateVariationInfo = true; getVariationRequestTypes()" tabindex="0"> <i
+                                                    class="fa fa-plus-square-o" aria-hidden="true"></i>
+                                                Create Variation Request
+                                            </a>
+                                        </li>
+                                        <li title="Hold For Funding Agency Review" *ngIf="result?.award?.awardId != null && isModifyAward
+                                                && result?.award?.workflowAwardStatusCode == '2'">
+                                            <a class="dropdown-item" href="" id="award-hold-funding-agency-review-btn"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions"
+                                                title="Hold For Funding Agency Review #{{result?.award?.awardId}}"
+                                                data-toggle="modal" data-target="#sponsorAprovalModal" tabindex="0">
+                                                <i class="fa fa-pause-circle-o" aria-hidden="true"></i>Hold For Funding
+                                                Agency Review</a>
+                                        </li>
+                                        <li title="Back to Approval In Progress" *ngIf="result?.award?.awardId != null && isModifyAward
+                                            && result?.award?.workflowAwardStatusCode == '5'
+                                            && result?.award?.awardSequenceStatus !== 'CANCELLED'">
+                                            <a class="dropdown-item" href="" id="award-back-to-approval-in-progress-btn"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions"
+                                                title="Back to Approval In Progress #{{result?.award?.awardId}}"
+                                                data-toggle="modal" data-target="#sponsorAprovalModal" tabindex="0">
+                                                <i class="fa fa-history" aria-hidden="true"></i>Back to Approval In
+                                                Progress</a>
+                                        </li>
+                                        <!-- <li title="Copy Award"
+                                            *ngIf="result?.award?.awardId != null">
+                                            <a class="dropdown-item" href="" id="award-copy-btn"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions"
+                                                title="Copy Award #{{result?.award?.awardId}}" data-toggle="modal"
+                                                data-target="#copyAwardSetModal">
+                                                <i class="fa fa-copy" aria-hidden="true"></i>Copy Award</a>
+                                        </li> -->
+                                        <li title="Admin Correction" i18n-title="@@AWARD_ADMIN_CORRECTION_TLP"
+                                            *ngIf="result?.award?.awardId && isModifyAward && result?.award?.awardSequenceStatus == 'ACTIVE'">
+                                            <a class="dropdown-item" href="" id="award-edit-btn"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions; isEditAward = true"
+                                                title="Admin Correction #{{result?.award?.awardId}}"
+                                                i18n-title="'@@AWARD_EDIT_AWARD + `# ${result?.award?.awardId}`"
+                                                data-toggle="modal"
+                                                data-target="#editAwardSetModal" tabindex="0">
+                                                <i class="fa fa-pencil" aria-hidden="true"></i>
+                                                <ng-container i18n="@@AWARD_ADMIN_CORRECTION">Admin Correction
+                                                </ng-container>
+                                            </a>
+                                        </li>
+                                        <li title="Modify Outcome"
+                                            *ngIf="result?.award?.awardId && result?.award?.awardSequenceStatus == 'ACTIVE' && isProjectOutCome">
+                                            <a class="dropdown-item" href="" id="award-modify-outcome-btn"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions; isEditAward = false"
+                                                data-toggle="modal" data-target="#editAwardSetModal" tabindex="0">
+                                                <i class="fa fa-pencil" aria-hidden="true"></i>Modify Outcome</a>
+                                        </li>
+                                        <li title="Print Award" i18n-title="@@AWARD_PRINT_AWARD_TLP">
+                                            <a class="dropdown-item hand-cursor" id="award-print-btn"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions;printAward();"
+                                                tabindex="0">
+                                                <i class="fa fa-print" aria-hidden="true"></i>
+                                                <ng-container i18n="@@AWARD_PRINT_AWARD">Print Award</ng-container>
+                                            </a>
+                                        </li>
+                                        <li title="Send Notification">
+                                            <a class="dropdown-item hand-cursor" id="award-notify-btn"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions;isShowNotificationModal=true;"
+                                                tabindex="0">
+                                                <i class="fa fa-bell-o" aria-hidden="true"></i>Send Notification</a>
+                                        </li>
+                                        <li title="Award Closure" i18n-title="@@AWARD_AWARD_CLOSURE_TLP"
+                                            *ngIf="result?.award?.awardId && isProjectClosure && result?.award?.awardSequenceStatus == 'ACTIVE'">
+                                            <a class="dropdown-item" href="" id="award-closure-btn"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions;" title="Award Closure"
+                                                i18n-title="@@AWARD_AWARD_CLOSURE_TLP" data-toggle="modal"
+                                                data-target="#createProjectClosureModal" tabindex="0">
+                                                <i class="fa fa-file-text" aria-hidden="true"></i>
+                                                <ng-container i18n="@@AWARD_AWARD_CLOSURE">Award Closure</ng-container>
+                                            </a>
+                                        </li>
+                                        <li
+                                            *ngIf="result?.award?.awardId != null && result?.award?.workflowAwardStatusCode == '2' && result?.award?.awardSequenceStatus !== 'CANCELLED'
+                                            && result?.award?.awardStatus?.statusCode !== '11' && (isWithdrawAward || (currentUser === result?.award?.createUser))">
+                                            <a class="dropdown-item" href="" id="Withdraw-award"
+                                                (click)='withdrawAwardObject = {};uploadedFiles = []; variationType = "W"'
+                                                title=" Withdraw {{result?.award?.serviceRequestType?.description}} #{{result?.award?.awardId}}"
+                                                data-toggle="modal" data-target="#withdrawAwardModal" tabindex="0"> <i
+                                                    class="fa fa-sort-amount-asc" aria-hidden="true"></i>
+                                                Withdraw <span *ngIf="result?.award?.awardDocumentTypeCode == '2'"
+                                                    class="d-none d-md-inline-block">
+                                                    <ng-container i18n="@@AWARD_WITHDRAW_CANCEL_ADMIN_CORRECTION">Admin
+                                                        Correction</ng-container>
+                                                </span>
+                                                <span *ngIf="result?.award?.awardDocumentTypeCode == '1'"
+                                                    class="d-none d-md-inline-block">
+                                                    <ng-container i18n="@@AWARD_WITHDRAW_CANCEL_AWARD">Award
+                                                    </ng-container>
+                                                </span>
+                                                <span
+                                                    *ngIf="result?.award?.awardDocumentTypeCode == '3' && result?.award?.serviceRequestType?.typeCode != 7"
+                                                    class="d-none d-md-inline-block">Variation Request</span>
+                                                <span
+                                                    *ngIf="result?.award?.awardDocumentTypeCode == '3' && result?.award?.serviceRequestType?.typeCode == 7"
+                                                    class="d-none d-md-inline-block">
+                                                    <ng-container i18n="@@AWARD_WITHDRAW_CANCEL_AWARD_CLOSURE">Award
+                                                        Closure</ng-container>
+                                                </span>
+                                            </a>
+                                        </li>
+                                        <li *ngIf="isLocked && result?.award?.awardId != null && (result?.award?.workflowAwardStatusCode == '1'
+                                                    || result?.award?.workflowAwardStatusCode == '4'
+                                                    || result?.award?.workflowAwardStatusCode == '7') && result?.award?.awardSequenceStatus !== 'CANCELLED'
+                                                    && result?.award?.awardStatus?.statusCode !== '11' && isCancelAward &&
+                                                    result?.award?.awardDocumentTypeCode != '1'"
+                                            title="Cancel {{result?.award?.serviceRequestType?.description}}"
+                                            class="hand-cursor">
+                                            <a class="dropdown-item" id="award-child-btn"
+                                                data-target="#withdrawAwardModal" data-toggle="modal"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions; withdrawAwardObject = {};uploadedFiles = [];variationType = 'C'"
+                                                tabindex="0">
+                                                <i class="fa fa-close" aria-hidden="true"></i>Cancel
+                                                <span *ngIf="result?.award?.awardDocumentTypeCode == '2'"
+                                                    class="d-none d-md-inline-block">
+                                                    <ng-container i18n="@@AWARD_WITHDRAW_CANCEL_ADMIN_CORRECTION">Admin
+                                                        Correction</ng-container>
+                                                </span>
+                                                <span
+                                                    *ngIf="result?.award?.awardDocumentTypeCode == '3' && result?.award?.serviceRequestType?.typeCode != 7"
+                                                    class="d-none d-md-inline-block">Variation Request</span>
+                                                <span
+                                                    *ngIf="result?.award?.awardDocumentTypeCode == '3' && result?.award?.serviceRequestType?.typeCode == 7"
+                                                    class="d-none d-md-inline-block">
+                                                    <ng-container i18n="@@AWARD_WITHDRAW_CANCEL_AWARD_CLOSURE">Award
+                                                        Closure</ng-container>
+                                                </span></a>
+                                        </li>
+                                        <li *ngIf="(isCreateAward || isModifyAward)  && result?.award?.awardSequenceStatus !== 'ARCHIVE'
+                                        && result?.award?.awardSequenceStatus !== 'CANCELLED'"  class="hand-cursor">
+                                            <a class="dropdown-item" id="award-child-btn" title="Add Child Award" i18n-title="@@AWARD_ADD_CHILD_AWARD_TLP"
+                                                data-target="#addAwardChildModal" data-toggle="modal"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions;" tabindex="0">
+                                                <i class="fa fa-plus" aria-hidden="true"></i>
+                                                <ng-container i18n="@@AWARD_ADD_CHILD_AWARD">Add Child Award
+                                                </ng-container>
+                                            </a>
+                                        </li>
+                                        <li title="Delete Award"
+                                            *ngIf="result?.award?.workflowAwardStatusCode == '1' && result?.award?.awardSequenceStatus == 'PENDING'
+                                                                                 && result?.award?.awardDocumentType?.awardDocumentTypeCode == '1'
+                                                                                 && ((result?.award?.createUser === _commonService.getCurrentUserDetail('userName')) || isDeleteAward)">
+                                            <a class="dropdown-item" (click)="isShowMoreOptions = !isShowMoreOptions; checkCanDeleteAward();" tabindex="0">
+                                                <i class="fa fa-trash-o mr-1" aria-hidden="true"></i>Delete Award
+                                            </a>
+                                        </li>
+                                        <li *ngIf="result?.isBudgetCreated && isBudgetTab && result?.award?.awardSequenceStatus !== 'CANCELLED'"
+                                            class="hand-cursor">
+                                            <a class="dropdown-item" id="award-budget-rates-btn"
+                                                title="View Budget Rates" data-target="#awardBudgetRatesModal"
+                                                data-toggle="modal" tabindex="0">
+                                                <i class="fa fa-percent" aria-hidden="true"></i>Rates</a>
+                                        </li>
+                                        <li *ngIf="result?.isBudgetCreated && isBudgetTab" class="hand-cursor">
+                                            <a class="dropdown-item" id="award-budget-report-btn"
+                                                title="Print Award Budget" (click)="generateAwardBudgetReport()"
+                                                tabindex="0">
+                                                <i class="fa fa-print" aria-hidden="true"></i>
+                                                Print Budget
+                                            </a>
+                                        </li>
+                                        <li *ngIf="result?.isGenerateWBSNumber && (result?.award?.workflowAwardStatusCode === '1'|| result?.award?.workflowAwardStatusCode === '4')
+                                        && !result?.award?.accountNumber && isGenerateAwardWBSNumber && result?.award?.awardSequenceStatus !== 'CANCELLED'"
+                                            class="hand-cursor">
+                                            <a class="dropdown-item" id="award-budget-rates-btn"
+                                                data-target="#generateWBSModal" data-toggle="modal"
+                                                title="Generate WBS Number" tabindex="0">
+                                                <i class="fa fa-random" aria-hidden="true"></i>Generate WBS Number</a>
+                                        </li>
+                                        <li *ngIf="result?.award?.awardSequenceStatus !== 'ARCHIVE'
+                                        && result?.award?.awardSequenceStatus !== 'CANCELLED'"
+                                            class="hand-cursor">
+                                            <a class="dropdown-item" id="award-budget-rates-btn"
+                                                data-target="#generateAwardNotice" data-toggle="modal"
+                                                i18n-title="@@AWARD_GENERATE_AWARD_NOTICE_TLP"
+                                                title="Generate Award Notice" tabindex="0">
+                                                <i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+                                                <ng-container i18n="@@AWARD_GENERATE_AWARD_NOTICE">Generate Award Notice
+                                                </ng-container>
+                                            </a>
+                                        </li>
+                                        <li class="hand-cursor"
+                                            *ngIf="isAddReviewComment && !_router.url.includes('comparison') && result?.award &&
+                                            (result?.award?.awardSequenceStatus ==='ACTIVE' || result?.award?.awardSequenceStatus ==='PENDING')">
+                                            <a class="dropdown-item" id="award-comparison-comments-btn"
+                                                data-toggle="modal" data-target="#awardCommentsModal"
+                                                title="Add award comments" (click)="setDynamicSectionDescription(sectionDescription);
+                                                isAwardCommentsModal=true;
+                                                getReviewSectionCode(sectionDescription);" tabindex="0"
+                                                i18n-title="@@AWARD_ADD_AWARD_COMMENTS_TLP">
+                                                <i class="fa fa-commenting" aria-hidden="true"></i>
+                                                <ng-container i18n="@@AWARD_ADD_AWARD_COMMENTS">Add Award Comments
+                                                </ng-container>
+                                            </a>
+                                        </li>
+                                        <li class="hand-cursor" *ngIf="result?.serviceRequest?.serviceRequestId &&
+                                        result?.award?.awardSequenceStatus === 'PENDING'">
+                                            <a class="dropdown-item" id="award-review-comments-btn" data-toggle="modal"
+                                                data-target="#awardCommentsModal" title="Add variation comments"
+                                                (click)="isShowVariationComments = true" tabindex="0">
+                                                <i class="fa fa-comment" aria-hidden="true"></i>Variation Comments</a>
+                                        </li>
+                                    </ul>
+                                </span>
+                                <button type="button" class="btn more-btn" (click)="backToAwardListClick()"
+                                    title="Back to Award List"  i18n-title="@@AWARD_BACK_TO_AWARD_LIST_TLP"><i class="fa fa-reply" aria-hidden="true"></i></button>
+                            </span>
+                        </div>
+                    </div>
+                    <div *ngIf="result?.award?.awardId != null && !result?.award?.principalInvestigator"
+                        class="row text-center">
+                        <div class="alert alert-danger pulse" role="alert">
+                            <i class="fa fa-exclamation-circle mr-2" aria-hidden="true"></i>
+                            <ng-container i18n="@@COMMON_NO_PRINCIPAL_INVESTIGATOR_ERR">Please provide a Principal
+                                Investigator in Key Personnel.</ng-container>
+                        </div>
+                    </div>
+                    <div *ngIf="!_budgetDataService.isBudgetDatesFilled" class="row">
+                        <div class="alert alert-danger pulse" role="alert">
+                            <i class="fa fa-exclamation-circle mr-2" aria-hidden="true"></i>Please fill the start date
+                            and end date of all budget period(s).
+                        </div>
+                    </div>
+                </div>
+                <div id="dashboardOverlay"></div>
+                <ng-container *ngIf="_awardService.$isSectionNavigation  | async">
+                    <div id="notice-box" *ngIf="(result?.serviceRequest || result?.pendingAwardsSummary?.pendingAwards.length)
+                    && result?.award?.awardId && result?.award?.awardDocumentType?.awardDocumentTypeCode !== '1'
+                    &&  (result?.award?.awardSequenceStatus == 'PENDING' || result?.award?.awardSequenceStatus == 'ACTIVE')"
+                        class="card notice-box my-3">
+                        <div class="card-content">
+                            <div class="gridSkin mb-0">
+                                      <div class="row">
+                                    <div *ngIf="result?.award?.awardSequenceStatus == 'PENDING'"
+                                        class="col-lg-9 col-12 py-1 no-hover-effect">
+                                        <span>This version is created as a result of <strong>
+                                                {{result?.serviceRequest?.serviceRequestType?.description}}</strong> by
+                                            {{result?.serviceRequest?.createUserFullName}} on
+                                            {{result?.serviceRequest?.createTimestamp | dateFormatterWithTimeZone:
+                                            'long'}}
+                                        </span>
+                                    </div>
+                                    <div *ngIf="result?.award?.awardSequenceStatus == 'ACTIVE'"
+                                        class="col-lg-9 col-12 py-1 no-hover-effect">
+                                        <span class="text-secondary d-block mb-2">
+                                            In Progress Variation Request(s) associated with this award</span>
+                                    </div>
+                                    <div class="col-lg-3 col-sm-4 col-12 py-1">
+                                        <div class="align-items-center d-flex">
+                                            <div class="mr-auto">
+                                                <span *ngIf="result?.award?.awardSequenceStatus == 'PENDING'"
+                                                    class="external-link hand-cursor mr-5"
+                                                    title="View Parent Award {{result?.serviceRequest?.moduleItemKey}}">
+                                                    <a class="anchor-link"
+                                                        (click)="viewParentAward(result?.serviceRequest?.moduleItemKey); isActiveAward = true"
+                                                        tabindex="0">
+                                                        <ng-container i18n="@@AWARD_ACTIVE_AWARD">Active Award
+                                                        </ng-container>
+                                                        <i aria-hidden="true"
+                                                            class="fa fa-external-link-square mt-1"></i>
+                                                    </a>
+                                                </span>
+                                                <span *ngIf="result?.award?.awardSequenceStatus == 'PENDING'"
+                                                    class="external-link hand-cursor"
+                                                    title="View Variation Request {{result?.serviceRequest?.serviceRequestId}}">
+                                                    <a class="anchor-link"
+                                                        (click)="viewServiceRequest(result?.serviceRequest?.serviceRequestId); isVariationRequest = true"
+                                                        tabindex="0">Variation
+                                                        Request
+                                                        <i aria-hidden="true"
+                                                            class="fa fa-external-link-square mt-1"></i>
+                                                    </a>
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <a id="project-expand-btn"
+                                                    (click)="isVariationCardActive = !isVariationCardActive">
+                                                    <i [ngClass]="isVariationCardActive?'fa fa-angle-double-up':'fa fa-angle-double-down '"
+                                                        aria-hidden="true" class="fa-large"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <ng-container *ngIf="isVariationCardActive">
+                                    <div *ngIf="result?.award?.awardSequenceStatus == 'PENDING' && isLocked" class="row">
+                                        <div *ngIf="sectionEditableList.length > 0" class="no-hover-effect py-1 col-10">
+                                            <span>
+                                                <strong class="text-danger d-block"
+                                                    *ngIf="(result?.award?.workflowAwardStatusCode === '1'|| result?.award?.workflowAwardStatusCode === '4' ||
+                                                    result?.award?.workflowAwardStatusCode === '7');else afterApprovalSection">
+                                                    You can make necessary changes in the relevant field(s) of the following section(s).
+                                                </strong>
+                                                <ng-template #afterApprovalSection class="d-block">
+                                                    <strong class="text-danger">You can review the changes in the
+                                                        following
+                                                        Section(s).</strong>
+                                                </ng-template>
+                                                <span class="d-block">
+                                                    <a class="anchor-link" *ngFor="let item of sectionEditableList"
+                                                    tabindex="0">
+                                                    <span *ngIf="item.variableType === 'V'" class="mr-2"
+                                                        (click)="_navigationService.navigateToDocumentRoutePath(item.routeName,item.documentId , result?.award?.awardId)"
+                                                        tabindex="0">
+                                                        {{item.name}}</span></a>
+                                                </span>
+                                                <strong class="text-danger d-block">
+                                                    After making the changes, please click "Validate" and click "Submit Variation Request" to complete the process.
+                                                </strong>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="!isLocked  && webSocket.isServerAvailable">
+                                        <strong class="text-dark d-block ml-3">
+                                          <div> This Award Version is currently locked by {{webSocket.currentLockedModule['Award' + '#' + result?.award?.awardId]?.currentUser}} on
+                                           {{webSocket.currentLockedModule['Award' + '#' + result?.award?.awardId]?.createTimeStamp | dateFormatterWithTimeZone: 'long'}}.
+                                        </div>
+                                        <div>
+                                            Please contact the user and request to submit/cancel this admin correction/variation request to create another admin correction/variation request. 
+                                        </div>
+                                        </strong>
+                                    </div>
+                                    <div *ngIf="result?.award?.awardSequenceStatus == 'PENDING'" class="row">
+                                        <div class="col-md-3 col-12">
+                                            <label>Subject</label>
+                                            <span class="d-sm-block"
+                                                *ngIf="!isEditVariation">{{result?.serviceRequest?.subject ?
+                                                result?.serviceRequest?.subject : 'Not Available'}}</span>
+                                            <input *ngIf="isEditVariation" type="result?.serviceRequest?.description"
+                                                [(ngModel)]="result.serviceRequest.subject"
+                                                (ngModelChange)="_commonData.isAwardDataChange = true"
+                                                class="form-control mb-2">
+                                        </div>
+                                        <div class="col-md-6 col-12">
+                                            <label>Justification</label>
+                                            <span *ngIf="!isEditVariation"
+                                                class="d-sm-block">{{result?.serviceRequest?.description ?
+                                                result?.serviceRequest?.description: 'Not Available' }}</span>
+                                            <div *ngIf="isEditVariation">
+                                                <textarea rows="1" appLengthValidator [isShowLimiter]='isEditVariation'
+                                                    [limit]=4000 [(ngModel)]="result.serviceRequest.description"
+                                                    (ngModelChange)="_commonData.isAwardDataChange = true"
+                                                    class="form-control mb-2 set-height"></textarea>
+                                            </div>
+                                        </div>
+                                        <div *ngIf="result.serviceRequest?.serviceRequestType?.helpText" class="col-md-2 col-12">
+                                            <label>Help URL</label>
+                                            <a class="anchor-link d-sm-block" [href]="'//' + result.serviceRequest?.serviceRequestType?.helpText"
+                                                target="_blank">
+                                                {{(result.serviceRequest?.serviceRequestType?.helpText.length>20) ?
+                                                (result.serviceRequest?.serviceRequestType?.helpText | slice:0:20)+'...' :
+                                                (result.serviceRequest?.serviceRequestType?.helpText)}}
+                                            </a>
+                                        </div>
+                                        <div *ngIf="isLocked && (result?.award?.workflowAwardStatusCode === '1'|| result?.award?.workflowAwardStatusCode === '4' || result?.award?.workflowAwardStatusCode === '7') && currentUser === result?.award?.createUser"
+                                            class="align-items-center col-1 d-flex justify-content-end">
+                                            <a class="anchor-link hand-cursor"><i class="fa fa-pencil rounded-icon"
+                                                    aria-hidden="true" *ngIf="!isEditVariation"
+                                                    (click)="editVariationRequestCardDetails()"></i></a>
+                                            <a class="anchor-link hand-cursor"><i class="fa fa-save rounded-icon mr-2"
+                                                    aria-hidden="true" *ngIf="isEditVariation"
+                                                    (click)="editVariationRequest(result.serviceRequest)"></i></a>
+                                            <a class="anchor-link hand-cursor"> <i class="fa fa-remove rounded-icon"
+                                                    aria-hidden="true" *ngIf="isEditVariation"
+                                                    (click)="removeVariationRequestCardDetails()"></i></a>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="result?.pendingAwardsSummary?.pendingAwards.length"
+                                        class="gridSkin mb-0 ">
+                                        <div class="row">
+                                            <div class="col-lg-9 col-12 py-1 no-hover-effect">
+                                                <span *ngIf="result?.award?.awardSequenceStatus == 'PENDING'"
+                                                    class="text-dark d-block f-14  mb-2">
+                                                    Other In Progress Variation Request(s)</span>
+                                                <div *ngFor="let award of result?.pendingAwardsSummary?.pendingAwards"
+                                                    class="mb-1">
+                                                    <a class="anchor-link" title="View Award#{{award?.awardNumber}}"
+                                                        i18n-title="'@@VIEW_AWARD + `# ${award?.awardNumber}`"
+                                                        (click)="gotoActiveAward(award.awardId);"
+                                                        tabindex="0">{{award?.awardVariationName}}
+                                                        <i aria-hidden="true"
+                                                            class="fa fa-external-link-square mt-1 mr-2"></i>
+                                                    </a>
+                                                    <span> by
+                                                        {{award?.createUserFullName}} on
+                                                        {{award?.createTimestamp | dateFormatterWithTimeZone:
+                                                        'long'}}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                            </div>
+                        </div>
+                    </div>
+                </ng-container>
+                <router-outlet></router-outlet>
+            </div>
+        </section>
+        <div class="footerPush"></div>
+    </div>
+</div>
+<!-- Confirmation Modal -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="ConfirmAwardModal" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" *ngIf="validationObject?.validationMsg?.length == 0">Confirmation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12">
+                        <p *ngIf="validationObject?.validationMsg?.length == 0">Are you sure you want to submit this
+                            <span *ngIf="result?.award?.awardDocumentTypeCode == '1'" class="d-none d-md-inline-block">
+                                <ng-container i18n="@@AWARD_SUBMIT_AWARD">award</ng-container>
+                            </span>
+                            <span *ngIf="result?.award?.awardDocumentTypeCode == '2'" class="d-none d-md-inline-block">
+                                <ng-container i18n="@@AWARD_SUBMIT_ADMIN_CORRECTION">admin correction</ng-container>
+                            </span>
+                            <span
+                                *ngIf="result?.award?.awardDocumentTypeCode == '3' && result?.award?.serviceRequestType?.typeCode != 7"
+                                class="d-none d-md-inline-block"> variation request</span>
+                            <span
+                                *ngIf="result?.award?.awardDocumentTypeCode == '3' && result?.award?.serviceRequestType?.typeCode == 7"
+                                class="d-none d-md-inline-block">
+                                <ng-container i18n="@@AWARD_SUBMIT_AWARD_CLOSURE">award closure</ng-container>
+                            </span>?
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <ng-container *ngIf="validationObject?.validationMsg?.length == 0">
+                    <button id="award-sumbit-no-btn" type="button" class="btn btn-secondary btn-sm"
+                        data-dismiss="modal">No</button>
+                    <button (click)="submitAward(result?.award?.awardId,result?.award?.awardNumber)" type="button"
+                        class="btn btn-primary-sub btn-sm " data-dismiss="modal">Yes</button>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade mySkinDialog" tabindex="-1" id="ValidateAwardModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Validation</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12 ">
+                        <div *ngIf="validationObject?.validationMsg?.length > 0">
+                            <ng-container *ngFor="let msg of validationObject?.errorList">
+                                <div class="alert alert-danger" role="alert">
+                                    <i class="fa fa-exclamation-circle icon text-danger" aria-hidden="true"></i>
+                                    <strong>Error: </strong>
+                                    <span [innerHTML]="msg.validationMessage"></span>
+                                </div>
+                            </ng-container>
+                            <ng-container *ngFor="let msg of validationObject?.warningList">
+                                <div class="alert alert-warning" role="alert">
+                                    <i class="fa fa-exclamation-triangle icon text-warning" aria-hidden="true"></i>
+                                    <strong>Warning: </strong>
+                                    <span [innerHTML]="msg.validationMessage"></span>
+                                </div>
+                            </ng-container>
+                        </div>
+                        <div *ngIf="validationObject?.validationMsg?.length == 0">
+                            <div class="alert alert-info" role="alert">
+                                <i class="fa fa-info-circle icon text-info" aria-hidden="true"></i>
+                                <strong>Success: </strong><ng-container i18n="@@AWARD_AWARD_SUCCESSFULLY_VALIDATED_ERR">Award successfully validated.</ng-container>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <ng-container
+                    *ngIf="(validationObject?.warningList?.length > 0 && validationObject?.errorList?.length > 0) || (validationObject?.warningList?.length == 0
+                    && validationObject?.errorList?.length > 0) || validationObject?.validationMsg?.length == 0 || isValidationFLag">
+                    <button class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+                </ng-container>
+                <ng-container
+                    *ngIf="!isValidationFLag && (validationObject?.warningList?.length > 0 && validationObject?.errorList?.length == 0)">
+                    <button class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                    <button (click)="continueToSubmit()" class="btn btn-primary-sub btn-sm">Continue to Submit</button>
+                    <!-- <button *ngIf="result?.canApproveRouting == '1'" data-dismiss="modal" data-toggle="modal"
+                        data-target="#approveDisapproveAwardModal" class="btn btn-primary-sub btn-sm">
+                        <ng-container i18n="@@AWARD_CONTINUE_TO_APPROVE_ERR">Continue to Approve</ng-container>
+                    </button> -->
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- APPROVE-DISAPPROVE MODAL -->
+<div class="modal fade mySkinDialog" id="approveDisapproveAwardModal" tabindex="-1" role="dialog"
+    aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="skippedSchedulesLongTitle">
+                    {{modalAproveHeading}} <span>
+                        <ng-container i18n="@@COMMON_AWARD">Award</ng-container>
+                        #{{result?.award?.awardNumber}}
+                    </span>
+                </h5>
+                <button type="button" id="award-approve-dismiss-btn" class="close" data-dismiss="modal"
+                    aria-label="Close" (click)="closeApproveDisapproveModal();">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-inner-scroll">
+                <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 viewMode resultCard">
+                    <div class="row">
+                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6">
+                            <label>
+                                <ng-container i18n="@@COMMON_AWARD_NUMBER">Award Number</ng-container>
+                            </label>
+                            <span>{{result?.award?.awardNumber}}</span>
+                        </div>
+                        <div class="col-xl-3 col-lg-3 col-md-4 col-sm-4 col-4">
+                            <label>Principal Investigator</label>
+                            <span class="d-block">{{result?.award?.principalInvestigator}}</span>
+                        </div>
+                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6">
+                            <label>Lead Unit</label>
+                            <span class="d-block">{{result?.award?.leadUnit?.unitName}}</span>
+                        </div>
+                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6">
+                            <label>Status</label>
+                            <span class="d-block">{{result?.award?.awardWorkflowStatus?.description}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <label for="award-approve-comments" class="mySkinDialog ">
+                            <p class="m-0">
+                                <strong>Comments</strong>
+                            </p>
+                        </label>
+                        <textarea appAutoGrow id="award-approve-comments" placeholder=""
+                            class="col-12 col-lg-12 commentBox auto-grow-height form-control"
+                            [ngClass]="isEmptyCommentArea ? 'is-invalid d-block' : ''" rows="3" cols="20"
+                            appLengthValidator [isShowLimiter]='true' [limit]=2000
+                            [(ngModel)]="requestObject.approveComment"></textarea>
+                        <span class="invalid-feedback d-block" *ngIf="isEmptyCommentArea">*Please add a
+                            comment.</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <label class="mySkinDialog">
+                            <p class="m-0">
+                                <strong>Add files</strong>
+                            </p>
+                        </label>
+                        <app-file-drop [multiple]="true" (filesDropEvent)="fileDrop($event)"></app-file-drop>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <div class="fileChips regularFont">
+                            <span *ngFor="let item of uploadedFile; let index=index">{{
+                                item?.name }} <i id="award-approve-attach-delete" class="fa fa-close hand-cursor"
+                                    aria-hidden="true" title="Remove File"
+                                    (click)="deleteFromUploadedFileList(index)"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="warningMsgObj.attachmentWarningMsg != null">
+                    <span class="mandatory font">{{warningMsgObj.attachmentWarningMsg}}</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="award-approve-close" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                    (click)="closeApproveDisapproveModal()">Close</button>
+                <button type="button" id="award-approve-disapprove-btn" class="btn btn-primary-sub btn-sm"
+                    (click)="maintainAwardWorkFlow()">{{modalAproveHeading}}</button>
+            </div>
+        </div>
+    </div>
+</div>
+<button type="button" id="validation-award-btn" [hidden]="true" data-toggle="modal"
+    data-target="#ValidateAwardModal"></button>
+<button type="button" id="confirm-validation-btn" [hidden]="true" data-toggle="modal"
+    data-target="#ConfirmAwardModal"></button>
+<button type="button" id="approve-btn" [hidden]="true" data-toggle="modal"
+    data-target="#approveDisapproveAwardModal"></button>
+<!--Create Variation request modal -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="createVariationRequestModal" role="dialog"
+    aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Variation Request for
+                    {{result?.award?.awardNumber}}:{{result?.award?.title}}
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" (click)="clearVariationRequestObject()"
+                    id="support-dissmiss-btn" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-body-style pt-2">
+                <div *ngIf="helpText?.createVariation?.helpTextInfo && isCreateVariationInfo"
+                    class="success-banner px-3 my-2 mx-4 d-flex justify-content-between align-items-center pb-2 pt-2">
+                    <div><i class="fa fa-info-circle info-icon mr-2" aria-hidden="true"></i>
+                        <em>{{helpText?.createVariation?.helpTextInfo}}</em>
+                    </div>
+                    <button type="button" id="modal-close" class="close close-button" (click)="isCreateVariationInfo = false"
+                        aria-label="Close">
+                        <span class="d-block" aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            <div *ngIf="result?.pendingAwardsSummary?.pendingAwards.length" class="gridSkin listSkin mb-0 ">
+                <div class="row">
+                    <div class=" col-12 py-1 no-hover-effect">
+                        <span class="text-secondary d-block mb-2">
+                            This award has {{result?.pendingAwardsSummary?.pendingAwards.length}} In Progress
+                            variation request(s)</span>
+                        <div class="inner-scroll">
+                            <div *ngFor="let award of result?.pendingAwardsSummary?.pendingAwards; let index = index">
+                                <div class="p-2 pl-4 mb-2 row">
+                                    <div class="col-10">
+                                    {{index + 1}})
+                                        <span class="fw-600" *ngIf="award?.awardVariationName">{{award?.awardVariationName}}</span>
+                                        <span class="fw-600" *ngIf="!award?.awardVariationName"><ng-container i18n="@@AWARD_AWARD_SETUP">Award Setup </ng-container></span>
+                                        <span> by
+                                        {{award?.createUserFullName}} on
+                                        {{award?.createTimestamp | dateFormatterWithTimeZone:
+                                        'long'}}</span>
+                                    </div>
+                                    <div class="col-2 text-right">
+                                        <span class="mr-4">
+                                            <a class="anchor-link ml-2" title="View Award#{{award?.awardNumber}}"
+                                            i18n-title="'@@VIEW_AWARD + `# ${award?.awardNumber}`"
+                                            (click)="gotoActiveAward(award?.awardId)"> Open
+                                            <i aria-hidden="true" class="fa fa-external-link-square mr-1"></i>
+                                            </a>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                <div class="col-12">
+                    <div class="form-row">
+                        <div class="col-12">
+                            <label for="variation-type"><span class="mandatory">*</span>Type</label>
+                            <select id="variation-type" class="form-control dateBox"
+                                [(ngModel)]="serviceRequestTypeCode"
+                                (ngModelChange)="onRequestTypeChange(serviceRequestTypeCode)"
+                                [ngClass]="(map.get('serviceRequestTypeCode')) ? 'is-invalid d-block' : ''">
+                                <option [value]=null>--Select--</option>
+                                <ng-container *ngFor="let type of serviceRequestTypes">
+                                    <option *ngIf="type.typeCode!=6 && type.typeCode!=7 && type.typeCode!=8"
+                                        [value]="type.description">
+                                        {{type.description}}
+                                    </option>
+                                </ng-container>
+                            </select>
+                            <div *ngIf="(map.get('serviceRequestTypeCode'))" class="invalid-feedback d-block">
+                                Please select a variation type.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row py-4 pb-0">
+                        <div class="col-lg-12">
+                            <label for="req-subject"><span class="mandatory">*</span>Subject</label>
+                            <input type="text" class="form-control dateBox" id="req-subject" autocomplete="off"
+                                [ngClass]="(map.get('subject')) ? 'is-invalid d-block' : ''"
+                                [(ngModel)]="serviceRequestObject.subject" />
+                            <div *ngIf="(map.get('subject'))" class="invalid-feedback d-block">
+                                Please provide a subject.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row py-4 pb-0">
+                        <div class="col-12">
+                            <label for="req-justification"><span class="mandatory">*</span>Detailed Reasons and
+                                Justification for the Variation
+                                Request</label>
+                            <textarea class="form-control" id="req-justification" rows="2"
+                                [(ngModel)]="serviceRequestObject.description" appLengthValidator [isShowLimiter]='true'
+                                [limit]=4000></textarea>
+                            <div *ngIf="(map.get('serviceRequestDescription'))" class="invalid-feedback d-block">
+                                Please give a valid justification for creating this variation request.
+                            </div>
+                        </div>
+                        <div *ngIf="variationHelpLink" class="col-12">
+                            <label for="req-justification">Help URL: </label>
+                            <a class="anchor-link" [href]="'//' + variationHelpLink" target="_blank">
+                                {{(variationHelpLink.length>70) ? (variationHelpLink | slice:0:70)+'...' : (variationHelpLink)}}
+                            </a>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-12">
+                            <div class="btn-margin">
+                                <app-file-drop [multiple]="true" (filesDropEvent)="variationFilesDrop($event)">
+                                </app-file-drop>
+                            </div>
+                            <div *ngIf="uploadedFiles.length > 0">
+                                <div class="gridSkin">
+                                    <div class="row p-0">
+                                        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 fileChips pt-0"
+                                            style="word-break: break-all;">
+                                            <span style="padding:3px 8px;"
+                                                *ngFor="let item of uploadedFiles; let i=index">{{item?.name}}
+                                                <i aria-hidden="true" class="fa fa-close hand-cursor" id="req-doc-dlt"
+                                                    title="Delete attachment" (click)="deleteAttachment(i)"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="!canCreateVariationRequest" id="create-variation-request">
+                    <div class="alert alert-danger mx-4 my-3 d-flex align-items-center">
+                        <i class="fa fa-info-circle info-icon mr-2" aria-hidden="true"></i>
+                        <em>{{validationMessage}} </em>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" (click)="clearVariationRequestObject()"
+                    data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm mr-4"
+                    (click)="saveVariationRequest()">
+                    <ng-container i18n="@@AWARD_CREATE_VARIATION_REQUEST_BUTTON">Create</ng-container>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Award edit modal -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="editAwardSetModal" role="dialog" aria-hidden="true"
+    data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 *ngIf="isEditAward" class="modal-title">
+                    <ng-container i18n="@@AWARD_ADMIN_CORRECTION">Admin Correction</ng-container>
+                    {{result?.award?.awardNumber}}:{{result?.award?.title}}
+                </h5>
+                <h5 *ngIf="!isEditAward" class="modal-title">Modify Outcomes
+                    {{result?.award?.awardNumber}}:{{result?.award?.title}}
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" id="support-dissmiss-btn" aria-label="Close"
+                    (click)="closeModalAndValidation()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-body-style">
+            <div *ngIf="result?.pendingAwardsSummary?.pendingAwards.length" class="gridSkin listSkin mb-0 ">
+                <div class="row">
+                    <div class=" col-12 py-1 no-hover-effect">
+                        <span class="text-secondary d-block mb-2">
+                            This award has {{result?.pendingAwardsSummary?.pendingAwards.length}} In Progress
+                            variation request(s)</span>
+                        <div class="inner-scroll">
+                            <div *ngFor="let award of result?.pendingAwardsSummary?.pendingAwards; let index = index">
+                                <div class="p-2 pl-4 mb-2 row">
+                                    <div class="col-10">
+                                        {{index + 1}})
+                                        <span class="fw-600" *ngIf="award?.awardVariationName">{{award?.awardVariationName}}</span>
+                                        <span class="fw-600" *ngIf="!award?.awardVariationName"><ng-container i18n="@@AWARD_AWARD_SETUP">Award Setup </ng-container></span>
+                                        <span> by
+                                            {{award?.createUserFullName}} on
+                                            {{award?.createTimestamp | dateFormatterWithTimeZone:
+                                            'long'}}</span>
+                                    </div>
+                                    <div class="col-2 text-right">
+                                        <span class="mr-4">
+                                            <a class="anchor-link ml-2" title="View Award#{{award?.awardNumber}}"
+                                            i18n-title="'@@VIEW_AWARD + `# ${award?.awardNumber}`"
+                                                (click)="gotoActiveAward(award?.awardId)"> Open
+                                                <i aria-hidden="true" class="fa fa-external-link-square mr-1"></i>
+                                            </a>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                <div class="col-12">
+                    <div class="form-row">
+                        <div class="col-12">
+                            <label for="desc-award"><span class="mandatory">*</span>Description</label>
+                            <textarea id="desc-award" class="form-control"
+                                [(ngModel)]="serviceRequestObject.description"
+                                [ngClass]="{'is-invalid d-block' : iseditAwarddescription}" appLengthValidator
+                                [isShowLimiter]='true' [limit]=4000></textarea>
+                            <div *ngIf="iseditAwarddescription" class="invalid-feedback d-block">
+                                {{iseditAwarddescription}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="!canCreateVariationRequest">
+                    <div class="alert alert-danger mx-4 my-3 d-flex align-items-center">
+                        <i class="fa fa-info-circle info-icon mr-2" aria-hidden="true"></i>
+                        <em>{{validationMessage}} </em>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" (click)="closeModalAndValidation()"
+                    data-dismiss="modal">Cancel</button>
+                <button *ngIf="isEditAward" [disabled]='isButtonDisabled' type="button"
+                    class="btn btn-primary-sub btn-sm" (click)="editAwardset('Edit')">Create</button>
+                <button *ngIf="!isEditAward" type="button" [disabled]='isButtonDisabled'
+                    class="btn btn-primary-sub btn-sm" (click)="editAwardset('Outcome')">Create</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Award edit modal ends-->
+<!--Create Project Closure modal -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="createProjectClosureModal" role="dialog" aria-hidden="true"
+    data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create <ng-container i18n="@@AWARD_AWARD_CLOSURE">Award Closure</ng-container>
+                    for
+                    {{result?.award?.awardNumber}}:{{result?.award?.title}}
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" (click)="clearVariationRequestObject()"
+                    id="support-dissmiss-btn" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-body-style">
+
+            <div>
+                <div *ngIf="result?.pendingAwardsSummary?.pendingAwards.length" class="gridSkin listSkin mb-0 ">
+                    <div class="row">
+                        <div class=" col-12 py-1 no-hover-effect">
+                            <span class="text-secondary d-block mb-2">
+                                This award has {{result?.pendingAwardsSummary?.pendingAwards.length}} In Progress
+                                variation request(s)</span>
+                            <div class="inner-scroll">
+                                <div *ngFor="let award of result?.pendingAwardsSummary?.pendingAwards; let index = index">
+                                    <div class="p-2 pl-4 mb-2 row">
+                                        <div class="col-10">
+                                            {{index + 1}})
+                                            <span class="fw-600" *ngIf="award?.awardVariationName">{{award?.awardVariationName}}</span>
+                                            <span class="fw-600" *ngIf="!award?.awardVariationName"><ng-container i18n="@@AWARD_AWARD_SETUP">Award Setup </ng-container></span>
+                                            <span> by
+                                                {{award?.createUserFullName}} on
+                                                {{award?.createTimestamp | dateFormatterWithTimeZone:
+                                                'long'}}</span>
+                                        </div>
+                                        <div class="col-2 text-right">
+                                            <span class="mr-4">
+                                                <a class="anchor-link ml-2" title="View Award#{{award?.awardNumber}}"
+                                                i18n-title="'@@VIEW_AWARD + `# ${award?.awardNumber}`"
+                                                    (click)="gotoActiveAward(award?.awardId)"> Open
+                                                    <i aria-hidden="true" class="fa fa-external-link-square mr-1"></i>
+                                                </a>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                <div class="col-12">
+                    <div class="form-row">
+                        <div class="col-12">
+                            <label><span class="mandatory">*</span>Description</label>
+                            <textarea class="form-control" [ngClass]="isClosuredescription ? 'is-invalid d-block' : ''"
+                                id="exampleFormControlTextarea1" rows="2"
+                                [(ngModel)]="serviceRequestObject.description"></textarea>
+                            <div *ngIf="isClosuredescription" class="invalid-feedback d-block">
+                                {{isClosuredescription}}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-12">
+                            <div class="btn-margin">
+                                <app-file-drop [multiple]="true" (filesDropEvent)="variationFilesDrop($event)">
+                                </app-file-drop>
+                            </div>
+                            <div *ngIf="uploadedFiles.length > 0">
+                                <div class="gridSkin">
+                                    <div class="row">
+                                        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 fileChips pt-0"
+                                            style="word-break: break-all;"><br>
+                                            <span style="padding:3px 8px;"
+                                                *ngFor="let item of uploadedFiles; let i=index">{{item?.name}}
+                                                <i class="fa fa-close hand-cursor" id="awd-closure-attach-rmv"
+                                                    (click)="deleteFromClosureUploadedFileList(i)" title="Remove attachment"
+                                                    aria-hidden="true"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="!canCreateVariationRequest">
+                    <div class="alert alert-danger mx-4 my-3 d-flex align-items-center">
+                        <i class="fa fa-info-circle info-icon mr-2" aria-hidden="true"></i>
+                        <em>{{validationMessage}} </em>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" (click)="closeModalAndValidation()"
+                    data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="saveProjectClosure()">Create</button>
+            </div>
+        </div>
+    </div>
+</div>
+<button id="awardTabChangebutton" [hidden]="true" data-toggle="modal"
+    data-target="#awardTabChangeConfirmModal"></button>
+<button id="submit-without-save-btn" [hidden]="true" data-toggle="modal" data-target="#submitWithoutSaveModal"></button>
+<button id="approve-without-save-btn" [hidden]="true" data-toggle="modal"
+    data-target="#approveOrDisapproveWithoutSaveModal"></button>
+<!-- In MIDDLE OF EDIT WARNING MODAL -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="awardTabChangeConfirmModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="AwardTabChange" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Are you sure you want to leave this page? </h5>
+                <button type="button" (click)='isActiveAward = false ; isVariationRequest = false' class="close"
+                    data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>You have unsaved changes. Do you want to leave the page without saving?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm"
+                    (click)='isActiveAward = false ; isVariationRequest = false' data-dismiss="modal">Stay on
+                    Page</button>
+                <button *ngIf="!isActiveAward && !isVariationRequest" type="button" class="btn btn-primary-sub btn-sm"
+                    (click)="navigateUsingRedirectRoute()" data-dismiss="modal">Leave Page</button>
+                <button *ngIf="isActiveAward && !isVariationRequest" type="button" class="btn btn-primary-sub btn-sm"
+                    (click)="gotoActiveAward(tempActiveAwardId)" data-dismiss="modal">Leave Page</button>
+                <button *ngIf="isVariationRequest && !isActiveAward" type="button" class="btn btn-primary-sub btn-sm"
+                    (click)="gotoVariationRequest(tempRequestId)" data-dismiss="modal">Leave Page</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Withdraw confirmation -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="withdrawAwardModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="AwardTabChange" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{variationType == 'W'? 'Withdraw ' : 'Cancel'}}
+                    <span *ngIf="result?.award?.awardDocumentTypeCode == '2'" class="d-none d-md-inline-block">
+                        <ng-container i18n="@@AWARD_WITHDRAW_CANCEL_ADMIN_CORRECTION">Admin Correction</ng-container>
+                    </span>
+                    <span *ngIf="result?.award?.awardDocumentTypeCode == '1'" class="d-none d-md-inline-block">
+                        <ng-container i18n="@@AWARD_WITHDRAW_CANCEL_AWARD">Award</ng-container>
+                    </span>
+                    <span
+                        *ngIf="result?.award?.awardDocumentTypeCode == '3' && result?.award?.serviceRequestType?.typeCode != 7"
+                        class="d-none d-md-inline-block">Variation Request</span>
+                    <span
+                        *ngIf="result?.award?.awardDocumentTypeCode == '3' && result?.award?.serviceRequestType?.typeCode == 7"
+                        class="d-none d-md-inline-block">
+                        <ng-container i18n="@@AWARD_WITHDRAW_CANCEL_AWARD_CLOSURE">Award Closure</ng-container>
+                    </span>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" #closeModal aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="col-12">
+                        <label>Description</label>
+                        <textarea class="form-control" id="exampleFormControlTextarea1" rows="2"
+                            [(ngModel)]="withdrawAwardObject.description"></textarea>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col-12">
+                        <div class="btn-margin">
+                            <app-file-drop [multiple]="true" (filesDropEvent)="variationFilesDrop($event)">
+                            </app-file-drop>
+                        </div>
+                        <div *ngIf="uploadedFiles.length > 0">
+                            <div class="gridSkin">
+                                <div class="row">
+                                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 fileChips pt-0"
+                                        style="word-break: break-all;"><br>
+                                        <span style="padding:3px 8px;"
+                                            *ngFor="let item of uploadedFiles; let i=index">{{item?.name}}
+                                            <i aria-hidden="true" class="fa fa-close pointer" title="Remove Attachment"
+                                                (click)="uploadedFiles.splice(i, 1)"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" [disabled]=isButtonDisabled
+                    (click)="withdrawAward(result.award.awardId, variationType)">{{variationType == 'W'? 'Withdraw' :
+                    'Cancel'}}
+                    <span *ngIf="result?.award?.awardDocumentTypeCode == '2'" class="d-none d-md-inline-block">
+                        <ng-container i18n="@@AWARD_WITHDRAW_CANCEL_ADMIN_CORRECTION">Admin Correction</ng-container>
+                    </span>
+                    <span *ngIf="result?.award?.awardDocumentTypeCode == '1'" class="d-none d-md-inline-block">
+                        <ng-container i18n="@@AWARD_WITHDRAW_CANCEL_AWARD">Award</ng-container>
+                    </span>
+                    <span
+                        *ngIf="result?.award?.awardDocumentTypeCode == '3' && result?.award?.serviceRequestType?.typeCode != 7"
+                        class="d-none d-md-inline-block">Variation Request</span>
+                    <span
+                        *ngIf="result?.award?.awardDocumentTypeCode == '3' && result?.award?.serviceRequestType?.typeCode == 7"
+                        class="d-none d-md-inline-block">
+                        <ng-container i18n="@@AWARD_WITHDRAW_CANCEL_AWARD_CLOSURE">Award Closure</ng-container>
+                    </span></button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Award child add confirmation modal -->
+<div class="modal fade mySkinDialog modal-opacity" tabindex="-1" id="addAwardChildModal" tabindex="-1" role="dialog" data-backdrop="static"
+    aria-labelledby="deleteModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmation</h5>
+                <button id="prop-dlt-member-dismiss" type="button" class="close" data-dismiss="modal"
+                    aria-label="Close" (click)="clearModalFlags()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="success-banner px-2 my-2 mx-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i>
+                    <em>All other sections of the <span class="text-lowercase">
+                        <ng-container i18n="@@COMMON_AWARD">Award</ng-container>
+                    </span> will be copied to the child <span class="text-lowercase">
+                        <ng-container i18n="@@COMMON_AWARD">Award</ng-container>
+                    </span> by default
+                    </em>
+                </div>
+            </div>
+            <div class="modal-body">
+                    <label class="mb-2 text-muted">
+                        Check the boxes below to copy the corresponding sections to the child <span class="text-lowercase">
+                            <ng-container i18n="@@COMMON_AWARD">Award</ng-container>
+                        </span>.
+                    </label>
+                    <div class="ml-4">
+                        <div class="form-check">
+                            <input class="form-check-input mt-2" type="checkbox" id="copyQuestionnaire"
+                                [(ngModel)]="copyQuestionnaire">
+                            <label class="form-check-label ml-2" for="copyQuestionnaire">
+                                Questionnaire
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input mt-2" type="checkbox" id="copyOtherInformation"
+                                [(ngModel)]="copyOtherInformation">
+                            <label class="form-check-label ml-2" for="copyOtherInformation">
+                                Other Information
+                            </label>
+                        </div>
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button id="coi-award-child-conformation-modal-cancel-btn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                    data-toggle="modal" (click)="clearModalFlags()" >Cancel</button>
+                <button id="coi-award-child-conformation-modal-create-btn" type="button" class="btn btn-primary-sub btn-sm"
+                (click)="addChildAward(result.award)" data-dismiss="modal">Create Child <ng-container i18n="@@COMMON_AWARD">
+                    Award</ng-container></button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Submit without save confirmation -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="submitWithoutSaveModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="AwardTabChange" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Are you sure you want to submit?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>You have unsaved changes. Do you want to submit without saving?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm"
+                    (click)="_commonData.isAwardDataChange=false; triggerValidation()" data-dismiss="modal">Continue to
+                    Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Approve/Return actions without save confirmation -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="approveOrDisapproveWithoutSaveModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" *ngIf="_commonData.isAwardDataChange">
+                    Are you sure you want to {{modalAproveHeading}}?
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>You have unsaved changes. Do you want to {{modalAproveHeading}} without saving?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="cancel-approve-without-save" class="btn btn-secondary btn-sm"
+                    data-dismiss="modal">Cancel</button>
+                <button type="button" id="confirm-approve-without-save" class="btn btn-primary-sub btn-sm"
+                    (click)="onApproveOrReturnWithoutSave()" data-dismiss="modal">Continue to
+                    {{modalAproveHeading}}</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--Notify Modal-->
+<app-notify *ngIf="isShowNotificationModal" [moduleItemKey]="awardId" [moduleCode]="1" [moduleName]="'Award'"
+    (isShowNotificationModal)="showAwardNotificationModal($event)"></app-notify>
+<!-- Hold For Funding Agency Review / Back to Approval In Progress -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="sponsorAprovalModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="AwardTabChange" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 *ngIf="result?.award?.workflowAwardStatusCode != '5'" class="modal-title">Hold For Funding Agency
+                    Review</h5>
+                <h5 *ngIf="result?.award?.workflowAwardStatusCode == '5'" class="modal-title">Back to Approval In
+                    Progress</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelFunderApprovalDate();">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div *ngIf="result?.award?.workflowAwardStatusCode != '5'" class="modal-body">
+                <p>
+                    <ng-container i18n="@@AWARD_HOLD_AWARD_FUNDING_AGENCY_REVIEW_CONFIRM_ERR">Are you sure you want to
+                        hold this award for funding agency review?</ng-container>
+                </p>
+            </div>
+            <div *ngIf="result?.award?.workflowAwardStatusCode == '5'" class="modal-body">
+                <p><ng-container i18n="@@AWARD_MOVE_BACK_AWARD_APPROVAL_IN_PROGRESS_CONFIRM_ERR">Enter the Funder Approval Date to move the status to Approval In Progress.</ng-container></p>
+            </div>
+            <div  *ngIf="result?.award?.workflowAwardStatusCode == '5'" class="col-sm-6 form-group">
+                <label class="d-block">
+                    <span class="mandatory">*</span>Funder Approval Date
+                    <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med" aria-hidden="true"></i>
+                        <div class="tooltiptext-left card card-inner p-15 text-left">
+                            <span class="font-cv">This is the Approval Date of Funder.</span>
+                        </div>
+                    </a></label>
+                <span class="dateField d-block">
+                    <input matInput [matDatepicker]="funderApproval"
+                    [ngClass]="(map.get('funderApprovalDate')) ? 'is-invalid d-block' : ''"
+                        autocomplete="off" class="d-inline-block form-control"
+                        id="funderApproval" [(ngModel)]="result.award.funderApprovalDate"
+                        (ngModelChange)="validateDates()" placeholder="{{datePlaceHolder}}" type="text" (click)="funderApproval.open()"/>
+                    <i (click)="funderApproval.open()" aria-hidden="true"
+                        class="fa fa-calendar fa-large insidePicker hand-cursor" id="enroll-date-icon"
+                        title="Open Calendar"></i>
+                    <mat-datepicker #funderApproval (opened)="setFocusToElement('funderApproval')">
+                    </mat-datepicker>
+                    <div *ngIf="(map.get('funderApprovalDate'))" class="invalid-feedback d-block">
+                        {{map.get('funderApprovalDate')}}</div>
+                </span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" (click)='cancelFunderApprovalDate();'>Cancel</button>
+                <button *ngIf="result?.award?.workflowAwardStatusCode != '5'" type="button"
+                    class="btn btn-primary-sub btn-sm" (click)="saveAwardWorkflowStatusForSponsorData('holdForFunding')"
+                    data-dismiss="modal">Hold For Funding Agency Review</button>
+                <button *ngIf="result?.award?.workflowAwardStatusCode == '5'" type="button"
+                    class="btn btn-primary-sub btn-sm" (click)="saveAwardWorkflowStatusForSponsorData('approvalInProgress')"
+                    >Back to Approval In Progress</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Generate WBS Number-->
+<div class="modal fade mySkinDialog" tabindex="-1" id="generateWBSModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="generateWBS" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Generate WBS Number</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to generate WBS Number?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="generateWbsNumber()"
+                    data-dismiss="modal">Generate</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Copy Award -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="copyAwardSetModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="AwardTabChange" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <ng-container i18n="@@AWARD_COPY_AWARD">Copy Award</ng-container>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    <ng-container i18n="@@AWARD_COPY_AWARD_CONFIRM_ERR">Are you sure you want to copy this award?
+                    </ng-container>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="copyAward()" data-dismiss="modal">
+                    <ng-container i18n="@@AWARD_COPY_AWARD">Copy Award</ng-container>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Generate Award Notice   -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="generateAwardNotice" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="AwardTabChange" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <ng-container i18n="@@AWARD_GENERATE_AWARD_NOTICE">Generate Award Notice</ng-container>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    <ng-container i18n="@@AWARD_GENERATE_AWARD_NOTICE_CONFIRM_ERR">Are you sure you want to generate
+                        award notice?</ng-container>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="generateAwardNotice()"
+                    data-dismiss="modal">
+                    <ng-container i18n="@@AWARD_GENERATE_AWARD_NOTICE">Generate Award Notice</ng-container>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div *ngIf="_commonData.isShowtaskNavBar" [@enterAnimation] class="task-nav-div" id="task-navigation-bar">
+    <app-task-side-nav-bar></app-task-side-nav-bar>
+</div>
+<!-- Award comments modal -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="awardCommentsModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="AwardTabChange" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" *ngIf="isAwardCommentsModal">
+                    <ng-container i18n="@@AWARD_ADD_AWARD_COMMENTS">Add Award Comments</ng-container>
+                </h5>
+                <h5 class="modal-title" *ngIf="isShowVariationComments">Variation Comments</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    (click)="clearCommentArea()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="success-banner p-2 mb-3 d-flex align-items-center" *ngIf="isAwardCommentsModal">
+                    <i class="fa fa-info-circle info-icon mr-2" aria-hidden="true"></i>
+                    <em>
+                        <ng-container i18n="@@AWARD_COMMENTS_ADDED_VIEW_ONLY_AWARD_TAB_ERR">The comments added in this
+                            section can be viewed only in Award tab</ng-container>
+                    </em>
+                </div>
+                <ng-container *ngIf="isAwardCommentsModal">
+                    <div class="form-row">
+                        <div class="col-lg-12 mb-3 col-md-4 col-sm-6 col-12">
+                            <label for="award-comment-section">Select section</label>
+                            <div>
+                                <select id="award-comment-section" class="form-control dateBox"
+                                    [(ngModel)]="sectionDescription" (ngModelChange)="sectionChangeEvent($event);">
+                                    <option [ngValue]=null>--Select--</option>
+                                    <option *ngFor="let section of sections; let i = index">
+                                        {{section.reviewSectionDescription}}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-lg-12 col-md-4 col-sm-6 col-12 p-0">
+                            <app-add-comment [sectionCode]="sectionCode" [awardId]="result?.award?.awardId"
+                                [awardNumber]="result?.award?.awardNumber"
+                                [sequenceNumber]="result?.award?.sequenceNumber"
+                                [awardSequenceStatus]="result?.award?.awardSequenceStatus"
+                                (cancelEdit)="cancelAwardComment()">
+                            </app-add-comment>
+                        </div>
+                    </div>
+                </ng-container>
+                <ng-container *ngIf="isShowVariationComments">
+                    <app-add-variation-comment [serviceRequestId]="result?.serviceRequest?.serviceRequestId"
+                        (cancelEdit)="cancelAwardComment()"></app-add-variation-comment>
+                </ng-container>
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Award Modal -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="deleteAwardModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" *ngIf="canDeleteAward">Delete award #{{result?.award?.awardNumber}}</h5>
+                <h5 class="modal-title" *ngIf="!canDeleteAward">Unable to delete award #{{result?.award?.awardNumber}}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ul class="list pl-0" *ngIf="deleteWarningMessages.length > 0 && !canDeleteAward">
+                    <li *ngFor="let message of deleteWarningMessages">
+                        <div class="alert alert-danger fs-12">
+                            <i aria-hidden="true" class="fa fa-exclamation-circle icon text-danger mr-3"></i>
+                            {{message}}
+                        </div>
+                    </li>
+                </ul>
+                <p *ngIf="canDeleteAward">{{deleteWarningMessages[0]}}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" *ngIf="canDeleteAward" data-dismiss="modal"
+                    data-toggle="modal" (click)="clearWarningMessages();">No</button>
+                <button type="button" *ngIf="canDeleteAward" class="btn btn-primary-sub btn-sm"
+                    (click)="deleteAward();">Delete</button>
+                <button type="button" *ngIf="!canDeleteAward" class="btn btn-primary-sub btn-sm mr-2"
+                    data-dismiss="modal" data-toggle="modal" (click)="clearWarningMessages();">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Concurrency Warning modal -->
+<div class="modal fade show mySkinDialog" id="invalidActionModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Invalid Action</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="form-row">
+                <div class="col-1">
+                    <i class="fa fa-2x fa-exclamation-triangle text-warning position-person-inpur-box px-3"
+                        aria-hidden="true"></i>
+                </div>
+                <div class="col-11">
+                    <p>
+                        You have tried to perform an action that is not valid for the current state of this Award. The
+                        likely cause is that
+                        somebody has changed the Award recently. Please click the Refresh button to proceed further.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button"
+                    (click)="reload()">Refresh</button>
+            </div>
+        </div>
+    </div>
+</div>

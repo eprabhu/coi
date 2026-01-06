@@ -1,0 +1,159 @@
+<!-- Last updated by Jobin -->
+<section id="task-list">
+  <div class="card mt-3">
+    <div class="card-body">
+      <div class="form-row">
+        <div class="col-lg-3 col-sm-6 col-12">
+          <label class="d-block">Assignee</label>
+          <app-elastic [options]="elasticSearchOptionsPerson" placeHolder="Assignee"
+            (selectedResult)="selectPerson($event)" [clearField]="advSearchClearField">
+          </app-elastic>
+        </div>
+        <div class="col-lg-3 col-sm-6 col-12">
+          <label class="d-block">Status</label>
+          <app-look-up [options]='taskStatusTypeOptions' [selectedLookUpList]="lookupValues['taskStatus']"
+            (selectedResult)="onLookupSelect($event, 'taskStatus')"></app-look-up>
+        </div>
+        <div class="col-md col-sm-6 col-12">
+          <label class="d-block">Due Date</label>
+          <span class="dateField">
+            <input matInput [matDatepicker]="dueFromDt" id="award-task-start-date" placeholder="From ({{datePlaceHolder}})"
+              [(ngModel)]="searchObject.dueDateFrom" class="form-control d-inline-block"
+              (click)="dueFromDt.open()" (keypress)="_commonService._keyPress($event, 'date')">
+            <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor" title="open calendar"
+              (click)="dueFromDt.open()"></span>
+            <mat-datepicker #dueFromDt (opened)="setFocusToElement('award-task-start-date')">
+            </mat-datepicker>
+          </span>
+        </div>
+        <label class="d-none d-sm-inline-block p-2 mt-4 pt-3">-</label>
+        <div class="align-items-end col d-flex">
+          <span class="dateField w-100">
+            <input matInput [matDatepicker]="dueToDt" id="award-task-due-date" placeholder="To ({{datePlaceHolder}})" [(ngModel)]="searchObject.dueDateTo"
+              class="form-control d-inline-block" (click)="dueToDt.open()"
+              (keypress)="_commonService._keyPress($event, 'date')" />
+            <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor" title="open calendar"
+              (click)="dueToDt.open()"></span>
+            <mat-datepicker #dueToDt (opened)="setFocusToElement('award-task-due-date')">
+            </mat-datepicker>
+          </span>
+        </div>
+        <div
+          class="col-lg-auto col-md-6 col-12 d-flex flex-column flex-sm-row align-items-end justify-content-md-end justify-content-center">
+          <button id="clear" title="Clear" class="btn btn-secondary btn-xs mr-sm-2"
+            (click)="clearAdvancedSearchField(null)">Clear</button>
+          <button id="search" title="Search" class="btn btn-primary btn-xs" (click)="searchTask()">Search</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="task-section" class="mt-3">
+  <div class="row pb-1">
+    <div class="col-6">
+      <ul class="subTabs mb-0">
+        <li *ngIf="_commonData.awardSectionConfig['143']?.isActive" (click)="switchTab('TASKS')" [ngClass]="{active:(taskTab == 'TASKS')}" tabindex="0">
+          <a class="subTabLink">Tasks</a>
+        </li>
+        <li *ngIf="_commonData.awardSectionConfig['144']?.isActive" (click)="switchTab('ALL_TASKS')" [ngClass]="{active:(taskTab == 'ALL_TASKS')}" tabindex="0">
+          <a class="subTabLink">All Tasks</a>
+        </li>
+      </ul>
+    </div>
+    <div class="col-6 pt-2">
+      <button *ngIf="isCreateTask && (_commonData.awardSectionConfig['143']?.isActive || _commonData.awardSectionConfig['144']?.isActive)" title="Create New Task" class="btn btn-primary float-right mr-3"
+        id="create-task-btn" (click)="_commonData.redirectionRoute ='/fibi/award/task/details'"
+        [routerLink]="['/fibi/award/task/details']" queryParamsHandling='merge'>
+        Create New Task
+      </button>
+    </div>
+  </div>
+  <div *ngIf="isTaskTabInfo && (_commonData.awardSectionConfig['143']?.isActive || _commonData.awardSectionConfig['144']?.isActive)" class="success-banner px-3 my-2 d-flex justify-content-between align-items-center">
+    <div>
+      <i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i>
+      <em *ngIf="taskTab == 'TASKS' && _commonData.awardSectionConfig['143']?.isActive">All Open, In progress and Returned tasks are listed</em>
+      <em *ngIf="taskTab == 'ALL_TASKS' && _commonData.awardSectionConfig['144']?.isActive"><ng-container i18n="@@AWARD_TASK_LIST">All tasks against this Award are listed</ng-container></em>
+    </div>
+    <button type="button" id="modal-close" class="close close-button " data-dismiss="modal"
+      (click)="isTaskTabInfo = false" aria-label="Close">
+      <span class="d-block" aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="card card-table-box rounded-0" *ngIf="_commonData.awardSectionConfig['143']?.isActive || _commonData.awardSectionConfig['144']?.isActive">
+    <div class="table-responsive">
+      <table class="table tableSkin mb-0" *ngIf="taskList?.length > 0" aria-describedby="award-list-task">
+        <tr class="header-border">
+          <th id="sortby-task-id" (click)="sortBy('taskId')" tabindex="0" class="hand-cursor">
+            <span title="Click to sort by Task Id">Task ID</span>
+            <i aria-hidden="true"
+              [ngClass]="((column == 'taskId')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+          </th>
+          <th id="sortby-award-version" (click)="sortBy('startModuleSubItemKey')" tabindex="0" class="hand-cursor">
+            <span title="Click to sort by Award Version" i18n-title="@@AWARD_AWARD_VERSION_TLP"><ng-container i18n="@@AWARD_AWARD_VERSION">Award Version</ng-container></span>
+            <i aria-hidden="true"
+              [ngClass]="((column == 'startModuleSubItemKey')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+          </th>
+          <th id="sortby-task-type" (click)="sortBy('taskType')" tabindex="0" class="hand-cursor">
+            <span title="Click to sort by Task Type">Task Type</span>
+            <i aria-hidden="true"
+              [ngClass]="((column == 'taskType')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+          </th>
+          <th id="sortby-Asignee" (click)="sortBy('assigneeFullName')" tabindex="0" class="hand-cursor">
+            <span title="Click to sort by Asignee">Assignee</span>
+            <i aria-hidden="true"
+              [ngClass]="((column == 'assigneeFullName')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+          </th>
+          <th id="sortby-status" (click)="sortBy('taskStatus')" tabindex="0" class="hand-cursor">
+            <span  title="Click to sort by Status">Status</span>
+            <i aria-hidden="true"
+              [ngClass]="((column == 'taskStatus')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+          </th>
+          <th id="sortby-startDate" (click)="sortBy('startDate')" tabindex="0" class="hand-cursor">
+            <span  title="Click to sort by Start Date">Start
+              Date</span>
+            <i aria-hidden="true"
+              [ngClass]="((column == 'startDate')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+          </th>
+          <th id="sortby-dueDate" (click)="sortBy('dueDate')" tabindex="0" class="hand-cursor">
+            <span title="Click to sort by Due Date">Due Date</span>
+            <i aria-hidden="true"
+              [ngClass]="((column == 'dueDate')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+          </th>
+          <th id="sortby-action" tabindex="0">
+            <span>Action</span>
+          </th>
+        </tr>
+        <tr [routerLink]="['/fibi/award/task/details']" class="pointer" [queryParams]={taskId:task.taskId}
+          queryParamsHandling='merge'
+          *ngFor="let task of taskList | orderBy: {property: column, direction: direction};let index=index">
+          <td>{{task?.taskId}}</td>
+          <td>{{task?.startModuleSubItemKey}}</td>
+          <td>{{task?.taskType.description}}</td>
+          <td>{{task?.assigneeFullName}}</td>
+          <td>{{task?.taskStatus?.description}}</td>
+          <td>{{task?.startDate | dateFormatter}}</td>
+          <td>{{task?.dueDate | dateFormatter}}</td>
+          <td>
+            <ul class="actionButtonGroup d-inline-block">
+              <li>
+                <a title="View task" class="pointer" id="open-task-btn" [routerLink]="['/fibi/award/task/details']"
+                  [queryParams]={taskId:task.taskId} queryParamsHandling='merge'>
+                  <i class="fa fa-eye pointer" aria-hidden="true"></i>
+                </a>
+              </li>
+            </ul>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="no-data-container" *ngIf="taskList?.length <= 0">
+        <span class="no-data-icon-outer">
+            <div class="no-data-icon">
+                <i class="fa fa-file-o" aria-hidden="true"></i>
+                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+            </div>
+        </span>
+        <h4>There is no information in this section.</h4>
+    </div>
+  </div>
+</section>

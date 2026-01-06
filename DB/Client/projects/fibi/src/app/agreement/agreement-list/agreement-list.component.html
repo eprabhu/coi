@@ -1,0 +1,529 @@
+<div class="row">
+  <div class="col card-widget-container">
+    <ul class="subTabs mb-0" [@fadeDown]>
+      <li role="presentation" (click)="switchTab('ALL_AGREEMENTS')"
+        [ngClass]="{'active': _agreementList.agreementRequestObject.tabName == 'ALL_AGREEMENTS'}">
+        <a class="subTabLink fs-14" title="List of all in progress and completed agreements." id="all-agreement-tab">
+          All Agreements
+          <span class="badge badge-pill badge-info">{{result?.allAgreementCount}}</span>
+        </a>
+      </li>
+      <li role="presentation"
+        (click)="switchTab('IN_PROGRESS_AGREEMENTS')"
+        [ngClass]="{'active': _agreementList.agreementRequestObject.tabName == 'IN_PROGRESS_AGREEMENTS'}">
+        <a class="subTabLink fs-14" title="List of agreements pending submission." id="inprogress-agreement-tab">
+          In Progress Agreements
+          <span class="badge badge-pill badge-info">{{result?.inProgressCount}}</span>
+        </a>
+      </li>
+      <li role="presentation"  *ngIf="isAgreementAdministrator || isGroupAdministrator"
+        (click)="switchTab('NEW_SUBMISSIONS')"
+        [ngClass]="{'active': _agreementList.agreementRequestObject.tabName == 'NEW_SUBMISSIONS'}">
+        <a class="subTabLink fs-14" title="List of submitted agreements awaiting Administrator Assignment." id="new-submissions-tab">
+          New Submissions
+          <span class="badge badge-pill badge-info">{{result?.newSubmissionCount}}</span>
+        </a>
+      </li>
+      <li role="presentation" *ngIf="isAgreementAdministrator||isGroupAdministrator"
+        (click)="switchTab('MY_PENDING_AGREEMENTS')"
+        [ngClass]="{'active': _agreementList.agreementRequestObject.tabName == 'MY_PENDING_AGREEMENTS'}">
+        <a class="subTabLink fs-14" title="List of all submitted agreements for my review." id="my-reviews-tab">
+          My Reviews
+          <span class="badge badge-pill badge-info">{{result?.myPendingAgreementCount}}</span>
+        </a>
+      </li>
+      <li role="presentation"  *ngIf="isAgreementAdministrator || isGroupAdministrator"
+        (click)="switchTab('ALL_PENDING_AGREEMENTS')"
+        [ngClass]="{'active': _agreementList.agreementRequestObject.tabName == 'ALL_PENDING_AGREEMENTS'}">
+        <a class="subTabLink fs-14" title="List of all submitted agreements under review." id="all-reviews-tab">
+          All Reviews
+          <span class="badge badge-pill badge-info">{{result?.allPendingAgreementCount}}</span>
+        </a>
+      </li>
+     </ul>
+  </div>
+  <div class="col-auto">
+    <div class="exportButton mb-1">
+      <a class="btn box-shadow-2 btn-sm btn-tertiary mt-0" data-toggle="collapse" href="#collapseListAgreement"
+        role="button" aria-expanded="false" aria-controls="collapseListAgreement">
+        <i class="fa fa-sliders f-14 mr-2"></i>Advanced Search</a>
+      <a *ngIf="isShowCreateButton" title="New Agreement Request" class="btn btn-sm btn-primary mt-0"
+        id="create-agreement-btn" (click)="gotoAgreementCreation()">
+        <span class="d-none d-sm-inline-block pointer mr-2">New Agreement Request</span>
+      </a>
+    </div>
+  </div>
+</div>
+<div id="elasticAgreement" class="card" *ngIf="_agreementList.agreementRequestObject.tabName == 'ALL_AGREEMENTS'">
+  <div class="card-body gridSkin">
+    <!-- elastic search components -->
+    <div class="form-row justify-content-center">
+      <div class="col-12 searchBox mb-0">
+        <app-elastic [options]="agreementElasticSearchOptions" [clearField]="clearAgreementField"
+          [placeHolder]="'Search: Agreement#, Title, Type, Lead Unit, Status, PI, Administrator, Organization, Requestor '"
+          (selectedResult)="selectAgreementElasticResult($event)"></app-elastic>
+      </div>
+    </div>
+    <div class="form-row mb-2 mt-2" *ngIf="(isShowResultCard == true)">
+      <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 viewMode resultCard">
+        <button class="closeResultCard" id="close-elastic-result-award"
+          (click)="isShowResultCard = false; clearElasticField()">
+          <i class="fa fa-times" aria-hidden="true"></i>
+        </button>
+        <!-- Agreement elastic search  results-->
+        <div class="row shadow-lg bg-light">
+          <div class="col-xl-2 col-lg-2 col-md-2 col-sm-2 col-2">
+            <label>Agreement #</label>
+            <span>
+              <a [routerLink]="['/fibi/agreement/form']"
+                [queryParams]={agreementId:elasticResultObject.agreement_request_id}>{{elasticResultObject?.agreement_request_id}}</a>
+            </span>
+          </div>
+          <div class="col-xl-2 col-lg-2 col-md-2 col-sm-2 col-2">
+            <label>Type</label>
+            <span>
+              <a [routerLink]="['/fibi/agreement/form']"
+                [queryParams]={agreementId:elasticResultObject.agreement_request_id}>{{elasticResultObject?.agreement_type}}</a>
+            </span>
+          </div>
+          <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+            <label>Title</label>
+            <span>
+              <a [routerLink]="['/fibi/agreement/form']"
+                [queryParams]={agreementId:elasticResultObject.agreement_request_id}>{{elasticResultObject?.title}}</a>
+            </span>
+          </div>
+          <div class="col-xl-2 col-lg-2 col-md-2 col-sm-2 col-2">
+            <label>Lead Unit</label>
+            <span>
+              <a [routerLink]="['/fibi/agreement/form']"
+                [queryParams]={agreementId:elasticResultObject.agreement_request_id}>{{elasticResultObject?.unit_name}}</a>
+            </span>
+          </div>
+          <div class="col-xl-2 col-lg-2 col-md-2 col-sm-2 col-2">
+            <label>Status</label>
+            <span>
+              <a [routerLink]="['/fibi/agreement/form']"
+                [queryParams]={agreementId:elasticResultObject.agreement_request_id}>{{elasticResultObject?.agreement_status}}</a>
+            </span>
+          </div>
+          <div class="col-xl-2 col-lg-2 col-md-2 col-sm-2 col-2">
+            <label>Principal Investigator</label>
+            <span>
+              <a [routerLink]="['/fibi/agreement/form']"
+                [queryParams]={agreementId:elasticResultObject.agreement_request_id}>{{elasticResultObject?.principal_person_full_name}}</a>
+            </span>
+          </div>
+          <div class="col-xl-2 col-lg-2 col-md-2 col-sm-2 col-2">
+            <label>Organization</label>
+            <span>
+              <a [routerLink]="['/fibi/agreement/form']"
+                [queryParams]={agreementId:elasticResultObject.agreement_request_id}>{{elasticResultObject?.sponsor_name}}</a>
+            </span>
+          </div>
+          <div class="col-xl-2 col-lg-2 col-md-2 col-sm-2 col-2">
+            <label>Administrator</label>
+            <span>
+              <a [routerLink]="['/fibi/agreement/form']"
+                [queryParams]={agreementId:elasticResultObject.agreement_request_id}>{{elasticResultObject?.aa_person_full_name}}</a>
+            </span>
+          </div>
+          <div class="col-xl-2 col-lg-2 col-md-2 col-sm-2 col-2">
+            <label>Requestor</label>
+            <span>
+              <a [routerLink]="['/fibi/agreement/form']"
+                [queryParams]={agreementId:elasticResultObject.agreement_request_id}>{{elasticResultObject?.requestor_full_name}}</a>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="collapse card mt-2 py-2" id="collapseListAgreement">
+  <div class="card-body">
+    <div class="form-row advance-search-options">
+      <!-- advance search options -->
+      <div class="col-xl-2 col-lg-3 col-md-3 col-sm-6 col-12">
+        <label class="d-block">Agreement ID</label>
+        <input type="text" id="adv-search-proposal-title" placeholder="Agreement ID" maxlength="60" autocomplete="off"
+          [(ngModel)]="tempagreementRequestObject.property1" class="form-control"
+          (keyup.enter)="setAdvanceSearchToServiceObject();searchAgreementList()" />
+      </div>
+      <div class="col-xl-4 col-lg-6 col-md-9 col-sm-6 col-12">
+        <label class="d-block">Title of Agreement</label>
+        <input type="text" id="adv-search-proposal-title" placeholder="Title of Agreement" maxlength="60"
+          autocomplete="off" [(ngModel)]="tempagreementRequestObject.property2" class="form-control"
+          (keyup.enter)="setAdvanceSearchToServiceObject();searchAgreementList()" />
+      </div>
+      <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12">
+        <label class="d-block">Type of Agreement</label>
+        <app-look-up [options]='agreementTypeOptions' [selectedLookUpList]="lookupValues['property4']"
+        (selectedResult)="onLookupSelect($event, 'property4')"
+          (keyup.enter)="setAdvanceSearchToServiceObject();searchAgreementList()">
+        </app-look-up>
+      </div>
+      <div class="col-xl-3 col-lg-3 col-md-5 col-sm-6 col-12">
+        <label class="d-block">Lead Unit</label>
+        <app-endpoint-search [clearField]="clearLeadUnitField" [httpOptions]="unitHttpOptions"
+          [placeHolder]="'Search here for Lead Unit'" (onSelect)="setUnitOption($event)"
+          (keyup.enter)="setAdvanceSearchToServiceObject();searchAgreementList()">
+        </app-endpoint-search>
+      </div>
+      <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6 col-12">
+        <label class="d-block">Agreement Status</label>
+        <app-look-up [options]='agreementStatusOptions' [selectedLookUpList]="lookupValues['property6']"
+        (selectedResult)="onLookupSelect($event, 'property6')"
+          (keyup.enter)="setAdvanceSearchToServiceObject();searchAgreementList()">
+        </app-look-up>
+      </div>
+      <div class="col-xl-4 col-lg-4 col-md-4 col-sm-6 col-12">
+        <label class="d-block">Requestor</label>
+        <app-elastic [options]="elasticSearchOptions" [placeHolder]="'Search for Requestor'"
+          (keyup)="emptyValidationKeyup($event, 'property5')"
+          (selectedResult)="selectElasticResult($event, 'property5' ,'requestor');" [clearField]="advSearchClearField"
+          (keyup.enter)="setAdvanceSearchToServiceObject();searchAgreementList()">
+        </app-elastic>
+      </div>
+      <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12">
+        <label class="d-block">Organization</label>
+        <input type="text" id="adv-search-agreement-organization" placeholder="Organization" maxlength="60"
+          autocomplete="off" [(ngModel)]="tempagreementRequestObject.property8" class="form-control"
+          (keyup.enter)="setAdvanceSearchToServiceObject();searchAgreementList()" />
+      </div>
+      <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12">
+        <label class="d-block">Organization Type</label>
+        <app-look-up [options]='organizationTypeStatusOptions' [selectedLookUpList]="lookupValues['property15']"
+        (selectedResult)="onLookupSelect($event, 'property15');setOrgTypeLookupValues($event);"
+          (keyup.enter)="setAdvanceSearchToServiceObject();searchAgreementList()">
+        </app-look-up>
+      </div>
+      <div class="col-xl-2 col-lg-3 col-md-3 col-sm-6 col-12" *ngIf = "!isAgreementAdministrator && !isGroupAdministrator">
+        <label class="d-block">Project ID</label>
+        <input type="text" id="adv-search-proposal-title" placeholder="Project ID" maxlength="60" autocomplete="off"
+          [(ngModel)]="tempagreementRequestObject.property19" class="form-control"
+          (keyup.enter)="setAdvanceSearchToServiceObject();searchAgreementList()" />
+      </div>
+      <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6 col-12" *ngIf = "(isAgreementAdministrator || isGroupAdministrator)">
+        <label class="d-block">Review Status</label>
+        <app-look-up [options]='agreementReviewStatusOptions' [selectedLookUpList]="lookupValues['property14']"
+       (selectedResult)="onLookupSelect($event, 'property14')"
+          (keyup.enter)="setAdvanceSearchToServiceObject();searchAgreementList()">
+        </app-look-up>
+      </div>
+      <div class="col-xl-4 col-lg-4 col-md-4 col-sm-6 col-12">
+        <label class="d-inline-block">Principal Investigator</label>
+        <span class="float-right">
+          <input id="employee" type="radio" name='employee_nonemployee' [value]="'EMPLOYEE'"
+          [(ngModel)]="personType" checked="true" (change)="changeMemberType()">
+          <label for="employee">
+              Employee
+          </label>
+          <input id="non-employee" type="radio" name='employee_nonemployee' [value]="'NON-EMPLOYEE'"
+          [(ngModel)]="personType" (change)="changeMemberType()">
+          <label for="non-employee">
+              Non-Employee
+          </label>
+      </span>
+        <app-elastic [options]="elasticSearchOptionsPI" [placeHolder]="personType == 'EMPLOYEE' ? 'Search an employee': 'Search a non-employee' "
+          (keyup)="emptyValidationKeyup($event, 'property10')"
+          (selectedResult)="selectElasticResult($event, 'property10' , 'PI');" [clearField]="clearPiField"
+          (keyup.enter)="setAdvanceSearchToServiceObject();searchAgreementList()">
+        </app-elastic>
+      </div>
+      <div class="col-xl-3 col-lg-3 col-md-4 col-sm-6 col-12">
+        <label class="d-block">Administrator</label>
+        <app-autocompleter [completerOptions]="adminSearchOptions" [clearField]="clearAdminField"
+          [placeHolder]="'Search for Admin'" (onSelect)="adminSelectFromDashboard($event)"></app-autocompleter>
+      </div>
+      <div class="col-xl-3 col-lg-3 col-md-5 col-sm-6 col-12">
+        <label class="d-block">Submission Date</label>
+        <div class="row mx-0">
+          <span class="col dateField p-0">
+            <input matInput [matDatepicker]="dueFromDt" id="submission-start-date" placeholder="From ({{datePlaceHolder}})"
+              [(ngModel)]="tempagreementRequestObject.property17" class="form-control d-inline-block"
+              (click)="dueFromDt.open()" (keypress)="_commonService._keyPress($event, 'date')" />
+            <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor" title="open calendar"
+              (click)="dueFromDt.open()"></span>
+            <mat-datepicker #dueFromDt (opened)="setFocusToElement('submission-start-date')">
+            </mat-datepicker>
+          </span>
+          <label class="d-block m-2"> - </label>
+          <span class="col dateField p-0">
+            <input matInput [matDatepicker]="dueToDt" id="submission-due-date" [(ngModel)]="tempagreementRequestObject.property18"
+              placeholder="To ({{datePlaceHolder}})" class="form-control d-inline-block"
+              (click)="dueToDt.open()" (keypress)="_commonService._keyPress($event, 'date')"
+              [ngClass]="(map.get('fromDate')) ? 'is-invalid d-block' : ''" />
+            <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor" title="open calendar"
+              (click)="dueToDt.open()"></span>
+            <mat-datepicker #dueToDt (opened)="setFocusToElement('submission-due-date')">
+            </mat-datepicker>
+          </span>
+          <div class="invalid-feedback block-display" *ngIf="map.get('fromDate')">
+            {{map.get('fromDate')}}
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-2 col-lg-3 col-md-3 col-sm-6 col-12" *ngIf = "(isAgreementAdministrator || isGroupAdministrator)">
+        <label class="d-block">Project ID</label>
+        <input type="text" id="adv-search-proposal-title" placeholder="Project ID" maxlength="60" autocomplete="off"
+          [(ngModel)]="tempagreementRequestObject.property19" class="form-control"
+          (keyup.enter)="setAdvanceSearchToServiceObject();searchAgreementList()" />
+      </div>
+      <!-- <div class="col-xl-4 col-lg-3 col-md-3 col-sm-6 col-12" *ngIf = "(isAgreementAdministrator || isGroupAdministrator)">
+        <label class="d-block">Admin Group</label>
+        <app-look-up [options]='adminGroupTypeOptions' [selectedLookUpList]="lookupValues['property20']"
+          (selectedResult)="onLookupSelect($event, 'property20')"
+          (keyup.enter)="setAdvanceSearchToServiceObject();searchAgreementList()">
+        </app-look-up>
+       </div> -->
+      <!-- Search and clear -->
+      <div class="col-md col-12 d-flex flex-column flex-sm-row align-items-end justify-content-end">
+        <button id="adv-search-clear-grant" class="btn btn-secondary btn-xs mr-2"
+          (click)="clearAdvanceSearchField();$agreementList.next();this.map.clear();" title="Clear">Clear</button>
+        <button id="adv-search-grant" class="btn btn-primary btn-xs"
+          (click)="setAdvanceSearchToServiceObject();searchAgreementList()" title="Search">Search</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-12 card-widget-container mb-4 mt-1" [@fadeDown]>
+    <div class="card card-table-box rounded-0" *ngIf="!isHideAgreementList">
+      <div class="card-header py-3">
+        <p class="card-title align-items-center d-flex">
+          <span *ngIf="_agreementList.agreementRequestObject.tabName == 'ALL_AGREEMENTS'" class="mr-auto">
+            List of all agreements
+          </span>
+          <span *ngIf="_agreementList.agreementRequestObject.tabName == 'IN_PROGRESS_AGREEMENTS'" class="mr-auto">
+            List of all inprogress and submitted agreements
+          </span>
+          <span *ngIf=" _agreementList.agreementRequestObject.tabName == 'NEW_SUBMISSIONS'" class="mr-auto">
+            List of all new submitted agreements
+          </span>
+          <span *ngIf="_agreementList.agreementRequestObject.tabName == 'MY_PENDING_AGREEMENTS'" class="mr-auto">
+            List of all agreements waiting for my review
+          </span>
+          <span *ngIf="_agreementList.agreementRequestObject.tabName == 'ALL_PENDING_AGREEMENTS'" class="mr-auto">
+            List of all agreements in review
+          </span>
+         <span *ngIf="_agreementList.agreementRequestObject.tabName == 'PENDING_AGREEMENTS'" class="mr-auto">
+            List of all pending agreements
+          </span>
+          <span *ngIf="agreementList !== null && agreementList?.length !== 0" class="float-right">
+            <span class="exportIcon-margin">Export as:</span>
+            <a title="Export data to Excel sheet" (click)="exportAsTypeDoc('excel')"
+              class="exportIcon-margin  hand-cursor" id="export-prop-excel-btn">
+              <i aria-hidden="true" class="fa fa-file-excel-o"></i>
+            </a>
+            <a class="exportIcon-margin">|</a>
+            <a title="Export data to PDF document" (click)="exportAsTypeDoc('pdf')" class="hand-cursor"
+              id="export-prop-pdf-btn"><i aria-hidden="true" class="fa fa-file-pdf-o"></i></a>
+          </span>
+        </p>
+      </div>
+      <div class="card-content px-3 py-2">
+        <div class="table-responsive" *ngIf="!agreementList == null || agreementList?.length != 0">
+          <table class="table tableSkin mb-0">
+            <thead>
+              <tr class="header-border">
+                <th scope="col" style="width: 5%;" id="sort-by-id" (click)="sortResult('agreementRequestId')">
+                  <span class="hand-cursor" title="Click to sort by agreementId">Id</span>
+                  <i aria-hidden="true"
+                    [ngClass]="((_agreementList.agreementRequestObject.sortBy == 'agreementRequestId') ? (isReverse ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                </th>
+                <th scope="col" style="width: 13%;" id="sort-by-agreementType"
+                  (click)="sortResult('agreementTypeCode')">
+                  <span class="hand-cursor" title="Click to sort by Type Of Agreement">Type Of
+                    Agreement</span>
+                  <i aria-hidden="true"
+                    [ngClass]="((_agreementList.agreementRequestObject.sortBy == 'agreementTypeCode') ? (isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                </th>
+                <th scope="col" style="width: 10%;" id="sort-by-agreementTitle" (click)="sortResult('title')">
+                  <span class="hand-cursor" title="Click to sort by Title">Title</span>
+                  <i aria-hidden="true"
+                    [ngClass]="((_agreementList.agreementRequestObject.sortBy == 'title') ? (isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                </th>
+                <th scope="col" style="width: 10%;" id="sort-by-unit" (click)="sortResult('unitNumber')">
+                  <span class="hand-cursor" title="Click to sort by Title">Unit</span>
+                  <i aria-hidden="true"
+                    [ngClass]="((_agreementList.agreementRequestObject.sortBy == 'unitNumber') ? (isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                </th>
+                <th scope="col" style="width: 10%;" class="p-0" id="sort-by-agreementOrganisation"
+                  (click)="sortResult('organization')">
+                  <span class="hand-cursor" title="Click to sort by organisation">Organization</span>
+                  <i aria-hidden="true"
+                    [ngClass]="((_agreementList.agreementRequestObject.sortBy == 'organization') ? (isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                </th>
+                <th scope="col" style="width: 10%;" id="sort-by-agreementAdministrator"
+                  (click)="sortResult('agreementAdminFullName')">
+                  <span class="hand-cursor" title="Click to sort by Administrator">Administrator</span>
+                  <i aria-hidden="true"
+                    [ngClass]="((_agreementList.agreementRequestObject.sortBy == 'agreementAdminFullName') ? (isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                </th>
+                <th scope="col" style="width: 9%;" class="p-0" id="sort-by-agreementCatalyst"
+                  (click)="sortResult('requestorName')">
+                  <span class="hand-cursor" title="Click to sort by requestor">Requestor</span>
+                  <i aria-hidden="true"
+                    [ngClass]="((_agreementList.agreementRequestObject.sortBy == 'requestorName') ? (isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                </th>
+                <th scope="col" style="width: 9%;" id="sort-by-agreementPI" (click)="sortResult('piFullName')">
+                  <span class="hand-cursor" title="Click to sort by principal investigator">Principal
+                    Investigator</span>
+                  <i aria-hidden="true"
+                    [ngClass]="((_agreementList.agreementRequestObject.sortBy == 'piFullName') ? (isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                </th>
+                <th scope="col" style="width: 8%;" id="sort-by-agreement-contract-Value"
+                  (click)="sortResult('contractValue')">
+                  <span class="hand-cursor" title="Click to sort by contract value">Contract Value</span>
+                  <i aria-hidden="true"
+                    [ngClass]="((_agreementList.agreementRequestObject.sortBy == 'contractValue') ? (isReverse ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                </th>
+                <th scope="col" style="width: 8%;" id="sort-by-agreementStatus"
+                  (click)="sortResult('statusDescription')">
+                  <span class="hand-cursor" title="Click to sort by Status">Status</span>
+                  <i aria-hidden="true"
+                    [ngClass]="((_agreementList.agreementRequestObject.sortBy == 'statusDescription') ? (isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                </th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let agreement of agreementList; let i =index" class="pull-up">
+                <td (click)="viewAgreementById(agreement?.agreementRequestId)">
+                  {{agreement?.agreementRequestId}}
+                </td>
+                <td (click)="viewAgreementById(agreement?.agreementRequestId)">
+                  {{agreement?.agreementTypeCode}}</td>
+                 <td title="{{agreement?.title}}" (click)="viewAgreementById(agreement?.agreementRequestId)">
+                  {{(agreement?.title?.length>60)?(agreement?.title |slice:0:60)+'...':(agreement?.title)}}
+                </td>
+                <td (click)="viewAgreementById(agreement?.agreementRequestId)">
+                  {{concatUnitNumberAndUnitName(agreement?.unitNumber, agreement?.unitName)}}</td>
+                <td (click)="viewAgreementById(agreement?.agreementRequestId)">
+                  {{agreement?.organization}}</td>
+                <td (click)="viewAgreementById(agreement?.agreementRequestId)">
+                  {{agreement?.adminName}}</td>
+                <td (click)="viewAgreementById(agreement?.agreementRequestId)">
+                  {{agreement?.requestorName}}</td>
+                <td (click)="viewAgreementById(agreement?.agreementRequestId)">
+                  {{agreement?.piFullName}}</td>
+                <td (click)="viewAgreementById(agreement?.agreementRequestId)">
+                  {{agreement?.contractValue | currency: agreement?.currencyCode:'symbol' }}
+                </td>
+                <td (click)="viewAgreementById(agreement?.agreementRequestId)">
+                  {{agreement?.statusDescription}}</td>
+                <td>
+                  <ul class="actionButtonGroup d-inline-block">
+                    <li>
+                      <a title="Open agreement {{agreement?.agreementRequestId}}" class="pointer" id="open-proposal-btn"
+                        (click)="viewAgreementById(agreement?.agreementRequestId)">
+                        <i aria-hidden="true" class="fa fa-eye pointer"></i>
+                      </a>
+                    </li>
+                    <li
+                      *ngIf="isAgreementAdministrator && _agreementList.agreementRequestObject.tabName == 'NEW_SUBMISSIONS'">
+                      <a *ngIf="agreement?.agreementStatusCode == '7'" title="Assign Administrator/Admin Group" class="pointer"
+                        id="assign-admin-btn" data-toggle="modal" data-target="#assign-to-admin-modal"
+                        (click)="clearAssignFields(agreement?.agreementRequestId);">
+                        <i class="fa fa-user-o" aria-hidden="true"></i>
+                      </a>
+                    </li>
+                    <li>
+                      <a *ngIf="checkForAddActivity(agreement)"
+                        (click)="loadNewNegotiationData(agreement?.agreementRequestId,agreement?.negotiationId);clearModalValue = true"
+                        class="pointer" id="add-activity">
+                        <img alt="add-activity icon" class="activity-icon" title="Click here to add activity"
+                          src="{{deployMap}}assets/images/playlist (2).svg">
+                      </a>
+                    </li>
+                  </ul>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div *ngIf="agreementList?.length == 0" class="noDataOnChart noDataExists mb-2">
+          <div class="no-data-container">
+            <span class="no-data-icon-outer">
+              <div class="no-data-icon">
+                <i aria-hidden="true" class="fa fa-file-o"></i>
+                <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+              </div>
+            </span>
+            <h4>There is no information in this section.</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12"
+      *ngIf="agreementList !== null && agreementList?.length !== 0">
+      <div>
+        <nav class="pagination justify-content-end">
+          <app-pagination [totalCount]="pageCount" (pageChangeEvent)="actionsOnPageChange($event)">
+          </app-pagination>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ASSIGN TO ADMIN MODAL -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="assign-to-admin-modal" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Assign Administrator/Admin Group</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="isAssigntoMe = false;">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-5">
+            <span class="mt-4 py-3 ml-4">
+              <input type="checkbox" class="form-check-input" name="assignToMe" id="exampleCheck1"
+                (change)="assignToMeEvent($event);" [checked]="isAssigntoMe">
+              <label class="form-check-label ml-2" for="exampleCheck1">Assign to me</label>
+            </span>
+          </div>
+        </div>
+        <div class="row mt-3">
+          <label class="d-block ml-4"><span class="mandatory">*</span>Select Administrator</label>
+          <div class="col-md-12 col-sm-4 col-12">
+            <app-autocompleter [completerOptions]="adminSearchOptions" [clearField]="clearField"
+              [placeHolder]="'Search for admin'" (onSelect)="adminSelectFunction($event)"
+              [ngClass]="(assignAdminMap.get('adminName'))? 'is-invalid d-block' : ''"></app-autocompleter>
+            <div *ngIf="assignAdminMap.has('adminName')" class="invalid-feedback d-block">Please select an admin.</div>
+          </div>
+        </div>
+        <div class="row mt-3">
+          <label class="d-block ml-4">Select Admin Group</label>
+          <div class="col-md-12 col-sm-4 col-12">
+            <app-autocompleter [completerOptions]="adminGroupSearchOptions" [clearField]="clearAdminGroupField"
+              [placeHolder]="'Search for admin group'" (onSelect)="adminGroupSelectFunction($event)">
+            </app-autocompleter>
+          </div>
+        </div>
+        <div *ngIf="isShowWarningMessage"
+          class="success-banner px-3 my-2 d-flex justify-content-between align-items-center">
+          <div>
+            <i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i>
+            <em>{{warningMessage}}</em>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" title="Cancel" data-dismiss="modal" data-toggle="modal"
+          (click)="isAssigntoMe = false;isShowWarningMessage = false">Cancel</button>
+        <button type="button" class="btn btn-primary-sub btn-sm" (click)="assignToAgreementAdmin()">Assign
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<app-negotiationActivity *ngIf="negotiationLookUp && isShowActivityModal"
+[negotiationLookUp]="negotiationLookUp"
+(updatedActivities)="updateNegotiationActivity($event)">
+</app-negotiationActivity>

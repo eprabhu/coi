@@ -1,0 +1,139 @@
+<!-- <div class="card"> -->
+    <div class="p-3 coi-card-grey-border rounded-2" [id]="sectionId">
+        <div class="row align-items-center mb-2">
+            <div class="col-12 d-flex align-items-center coloured-bg-header gap-2">
+                <div class="col d-flex align-items-center">
+                    <span class="coi-entity-icon-bg me-2 coi-coloured-icons fs-14 d-inline-flex" aria-hidden="true">
+                        <mat-icon class="coi-mat-icon-size">library_books</mat-icon>
+                    </span>
+                    <span class="fs-16 fw-medium" id="coi-entity-other-ref-id">{{sectionName}}</span>
+                    <app-common-help-text [subSectionId]="2608" [elementId]="'coi-entity-other-ref-id'"></app-common-help-text>
+                </div>
+                <!-- Add Reference ID -->
+                <div *ngIf="externalReferences.length && isEditMode" class="col-auto">
+                    <button id="reference-id-add-button"
+                        class="btn btn-primary fs-14 d-inline-flex" title="Click here to Add Reference ID"
+                        aria-label="Click here to add reference id" (click)="addOtherRefId(true)">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0">add</mat-icon>
+                        <span>Add Reference ID</span>
+                    </button>
+                </div>
+                <!-- Comments -->
+                <div *ngIf="isShowCommentButton" class="col-auto">
+                    <button class="d-flex gap-1 align-items-center btn btn-sm btn-tertiary mt-0 lh-1"
+                        (click)="openReviewComments()" id="entity-comment-other-reference-id" type="button"
+                        [disabled]="entityManagementService.reviewCommentsSliderConfig?.isOpenCommentSlider"
+                        title="Click here to open review comment" aria-label="Click here to open review comment">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0 padding-3px">rate_review</mat-icon>
+                        <span>Comments<span *ngIf="commentCount > 0">({{commentCount}})</span></span>
+                    </button>
+                </div>
+            </div>
+            <app-no-information *ngIf="!externalReferences.length" [isBorderNeeded]="false" [canShowAddButton]="isEditMode" [buttonName]="'Add Reference ID'" (buttonAction)="addOtherRefId($event)"></app-no-information>
+            <div *ngIf="externalReferences.length">
+                <div class="coi-card-regular p-3 shadow-sm" *ngFor="let ref of externalReferences; let isFirst = first; let isLast = last; let i = index" [ngClass]="isFirst ? 'mt-2 mb-2' : !isLast ? 'mb-2' : ''" >
+                   <div class="d-flex">
+                       <div class="col-md-9 col-lg-10 fs-14">
+                           <span class="coi-text-light me-1">{{ref?.entityExternalIdType ? ref?.entityExternalIdType?.description : ref?.entityExternalIdTypeDescription}} -</span>
+                           <span class="fw-bold">{{ref?.externalId}}</span>
+                           <span class="d-flex coi-text-light fw-600">{{ref?.description}}</span>
+                       </div>
+                       <div *ngIf="isEditMode" class="col-md-3 col-lg-2 d-flex align-items-center justify-content-end mb-auto">
+                            <button class="btn btn-primary-icon d-flex align-items-center justify-content-center rounded-circle p-2 m-1" (click)="editRef(ref, i)"
+                                title="Click here to update reference id" aria-label="Click here to update reference id">
+                                <mat-icon aria-hidden="true" class="flex-shrink-0">edit</mat-icon>
+                            </button>
+                            <button class="btn btn-primary-icon d-flex align-items-center justify-content-center rounded-circle p-2 m-1"
+                                title="Click here to delete reference id" aria-label="Click here to delete reference id" (click)="confirmDeleteRef(ref, i)">
+                                <mat-icon aria-hidden="true" class="flex-shrink-0">delete</mat-icon>
+                            </button>
+                        </div>
+                   </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- </div> -->
+
+<!-- open add entity risk -->
+<div class="modal modal-lg fade mySkinDialog" data-bs-backdrop="static" id="otherReferenceIdModal" role="dialog">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">{{isEditIndex != null ? 'Update':'Add'}} Reference ID</h4>
+                <app-common-help-text *ngIf="isEditIndex !== null" [subSectionId]="2608" [elementId]="'coi-entity-other-ref-update'"></app-common-help-text>
+                <app-common-help-text *ngIf="isEditIndex === null" [subSectionId]="2608" [elementId]="'coi-entity-other-ref-add'"></app-common-help-text>
+				<button type="button" class="btn-close" id="coi-other-reference-id-close-btn" (click)="clearOtherReferenceID()"
+                        title="Click here to close" data-bs-dismiss="modal"
+					aria-label="Click here to close"></button>
+			</div>
+			<div class="modal-body">
+				<div class="row mb-3">
+					<div class="col-sm-12 col-lg-6">
+                        <label class="fs-14 fw-500 pb-1 coi-label-help" for="coi-refernece-id-type">
+                            <span class="mandatory me-1">*</span>Reference ID Type
+                            <app-common-help-text [subSectionId]="2608" [elementId]="'coi-refernece-id-type'"></app-common-help-text>
+                        </label>
+                        <app-look-up (selectedResult)="onReferenceIdTypeSelected($event)" [options]="coiCurrencyOptions"
+                                     [defaultValue]="defaultRefType" [selectedLookUpList]="selectedRefType"
+                        [uniqueId]="'coi-refernece-id-type'" [isError]="mandatoryList?.has('referenceType')"></app-look-up>
+                        <div *ngIf="mandatoryList?.has('referenceType')" class="invalid-feedback d-block fs-13" tabindex="-1"
+                            aria-label="Entity Registration Type">
+                            <span id="coi-entity-registration-type-validation1">{{mandatoryList?.get('referenceType')}}</span>
+                        </div>
+					</div>
+                    <div class="col-sm-12 col-lg-6 mt-sm-2 mt-lg-0">
+                        <label class="fs-14 fw-500 pb-1 coi-label-help" for="coi-reference-id">
+                            <span class="mandatory me-1">*</span>Reference ID
+                            <app-common-help-text [subSectionId]="2608" [elementId]="'coi-reference-id'"></app-common-help-text>
+                        </label>
+                        <input type="text" class="form-control" [(ngModel)]="otherReferenceIdObj.externalId" id="coi-reference-id"
+                            [ngClass]="(mandatoryList?.has('referenceId')) ? 'is-invalid d-block' : ''" appLengthValidator [limit]="30">
+                        <div *ngIf="mandatoryList?.has('referenceId')" class="invalid-feedback d-block fs-13" tabindex="-1"
+                            aria-label="Entity Registration Type">
+                            <span id="coi-entity-registration-type-validation1">{{mandatoryList?.get('referenceId')}}</span>
+                        </div>
+					</div>
+                </div>
+                <div class="row">
+					<div class="col-12">
+                        <label class="fs-14 fw-500 pb-1 coi-label-help" for="coi-other-reference-id-desc">
+                            <span class="mandatory me-1">*</span>Description
+                            <app-common-help-text [subSectionId]="2608" [elementId]="'coi-other-reference-id-desc'"></app-common-help-text>
+                        </label>
+                        <textarea appAutoGrow class="form-control" id="coi-other-reference-id-desc" rows="1"
+                            [(ngModel)]="otherReferenceIdObj.description" appTailingSpaceRemover
+                            [limit]=2000 appLengthValidator
+                            [ngClass]="(mandatoryList?.has('description')) ? 'is-invalid d-block' : ''"
+                            [styleList]="'mt-2 float-end word-count'" title="Reference ID Description" aria-label="Reference ID Description">
+                        </textarea>
+                        <div *ngIf="mandatoryList?.has('description')" class="invalid-feedback d-block fs-13" tabindex="-1"
+                            aria-label="Entity Registration Type">
+                            <span id="coi-entity-registration-type-validation1">{{mandatoryList?.get('description')}}</span>
+                        </div>
+					</div>
+                </div>
+            </div>
+			<div class="modal-footer">
+				<button class="btn btn-outline-secondary" id="coi-other-reference-id-cancel-btn" data-bs-dismiss="modal" type="button"
+				title="Click to cancel" (click)="clearOtherReferenceID()">Cancel
+				</button>
+				<button class="btn btn-primary me-0" id="coi-other-reference-id-add-btn" type="button"
+					title="Click here to {{isEditIndex != null ? 'update':'add'}} reference id"
+                    [attr.aria-label]="'Click here to ' + (isEditIndex != null ? 'update':'add') + ' reference id'"
+                    (click)="addOtherReferenceID()">{{isEditIndex != null ? 'Update':'Add'}} Reference ID
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+<app-common-modal [modalConfig]="modalConfig" (modalAction)="postConfirmation($event)">
+    <ng-container modal-header>
+        <span>Confirmation<app-common-help-text [subSectionId]="2608" [elementId]="'coi-entity-other-ref-delete'"></app-common-help-text></span>
+    </ng-container>
+    <ng-container modal-body>
+        <p>Are you sure you want to delete <strong>{{selectedReference?.entityExternalIdType?.description ?
+            selectedReference?.entityExternalIdType?.description:selectedReference?.entityExternalIdTypeDescription}}
+            - {{selectedReference?.externalId}}</strong>?</p>
+    </ng-container>
+</app-common-modal>

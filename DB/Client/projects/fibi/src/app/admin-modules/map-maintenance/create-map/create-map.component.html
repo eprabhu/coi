@@ -1,0 +1,374 @@
+/** last updated by Archana R on 04-12-2019 **/
+<div class="push4slideMenu pageMinHeight" id="scrollToTop">
+    <div class="container-fluid pushFixedHeaderFooter">
+        <div class="headerPush"></div>
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">
+                    <div class="row">
+                        <div class="col-12">
+                            <span *ngIf="!mapIdForEdit">Create a Route
+                                Map</span>
+                            <span *ngIf="mapIdForEdit">Modify Route
+                                Map</span>
+                                <span class=" font-weight-normal ml-lg-5 ml-2" *ngIf="altApprvr==true">
+                                - <i class="apr-flag fa fa-flag" aria-hidden="true"></i>
+                                <span class="span-text-primary font-weight-norma1">Primary</span>
+                                <i class="fa fa-user iconColour ml-2" aria-hidden="true"></i>
+                                <span class="span-text-secondary">Alternate</span>
+                                <span class="userIconText">
+                                    (Click on the icon to set as Primary Approver)
+                                </span>
+                            </span>
+                                <button type="button" class="btn more-btn float-right" (click)="navigateToRuleList()"
+                                    title="Back to Map List"><i class="fa fa-reply" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+                </h4>
+            </div>
+            <div class="card-content">
+                <div class="card-body">
+                    <div class="row" *ngIf="mapIdForEdit">
+                        <div class="col-auto">
+                            <span class="ml-1 text-muted">
+                                <span>#</span>
+                                {{mapIdForEdit}}
+                            </span>
+                        </div>
+                    </div>
+                    <section class="form-row" id="checkparam">
+                        <div class="col-md-4 col-12">
+                            <span class="mandatory">*</span><label>Department</label>
+                            <app-autocompleter [completerOptions]="completerSearchOptions" [isError]="(validationMap.get('department')) ? true : false"
+                                [defaultValue]="mapData.unitName" [placeHolder]="'Search'"
+                                (onSelect)="onUnitSelect($event)" (keyup)="emptyValidationKeyup($event)"
+                                (change)="isEdited = true;">
+                            </app-autocompleter>
+                            <div *ngIf="(validationMap.get('department'))" class="invalid-feedback d-block"> {{validationMap.get('department')}}</div>
+                        </div>
+                        <div class="col-md-4 col-sm-6 col-12">
+                            <label>
+                                <span class="mandatory">*</span>Type</label>
+                            <select id="map-type" class="form-control" [(ngModel)]="mapData.MAP_TYPE"  (ngModelChange)="setIsRoleOrNot();onChange()"
+                                [ngClass]="(validationMap.get('mapType')) ? 'is-invalid d-block' : ''">
+                                <option value="">--Select--</option>
+                                <option *ngFor="let mapTypes of workflowMapTypes" [value]="mapTypes.mapType" [hidden]="mapTypes.isActive != true">
+                                    {{mapTypes.approveStatus}}</option>
+                            </select>
+                            <div *ngIf="(validationMap.get('mapType'))" class="invalid-feedback d-block"> {{validationMap.get('mapType')}}</div>
+                        </div>
+                        <div class="col-md-4 col-sm-6 col-12">
+                            <label> <span class="mandatory">*</span>Map Name</label>
+                            <input type="text" id="map-name" maxlength="300" placeholder="Map Name" class="form-control"
+                                [(ngModel)]="mapData.MAP_NAME" 
+                                (ngModelChange)="setIsRoleOrNot();onChange()"
+                                [ngClass]="validationMap.has('mapName') ? 'is-invalid d-block' : ''" />
+                                <div *ngIf="(validationMap.get('mapName'))" class="invalid-feedback d-block"> {{validationMap.get('mapName')}}</div>
+                        </div>
+                        <div class="col-12 py-3">
+                            <label><span class="mandatory">*</span>Description for map</label>
+                            <textarea [(ngModel)]="mapData.DESCRIPTION" appLengthValidator [isShowLimiter]='true' [limit] = 200
+                                class="form-control scheduleBoxes ng-pristine ng-valid ng-touched txt-area"
+                                name="abstract" placeholder="Description for Unit Map" [ngClass]="validationMap.has('mapDescription') ? 'is-invalid d-block' : ''"
+                                (ngModelChange)="onChange()"></textarea>
+                                <div *ngIf="(validationMap.get('mapDescription'))" class="invalid-feedback d-block"> {{validationMap.get('mapDescription')}}</div>
+                        </div>
+                    </section>
+                    <ng-container *ngFor="let stop of mapData.stopDetailsList">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card mb-3 card-inner">
+                                    <div class="card-content">
+                                        <div class="card-header pl-4 pr-4 pt-2 pb-2">
+                                            <h4 class="card-title">
+                                                <div class="form-row">
+                                                    <div class="col-6 d-flex text-align">
+                                                        <div>
+                                                            <label class="font-weight-bold mr-2">Stop
+                                                                {{stop.APPROVAL_STOP_NUMBER}}:</label>
+                                                        </div>
+                                                        <div>
+                                                            <span class="w-100"><input type="text" id="stop-name"
+                                                                    placeholder="Stop Name" class="form-control"
+                                                                    [(ngModel)]="stop.STOP_NAME"
+                                                                    (ngModelChange)="onChange()" /></span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6 icon-click text-right colorBlack">
+                                                        <button (click)="addApprover(stop)"
+                                                            class="btn btn-tertiary btn-sm align-bottom"> <a>
+                                                                Create New Approver</a></button>
+                                                        <button (click)="removeStops(stop)"
+                                                            class="btn btn-outline-danger btn-sm" id="deletestop"
+                                                            data-toggle="modal" data-target="#modal-deletestop"> <a>
+                                                                Remove Seq. Stop</a></button>
+                                                    </div>
+                                                </div>
+                                            </h4>
+                                        </div>
+                                        <div class="card-body p-0">
+                                            <div class="row m-0">
+                                                <div class="col-lg-12 p-0" *ngIf="stop.approverDetailsList.length">
+                                                    <table class="table seq-table m-0">
+                                                        <caption class="sr-only">Approver</caption>
+                                                        <thead>
+                                                            <tr class="thead-light">
+                                                                <th style="width: 5%;" scope="col"></th>
+                                                                <th style="width: 20%;" scope="col">Approve By</th>
+                                                                <th style="width: 35%;" scope="col">Description</th>
+                                                                <th style="width: 24%;" scope="col"><span
+                                                                        class="padding-lft"></span></th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <ng-container
+                                                                *ngFor="let approver of stop.approverDetailsList">
+                                                                <ng-container
+                                                                    *ngIf="approver.PRIMARY_APPROVER_FLAG=='Y'">
+                                                                    <tr [ngClass]="{'active-box': activeApprover==approver}"
+                                                                        class="apprv-row">
+                                                                        <td class="pl-4">
+                                                                            <i class="apr-flag fa fa-flag"
+                                                                                aria-hidden="true"></i>
+                                                                        </td>
+                                                                        <td>
+                                                                            <span> {{approver.approverName}}</span>
+                                                                        </td>
+                                                                        <td>
+                                                                            <i *ngIf="!approver.isEditDescription"
+                                                                                (click)="approver.isEditDescription=!approver.isEditDescription"
+                                                                                onmouseup="setTimeout(function(){document.getElementById('subdescription').focus()},10)"
+                                                                                class="fa fa-pencil icon-click hand-icon"
+                                                                                aria-hidden="true"></i>
+                                                                            <span *ngIf="!approver.isEditDescription">
+                                                                                {{approver.DESCRIPTION}}</span>
+                                                                            <textarea *ngIf="approver.isEditDescription"
+                                                                                class="textSize"
+                                                                                [(ngModel)]="approver.DESCRIPTION"
+                                                                                (ngModelChange)="onChange()"
+                                                                                class="form-control scheduleBoxes ng-pristine ng-valid ng-touched"
+                                                                                id="subdescription" name="abstract"
+                                                                                (blur)="approver.isEditDescription=!approver.isEditDescription"></textarea>
+                                                                        </td>
+                                                                        <td class="text-right pr-4">
+                                                                            <button *ngIf="mapData.MAP_TYPE!='E'"
+                                                                                (click)="addAlternateApprover(stop,approver)"
+                                                                                class="btn btn-primary-sub btn-sm"> <a>
+                                                                                    Add Alternate Approver</a></button>
+                                                                            <button
+                                                                                (click)="removeApprover(stop,approver)"
+                                                                                class="btn btn-outline-danger btn-sm">
+                                                                                <a>
+                                                                                    Remove Approver</a></button>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <ng-container
+                                                                        *ngFor="let alternateApprover of stop.approverDetailsList">
+                                                                        <ng-container
+                                                                            *ngIf="alternateApprover.APPROVER_NUMBER==approver.APPROVER_NUMBER && alternateApprover.PRIMARY_APPROVER_FLAG=='N'">
+                                                                            <tr class="apprv-row">
+                                                                                <td>
+                                                                                    <span><i class="float-right fa fa-user hand-icon userIcon"
+                                                                                            (click)="primaryFlagChanged($event,alternateApprover,stop)"
+                                                                                            aria-hidden="true"
+                                                                                            id="defaultCheck1"
+                                                                                            title="Click to set as primary approver"
+                                                                                            (ngModelChange)="onChange()"></i></span>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <span>
+                                                                                        {{alternateApprover.approverName}}</span>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <i *ngIf="!alternateApprover.isEditDescription"
+                                                                                        (click)="alternateApprover.isEditDescription=!alternateApprover.isEditDescription"
+                                                                                        onmouseup="setTimeout(function(){document.getElementById('altsubdescription').focus()},10)"
+                                                                                        class="fa fa-pencil icon-click hand-icon"
+                                                                                        aria-hidden="true"></i>
+                                                                                    <span
+                                                                                        *ngIf="!alternateApprover.isEditDescription">
+                                                                                        {{alternateApprover.DESCRIPTION}}</span>
+                                                                                    <textarea
+                                                                                        *ngIf="alternateApprover.isEditDescription"
+                                                                                        [(ngModel)]="alternateApprover.DESCRIPTION"
+                                                                                        (ngModelChange)="onChange()"
+                                                                                        class="form-control scheduleBoxes ng-pristine ng-valid ng-touched"
+                                                                                        id="altsubdescription"
+                                                                                        name="abstract"
+                                                                                        (blur)="alternateApprover.isEditDescription=!alternateApprover.isEditDescription"></textarea>
+                                                                                </td>
+                                                                                <td class="text-right">
+                                                                                    <button
+                                                                                        (click)="removeApprover(stop,alternateApprover)"
+                                                                                        class="btnSkin btnSkinPrimry">
+                                                                                        <a>
+                                                                                            Remove Alternate Approver
+                                                                                        </a>
+                                                                                    </button>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </ng-container>
+                                                                    </ng-container>
+                                                                </ng-container>
+                                                            </ng-container>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                <div *ngIf="stop.showApproverField && approverFieldStopNumber==stop.APPROVAL_STOP_NUMBER"
+                                                    class="col-lg-12 p-0">
+                                                    <div class="approverContent-dup p-15 gridSkin">
+                                                        <div class="form-row mb-2">
+                                                            <div class="col-lg-6 aprv-by pr-0">
+                                                                <label>{{addApproverText}}:</label>
+                                                                <span>{{stop.STOP_NAME}}</span>
+                                                            </div>
+                                                            <div *ngIf="mapData.MAP_TYPE!='E'" class="col-lg-6 aprv-by pr-0">
+                                                                <span class="margin-rit"><span
+                                                                        class="mandatory">*</span>Approve By :</span>
+                                                                <div class="form-check form-check-inline frm-check">
+                                                                    <input class="form-check-input" type="radio"
+                                                                        name="approvedBy{{stop.APPROVAL_STOP_NUMBER}}"
+                                                                        id="approvedByUser"
+                                                                        (ngModelChange)="onApproveBySelectionChange(stop,'N')"
+                                                                        [(ngModel)]="approverData.isRuleSelected"
+                                                                        [value]="2+(stop.APPROVAL_STOP_NUMBER*10)">
+                                                                    <label class="form-check-label main-approver"
+                                                                        for="inlineCheckbox1">Persons</label></div>
+                                                                <div class="form-check form-check-inline frm-check">
+                                                                    <input class="form-check-input" type="radio"
+                                                                        name="approvedBy{{stop.APPROVAL_STOP_NUMBER}}"
+                                                                        id="approvedByRole"
+                                                                        (ngModelChange)="onApproveBySelectionChange(stop,'Y')"
+                                                                        [(ngModel)]="approverData.isRuleSelected"
+                                                                        [value]="1+(stop.APPROVAL_STOP_NUMBER*10)">
+                                                                    <label class="form-check-label main-approver"
+                                                                        for="inlineCheckbox2">Role</label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <ng-container *ngIf="approverData.IS_ROLE=='Y';else userSearch">
+                                                            <div class="form-row">
+                                                                <div class="col-12">
+                                                                    <div class="searchBox">
+                                                                        <app-autocompleter
+                                                                            [completerOptions]="completerDescriptionOptions"
+                                                                            [clearField]="clearField"
+                                                                            [placeHolder]="'Search for role'"
+                                                                            (onSelect)="onApprovedRoleSelected($event)"
+                                                                            (change)="onChange()"></app-autocompleter>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </ng-container>
+                                                        <ng-template #userSearch>
+                                                            <div class="form-row">
+                                                                <div class="col-12">
+                                                                    <div class="searchBox">
+                                                                        <app-elastic [options]="elasticSearchOptions"
+                                                                            [placeHolder]="'Search: Persons'"
+                                                                            (selectedResult)="selectUserElasticResult($event)"
+                                                                            [clearField]="clearPersonField">
+                                                                        </app-elastic>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </ng-template>
+                                                        <div class="form-row">
+                                                            <div class="col-lg-12 mb-2">
+                                                                <textarea [(ngModel)]="approverData.DESCRIPTION"
+                                                                    class="form-control scheduleBoxes ng-pristine ng-valid ng-touched textSize"
+                                                                    name="abstract" appLengthValidator [isShowLimiter]='true' [limit] = 60
+                                                                    placeholder="Description for the stop"
+                                                                    (ngModelChange)="onChange()"></textarea>
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-row">
+                                                            <div class="col-12 text-right">
+                                                                <button (click)="cancelApproverField(stop)"
+                                                                    class="btn btn-secondary btn-sm">Cancel</button>
+                                                                <button (click)="saveApprover(stop)"
+                                                                    *ngIf="addApproverButton == false"
+                                                                    class="btn btn-primary-sub btn-sm">Add
+                                                                    Approver</button>
+                                                                <button (click)="saveApprover(stop)"
+                                                                    *ngIf="addApproverButton == true"
+                                                                    class="btn btn-primary-sub btn-sm">Add Alternate
+                                                                    Approver</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </ng-container>
+                    <div class="text-center text-md-right">
+                        <button (click)="navigateToRuleList()" class="btn btn-secondary btn-xs">Cancel</button>
+                        <button (click)="validateAndaddStop()" class="btn btn-primary-sub btn-xs">Add Seq.Stop</button>
+                        <button (click)="validateMap()" class="btn btn-primary btn-xs">Save</button>
+                    </div>
+                </div>
+            </div>
+            <button type="button" id="validatebutton" class="disply" data-toggle="modal"
+                data-target="#modal-validation"></button>
+            <button type="button" id="updateButton" class="disply" data-toggle="modal"
+                data-target="#modal-update"></button>
+        </div>
+        <div class="modal fade  bd-example-modal-lg mySkinDialog" id="modal-validation" data-backdrop="static" data-keyboard="false">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Error!</h5>
+                        <button type="button" class="close" (click)="isSaving = false; validationText=''" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>{{validationText}}</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary-sub" data-dismiss="modal" (click)="isSaving = false; validationText=''">OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="modal-update" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                    </div>
+                    <div class="modal-body">
+                        <p>Do you want to Save this map?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            routerLink='/fibi/mapMaintainance/'>Cancel</button>
+                        <button (click)="validateMap()" type="button" class="btn btn-primary-sub"
+                            data-dismiss="modal">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade show mySkinDialog" id="modal-deletestop" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Remove Stop</h5>
+                    </div>
+                    <div class="modal-body">
+                        <p>Do you want to remove this stop?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button (click)="removeEntireStop(delStop)" type="button" class="btn btn-primary-sub btn-sm"
+                            data-dismiss="modal">Remove</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footerPush"></div>
+    </div>
+</div>

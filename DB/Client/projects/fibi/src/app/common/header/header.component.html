@@ -1,0 +1,305 @@
+<div class="overlay" #notificationOverlay (click)="hideNotificationList()"></div>
+
+<div class="sb-seachresults" *ngIf="isShowNotification">
+  <div class="col pl-4 py-3">
+    <span class="fs-15 fw-500">Notifications</span>
+  </div>
+  <div class="col-12 p-0">
+    <ul class="subTabs tool-tab mb-0">
+      <li [ngClass]="{'active':currentNotificationTab == 'NEW'}" class="w-25">
+        <a (click)='getNotificationList("NEW")' class="subTabLink " tabindex="0">
+          <span class="pl-2">New</span>
+          <span class="badge" *ngIf="badgeCount > 0">{{badgeCount}}</span>
+        </a>
+      </li>
+      <li [ngClass]="{'active':currentNotificationTab == 'ALL'}" class="w-25">
+        <a class="subTabLink" (click)='getNotificationList("ALL")' tabindex="0">
+          <span class="pl-2">All </span>
+        </a>
+      </li>
+    </ul>
+  </div>
+  <ul id="searchList" class="sb-results-dropdown-menu" *ngIf="notificationList.length > 0">
+    <ng-container *ngFor="let notification of notificationList; let i = index">
+      <li class="search-result-item" id="message-{{notification.systemNotificationId}}">
+        <div class="d-flex"
+          (click)="collapseViewMoreOption(notification?.systemNotificationId, collapseViewMore[notification?.systemNotificationId])">
+          <span class="mr-3 pl-2">
+            <i *ngIf="!notification.personSystemNotificationMapping" class="fa fa-circle" aria-hidden="true"></i>
+          </span>
+          <span [class.ml-3]="notification.personSystemNotificationMapping">
+            {{notification.message.length > 120 && !collapseViewMore[notification?.systemNotificationId] ?
+            (notification.message | slice:0:120)+'...' : notification.message}}
+            <span *ngIf="notification.message.length > 120" class="collapse-text">
+              {{collapseViewMore[notification?.systemNotificationId] ? "Show Less" : "Read More"}}
+            </span>
+          </span>
+        </div>
+        <div class="text-right">
+          <span title="Mark as unread" *ngIf="notification.personSystemNotificationMapping"
+            class="read-btn fs-12 pointer ml-0 text-color" id="nav-to-task-btn"
+            (click)="readNotification(notification.systemNotificationId, false, i)">
+            <i class="fa fa-envelope-open-o text-color" aria-hidden="true"></i>
+            Mark as unread
+          </span>
+          <span title="Mark as read" *ngIf="!notification.personSystemNotificationMapping"
+            class="read-btn fs-12 pointer ml-0 text-color" id="nav-to-task-btn mt-3"
+            (click)="readNotification(notification.systemNotificationId, true, i)">
+            <i class="fa fa-envelope-o fs-12" *ngIf="!notification.personSystemNotificationMapping"
+              aria-hidden="true"></i>
+            Mark as read
+          </span>
+        </div>
+      </li>
+    </ng-container>
+  </ul>
+  <div *ngIf="notificationList.length == 0" class="noDataExists">
+    <div class="no-data-container">
+      <span class="no-data-icon-outer">
+        <div class="no-data-icon">
+          <i aria-hidden="true" class="fa fa-file-o"></i>
+          <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+        </div>
+      </span>
+      <h4>There is no information in this section.</h4>
+    </div>
+  </div>
+</div>
+<div class="push4slideMenu" id="scrollToTop">
+  <!-- silder menu -->
+  <div class="slideMenu" id="myMenu">
+    <ul #sideBarMenu class="iconMenu">
+      <li class="active"><a href="#" (click)="toggleMenu($event)">
+          <i class="fa fa-bars" aria-hidden="true" title="Show menu" id="toggleMenuIcon"></i></a>
+      </li>
+      <!-- <li class="hide-button">
+        <a href="#" *ngIf="showMenu == false" (click)="toggleMenu($event)">
+          <i class="fa fa-arrow-circle-left" aria-hidden="true" title="Hide menu"></i></a>
+      </li> -->
+      <li>
+        <a href="#" (click)="myDashboard($event)" title="My Dashboard"
+          (click)="hideMenu($event); _commonService.dashboardNavigationURL = '/fibi/dashboard'">
+          <i class="fa fa-tachometer" aria-hidden="true"></i><span>My Dashboard</span></a>
+      </li>
+      <!-- To be used only in Trial -->
+      <!-- <li>
+        <a href="{{irbUrl}}" target="_blank" title="IRB Dashboard">
+          <i class="fa fa-users"  aria-hidden="true"></i> <span>IRB Dashboard</span></a>
+      </li> -->
+      <li *ngIf="canViewAdminDashboard">
+        <a [routerLink]="['/fibi/admin-dashboard']" title="Admin Dashboard"
+          (click)="hideMenu($event);  _commonService.dashboardNavigationURL = '/fibi/admin-dashboard'">
+          <i class="fa fa-th" aria-hidden="true"></i><span>Admin Dashboard</span></a>
+      </li>
+      <li>
+        <a title="Preferences" [routerLink]="['/fibi/user/settings']"
+          (click)="hideMenu($event);  _commonService.dashboardNavigationURL = '/fibi/user/settings'">
+          <i class="fa fa-cog" aria-hidden="true"></i><span>Preferences</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+  <div class="container-fluid pushFixedHeaderFooter">
+    <header class="row" id="fibiStickyMainHeader">
+      <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 header-line-adjuster">
+        <ul class="d-flex headerMenu justify-content-between">
+          <li class="mob-icon mx-4"><a (click)="toggleMenu($event)">
+              <i class="fa fa-bars" aria-hidden="true" title="Show menu"></i></a>
+          </li>
+          <li class="p-0 m-0">
+            <a class="logo" href="#/fibi/dashboard">
+              <img [src]="logo" alt="Logo">
+            </a>
+          </li>
+          <!-- flex-grow-1 -->
+          <li class="flex-grow-1 p-2">
+            <div *ngIf="_commonService.priorityNotificationMessage" class="align-items-center d-flex justify-content-between mx-0 pb-2 pt-2 px-3 success-banner-header">
+            <div class="border-right px-1 pr-3">
+              <i class="fa fa-bell pt-1" aria-hidden="true"></i>
+            </div>  
+              <marquee  width="100%" direction="left" class="pb fw-600 fs-16" height="25px">
+               {{_commonService.priorityNotificationMessage}}
+              </marquee>           
+              <button aria-label="Close" (click)="_commonService.removePriority()"  class="close close-button " type="button">
+              <span aria-hidden="true" >×</span>
+            </button>
+            </div>   
+          </li>
+          <li class="flex-md-shrink-0 ml-4">
+            <span class="userName pointer">Dashboard of
+              <a [routerLink]="['/fibi/person/person-details']"
+                [queryParams]={personId:personId}> {{fullName}}</a></span>
+          </li>
+          <li *ngIf="_commonService.isEnableLock">
+            <span (click)="isShowLockList = true; webSocketService.initiateLockListRequest()" data-toggle="modal"
+              data-target="#LockListModal">
+              <i class="bell-icon fa fa-lock" aria-hidden="true"></i></span>
+          </li>
+          <li class="ml-0">
+            <a title="bell" tabindex="0" class="bell-icon pr-0" (click)="getAllNotificationList(true, true);"
+              [ngClass]="{'active-bell':isShowNotification == true}">
+              <i class="fa fa-bell" id="fa-bell" aria-hidden="true"></i>
+              <span class="new-notifications-count" *ngIf="badgeCount > 0">
+                <span class="count-design">{{badgeCount}}</span>
+              </span>
+            </a>
+          </li>
+
+          <!-- SPINNER -->
+          <li #showWheelChair>
+            <a title="Accessibility" (click)="isAccessible = !isAccessible" tabindex="0">
+              <svg aria-label="Accessibility" width="24" height="24" xmlns="http://www.w3.org/2000/svg"
+                fill-rule="evenodd" clip-rule="evenodd">
+                <path
+                  d="M12 0c6.623 0 12 5.377 12 12s-5.377 12-12 12-12-5.377-12-12 5.377-12 12-12m0 2c5.52 0 10 4.481 10 10 0 5.52-4.48 10-10 10-5.519 0-10-4.48-10-10 0-5.519 4.481-10 10-10m0 1c4.967 0 9 4.033 9 9s-4.033 9-9 9-9-4.033-9-9 4.033-9 9-9m-.011 11.5c-.474.006-.765.448-.989.804-.483.767-1.005 1.58-1.455 2.264-.155.238-.325.43-.609.432-.285.002-.526-.343-.389-.632.366-.769 1.953-3.539 1.953-5.868 0-.806-.429-1-1-1h-2c-.276 0-.5-.224-.5-.5s.224-.5.5-.5h9c.276 0 .5.224.5.5s-.224.5-.5.5h-2c-.57 0-1 .194-1 1 0 2.329 1.587 5.099 1.953 5.868.137.289-.103.634-.389.632-.284-.002-.454-.194-.609-.432-.45-.684-.973-1.497-1.455-2.264-.226-.359-.52-.806-1-.804h-.011zm.011-8.5c.828 0 1.5.672 1.5 1.5s-.672 1.5-1.5 1.5-1.5-.672-1.5-1.5.672-1.5 1.5-1.5" />
+              </svg>
+            </a>
+            <ul class="ng-star-inserted settings-dropdown " *ngIf="isAccessible">
+              <!-- Themes -->
+              <div class="card-body mb-3  hand-cursor">
+                <label for="" class="card-title"> <strong>Choose your color scheme</strong></label>
+                <div class="mb-3">
+                  <div class="theme green" (click)="changeTheme('theme-green'); currentTheme='green'"></div>
+                  <div class="theme blue" (click)="changeTheme('theme-blue');currentTheme='blue'"></div>
+                </div>
+
+                <!-- Contrast -->
+                <ul class="p-0">
+                  <label class="card-title" for="customRange2"><strong>Contrast</strong></label>
+                  <input type="range" [(ngModel)]="currentContrast" class="custom-range" min="0" step="1" max="2"
+                    id="customRange2" (change)="changeContrast()">
+                </ul>
+
+                <!-- Font  -->
+                <ul class="p-0">
+                  <label class="card-title" for="customRange2"><strong>Font size</strong></label>
+                  <input type="range" [(ngModel)]="fontSizeValue" class="custom-range" min="55" max="70"
+                    id="customRange2" (change)="onChangeFont()">
+                </ul>
+              </div>
+              <div class="text-center mb-2">
+                <button class="btn btn-lg btn-outline-dark" (click)="resetToDefaultSetting()"
+                  id="adv-search-proposal">Reset to default</button>
+              </div>
+            </ul>
+          </li>
+          <li>
+            <a title="FAQ" [routerLink]="['/fibi/user/faq']">
+              <svg aria-label="FAQ" version="1.1" id="Layer_1" width="24" height="24" xmlns="http://www.w3.org/2000/svg"
+                xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 426.667 426.667"
+                style="enable-background:new 0 0 426.667 426.667;" xml:space="preserve">
+                <g>
+                  <g>
+                    <rect x="192" y="298.667" width="42.667" height="42.667" />
+                  </g>
+                </g>
+                <g>
+                  <g>
+                    <path d="M213.333,0C95.513,0,0,95.513,0,213.333s95.513,213.333,213.333,213.333s213.333-95.513,213.333-213.333
+			S331.154,0,213.333,0z M213.333,388.053c-96.495,0-174.72-78.225-174.72-174.72s78.225-174.72,174.72-174.72
+			c96.446,0.117,174.602,78.273,174.72,174.72C388.053,309.829,309.829,388.053,213.333,388.053z" />
+                  </g>
+                </g>
+                <g>
+                  <g>
+                    <path d="M296.32,150.4c-10.974-45.833-57.025-74.091-102.858-63.117c-38.533,9.226-65.646,43.762-65.462,83.384h42.667
+			c2.003-23.564,22.729-41.043,46.293-39.04s41.043,22.729,39.04,46.293c-4.358,21.204-23.38,36.169-45.013,35.413
+			c-10.486,0-18.987,8.501-18.987,18.987v0v45.013h42.667v-24.32C279.787,241.378,307.232,195.701,296.32,150.4z" />
+                  </g>
+                </g>
+              </svg>
+            </a>
+          </li>
+          <li class="ml-0">
+            <a (click)="logout()" title="logout" tabindex="0">
+              <svg aria-label="Logout" version="1.1" id="Capa_1" width="24" height="24"
+                xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                viewBox="0 0 548.988 548.988" style="enable-background:new 0 0 548.988 548.988;" xml:space="preserve">
+                <g>
+                  <g>
+                    <path d="M274.485,414.798c77.373,0,140.32-62.94,140.32-140.304c0-53.513-30.239-101.531-78.921-125.319
+			c-1.934-0.945-3.907-1.426-5.866-1.426c-6.558,0-11.315,5.196-11.315,12.356v18.724c0,6.863,4.333,14.914,10.3,19.137
+			c25.059,17.739,40.019,46.347,40.019,76.527c0,52.118-42.408,94.518-94.536,94.518c-52.118,0-94.517-42.399-94.517-94.518
+			c0-30.199,14.957-58.804,40.009-76.524c5.973-4.223,10.309-12.274,10.309-19.14v-18.724c0-7.158-4.758-12.356-11.316-12.356
+			c-1.958,0-3.932,0.48-5.869,1.426c-48.679,23.794-78.921,71.815-78.921,125.319C134.181,351.857,197.122,414.798,274.485,414.798z
+			" />
+                    <path d="M266.893,274.61h15.184c8.437,0,15.3-6.863,15.3-15.3V143.486c0-8.437-6.863-15.3-15.3-15.3h-15.184
+			c-8.437,0-15.3,6.863-15.3,15.3v115.824C251.593,267.747,258.457,274.61,266.893,274.61z" />
+                    <path
+                      d="M274.485,548.982c151.363,0,274.503-123.135,274.503-274.488S425.848,0.006,274.485,0.006
+			C123.134,0.006,0,123.141,0,274.494S123.134,548.982,274.485,548.982z M45.784,274.494c0-126.105,102.596-228.701,228.701-228.701
+			c126.115,0,228.72,102.596,228.72,228.701s-102.603,228.701-228.72,228.701C148.379,503.195,45.784,400.603,45.784,274.494z" />
+                  </g>
+                </g>
+              </svg>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </header>
+  </div>
+</div>
+
+
+<div *ngIf="isShowLockList" class="modal modal-md fade mySkinDialog" id="LockListModal" tabindex="-1" role="dialog"
+  aria-labelledby="sessionTimeoutModal" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Locked Documents</h5>
+        <button (click)="isShowLockList = false;" aria-label="Close" class="close" data-dismiss="modal"
+          id="prop-dlt-member-dismiss" type="button">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table tableSkin grid2">
+            <caption class="sr-only">Locked List</caption>
+            <thead class="thead-light">
+              <th scope="col" style="width:15%">Document Number</th>
+              <th scope="col">Module</th>
+              <th scope="col">Title</th>
+              <th scope="col" style="width:25%">Locked on </th>
+              <th scope="col">Actions</th>
+            </thead>
+            <tbody>
+              <ng-container *ngFor="let lock of webSocketService.lockedList; let index=index;">
+                <tr id="period-{{index}}">
+                  <td>{{lock.groupId.split('#')[1]}}</td>
+                  <td>{{(lock.groupId.split('#')[0]) ==='IP'?'Institute Proposal':lock.groupId.split('#')[0]}}</td>
+                  <td title={{lock.lockedItemTitle}}>{{(lock.lockedItemTitle.length>30)?(lock.lockedItemTitle | slice:0:30)+'...':(lock.lockedItemTitle)}}</td>
+                  <td>{{lock.currentUser}} {{lock.createTimeStamp | date: 'medium'}}
+                  </td>
+                  <td>
+                    <button (click)="deleteElement(index)" class="btn btn-secondary" title="Unlock"> <i class="fa fa-unlock mr-2" aria-hidden="true"></i> Unlock </button>
+                  </td>
+                </tr>
+                <tr id="delete-confirmation-{{index}}" class="confirmation">
+                  <td colspan="100%" class="p-0">
+                    <div class="alert alert-danger d-flex align-items-center mb-0 justify-content-between" role="alert">
+                      <h4><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Are you
+                        sure you want to remove this lock?
+                      </h4>
+                      <span>
+                        <button (click)="cancelDeleteElement(index)" title="Cancel" class="btn btn-outline-secondary">
+                          Cancel
+                        </button>
+                        <button class="btn btn-outline-danger" title="Unlock"
+                          (click)="removeLock(lock)">Unlock</button>
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              </ng-container>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary-sub btn-sm" data-dismiss="modal"
+          (click)="isShowLockList = false">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>

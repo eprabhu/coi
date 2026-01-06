@@ -1,0 +1,257 @@
+<div id="Award114" class="row">
+  <div class="col text-right f-14">
+    <input id="group-by-budget" type="checkbox" *ngIf="awardBudgetExpenseData?.length > 0" [(ngModel)]="isGroupByCostElements"
+      (ngModelChange)="fetchExpenseDetails()" />
+    <label for="group-by-budget" class="label-align ml-1" *ngIf="awardBudgetExpenseData?.length > 0">Group By Budget Line Item</label>
+    <span *ngIf="lastRefreshedDate && awardBudgetExpenseData?.length > 0" class="mr-3 mb-3 ml-5">Last refreshed on
+      {{lastRefreshedDate | dateFormatterWithTimeZone : 'long'}}</span>
+    <span *ngIf="!lastRefreshedDate && awardBudgetExpenseData?.length > 0" class="mr-3 mb-3 ml-5">Not Synced Yet</span>
+    <span class="font text-nowrap" *ngIf="awardBudgetExpenseData.length > 0">Export as:
+    <a title="Export Expense to Excel sheet" class="exportIcon-margin  hand-cursor" id="export-expense-excel-btn"
+      (click)="generateExpenseDetailedBudget('xlsx')" tabindex="0">
+      <i class="fa fa-file-excel-o" aria-hidden="true"></i>
+    </a> |
+    <a title="Export Expense to Pdf" class="exportIcon-margin  hand-cursor" id="export-expense-pdf-btn"
+      (click)="generateExpenseDetailedBudget('pdf')" tabindex="0">
+      <i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+    </a>
+  </span>
+  </div>
+</div>
+<table class="tableStyle expense-table" *ngIf="(awardBudgetExpenseData.length > 0); else noData">
+  <caption class="sr-only">Expense Details</caption>
+  <thead>
+    <tr class="th-seperation">
+      <th scope="col" style="width: 14%">Budget Category</th>
+      <th scope="col" style="width: 14%">Budget Line Item</th>
+      <th scope="col" style="width: 5%"><ng-container i18n="@@AWARD_WBS_NUMBER_FOR_OFIN_USE">WBS Number (for OFIN use)</ng-container></th>
+      <th scope="col" style="width: 4%">Quantity</th>
+      <th scope="col" style="width: 9%">Original Approved Budget</th>
+      <th scope="col" style="width: 9%">Latest Approved Budget</th>
+      <th scope="col" style="width: 9%">Expenditure to Date</th>
+      <th scope="col" style="width: 9%">Balance</th>
+      <th scope="col" style="width: 9%">Utilization Rate</th>
+      <th scope="col" style="width: 9%">Committed Amount</th>
+      <th scope="col" style="width: 9%">Balance Less Committed Amount</th>
+    </tr>
+  </thead>
+  <tbody>
+    <ng-container *ngIf="(awardBudgetExpenseData.length > 0 && !isGroupByCostElements)">
+      <ng-container *ngFor="let expense of awardBudgetExpenseData; let i = index">
+        <tr class="border-seperate-bottom-0 ng-tns-c39-9 ng-star-inserted">
+          <td style="width: 14%" class="bt-ctset">{{expense?.budgetCategory}}</td>
+          <td style="width: 14%" class="bt-ctset">{{expense?.lineItem}}
+            <a title="View time logged" class="pointer float-right" id="eom-log" *ngIf="expense?.studentHoursFlag"
+              (click)="setModalTitle(i); viewTimeLogDetails(expense?.internalOrderCode)">
+              <i class="fa fa-clock-o fa-action-icon pointer" aria-hidden="true"></i>
+            </a>
+          </td>
+          <td style="width: 5%" class="bt-ctset">{{expense?.internalOrderCode}}</td>
+          <td style="width: 4%" class="bt-ctset">{{expense?.quantity | customNumber}}</td>
+          <td style="width: 9%" class="bt-ctset text-right">
+            {{expense?.originalApprovedBudget ? (expense?.originalApprovedBudget | currency: currency) : 0 | currency: currency}}
+          </td>
+          <td style="width: 9%" class="bt-ctset text-right" tabindex="0">
+            {{expense?.latestApprovedBudget ? (expense?.latestApprovedBudget | currency: currency) : 0 | currency: currency}}
+          </td>
+          <!-- 'A' -- Actual Expense
+                'C' -- Commited Expense -->
+          <td style="width: 9%" class="bt-ctset text-right">
+            <a *ngIf="((isViewExpenseTransactions && tab === 'E') || (isViewPurchaseTransactions && tab === 'P'))
+             && (expense?.internalOrderCode || !expense?.budgetCategoryTypeCode) &&
+               _commonDataService.awardSectionConfig['193']?.isActive"
+              class="text-primary hand-cursor"
+              title="click here to view actual expense details of {{expense?.lineItem}}"
+              [routerLink]="['/fibi/award/budget-expense/actual-amount']" (click)="activeIndex = i;setContent(i)"
+              [queryParams]={tab:tab} queryParamsHandling='merge' class="subTabLink" tabindex="0">
+              {{expense?.expenditureToDate ? (expense?.expenditureToDate | currency: currency) : 0 | currency: currency}}</a>
+            <a
+              *ngIf="(!expense?.internalOrderCode && expense?.budgetCategoryTypeCode) || 
+              !((isViewExpenseTransactions && tab === 'E') || (isViewPurchaseTransactions && tab === 'P'))">
+              {{expense?.expenditureToDate ? (expense?.expenditureToDate | currency: currency) : 0 | currency: currency}}</a>
+          </td>
+          <td style="width: 9%" class="bt-ctset text-right">
+            {{expense?.balance ? (expense?.balance | currency: currency) : 0 | currency: currency}}</td>
+          <td style="width: 9%" class="bt-ctset text-right">{{expense?.utilizationRate ? expense?.utilizationRate : 0}}%
+          </td>
+          <td style="width: 9%" class="bt-ctset text-right" tabindex="0">
+            <a *ngIf="((isViewExpenseTransactions && tab === 'E') || (isViewPurchaseTransactions && tab === 'P')) &&
+             (expense?.internalOrderCode || expense?.unAssignedTransaction) && _commonDataService.awardSectionConfig['192']?.isActive"
+              class="text-primary hand-cursor"
+              title="click here to view committed amount details of {{expense?.lineItem}}" (click)="activeIndex = i;setContent(i)"
+              [routerLink]="['/fibi/award/budget-expense/committed-amount']" 
+              [queryParams]={tab:tab} queryParamsHandling='merge' class="subTabLink" tabindex="0">
+              {{expense?.updatedCommittedAmount ? (expense?.updatedCommittedAmount | currency: currency) : 0 | currency: currency}}</a>
+            <a
+              *ngIf="(!expense?.internalOrderCode && !expense?.unAssignedTransaction) || !((isViewExpenseTransactions && tab === 'E') || (isViewPurchaseTransactions && tab === 'P'))">
+              {{expense?.updatedCommittedAmount ? (expense?.updatedCommittedAmount | currency: currency) : 0 | currency: currency}}</a>
+            <a *ngIf="expense?.internalOrderCode && isExpenseEdit"
+              title="Click to edit committed amount of {{expense?.lineItem}}" class="pointer float-right"
+              data-toggle="modal" data-target="#editCommittedBudget"
+              (click)="activeIndex = i; setModalTitle(i); assignValuesToModal(expense?.updatedCommittedAmount);">
+              <i class="fa fa-pencil fa-action-icon pointer" aria-hidden="true"></i>
+            </a>
+          </td>
+          <td style="width: 9%" class="bt-ctset text-right">
+            {{expense?.balanceCommittedBudget ? (expense?.balanceCommittedBudget | currency: currency) : 0 | currency: currency}}
+            <i aria-hidden="true"
+              [ngClass]="!showPersonDetail[expense.budgetDetailId] ? 'fa-large fa fa-angle-double-down' : 'fa-large fa fa-angle-double-up'"
+              title="{{!showPersonDetail[expense.budgetDetailId] ? 'Show Person Details' : 'Hide Person Details'}}"
+              *ngIf="expense?.budgetCategoryTypeCode === 'P' &&  !(result.manpowerEnabled  && result.budgetAssociatedWithManpower)"
+              (click)="loadAwardExpensePersonDetails(expense)"></i>
+          </td>
+        </tr>
+        <tr *ngIf="showPersonDetail[expense.budgetDetailId]" class="c-element-color">
+          <td class="p-0" colspan="11">
+            <app-person-details [awardData]="award" [awardExpensePersonVOs]="expensePersonDetails"
+              [isExpenseEdit]="isExpenseEdit" (onSavePersonCommittedAmount)="loadAwardBudgetExpenseData()">
+            </app-person-details>
+          </td>
+        </tr>
+      </ng-container>
+    </ng-container>
+    <!-- <ng-container *ngIf="(awardBudgetExpenseData.length < 1)">
+        <tr>
+          <td colspan="11">
+            <span class="noDataExists d-flex justify-content-center">No Expense Details Found!</span>
+          </td>
+        </tr>
+      </ng-container> -->
+    <ng-container *ngIf="(groupByCostElementsData?.length > 0 && isGroupByCostElements)">
+      <tr *ngFor="let detail of groupByCostElementsData">
+        <td style="width: 14%" class="bt-ctset">{{detail?.budgetCategory}}</td>
+        <td style="width: 14%" class="bt-ctset">{{detail?.lineItem}}</td>
+        <td style="width: 5%" class="bt-ctset">{{detail?.internalOrderCode}}</td>
+        <td style="width: 4%" class="bt-ctset">{{detail?.quantity | customNumber}}</td>
+        <td style="width: 9%" class="bt-ctset">{{detail?.originalApprovedBudget | currency: currency}}</td>
+        <td style="width: 9%" class="bt-ctset">{{detail?.latestApprovedBudget | currency: currency}}</td>
+        <td style="width: 9%" class="bt-ctset">{{detail?.expenditureToDate | currency: currency}}</td>
+        <td style="width: 9%" class="bt-ctset">{{detail?.balance | currency: currency}}</td>
+        <td style="width: 9%" class="bt-ctset">{{detail?.utilizationRate ? detail?.utilizationRate : 0}}%</td>
+        <td style="width: 9%" class="bt-ctset">{{detail?.updatedCommittedAmount | currency: currency}}</td>
+        <td style="width: 9%" class="bt-ctset">{{detail?.balanceCommittedBudget | currency: currency}}</td>
+      </tr>
+    </ng-container>
+  </tbody>
+  <tfoot *ngIf="checkTotalExpenses()">
+    <tr>
+      <td style="width: 14%"></td>
+      <td style="width: 14%" class="text-right">TOTAL</td>
+      <td style="width: 5%"></td>
+      <td style="width: 4%">
+      </td>
+      <td class="text-right" style="width: 9%">
+        {{totalExpenses?.originalApprovedBudget ? (totalExpenses?.originalApprovedBudget | currency: currency) : 0 | currency: currency}}
+      </td>
+      <td class="text-right" style="width: 9%">
+        {{totalExpenses?.latestApprovedBudget ? (totalExpenses?.latestApprovedBudget | currency: currency) : 0 | currency: currency}}
+      </td>
+      <td class="text-right" style="width: 9%">
+        {{totalExpenses?.expenditureToDate ? (totalExpenses?.expenditureToDate | currency: currency) : 0 | currency: currency}}
+      </td>
+      <td class="text-right" style="width: 9%">
+        {{totalExpenses?.balance ? (totalExpenses?.balance | currency: currency) : 0 | currency: currency}}
+      </td>
+      <td style="width: 9%" class="bt-ctset text-right">
+        {{totalExpenses?.utilizationRate ? totalExpenses?.utilizationRate : 0}}%</td>
+      <td style="width: 9%" class="bt-ctset text-right">
+        {{totalExpenses?.updatedCommittedAmount ? (totalExpenses?.updatedCommittedAmount | currency: currency) : 0 | currency: currency}}
+      </td>
+      <td style="width: 9%" class="bt-ctset text-right">
+        {{totalExpenses?.balanceCommittedBudget ? (totalExpenses?.balanceCommittedBudget | currency: currency) : 0 | currency: currency}}
+      </td>
+    </tr>
+  </tfoot>
+</table>
+<ng-template #noData>
+  <div class="no-data-container">
+    <span class="no-data-icon-outer">
+      <div class="no-data-icon">
+        <i class="fa fa-file-o" aria-hidden="true"></i>
+        <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+      </div>
+    </span>
+    <h4>There is no information in this section.</h4>
+  </div>
+</ng-template>
+<!-- View Time Logged modal-->
+<button [hidden]="true" id="view-time-log-modal-btn" data-toggle="modal" data-target="#viewEomLogged"></button>
+<div class="modal fade mySkinDialog modal-opacity" tabindex="-1" id="viewEomLogged" tabindex="-1" role="dialog"
+  aria-labelledby="myLargeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="skippedSchedulesLongTitle">Time Log for {{modalTitle}}</h5>
+        <button type="button" id="trainingdata-close-btn" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="card card-inner">
+          <div class="card-content">
+            <div class="card-body">
+              <div class="fixed-header-table">
+                <table class="table tableSkin">
+                  <caption class="sr-only">Time Log Details</caption>
+                  <thead class="thead-light">
+                    <tr>
+                      <th scope="col" style="width: 25%">Submitted Date</th>
+                      <th scope="col" style="width: 25%">Submitted Hours</th>
+                      <th scope="col" style="width: 25%">Payroll Hours</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <ng-container *ngIf="(timeLogDetails?.awardHoursLogged?.length > 0)">
+                      <tr *ngFor="let hour of timeLogDetails?.awardHoursLogged">
+                        <td>{{hour.submittedDate | dateFormatter }}</td>
+                        <td>{{hour.submittedhours}}</td>
+                        <td>{{hour.payrollhours}}</td>
+                      </tr>
+                      <tr *ngIf="timeLogDetails?.awardHoursLogged?.length > 0" class="font-weight-bold"
+                        style="border-top: 2px solid black;">
+                        <td>Total</td>
+                        <td>{{timeLogDetails?.totalSubmittedhours}}</td>
+                        <td>{{timeLogDetails?.totalPayrollhours}}</td>
+                      </tr>
+                    </ng-container>
+                    <tr *ngIf="(timeLogDetails?.awardHoursLogged?.length < 1)">
+                      <td colspan="4">
+                        <span class="noDataExists d-flex justify-content-center">No Time Log Found!</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- delete Modal -->
+<div class="modal fade mySkinDialog" id="deleteTransactionModal" role="dialog">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header ct-footer-padding">
+        <h4 class="modal-title">Delete</h4>
+      </div>
+      <div class="modal-body ct-modal-padding">
+        <div class="row">
+          <div class="col-lg-12">
+            <p>Are you sure you want to delete this transaction?</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer ct-footer-padding">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+        <button (click)="deleteTracsactionDetail()" type="button" class="btn btn-primary-sub"
+          data-dismiss="modal">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,1 @@
+\. ./FIBI-COI-5.4/FC-1236/Functions/FN_CHK_FCOI_REQUIRED.sql

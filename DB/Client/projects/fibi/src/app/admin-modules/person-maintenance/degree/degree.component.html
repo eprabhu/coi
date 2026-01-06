@@ -1,0 +1,153 @@
+<div class="card card-inner mb-3 mt-3">
+	<div class="card-header py-2">
+		<span class="d-flex justify-content-between">
+			<h4 class="card-title align-items-center d-flex px-1 py-2">
+				Degree Details
+			</h4>
+			<button *ngIf="isMaintainPerson" type="button" class="btn btn-primary" data-toggle="modal"
+				(click)="degreeValidationMap.clear(); clearRequestObject();" data-target="#addDegreeModal">
+				Add Degree
+			</button>
+		</span>
+	</div>
+	<div *ngIf="isShowTable" class="card-content p-4">
+		<div *ngIf="degreeList.length != 0" class="table-responsive">
+			<table class="table tableSkin">
+				<thead>
+					<th style="width: 14%;">Degree Type</th>
+					<th style="width: 14%;">Degree</th>
+					<th style="width: 14%;">Graduation Year</th>
+					<th style="width: 17%;">School</th>
+					<th style="width: 17%;">Specialization</th>
+					<th style="width: 17%;">Field of Study</th>
+					<th style="width: 4%;" *ngIf="isMaintainPerson">Action</th>
+				</thead>
+				<tbody>
+					<tr *ngFor="let degreeDetail of degreeList; let index = index">
+						<td>{{ degreeDetail?.degreeType?.description }}</td>
+						<td>{{ degreeDetail?.degree }}</td>
+						<td>{{ degreeDetail?.graduationDate }}</td>
+						<td>{{ degreeDetail?.school }}</td>
+						<td>{{ degreeDetail?.specialization }}</td>
+						<td>{{ degreeDetail?.fieldOfStudy }}</td>
+						<td *ngIf="isMaintainPerson">
+							<ul class="actionButtonGroup d-flex flex-center">
+								<li>
+									<a href="#" id="prop-key-person-delete-btn" data-toggle="modal"
+										data-target="#deleteMemberModal"
+										(click)="setDeleteDegreeTypeAndId(degreeDetail)"><i class="fa fa-trash-o"
+											data-toggle="modal" data-target="#delete-degree-modal" aria-hidden="true"
+											title="Click here to delete {{degreeDetail?.degreeType?.description}}"></i>
+									</a>
+								</li>
+							</ul>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div *ngIf="degreeList.length == 0">
+			<p class="p-3 text-center fs-13 bg-color mb-0 mt-2">
+				No Entries Found.
+			</p>
+		</div>
+	</div>
+</div>
+
+<!-- ADD DEGREE MODAL	   -->
+<div class="modal fade show mySkinDialog  " tabindex="-1" id="addDegreeModal" role="dialog" aria-hidden="true"
+	data-backdrop="static" data-keyboard="false">
+	<div class="modal-dialog  modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Add Degree</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"
+					(click)="clearRequestObject();">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body scrollable-modal-body">
+				<div class="form-row">
+					<div class="form-group col-sm-12 col-lg-6">
+						<label class="d-block"><span class="mandatory">*</span> Degree Type</label>
+						<select name="duration" class=" form-control"
+							[ngClass]="degreeValidationMap.has('degreeType') ? 'is-invalid d-block' : ''"
+							[(ngModel)]="degreeObject.degreeCode">
+							<option value=''>--Select--</option>
+							<option *ngFor="let type of degreeTypeLookUp" [value]="type.degreeCode">
+								{{ type.description }}
+							</option>
+						</select>
+						<div class="invalid-feedback d-block " *ngIf="degreeValidationMap.has('degreeType')">
+							{{degreeValidationMap.get('degreeType')}}</div>
+					</div>
+					<div class="form-group col-sm-12 col-lg-6">
+						<label class="d-block">Degree</label>
+						<input type="text" id="degree" placeholder="" class=" form-control dateBox"
+							[(ngModel)]="degreeObject.degree">
+					</div>
+				</div>
+				<div class="form-row">
+					<div class="form-group col-sm-12 col-lg-6">
+						<label class="d-block">Graduation Year</label>
+						<input type="text" id="person-graduation-date" placeholder="" class=" form-control dateBox"
+							[(ngModel)]="degreeObject.graduationDate">
+					</div>
+					<div class="form-group col-sm-12 col-lg-6">
+						<label class="d-block">School</label>
+						<input type="text" id="school" placeholder="" [(ngModel)]="degreeObject.school"
+							class=" form-control dateBox" />
+					</div>
+				</div>
+				<div class="form-row">
+					<div class="form-group col-sm-12 col-lg-6">
+						<label class="d-block">Specialization</label>
+						<input type="text" id="specialization" placeholder="" [(ngModel)]="degreeObject.specialization"
+							class=" form-control dateBox">
+					</div>
+					<div class="form-group col-sm-12 col-lg-6">
+						<label class="d-block">Field of study</label>
+						<input type="text" id="person-Field-of-study" placeholder=""
+							[(ngModel)]="degreeObject.fieldOfStudy" class=" form-control dateBox">
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<div>
+					<button class="btn btn-secondary mr-2" data-toggle="modal" data-target="#addDegreeModal"
+						(click)="clearRequestObject(); degreeValidationMap.clear();">
+						Cancel
+					</button>
+					<button class="btn btn-primary mr-2" (click)="saveDegree();">
+						Save
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal fade show mySkinDialog" id="delete-degree-modal" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Delete</h5>
+				<button aria-label="Close" class="close" data-dismiss="modal" type="button">
+					<span aria-hidden="true">×</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<p>Are you sure you want to delete {{ deleteDegreeType}} from the list ?</p>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-secondary btn-sm" data-dismiss="modal" type="button">
+					Close
+				</button>
+				<button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button" (click)="deleteDegree()">
+					Delete
+				</button>
+			</div>
+		</div>
+	</div>
+</div>

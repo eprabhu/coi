@@ -1,0 +1,484 @@
+<ng-container *ngIf="_proposalService.proposalSectionConfig['313']?.isActive">
+    <!-- Last Updated By Ramlekshmy I on 16-01-2020 -->
+    <div class="card my-3">
+        <div class="card-header py-2" [ngClass]="result?.proposalAttachments?.length > 0 ? 'py-2' : ''">
+            <h4 class="card-title align-items-center d-flex" id="proposal-attachment-list">
+                <span class="mr-auto">Proposal Attachments</span>
+                <span class="mr-5">
+                    <button *ngIf="result.dataVisibilityObj.mode !== 'view' || isAdminEdit" title="Add New Attachment"
+                        id="prop-add-doc-btn" class="btn btn-tertiary btn-sm mt-0"
+                        (click)="setAttachmentFlagsOnAddOrReplace(null)">
+                        <i class="fa fa-plus mr-2" aria-hidden="true"></i>
+                        <span class="d-none d-md-inline-block">Add Attachments</span>
+                    </button>
+                    <button *ngIf="result?.proposalAttachments?.length > 0" title="Download All Attachments"
+                        id="prop-download-doc-btn" class="btn btn-tertiary btn-sm mt-0 mr-2"
+                        (click)="downloadAllAttachments();">
+                        <i class="fa fa-download pointer mr-2" aria-hidden="true"></i>
+                        <span class="d-none d-md-inline-block">Download All Attachments</span>
+                    </button>
+                    <button id="attachmentExpandBtn" class="updown-arrow btnPositionFullWidget"
+                        (click)="result.dataVisibilityObj.isAttachmentListOpen = !result.dataVisibilityObj.isAttachmentListOpen">
+                        <i [ngClass]="result.dataVisibilityObj.isAttachmentListOpen?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                            aria-hidden="true" class="fa-large"></i>
+                    </button>
+                </span>
+            </h4>
+        </div>
+        <div class="card-body pt-2" *ngIf="result.dataVisibilityObj.isAttachmentListOpen">
+            <div class="no-data-container" *ngIf="result?.proposalAttachments?.length == 0">
+                <span class="no-data-icon-outer">
+                    <div class="no-data-icon">
+                        <i class="fa fa-file-o" aria-hidden="true"></i>
+                        <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                    </div>
+                </span>
+                <h4>There is no information in this section.</h4>
+            </div>
+            <div *ngIf="(result.dataVisibilityObj.mode !== 'view' || result.dataVisibilityObj.isAttachmentEditable)"
+                class="row mb-1">
+                <div class="col-12 fs-14 text-right align-content-center d-flex justify-content-end" *ngIf="result?.proposalAttachments?.length > 0">
+                    <label class="mr-3 mb-0">Mark All As:</label>
+                    <div class="form-check form-check-inline mr-3">
+                        <input class="radio-inline" type="radio" name="attachmentComplete" id="attachmentComplete"
+                            [value]="false" [(ngModel)]="attachmentStatus"
+                            (ngModelChange)="markStatusCompleteOrIncomplete('I')">
+                        <label class="form-check-label text-primary fw-500" for="attachmentComplete">Draft</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="radio-inline" type="radio" name="attachmentIncomplete" id="attachmentIncomplete"
+                            [(ngModel)]="attachmentStatus" [value]="true"
+                            (ngModelChange)="markStatusCompleteOrIncomplete('C')">
+                        <label class="form-check-label text-primary fw-500"
+                            for="attachmentIncomplete">Final</label>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive" *ngIf="result?.proposalAttachments?.length > 0">
+                <table class="table tableSkin grid2" aria-describedby="proposal-attachment-list">
+                    <thead>
+                        <tr>
+                            <th style="width: 20%"
+                                (click)="isReverse =!isReverse;sortAttachmentDetails('attachmentTypeCode')" scope="col"
+                                class="hand-cursor" id="sort-by-attach-type" title="Click to sort by Attachment Type">
+                                <span>Attachment Type
+                                    <i [ngClass]="((sortBy == 'attachmentTypeCode') ? (isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                        aria-hidden="true"></i>
+                                </span>
+                            </th>
+                            <th style="width: 25%" (click)="isReverse =!isReverse;sortAttachmentDetails('description')"
+                                scope="col" class="hand-cursor" id="sort-by-attach-desc"
+                                title="Click to sort by Description">
+                                <span>Description
+                                    <i [ngClass]="((sortBy == 'description') ? (isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                        aria-hidden="true"></i>
+                                </span>
+                            </th>
+                            <th class="hand-cursor" (click)="isReverse =!isReverse;sortAttachmentDetails('fileName')"
+                                scope="col" id="sort-by-attach-name" title="Click to sort by File Name">
+                                <span>File Name
+                                    <i [ngClass]="((sortBy == 'fileName') ? (isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                        aria-hidden="true"></i>
+                                </span>
+                            </th>
+                            <th class="hand-cursor"
+                                (click)="isReverse =!isReverse;sortAttachmentDetails('narrativeStatusCode')" scope="col"
+                                id="sort-by-attach-status" title="Click to sort by Status">
+                                <span>Status
+                                    <i [ngClass]="((sortBy == 'narrativeStatusCode') ? (isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                        aria-hidden="true"></i>
+                                </span>
+                            </th>
+                            <th style="width:15%" (click)="isReverse =!isReverse;sortAttachmentDetails('updateUser')"
+                                class="hand-cursor" scope="col" id="sort-by-attach-update"
+                                title="Click to sort by Update User">
+                                <span>Updated by
+                                    <i [ngClass]="((sortBy == 'updateUser') ? (isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                        aria-hidden="true"></i>
+                                </span>
+                            </th>
+                            <th scope="col" style="width: 12%;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <ng-container *ngFor="let attachment of result?.proposalAttachments;let i = index">
+                            <tr *ngIf="attachment?.documentStatusCode == 1">
+                                <td>
+                                    <span class="d-block">{{attachment?.attachmentType?.description}}</span>
+                                    <span *ngIf="attachment?.attachmentType?.isPrivate" class="badge bg-danger text-white">Confidential</span>
+                                </td>
+                                <td title="{{(attachment?.description?.length>60)?(attachment?.description):''}}">
+                                    <ng-container>
+                                        {{(attachment?.description?.length > 30)?(attachment?.description |
+                                        slice:0:30)+'...':(attachment?.description)}}
+                                    </ng-container>
+                                </td>
+                                <td title="{{(attachment?.fileName?.length>30)?(attachment?.fileName):''}}">
+                                    {{(attachment?.fileName?.length > 30)?(attachment?.fileName |
+                                    slice:0:30)+'...':(attachment?.fileName)}}
+                                </td>
+                                <td>
+                                    <span >
+                                        {{attachment?.narrativeStatus?.description}}
+                                    </span>
+                                   
+                                </td>
+                                <td>
+                                    <span>{{attachment.lastUpdateUserFullName}} on
+                                        {{attachment.updateTimeStamp | dateFormatterWithTimeZone : 'long'}}</span>
+                                </td>
+                                <td>
+                                    <ul class="actionButtonGroup">
+                                        <li
+                                            *ngIf="(result.dataVisibilityObj.mode !== 'view' || result.dataVisibilityObj.isAttachmentEditable) ">
+                                            <a id="prop-doc-edit-btn" tabindex="0">
+                                                <i aria-hidden="true" class="fa fa-pencil" (click)="editProposalModal(attachment,i)"
+                                                    title="Click here to edit {{attachment?.fileName}}"></i>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a *ngIf="(result.dataVisibilityObj.mode !== 'view' || result.dataVisibilityObj.isAttachmentEditable)"
+                                                (click)="tempSaveAttachments(attachment.attachmentId,i,attachment.documentId);attachmentType = 'general'"
+                                                id="prop-doc-dlt-btn" data-toggle="modal"
+                                                data-target="#deleteAttachment" tabindex="0">
+                                                <i class="fa fa-trash-o" aria-hidden="true"
+                                                    title="Click here to delete {{attachment?.fileName}}"></i>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a (click)="downloadProposalAttachments(attachment)"
+                                                id="prop-doc-dwnlod-btn"
+                                                title="Click here to download {{(attachment?.fileName?.length > 20)?(attachment?.fileName | slice:0:20)+'...':(attachment?.fileName)}}"
+                                                tabindex="0">
+                                                <i class="fa fa-download pointer" aria-hidden="true"></i>
+                                            </a>
+                                        </li>
+                                        <li
+                                            *ngIf="(result.dataVisibilityObj.mode !== 'view' || result.dataVisibilityObj.isAttachmentEditable) && isReplaceAttachmentEnabled">
+                                            <a id="prop-doc-replace-btn"
+                                                (click)="setAttachmentFlagsOnAddOrReplace(attachment)"
+                                                title="Click here to replace file {{(attachment?.fileName?.length > 20)?(attachment?.fileName | slice:0:20)+'...':(attachment?.fileName)}}"
+                                                tabindex="0">
+                                                <i class="fa fa-retweet pointer" aria-hidden="true"></i>
+                                            </a>
+                                        </li>
+                                        <li *ngIf="isReplaceAttachmentEnabled">
+                                            <a id="prop-doc-version-btn"
+                                                (click)="getVersion(attachment.documentId, attachment.fileName );attachmentType='general'"
+                                                title="Click here to view file versions" data-toggle="modal"
+                                                data-target="#prop-doc-version-modal" tabindex="0">
+                                                <img class="version-icon"
+                                                    src="{{deployMap}}assets/images/version-icons.png"
+                                                    alt="version-icon" aria-hidden="true">
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </td>
+                            </tr>
+                        </ng-container>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- DELETE ATTACHMENT WARNING MODAL -->
+    <div class="modal fade mySkinDialog" tabindex="-1" id="deleteAttachment" tabindex="-1" role="dialog"
+        aria-labelledby="deleteModalTitle" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete</h5>
+                    <button type="button" class="close" data-dismiss="modal" id="prop-doc-dlt-dismiss"
+                        aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this item?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="prop-doc-dlt-no-btn" class="btn btn-secondary" data-dismiss="modal"
+                        data-toggle="modal">No</button>
+                    <button type="button" id="prop-doc-dlt-yes-btn" class="btn btn-primary-sub btn-sm"
+                        (click)="attachmentType == 'general' ? deleteAttachments() :deleteKeyPerssonelAttachments()"
+                        data-dismiss="modal">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade mySkinDialog" tabindex="-1" id="prop-doc-version-modal" tabindex="-1" role="dialog"
+        aria-labelledby="versionModalTitle" aria-hidden="true">
+        <div [ngClass]="(attachmentVersions.length == 0)?'modal-dialog':'modal-dialog modal-lg'" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span id="proposal-attachment-version-list">
+                        <h5 *ngIf="attachmentVersions.length > 0" class="modal-title"
+                            title="{{(attachmentDetails?.fileName?.length>55)?(attachmentDetails?.fileName):''}}">
+                            Versions
+                            of
+                            {{(attachmentDetails?.fileName?.length > 55)?(attachmentDetails?.fileName |
+                            slice:0:55)+'...':(attachmentDetails?.fileName)}}</h5>
+                        <h5 *ngIf="attachmentVersions.length == 0" class="modal-title"
+                            title="{{(attachmentDetails?.fileName?.length>28)?(attachmentDetails?.fileName):''}}">
+                            Versions
+                            of
+                            {{(attachmentDetails?.fileName?.length > 35)?(attachmentDetails?.fileName |
+                            slice:0:35)+'...':(attachmentDetails?.fileName)}}</h5>
+                    </span>
+                    <button type="button" class="close" data-dismiss="modal" id="prop-doc-version-dlt-dismiss"
+                        aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" *ngIf="attachmentVersions.length > 0">
+                    <table aria-describedby="proposal-attachment-version-list" id="doc-version-table"
+                        class="table table-responsive tableSkin"
+                        [ngClass]="(attachmentVersions?.length > 8)? 'version-table-scroll' : 'version-table-noscroll'">
+                        <thead *ngIf="attachmentVersions.length > 0">
+                            <tr id="versionHeaderEdit">
+                                <th scope="col" style="width:5%">Version</th>
+                                <th scope="col">File Name</th>
+                                <th scope="col">Updated By</th>
+                                <th scope="col" style="width:5%">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody *ngIf="attachmentVersions.length > 0">
+                            <tr *ngFor="let version of attachmentVersions">
+                                <td style="width:5%">
+                                    <span class="text">{{version?.versionNumber}}</span>
+                                </td>
+                                <td>
+                                    <span
+                                        title="{{(version?.fileName?.length>40)?(version?.fileName):''}}">{{(version?.fileName?.length
+                                        > 40)?(version?.fileName | slice:0:40)+'...':(version?.fileName)}}</span>
+                                </td>
+                                <td>
+                                    <span>{{version?.lastUpdateUserFullName}} on
+                                        {{version?.updateTimeStamp | dateFormatterWithTimeZone : 'long'}}</span>
+                                </td>
+                                <td style="width:5%">
+                                    <ul class="actionButtonGroup">
+                                        <li>
+                                            <a (click)="downloadProposalAttachments(version)" id="prop-doc-dwnlod-btn"
+                                                title="Click here to download {{(version?.fileName?.length > 20)?(version?.fileName | slice:0:20)+'...':(version?.fileName)}}">
+                                                <i class="fa fa-download pointer" aria-hidden="true"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-body" *ngIf="attachmentVersions.length == 0">
+                    <p>There are no versions found</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="prop-doc-dlt-no-btn" class="btn btn-secondary mr-2" data-dismiss="modal"
+                        data-toggle="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <app-add-attachment *ngIf="attachmentFlags.isShowAddAttachment" [addAttachment]="attachmentFlags"
+        [attachment]="replaceAttachment" [result]="result" [dataVisibilityObj]="result.dataVisibilityObj"
+        [attachmentType]="attachmentType"></app-add-attachment>
+    <button id="trigger-notify-complete-modal" [hidden]="true" data-toggle="modal"
+        data-target="#warning-modal"></button>
+
+    <!-- Personnel CV Details-->
+    <div id="personnelCV106" class="card mb-3">
+        <div class="card-header py-2" [ngClass]="addedCvList?.length > 0 ? 'py-2' : ''">
+            <h4 class="card-title align-items-center justify-content-between d-flex"><span class="mr-auto">Personnel
+                    Attachments</span>
+                <span class="mr-5">
+                    <button *ngIf="result.dataVisibilityObj.mode !== 'view' || isAdminEdit" title="Add New Attachment"
+                        id="prop-add-keypersonnel-doc-btn" class="btn btn-tertiary btn-sm mt-0"
+                        (click)="attachmentFlags.isShowAddAttachment = true;attachmentFlags.isReplaceAttachment = false;attachmentType='keyPerssonel'">
+                        <i class="fa fa-plus mr-2" aria-hidden="true"></i>
+                        <span class="d-none d-md-inline-block">Add Attachments</span>
+                    </button>
+                    <button title="Download All Attachments" *ngIf="result.addedCvList?.length > 0"
+                        id="prop-downloadall-doc-btn" class="btn btn-tertiary btn-sm mt-0 mr-2"
+                        (click)="downloadAllPersonAttachments();">
+                        <i class="fa fa-download pointer mr-2" aria-hidden="true"></i>
+                        <span class="d-none d-md-inline-block">Download All Attachments</span>
+                    </button>
+                    <button id="prop-downloadall-expand-btn-form-seven" class="updown-arrow"
+                        (click)="isFormOpen = !isFormOpen">
+                        <i [ngClass]="!isFormOpen ? 'fa fa-angle-double-up':'fa fa-angle-double-down'" class="fa-large"
+                            aria-hidden="true"></i>
+                    </button>
+                </span>
+            </h4>
+        </div>
+        <div class="card-content" *ngIf="!isFormOpen">
+            <div class="card-body">
+                <div class="table-responsive" *ngIf="result.addedCvList?.length > 0">
+                    <table class="table tableSkin mb-0">
+                        <caption class="sr-only">CV details</caption>
+                        <thead class="header-border">
+                            <th (click)="sortResult('attachmentTypeCode')">Attachment Type
+                                <i [ngClass]="((sortListBy == 'attachmentTypeCode') ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                    aria-hidden="true"></i>
+                            </th>
+                            <th class="table-border-bottom hand-icon" (click)="sortResult('proposalPersonName')"
+                                title="Click to sort by Name " scope="col">Person Name
+                                <i [ngClass]="((sortListBy == 'proposalPersonName') ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                    aria-hidden="true"></i>
+                            </th>
+                            <th style="width: 25%" (click)="sortResult('description')" scope="col" class="hand-cursor"
+                                id="sort-by-attach-desc" title="Click to sort by Description">
+                                <span>Description
+                                    <i [ngClass]="((sortListBy == 'description') ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                        aria-hidden="true"></i>
+                                </span>
+                            </th>
+                            <th class="table-border-bottom hand-icon" scope="col" (click)="sortResult('fileName')"
+                                title="Click to sort by File Name">File Name
+                                <i [ngClass]="((sortListBy == 'fileName') ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                    aria-hidden="true"></i>
+                            </th>
+                            <th style="width: 15%" scope="col" (click)="sortResult('lastUpdateUserFullName')"
+                                class="table-border-bottom hand-icon">Updated By
+                                <i [ngClass]="((sortListBy == 'lastUpdateUserFullName') ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                    aria-hidden="true"></i>
+                            </th>
+                            <th style="width: 12%">Actions</th>
+                        </thead>
+                        <tbody
+                            *ngFor="let file of result.addedCvList | orderBy: {property: sortListBy , direction: direction}; let index = index">
+                            <tr *ngIf="file?.documentStatusCode == 1">
+                                <td>
+                                    <span class="d-block">{{file.attachmentType.description}}</span>
+                                    <span *ngIf="file?.attachmentType?.isPrivate" class="badge bg-danger text-white">Confidential</span>
+                                </td>
+                                <td>{{file.proposalPersonName ? file.proposalPersonName : ''}}</td>
+                                <td><span >{{file?.description}}</span>
+                                </td>
+                                <td title="{{(file?.fileName?.length>30)?(file?.fileName):''}}">
+                                    {{(file?.fileName?.length > 30)?(file?.fileName |
+                                    slice:0:30)+'...':(file?.fileName)}}
+                                </td>
+                                <td>{{file?.lastUpdateUserFullName ? file?.lastUpdateUserFullName : ''}} on
+                                    {{file.updateTimeStamp | dateFormatterWithTimeZone : 'long'}}</td>
+                                <td>
+                                    <ul class="actionButtonGroup">
+                                        <li *ngIf="(result.dataVisibilityObj.mode !== 'view' || result.dataVisibilityObj.isAttachmentEditable)">
+                                            <a (click)="loadPersonnelAttachTypes(index, file);"
+                                            id="prop-doc-edit-btn" tabindex="0">
+                                            <i aria-hidden="true" class="fa fa-pencil"
+                                                title="Click here to edit {{file?.fileName}}"></i>
+                                        </a>
+                                        </li>
+                                        <li>
+                                            <a *ngIf="(result.dataVisibilityObj.mode !== 'view' || result.dataVisibilityObj.isAttachmentEditable)"
+                                                (click)="tempDeleteKeyperssonnalAttachments(file,index);attachmentType = 'keyPerssonel'"
+                                                id="prop-doc-dlt-btn" data-toggle="modal"
+                                                data-target="#deleteAttachment" tabindex="0">
+                                                <i class="fa fa-trash-o" aria-hidden="true"
+                                                    title="Click here to delete {{file?.fileName}}"></i>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a (click)="downloadProposalPersonCV(file)" id="prop-doc-dwnlod-btn"
+                                                title="Click here to download {{(file?.fileName?.length > 20)?(file?.fileName | slice:0:20)+'...':(file?.fileName)}}">
+                                                <i class="fa fa-download pointer" aria-hidden="true"></i>
+                                            </a>
+                                        </li>
+                                        <li
+                                            *ngIf="(result.dataVisibilityObj.mode !== 'view' || result.dataVisibilityObj.isAttachmentEditable) && isReplaceAttachmentEnabled">
+                                            <a id="prop-personnal-doc-replace-btn"
+                                                (click)="attachmentFlags.isReplaceAttachment= true;attachmentFlags.isShowAddAttachment= true;replaceAttachment = file;attachmentType='keyPerssonel'"
+                                                title="Click here to replace file {{(file?.fileName?.length > 20)?(file?.fileName | slice:0:20)+'...':(file?.fileName)}}"
+                                                tabindex="0">
+                                                <i class="fa fa-retweet pointer" aria-hidden="true"></i>
+                                            </a>
+                                        </li>
+                                        <li *ngIf="isReplaceAttachmentEnabled">
+                                            <a id="prop-personnal-doc-version-btn"
+                                                (click)="getVersion(file.documentId, file.fileName, 'keyPerssonel')"
+                                                title="Click here to view file versions" data-toggle="modal"
+                                                data-target="#prop-doc-version-modal" tabindex="0">
+                                                <img class="version-icon"
+                                                    src="{{deployMap}}assets/images/version-icons.png"
+                                                    alt="version-icon" aria-hidden="true">
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="no-data-container" *ngIf="result.addedCvList?.length == 0">
+                    <span class="no-data-icon-outer">
+                        <div class="no-data-icon">
+                            <i class="fa fa-file-o" aria-hidden="true"></i>
+                            <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                        </div>
+                    </span>
+                    <h4>There is no information in this section.</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</ng-container>
+
+<!-- edit -->
+<div class="modal fade mySkinDialog" id="editAttachmentModal" tabindex="-1" role="dialog"
+aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+<div [ngClass]=" isShowPersonalAttachmentStatus ? 'modal-xl': 'modal-lg'" class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Edit Attachments</h5>
+            <button type="button" class="close" data-dismiss="modal" id="agreement-doc-popup-dismiss-btn"
+                aria-label="Close" (click)="clearEditAttachmentDetails()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+                 <div class="gridSkin">
+                    <div class="mb-2">
+                        <div class="row mb-2">
+                            <div [ngClass]=" isShowPersonalAttachmentStatus ? 'col-lg-3 col-12': 'col-lg-4 col-12'" >
+                                <label class="d-block"><span class="mandatory">*</span>Document Type</label>
+                                <span>{{editAttachmentDetails?.attachmentType?.description}}</span>
+                            </div>
+                            <div  [ngClass]=" isShowPersonalAttachmentStatus ? 'col-lg-3 col-12': 'col-lg-4 col-12'" >
+                                <label>Description</label>
+                                <textarea  id="prop-doc-desc" cols=2 rows="1"
+                                [(ngModel)]="editAttachmentDetails.description" class="form-control dateBox" appLengthValidator
+                                [isShowLimiter]='true' [limit]=200>
+                                </textarea>
+                            </div>
+                            <div  [ngClass]=" isShowPersonalAttachmentStatus ? 'col-lg-3 col-12': 'col-lg-4 col-12'" >
+                                <label><span class="mandatory">*</span>File</label>
+                                <span
+                                    class="d-block">{{(editAttachmentDetails.fileName?.length > 30)?(editAttachmentDetails.fileName | slice:0:30)+'...':(editAttachmentDetails.fileName)}}</span>
+                                    <span class="d-block"> {{(editPersonnelAttachmentDetails?.fileName?.length > 30)?(editPersonnelAttachmentDetails?.fileName |
+                                        slice:0:30)+'...':(editPersonnelAttachmentDetails?.fileName)}}</span>
+                            </div>
+                            <div *ngIf="isShowPersonalAttachmentStatus" class="col-lg-3 col-12">
+                                <label><span class="mandatory">*</span>Status</label>
+                                <select  id="prop-doc-status" class="form-control dateBox"
+                                    [(ngModel)]="editAttachmentDetails.narrativeStatusCode">
+                                    <option *ngFor="let attachStatus of result?.narrativeStatus" [value]="attachStatus.code">
+                                        {{attachStatus?.description}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="agreement-doc-popup-close-btn" data-dismiss="modal"
+                (click)="clearEditAttachmentDetails()">Close</button>
+            <button *ngIf="isShowPersonalAttachmentStatus" type="button" class="btn btn-primary-sub" id="agreement-doc-popup-add-btn"
+                (click)="updateAttachmentDetails();">Update</button>
+                <button *ngIf="!isShowPersonalAttachmentStatus" type="button" class="btn btn-primary-sub" id="agreement-doc-popup-add-btn"
+                (click)="updateKeyPerssonnelAttachmentDetails();">Update</button>
+        </div>
+    </div>
+</div>
+</div>

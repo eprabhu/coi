@@ -1,0 +1,358 @@
+<div class="p-3 coi-card-grey-border rounded-2" [id]="sectionId">
+    <div class="row align-items-center mb-2">
+        <div class="col d-flex align-items-center coloured-bg-header">
+            <span class="coi-entity-icon-bg me-2 coi-coloured-icons fs-14 d-inline-flex"><mat-icon class="coi-mat-icon-size" aria-hidden="true">newspaper</mat-icon></span>
+            <span class="fs-16 fw-medium" id="coi-entity-sponsor-details">{{sectionName}}</span>
+            <app-common-help-text [subSectionId]="2609" [elementId]="'coi-entity-sponsor-details'"></app-common-help-text>
+        </div>
+        <!-- Copy checkbox -->
+        <div class="d-inline-flex align-items-center col-auto px-0">
+            <input type="checkbox" [(ngModel)]="sponsorUpdateObj.entitySponsorFields.isCopy"
+                name="coi-entity-sponsor-copy-data"
+                (ngModelChange)="copyEntityDetailsToSponsor()"
+                [disabled]="commonService?.autoSaveSavingSpinner !== 'HIDE' || commonService?.hasChangesAvailable || isSaving || !isEditMode"
+                [title]="(isEditMode ? 'Click here to ' + (sponsorUpdateObj?.entitySponsorFields?.isCopy ? 'deselect' : 'select') + ' \'Same as Entity Details\'' : '')"
+                [attr.aria-label]="(isEditMode ? 'Click here to ' + (sponsorUpdateObj?.entitySponsorFields?.isCopy ? 'deselect' : 'select') + ' \'Same as Entity Details\'' : '')"
+                class="cursor-pointer" id="coi-entity-sponsor-copy-data">
+            <label for="coi-entity-sponsor-copy-data" class="coi-text-dark ps-2"
+                [class.cursor-pointer]="!(commonService?.autoSaveSavingSpinner !== 'HIDE' || commonService?.hasChangesAvailable || isSaving || !isEditMode)"
+                [title]="(isEditMode ? 'Click here to ' + (sponsorUpdateObj?.entitySponsorFields?.isCopy ? 'deselect' : 'select') + ' \'Same as Entity Details\'' : '')">
+                <span>Same as Entity Details</span>
+            </label>
+            <app-common-help-text [subSectionId]="2609" [elementId]="'coi-entity-sponsor-copy-data'"></app-common-help-text>
+        </div>
+        <!-- Comments -->
+        <div *ngIf="isShowCommentButton" class="col-auto">
+            <button class="d-flex gap-1 align-items-center btn btn-sm btn-tertiary mt-0 lh-1"
+                (click)="openReviewComments()" id="entity-comment-sponsor-details" type="button"
+                [disabled]="entityManagementService.reviewCommentsSliderConfig?.isOpenCommentSlider"
+                title="Click here to open review comment" aria-label="Click here to open review comment">
+                <mat-icon aria-hidden="true" class="flex-shrink-0 padding-3px">rate_review</mat-icon>
+                <span>Comments<span *ngIf="commentCount > 0">({{commentCount}})</span></span>
+            </button>
+        </div>
+    </div>
+    <div class="row row-gap-3" [class.pb-3]="isEditMode">
+        <!-- Sponsor Code -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-sponsor-code">
+                <span>Sponsor Code</span>
+                <app-common-help-text [subSectionId]="2609" [elementId]="'coi-entity-sponsor-code'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="text" id="coi-entity-sponsor-code" title="Sponsor code"
+                [(ngModel)]="sponsorUpdateObj.entitySponsorFields.sponsorCode"
+                aria-label="Sponsor code" maxlength="60" autocomplete="off" class="form-control" disabled/>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.sponsorCode">
+                <app-no-data-label [valueToShow]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.sponsorCode"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- Sponsor Acronym -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-sponsor-Acronym">
+                <span>Sponsor Acronym</span>
+                <app-common-help-text [subSectionId]="2609" [elementId]="'coi-entity-sponsor-Acronym'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="text" id="coi-entity-sponsor-Acronym" autocomplete="off" class="form-control"
+                [(ngModel)]="sponsorUpdateObj.entitySponsorFields.acronym" (ngModelChange)="changeEvent('acronym')"
+                appLengthValidator [limit]="30" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                [attr.aria-label]="'Please enter the acronym. Current value is ' + (sponsorUpdateObj?.entitySponsorFields?.acronym ? '' : 'empty')"/>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.acronym">
+                <app-no-data-label [valueToShow]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.acronym"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- Sponsor Type -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-sponsortype-lookup">
+                <span>Sponsor Type</span>
+                <app-common-help-text [subSectionId]="2609" [elementId]="'coi-entity-sponsortype-lookup'"></app-common-help-text>
+            </label>
+            <select *ngIf="isEditMode" [(ngModel)]="selectedSponsorType.code" id="coi-entity-sponsortype-lookup"
+                (ngModelChange)="onSponsorTypeSelect($event)" class="form-control w-100 form-select">
+                <option [value]="null" disabled selected>--Select--</option>
+                <option [value]="sponsorType?.code" *ngFor="let sponsorType of sponsorTypeLookup">{{sponsorType?.description}}</option>
+            </select>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.sponsorType?.description">
+                <app-no-data-label [valueToShow]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.sponsorType?.description"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- Sponsor Name -->
+        <div class="position-relative col-xl-8 col-lg-8 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-sponsor-name">
+                <span>Sponsor Name</span>
+                <app-common-help-text [subSectionId]="2609" [elementId]="'coi-entity-sponsor-name'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="text" id="coi-entity-sponsor-name" autocomplete="off" class="form-control"
+                [(ngModel)]="sponsorUpdateObj.entitySponsorFields.sponsorName" (ngModelChange)="changeEntityCopyEvent('sponsorName')"
+                appLengthValidator [limit]="500" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                [attr.aria-label]="'Please enter the sponsor name. Current value is ' + (sponsorUpdateObj?.entitySponsorFields?.sponsorName ? '' : 'empty')"/>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.sponsorName">
+                <app-no-data-label [valueToShow]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.sponsorName"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- Country -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-sponsor-country">
+                <span>Country</span>
+                <app-common-help-text [subSectionId]="2609" [elementId]="'coi-entity-sponsor-country'"></app-common-help-text>
+            </label>
+            <ng-container *ngIf="isEditMode">
+                <app-endpoint-search [clearField]="clearCountryField" [uniqueId]="'coi-entity-sponsor-country'"
+                    [httpOptions]="countrySearchOptions" (onSelect)="selectedCountryEvent($event)">
+                </app-endpoint-search>
+            </ng-container>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.country?.countryName">
+                <app-no-data-label [valueToShow]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.country?.countryName"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- Sponsor Address -->
+        <div class="col-12 mt-3">
+            <div class="card p-3">
+                <!-- Sponsor Address Header -->
+                <h4 class="relation-header px-2 coi-text-darker rounded coi-bg-gray-light">Sponsor Address</h4>
+                <div class="row row-gap-3" [class.pb-3]="isEditMode">
+                    <!-- Address Line 1 -->
+                    <div class="position-relative col-12">
+                        <label class="d-block coi-text-dark" for="coi-entity-sponsor-address1">
+                            <span>Address Line 1</span>
+                            <app-common-help-text [subSectionId]="2609" [elementId]="'coi-entity-sponsor-address1'"></app-common-help-text>
+                        </label>
+                        <ng-container *ngIf="isEditMode">
+                            <textarea appAutoGrow rows="1" class="form-control" id="coi-entity-sponsor-address1" name="coi-entity-sponsor-address1"
+                                [(ngModel)]="sponsorUpdateObj.entitySponsorFields.primaryAddressLine1"
+                                (ngModelChange)="changeEntityCopyEvent('primaryAddressLine1');" appLengthValidator [limit]="500"
+                                [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                                [attr.aria-label]="'Please enter the address line 1. Current value is ' + (sponsorUpdateObj?.entitySponsorFields?.primaryAddressLine1 ? '' : 'empty')">
+                            </textarea>
+                        </ng-container>
+                        <span  *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                            [title]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.primaryAddressLine1">
+                            <app-no-data-label [valueToShow]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.primaryAddressLine1"></app-no-data-label>
+                        </span>
+                    </div>
+
+                    <!-- Address Line 2 -->
+                    <div class="position-relative col-12">
+                        <label class="d-block coi-text-dark" for="coi-entity-sponsor-address2">
+                            <span>Address Line 2</span>
+                            <app-common-help-text [subSectionId]="2609"
+                                [elementId]="'coi-entity-sponsor-address2'"></app-common-help-text>
+                        </label>
+                        <textarea *ngIf="isEditMode" appAutoGrow rows="1" type="text" class="form-control" id="coi-entity-sponsor-address2" name="coi-entity-sponsor-address2"
+                            [(ngModel)]="sponsorUpdateObj.entitySponsorFields.primaryAddressLine2"
+                            (ngModelChange)="changeEntityCopyEvent('primaryAddressLine2')" appLengthValidator [limit]="500"
+                            [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                            [attr.aria-label]="'Please enter the address line 2. Current value is ' + (sponsorUpdateObj?.entitySponsorFields?.primaryAddressLine2 ? '' : 'empty')">
+                        </textarea>
+                        <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                            [title]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.primaryAddressLine2">
+                            <app-no-data-label [valueToShow]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.primaryAddressLine2"></app-no-data-label>
+                        </span>
+                    </div>
+
+                    <!-- City -->
+                    <div class="position-relative col-md-12 col-lg-6 col-xl-4">
+                        <label class="d-block coi-text-dark" for="coi-entity-sponsor-city">
+                            <span>City</span>
+                            <app-common-help-text [subSectionId]="2609" [elementId]="'coi-entity-sponsor-city'"></app-common-help-text>
+                        </label>
+                        <input *ngIf="isEditMode" type="text" class="form-control" id="coi-entity-sponsor-city"
+                            [(ngModel)]="sponsorUpdateObj.entitySponsorFields.city" (ngModelChange)="changeEntityCopyEvent('city')"
+                            appLengthValidator [limit]="30" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                            [attr.aria-label]="'Please enter the city. Current value is ' + (sponsorUpdateObj?.entitySponsorFields?.city ? '' : 'empty')">
+                        <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                            [title]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.city">
+                            <app-no-data-label [valueToShow]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.city"></app-no-data-label>
+                        </span>
+                    </div>
+
+                    <!-- State/Province/Region -->
+                    <div class="position-relative col-md-12 col-lg-6 col-xl-4">
+                        <label class="d-block coi-text-dark" for="coi-entity-sponsor-state">
+                            <span>State/Province/Region</span>
+                            <app-common-help-text [subSectionId]="2609" [elementId]="'coi-entity-sponsor-state'"></app-common-help-text>
+                        </label>
+                        <ng-container *ngIf="isEditMode">
+                            <app-endpoint-search [clearField]="clearStateField" [uniqueId]="'coi-entity-sponsor-state'"
+                                [httpOptions]="stateSearchOptions" (onSelect)="selectedStateEvent($event)" [searchLimiterOptions]="stateSearchLimiterOptions"
+                                class="w-100 mt-4" [isError]="mandatoryList?.has('state')" [canEmitSearchText]="canEmitStateSearchText">
+                            </app-endpoint-search>
+                        </ng-container>
+                        <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                            [title]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.stateDetails?.stateName || entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.state">
+                            <app-no-data-label [valueToShow]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.stateDetails?.stateName || entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.state"></app-no-data-label>
+                        </span>
+                    </div>
+
+                    <!-- ZIP/Postal Code -->
+                    <div class="position-relative col-md-12 col-lg-6 col-xl-4">
+                        <label class="d-block coi-text-dark" for="coi-entity-sponsor-postCode">
+                            <span>ZIP/Postal Code</span>
+                            <app-common-help-text [subSectionId]="2609"
+                                [elementId]="'coi-entity-sponsor-postCode'"></app-common-help-text>
+                        </label>
+                        <ng-container *ngIf="isEditMode">
+                            <input type="text" class="form-control" id="coi-entity-sponsor-postCode"
+                                [(ngModel)]="sponsorUpdateObj.entitySponsorFields.postCode"
+                                (ngModelChange)="changeEntityCopyEvent('postCode')" appLengthValidator [limit]="15"
+                                [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                                [attr.aria-label]="'Please enter the ZIP/postal code. Current value is ' + (sponsorUpdateObj?.entitySponsorFields?.postCode ? '' : 'empty')">
+                        </ng-container>
+                        <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                            [title]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.postCode">
+                            <app-no-data-label [valueToShow]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.postCode"></app-no-data-label>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phone Number -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-sponsor-phone">
+                <span>Phone Number</span>
+                <app-common-help-text [subSectionId]="2609" [elementId]="'coi-entity-sponsor-phone'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="text" id="coi-entity-sponsor-phone" placeholder="" autocomplete="off" class="form-control"
+                [(ngModel)]="sponsorUpdateObj.entitySponsorFields.phoneNumber" (ngModelChange)="validateAndAddPhoneNumber()"
+                (keypress)="checkForValidNumber($event)" [ngClass]="{'is-invalid d-block': isEditMode && mandatoryList?.has('phoneNumber')}"
+                appLengthValidator [limit]="20" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                [attr.aria-label]="'Please enter the phone number. Current value is ' + (sponsorUpdateObj.entitySponsorFields.phoneNumber ? '' : 'empty')"/>
+            <!-- error -->
+            <span *ngIf="isEditMode && mandatoryList?.has('phoneNumber')" class="position-absolute d-block invalid-feedback fs-13">{{ mandatoryList?.get('phoneNumber') }}</span>
+            <!-- view  -->
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.phoneNumber">
+                <app-no-data-label [valueToShow]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.phoneNumber"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- Email Address -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12" [class.pb-3]="isEditMode && mandatoryList?.has('emailAddress')">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-sponsor-email">
+                <span>Email Address</span>
+                <app-common-help-text [subSectionId]="2609" [elementId]="'coi-entity-sponsor-email'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="text" id="coi-entity-sponsor-email" autocomplete="off" class="form-control"
+                [(ngModel)]="sponsorUpdateObj.entitySponsorFields.emailAddress" (ngModelChange)="validateEmail()"
+                [ngClass]="{'is-invalid d-block': isEditMode && mandatoryList?.has('emailAddress')}"
+                appLengthValidator [limit]="200" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                [attr.aria-label]="'Please enter the email address. Current value is ' + (sponsorUpdateObj?.entitySponsorFields?.emailAddress ? '' : 'empty')"/>
+            <!-- error -->
+            <span *ngIf="isEditMode && mandatoryList?.has('emailAddress')" class="position-absolute d-block invalid-feedback fs-13">{{ mandatoryList?.get('emailAddress') }}</span>
+            <!-- view  -->
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.emailAddress">
+                <app-no-data-label [valueToShow]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.emailAddress"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- Translated Name -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-sponsor-trans-name">
+                <span>Translated Name</span>
+                <app-common-help-text [subSectionId]="2609" [elementId]="'coi-entity-sponsor-trans-name'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="text" id="coi-entity-sponsor-trans-name" autocomplete="off" class="form-control"
+                [(ngModel)]="sponsorUpdateObj.entitySponsorFields.translatedName" (ngModelChange)="changeEvent('translatedName')"
+                appLengthValidator [limit]="200" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                [attr.aria-label]="'Please enter the translated name. Current value is ' + (sponsorUpdateObj?.entitySponsorFields?.translatedName ? '' : 'empty')"/>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.translatedName">
+                <app-no-data-label [valueToShow]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.translatedName"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- DUNS Number -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-sponsor-duns">
+                <span>DUNS Number</span>
+                <app-common-help-text [subSectionId]="2609" [elementId]="'coi-entity-sponsor-duns'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="text" id="coi-entity-sponsor-duns" autocomplete="off" class="form-control"
+                [(ngModel)]="sponsorUpdateObj.entitySponsorFields.dunsNumber" (ngModelChange)="changeEntityCopyEvent('dunsNumber')"
+                appLengthValidator [limit]="20" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                [attr.aria-label]="'Please enter the duns number. Current value is ' + (sponsorUpdateObj?.entitySponsorFields?.dunsNumber ? '' : 'empty')"/>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.dunsNumber">
+                <app-no-data-label [valueToShow]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.dunsNumber"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- UEI Number -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-sponsor-uei">
+                <span>UEI Number</span>
+                <app-common-help-text [subSectionId]="2609" [elementId]="'coi-entity-sponsor-uei'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="text" id="coi-entity-sponsor-uei" autocomplete="off" class="form-control"
+                [(ngModel)]="sponsorUpdateObj.entitySponsorFields.ueiNumber" (ngModelChange)="changeEntityCopyEvent('ueiNumber')"
+                appLengthValidator [limit]="12" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                [attr.aria-label]="'Please enter the uei number. Current value is ' + (sponsorUpdateObj?.entitySponsorFields?.ueiNumber ? '' : 'empty')"/>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.ueiNumber">
+                <app-no-data-label [valueToShow]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.ueiNumber"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- CAGE Number -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-sponsor-cage">
+                <span>CAGE Number</span>
+                <app-common-help-text [subSectionId]="2609" [elementId]="'coi-entity-sponsor-cage'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="text" id="coi-entity-sponsor-cage" autocomplete="off" class="form-control"
+                [(ngModel)]="sponsorUpdateObj.entitySponsorFields.cageNumber" (ngModelChange)="changeEntityCopyEvent('cageNumber')"
+                appLengthValidator [limit]="20" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                [attr.aria-label]="'Please enter the cage number. Current value is ' + (sponsorUpdateObj?.entitySponsorFields?.cageNumber ? '' : 'empty')"/>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.cageNumber">
+                <app-no-data-label [valueToShow]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.cageNumber"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- Sponsor Comments -->
+        <div class="position-relative col-12">
+            <label class="d-block coi-text-dark" for="coi-entity-sponsor-comments">
+                <span>Sponsor Comments</span>
+                <app-common-help-text [subSectionId]="2609" [elementId]="'coi-entity-sponsor-comments'"></app-common-help-text>
+            </label>
+            <ng-container *ngIf="isEditMode">
+                <textarea rows="5" class="form-control" id="coi-entity-sponsor-comments" name="coi-entity-sponsor-comments"
+                    [(ngModel)]="sponsorUpdateObj.entitySponsorFields.comments"
+                    (ngModelChange)="changeEvent('comments');" appLengthValidator [limit]="300"
+                    [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                    [attr.aria-label]="'Please enter the sponsor comments. Current value is ' + (sponsorUpdateObj?.entitySponsorFields?.comments ? '' : 'empty')">
+                </textarea>
+            </ng-container>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.comments">
+                <app-no-data-label [valueToShow]="entitySponsorService?.entitySponsorDetails?.sponsorDetailsResponseDTO?.comments"></app-no-data-label>
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- confirmation popup -->
+<app-common-modal [modalConfig]="modalConfig" (modalAction)="postConfirmation($event)">
+    <ng-container modal-header>
+        <span>Confirmation</span>
+        <app-common-help-text [subSectionId]="2609" [elementId]="'coi-entity-sponsor-conf-modal'"></app-common-help-text>
+    </ng-container>
+    <ng-container modal-body>
+        <div class="d-flex align-items-start alert alert-primary py-2 gap-2">
+            <mat-icon aria-hidden="true" class="mat-icon material-icons flex-shrink-0">info</mat-icon>
+            <span class="fs-14">{{ copyConfirmModalInfo }}</span>
+        </div>
+        <span class="fs-14">Are you sure you want to copy the entity details to the sponsor details?</span>
+    </ng-container>
+</app-common-modal>

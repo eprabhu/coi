@@ -1,0 +1,253 @@
+<ng-container *ngIf="budgetVersionList && budgetVersionList?.length > 0">
+  <app-budget-overview *ngIf="awardBudgetData.awardBudgetHeader" [awardData]="awardData"
+    [budgetVersionList]="budgetVersionList" [awardBudgetData]="awardBudgetData"
+    [departmentLevelAwardBudgetRights]="departmentLevelAwardBudgetRights"
+    (budgetVersionChangeEvent)="onBudgetVersionChangeEvent($event)"
+    (createBudgetForAwardEditEvent)="createAwardBudget($event)"></app-budget-overview>
+  <div>
+    <section *ngIf="awardBudgetData.awardBudgetHeader" id="award-budget-tabs" class="pr-4 pt-3 header-outline">
+      <div class="row">
+        <div class="col">
+          <ul class="subTabs mb-0">
+            <li routerLinkActive="active" id="periodsTotalTab"
+                *ngIf="_commonDataService.awardSectionConfig['149']?.isActive"
+              (click)="_commonDataService.redirectionRoute ='/fibi/award/budget-expense/budget/periods-total'; currentTab = 'Periods & Total';" tabindex="0">
+              <a [routerLink]="['/fibi/award/budget-expense/budget/periods-total']" queryParamsHandling='merge'
+                class="subTabLink">
+                Periods & Total
+              </a>
+            </li>
+            <li routerLinkActive="active"
+              *ngIf="!awardBudgetData?.awardBudgetHeader?.manpowerEnabled || !awardBudgetData?.awardBudgetHeader?.budgetAssociatedWithManpower && (_commonDataService.awardSectionConfig['150']?.isActive)"
+              (click)="_commonDataService.redirectionRoute ='/fibi/award/budget-expense/budget/personnel'; currentTab = 'Personnel';" tabindex="0">
+              <a [routerLink]="['/fibi/award/budget-expense/budget/personnel']" queryParamsHandling='merge'
+                class="subTabLink">
+                Personnel
+              </a>
+            </li>
+            <li routerLinkActive="active"
+                *ngIf="_commonDataService.awardSectionConfig['151']?.isActive"
+              (click)="_commonDataService.redirectionRoute ='/fibi/award/budget-expense/budget/detailed-budget';currentTab = 'Detailed Budget';" tabindex="0">
+              <a [routerLink]="['/fibi/award/budget-expense/budget/detailed-budget']" queryParamsHandling='merge'
+                class="subTabLink">
+                Detailed Budget
+              </a>
+            </li>
+            <li routerLinkActive="active"
+                *ngIf="_commonDataService.awardSectionConfig['152']?.isActive"
+              (click)="_commonDataService.redirectionRoute ='/fibi/award/budget-expense/budget/summary';currentTab = 'Budget Summary';" tabindex="0">
+              <a [routerLink]="['/fibi/award/budget-expense/budget/summary']" queryParamsHandling='merge'
+                class="subTabLink">
+                Budget Summary
+              </a>
+            </li>
+            <div class="actions-outer ml-auto d-none" id="awardBudgetRemainingFund">
+              <span *ngIf= "['1','5'].includes(awardBudgetData?.awardBudgetHeader?.budgetStatus?.budgetStatusCode)
+              && awardData.award?.awardSequenceStatus !== 'CANCELLED'" class="status-badge-success ml-2 py-2 badge-clr">
+                Remaining Fund :
+                <strong>{{awardBudgetData?.awardBudgetHeader?.availableFund | currency: currency}}</strong> </span>
+            </div>
+            <div class="ml-auto">
+              <div class="actions-outer d-inline-block" *ngIf="_budgetDataService.isBudgetEditable">
+                <ng-container *ngIf="currentTab == 'Periods & Total'">
+                  <span class="budget-actions" title="Add New Period"
+                    (click)="this._budgetService.isPeriodOperationsTrigger.next('ADD PERIOD');">
+                    <i class="fa fa-plus icon-actions" aria-hidden="true"></i>
+                    Add Period
+                  </span>
+                  <span title="Generate All Periods" class="budget-actions"
+                    (click)="this._budgetService.isPeriodOperationsTrigger.next('GENERATE PERIOD');">
+                    <i class="fa fa-file-text-o icon-actions" aria-hidden="true"></i>
+                    Generate All Periods
+                  </span>
+                </ng-container>
+                <span class="d-inline-block pb-3">
+                  <button class="btn btn-primary btn-sm pt-2 pl-3 pr-3 mt-n1" title="Import from proposal budget"
+                    data-toggle="modal" data-target="#import-proposal-budget-modal"
+                    (click)="fetchProposalBudgetDetails();"
+                    *ngIf="awardBudgetData?.awardBudgetHeader?.budgetTypeCode != 2 && _budgetDataService.isBudgetEditable && awardBudgetData?.awardBudgetHeader?.budgetStatusCode == 1">
+                    <span class="fa-stack custom-file-import-stack" aria-hidden="true">
+                      <i class="fa fa-file-o fa-stack-1x fa-pull-right"></i>
+                      <i class="fa fa-long-arrow-right fa-stack-1x "></i>
+                    </span>
+                    Import from Proposal
+                  </button>
+                </span>
+              </div>
+              <div class="actions-outer d-inline-block" *ngIf="currentTab == 'Detailed Budget'">
+                <span class="ml-3">
+                  <span class="font text-nowrap">Export as:</span>
+                  <a title="Export Budget to Excel sheet" class="exportIcon-margin  hand-cursor"
+                    id="export-simple-budget-excel-btn" (click)="generateAwardDetailedBudgetReport()" tabindex="0">
+                    <i class="fa fa-file-excel-o" aria-hidden="true"></i>
+                  </a>
+                  <a class="exportIcon-margin">|</a>
+                  <a class="hand-cursor" id="export-detailed-budget-pdf-btn" title="Export Budget to PDF document"
+                  (click)="generateAwardBudgetReport(false,'N','Y')" tabindex="0">
+                    <i aria-hidden="true" class="fa fa-file-pdf-o"></i></a>
+                </span>
+              </div>
+              <div class="actions-outer d-inline-block" *ngIf="currentTab == 'Budget Summary'">
+                <span class="ml-3">
+                  <span class="font text-nowrap">Export as:</span>
+                  <a title="Export Budget Summary to Excel sheet" class="exportIcon-margin  hand-cursor"
+                    id="export-budget-summary-excel-btn" (click)="generateAwardBudgetSummaryReport()" tabindex="0">
+                    <i class="fa fa-file-excel-o" aria-hidden="true"></i>
+                  </a>
+                  <a class="exportIcon-margin">|</a>
+                  <a class="hand-cursor" id="export-budget-summary-pdf-btn" title="Export Budget Summary to PDF document"
+                  (click)="generateAwardBudgetReport(true,'Y','N')" tabindex="0">
+                    <i aria-hidden="true" class="fa fa-file-pdf-o"></i></a>
+                </span>
+              </div>
+            </div>
+          </ul>
+        </div>
+      </div>
+    </section>
+    <router-outlet></router-outlet>
+  </div>
+</ng-container>
+<ng-container *ngIf="budgetVersionList && budgetVersionList?.length == 0">
+  <div class="no-data-container">
+    <span class="no-data-icon-outer">
+      <div class="no-data-icon">
+        <i class="fa fa-file-o" aria-hidden="true"></i>
+        <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+      </div>
+    </span>
+    <h4>There is no information in this section.</h4>
+    <button class="btn btn-primary mx-auto mt-3" *ngIf="checkCreateBudgetAllowed()" (click)="validateCreateBudget()">
+      Create New Budget Version</button>
+  </div>
+</ng-container>
+
+
+<!-- FUND TYPE SELECTION MODAL -->
+<button [hidden]="true" id="choose-fundType-modal-button" data-toggle="modal"
+  data-target="#awardBudgetFundTypeDeterminationModal"></button>
+<div class="modal fade mySkinDialog" id="awardBudgetFundTypeDeterminationModal" data-backdrop="static"
+  data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+  <div class="modal-dialog modal-md" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Total Budget Cost Amount (Remaining Fund) based on:</h5>
+        <button type="button" class="close" id="award-budget-fundtype-dismiss-btn" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row mb-3" *ngFor="let budgetFundType of fundTypeList">
+          <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 d-flex align-items-center">
+            <span>
+              <input id="total-project-cost" type="radio" name="fundType" [value]="budgetFundType?.fundTypeCode"
+                [(ngModel)]="fundType" (ngModelChange)="_budgetDataService.setBudgetFundType(fundType)" />
+            </span>
+            <span class="ml-4">
+              <label for="total-project-cost">{{budgetFundType?.fundType}}</label>
+              <span class="d-block font-weight-light">{{budgetFundType?.decription}}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btnSkin btn-secondary" data-dismiss="modal">Cancel</button>
+        <button class="btnSkin btn-primary-sub" (click)="createAwardBudget('NEW')" data-dismiss="modal">Create
+          Budget</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- IMPORT DEV PROPOSAL BUDGET MODAL -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="import-proposal-budget-modal" role="dialog"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document"
+    [ngClass]="awardBudgetData?.awardBudgetHeader?.budgetPeriods[0]?.budgetDetails?.length > 0 ? 'modal-md' : 'modal-lg'">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Import from Proposal</h5>
+        <button type="button" id="import-proposal-close-btn"
+          (click)="isPeriodSelected = [];isInvalidCostImport = false;" class="close" data-dismiss="modal"
+          aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body"
+        *ngIf="awardBudgetData?.awardBudgetHeader?.budgetPeriods[0]?.budgetDetails?.length === 0 && devProposalBudgetDetails?.awardBudgetImportInfos.length > 0">
+        <p *ngIf="devProposalBudgetDetails?.awardBudgetImportInfos.length > 0">
+          <ng-container i18n="@@AWARD_IMPORT_BUDGET_PERIODS_ERR">Please import budget periods from below listed Proposal to this Award.</ng-container>
+        </p>
+        <div>
+          <table class="table tableSkin grid2">
+            <caption class="sr-only">Import Budget</caption>
+            <thead class="thead-light">
+              <th scope="col">Ins. Proposal</th>
+              <th scope="col">Dev. Proposal</th>
+              <th scope="col">Title</th>
+              <th scope="col">Version</th>
+              <th scope="col">Available Periods</th>
+              <th scope="col">Action</th>
+            </thead>
+            <tbody>
+              <tr class="vrtl-aln"
+                *ngFor="let importInfo of devProposalBudgetDetails?.awardBudgetImportInfos; let i = index">
+                <td>{{importInfo?.ipNumber}}</td>
+                <td>{{importInfo?.pdNumber}}</td>
+                <td>{{importInfo?.pdTitle}}</td>
+                <td>{{importInfo?.pdBudgetVersion}}</td>
+                <td>
+                  <select [(ngModel)]="importInfo.devPropBudgetPeriodId" class="form-control btn-ht"
+                    [ngClass]="isPeriodSelected[i] === false ? 'is-invalid' : ''"
+                    (ngModelChange)="checkTotalCost(importInfo.budgetImportPeriods, importInfo.devPropBudgetPeriodId)">
+                    <option [value]="null">--Select--</option>
+                    <option *ngIf="importInfo?.budgetImportPeriods?.length > 1" [value]="0">All Periods</option>
+                    <option *ngFor="let period of importInfo?.budgetImportPeriods; let periodIndex = index"
+                      [value]="period?.budgetPeriodId">P{{period?.periodNumber}} {{period?.periodStartDate | dateFormatter}}-{{period?.periodEndDate | dateFormatter}}</option>
+                  </select>
+                  <span *ngIf="isPeriodSelected[i] === false" class="invalid-feedback d-block">* Please choose a
+                    period to import</span>
+                </td>
+                <td>
+                  <button class="btn btn-primary-sub btn-sm btn-wdth btn-ht pt-0 d-flex"
+                    (click)="importProposalBudget(importInfo, i)">
+                    <span class="fa-stack custom-file-import-stack mr-3" aria-hidden="true">
+                      <i class="fa fa-file-o fa-stack-1x fa-pull-right"></i>
+                      <i class="fa fa-long-arrow-right fa-stack-1x "></i>
+                    </span>
+                    <span> Import</span>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <span class="invalid-feedback d-block regularFont text-clr" *ngIf="isInvalidCostImport">
+            * <ng-container i18n="@@AWARD_REMAINING_FUND_NOT_MATCHING_WITH_ITEMS_IMPORTED_ERR">Award remaining fund not matching with the item(s) you have imported. Please make necessary corrections
+              after the line items imported to submit the award.</ng-container>
+          </span>
+        </div>
+      </div>
+      <div class="modal-body"
+        *ngIf="devProposalBudgetDetails?.awardBudgetImportInfos.length === 0 && awardData?.awardFundingProposals?.length > 0">
+        <p>No budget associated with the proposal(s) you have linked.</p>
+      </div>
+      <div class="modal-body"
+        *ngIf="awardData?.awardFundingProposals?.length > 0 && awardBudgetData?.awardBudgetHeader?.budgetPeriods[0]?.budgetDetails?.length > 0">
+        <p>Please delete all budget line items before importing from proposal budget.</p>
+      </div>
+      <div class="modal-body" *ngIf="awardData?.awardFundingProposals?.length <= 0">
+        <p>There is no proposal(s) available to import, please link a proposal in Overview section.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary"
+          *ngIf="awardBudgetData?.awardBudgetHeader?.budgetPeriods[0]?.budgetDetails?.length === 0"
+          (click)="isPeriodSelected = [];isInvalidCostImport;" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary-sub"
+          *ngIf="awardBudgetData?.awardBudgetHeader?.budgetPeriods[0]?.budgetDetails?.length > 0"
+          data-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- IMPORT DEV PROPOSAL BUDGET MODAL ENDS-->

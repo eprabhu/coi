@@ -1,0 +1,293 @@
+<div class="push4slideMenu pageMinHeight mt-15">
+  <div class="container-fluid pushFixedHeaderFooter">
+    <div class="headerPush"></div>
+    <div class="card">
+      <div class="card-header">
+        <h4 class="card-title">
+          <div class="row">
+            <div class="col-8">
+              <span class="pl-0 col-9">List of External Authentication Users</span>
+            </div>
+            <div class="col-4 text-right">
+              <span class="anchor-link pr-5" title="Click here to view the user login activities"
+                [routerLink]="['/fibi/user-activity']">Track user login activity
+              </span>
+              <a class="tooltip-helptext">
+                <i aria-hidden="true" class="fa fa-info-circle ct-icon-right float-right hand-cursor"
+                  (click)="helpInfo = !helpInfo"></i>
+              </a>
+            </div>
+          </div>
+        </h4>
+      </div>
+
+      <div *ngIf="helpInfo" class="mx-4 mt-3">
+        <div class="col-12">
+          <div class="p-2 row success-banner">
+            <div class="col-auto pl-2 pr-3">
+              <i aria-hidden="true" class="fa fa-info-circle mr-1 info-icon"></i>
+            </div>
+            <div class="col px-0"><em>This module lists the external user details along with their approval status and
+                these users can be approved, rejected or deactivated by the respective admins.</em>
+            </div>
+            <div class="col-auto pr-2">
+              <button aria-label="Close" class="close close-button " data-dismiss="modal" id="modal-close" type="button"
+                (click)="helpInfo = false">
+                <span aria-hidden="true" class="d-block">×</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body p-0 mt-3">
+        <div class="d-flex justify-content-center">
+          <span class="form-group px-0 col-md-8 col-sm-12 searchBox">
+            <input type="text" placeholder="Search by Status, Organization, Funding Office"
+              class="ng-pristine ng-valid ng-touched form-control" [(ngModel)]="searchText">
+            <a class="searchButton">
+              <i aria-hidden="true" class="fa fa-search fa-med pt-2"></i>
+            </a>
+          </span>
+        </div>
+        <div class="table-responsive" *ngIf="externalUsersList?.length">
+          <table class="table tableSkin mb-0" aria-describedby="user-activity-list">
+            <thead>
+              <tr class="header-border">
+                <th id="sortby-extperson-fullname" (click)="sortClick('fullName')">
+                  <span class="hand-cursor" title="Click to sort by Full Name">Full Name</span>
+                  <i aria-hidden="true"
+                    [ngClass]="((column == 'fullName')  ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')">
+                  </i>
+                </th>
+                <th id="sortby-extperson-username" (click)="sortClick('userName')">
+                  <span class="hand-cursor" title="Click to sort by Username">Username</span>
+                  <i aria-hidden="true"
+                    [ngClass]="((column == 'userName')  ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')">
+                  </i>
+                </th>
+                <th scope="col" (click)="sortClick('emailAddress')">
+                  <span class="hand-cursor">Email Address</span>
+                  <i aria-hidden="true"
+                    [ngClass]="((column == 'emailAddress')  ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')">
+                  </i>
+                </th>
+                <th id="sortby-extfunding-office" (click)="sortClick('fundingOfficeName')">
+                  <span class="hand-cursor" title="Click to sort by Funding Office name">Funding Office</span>
+                  <i aria-hidden="true"
+                    [ngClass]="((column == 'fundingOfficeName')  ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')">
+                  </i>
+                </th>
+                <th id="sortby-extorganization" (click)="sortClick('orgnanizationName')">
+                  <span class="hand-cursor" title="Click to sort by organization name">Organization</span>
+                  <i aria-hidden="true"
+                    [ngClass]="((column == 'orgnanizationName')  ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')">
+                  </i>
+                </th>
+                <th scope="col" width="12%" (click)="sortClick('verifiedFlag')">
+                  <span class="hand-cursor">Status</span>
+                  <i aria-hidden="true"
+                    [ngClass]="((column == 'verifiedFlag')  ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')">
+                  </i>
+                </th>
+                <th scope="col" class="text-left">
+                  <span>Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <ng-container>
+                <tr class="fs-14"
+                  *ngFor="let user of externalUsersList
+                  | SearchFilter : searchText: ['fullName', 'userName', 'emailAddress', 'fundingOfficeName', 'orgnanizationName', 'verifiedDescription', 'adminComment']
+                  | orderBy: {property: column, direction: direction}">
+                  <td>{{user?.fullName}}</td>
+                  <td>{{user?.userName}}</td>
+                  <td>{{user?.emailAddress}}</td>
+                  <td>{{user?.fundingOfficeName}}</td>
+                  <td>{{user?.orgnanizationName}}</td>
+                  <td>
+                    <span class="mr-3 icon-hover" *ngIf="user?.verifiedFlag !== 'P'">
+                      <a class="tooltip"><i class="fa fa-info-circle fa-med hand-cursor" aria-hidden="true"></i>
+                        <div class="tooltiptext-right card card-inner p-15 text-left">
+                          <span class="font-cv" *ngIf="user?.verifiedFlag === 'A'">Approved By</span>
+                          <span class="font-cv" *ngIf="user?.verifiedFlag === 'R'">Rejected By</span>
+                          <span class="font-cv" *ngIf="user?.verifiedFlag === 'D'">Deactivated By</span>
+                          <span class="font-cv font-weight-bold">{{user?.verifiedBy}}
+                            on {{user?.verifiedAt | dateFormatterWithTimeZone : 'long'}} </span>
+                        </div>
+                      </a>
+                    </span>
+                    <span class="badge badge-pill badge-warning" *ngIf="user?.verifiedFlag === 'P'">Pending</span>
+                    <span class="badge badge-pill badge-success" *ngIf="user?.verifiedFlag === 'A'">Approved</span>
+                    <span class="badge badge-pill badge-danger" *ngIf="user?.verifiedFlag === 'D'">Deactivated</span>
+                    <span class="badge badge-pill badge-secondary" *ngIf="user?.verifiedFlag === 'R'">Rejected</span>
+                  </td>
+                  <td class="text-left align-items-center d-flex">
+                    <ng-container *ngIf="user?.verifiedFlag === 'P'">
+                      <button type="button" class="btn btn-outline-danger" data-toggle="modal"
+                        data-target="#rejectExtUserModal" (click)="selectedUser = user">Reject</button>
+                      <button type="button" class="btn btn-outline-primary ml-2" data-toggle="modal"
+                        data-target="#approveExtUserModal" (click)="selectedUser = user">Approve</button>
+                    </ng-container>
+                    <ng-container *ngIf="user?.verifiedFlag === 'A'">
+                      <button type="button" class="btn btn-outline-danger" data-toggle="modal"
+                        data-target="#deactivateExtUserModal" (click)="selectedUser = user">Deactivate</button>
+                      <span class="ml-2"
+                        (click)="getExternalUserLoginDetails(user?.userName); loginUser = user?.fullName">
+                        <i aria-hidden="true" class="fa fa-clock-o align-clock-icon"
+                          title="Click here to view the last login time of {{user?.fullName}}"></i>
+                      </span>
+                    </ng-container>
+                    <div class="dropdown ml-3 d-inline mr-2" *ngIf="user?.adminComment">
+                      <a class="position-relative" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true"
+                        aria-expanded="false">
+                        <i class="fa fa-commenting-o hand-cursor hoverColor"
+                          [class.red-notification]="user?.adminComment?.trim()?.length" aria-hidden="true"
+                          title="Comments"></i>
+                        <div class="dropdown-menu details-comment-patch dropdown-menu-right fs-14"
+                          aria-labelledby="dropdownMenuLink">
+                          <div>
+                            {{user?.adminComment}}
+                          </div>
+                        </div>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              </ng-container>
+            </tbody>
+          </table>
+        </div>
+        <!-- No data section -->
+        <div class="no-data-container" *ngIf="!externalUsersList?.length">
+          <span class="no-data-icon-outer">
+            <div class="no-data-icon">
+              <i class="fa fa-file-o" aria-hidden="true"></i>
+              <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+            </div>
+          </span>
+          <h4>There is no information in this section.</h4>
+        </div>
+        <!-- No data section ending -->
+      </div>
+    </div>
+    <!-- Pagination -->
+    <!-- <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12"
+        *ngIf="activityList?.personLoginDetails?.length">
+        <div>
+          <nav class="pagination justify-content-end">
+            <app-pagination [totalCount]="activityList?.userActivityCount" (pageChangeEvent)="actionsOnPageChange($event)">
+            </app-pagination>
+          </nav>
+        </div>
+      </div> -->
+  </div>
+</div>
+
+<!-- Approve User Modal -->
+<div class="modal fade show mySkinDialog" id="approveExtUserModal" role="dialog" aria-hidden="true">
+  <div class="modal-dialog moda-md" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Approve</h4>
+        <button class="close" aria-label="Close" data-dismiss="modal" type="button">
+          <span class="ng-tns-c3-0" aria-hidden="true" title="Close">×</span>
+        </button>
+      </div>
+      <div class="modal-body pb-1">
+        <p>Do you want to approve <span class="font-weight-bold">{{selectedUser?.fullName}}</span> from <span
+            class="font-weight-bold">{{selectedUser?.orgnanizationName}}</span>?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary-sub btn-sm" (click)="updateApproveReject('A', selectedUser)"
+          data-dismiss="modal">Approve</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reject User Modal -->
+<div class="modal fade show mySkinDialog" id="rejectExtUserModal" role="dialog" aria-hidden="true">
+  <div class="modal-dialog moda-md" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Reject</h4>
+        <button class="close" aria-label="Close" data-dismiss="modal" type="button">
+          <span class="ng-tns-c3-0" aria-hidden="true" title="Close">×</span>
+        </button>
+      </div>
+      <div class="modal-body pb-1">
+        <ng-container>
+          <label class="d-block"><span class="mandatory">*</span>Comments</label>
+          <textarea class="form-control" [(ngModel)]="adminComments" placeholder="Comments"
+            [ngClass]="{'is-invalid d-block' : validationMap.has('comment') }"></textarea>
+          <span class="mandatory" *ngIf="validationMap.has('comment')">*
+            {{validationMap.get('comment')}}</span>
+        </ng-container>
+        <p>Do you want to reject the approval of <span class="font-weight-bold">{{selectedUser?.fullName}}</span> from
+          <span class="font-weight-bold">{{selectedUser?.orgnanizationName}}</span>?
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cancelAction()" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary-sub btn-sm"
+          (click)="updateApproveReject('R', selectedUser)">Reject</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Deactivate User Modal -->
+<div class="modal fade show mySkinDialog" id="deactivateExtUserModal" role="dialog" aria-hidden="true">
+  <div class="modal-dialog moda-md" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Deactivate</h4>
+        <button class="close" aria-label="Close" data-dismiss="modal" type="button">
+          <span class="ng-tns-c3-0" aria-hidden="true" title="Close">×</span>
+        </button>
+      </div>
+      <div class="modal-body pb-1">
+        <ng-container>
+          <label class="d-block"><span class="mandatory">*</span>Comments</label>
+          <textarea class="form-control" [(ngModel)]="adminComments" placeholder="Comments"></textarea>
+          <span class="mandatory" *ngIf="validationMap.has('comment')">*
+            {{validationMap.get('comment')}}</span>
+        </ng-container>
+        <p>Do you want to deactivate <span class="font-weight-bold">{{selectedUser?.fullName}}</span> from <span
+            class="font-weight-bold">{{selectedUser?.orgnanizationName}}</span>?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cancelAction()" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary-sub btn-sm"
+          (click)="updateApproveReject('D', selectedUser)">Deactivate</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Login activity modal -->
+<button class="d-none" id="loginTimeModalButton" data-toggle="modal" data-target="#loginTimeModal"></button>
+<div class="modal fade show mySkinDialog" id="loginTimeModal" role="dialog" aria-hidden="true">
+  <div class="modal-dialog moda-md" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Login Details of {{loginUser}}</h4>
+        <button class="close" aria-label="Close" data-dismiss="modal" type="button">
+          <span class="ng-tns-c3-0" aria-hidden="true" title="Close">×</span>
+        </button>
+      </div>
+      <div class="modal-body pb-1">
+        <p *ngIf="!userLoginActivity?.updateTimestamp">No login activity yet.</p>
+        <p *ngIf="userLoginActivity?.updateTimestamp">Last Login at <span
+            class="font-weight-bold">{{userLoginActivity?.updateTimestamp | dateFormatterWithTimeZone : 'long'}}</span>
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

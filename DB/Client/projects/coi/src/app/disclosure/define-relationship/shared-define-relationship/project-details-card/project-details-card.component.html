@@ -1,0 +1,165 @@
+<div class="card coi-card-regular" id="project_relationship_card_{{projectSfiRelation?.projectId}}">
+    <div class="card-body" [class.card-body-padding-bottom-0]="!isCardExpanded">
+        <!-- badge, conflict and comment -->
+        <div class="d-flex align-items-start justify-content-between coi-card-body-notch-container">
+            <div class="d-flex align-items-end col">
+                <div [style.background-color]="projectSfiRelation?.projectBadgeColour"
+                    id="project-realtionship-value-heading-{{projectSfiRelation?.projectId}}"
+                    class="coi-card-notch-ribbon mb-auto">{{ projectSfiRelation?.projectType }}</div>
+                <!-- project number, tile, and link -->
+                <div class="d-flex align-items-end ms-2 mt-1">
+                    <mat-icon aria-hidden="true" class="coi-text-light flex-shrink-0 coi-scale-9">{{projectSfiRelation?.projectIcon}}</mat-icon>
+                    <a tabindex="0" class="link-primary cursor-pointer fs-6 fw-600 lh-1"
+                        id="coi_project_realtionship_title_link_{{projectSfiRelation?.projectId}}"
+                        (click)="openProjectHierarchySlider()" (keyup.enter)="openProjectHierarchySlider()"
+                        [title]="'Click here to view details of #' + projectSfiRelation?.projectNumber + ' -' + projectSfiRelation?.title"
+                        [attr.aria-label]="'Click here to view details of #' + projectSfiRelation?.projectNumber + ' -' + projectSfiRelation?.title">
+                        <span class="text-slice">#{{projectSfiRelation?.projectNumber}} - {{projectSfiRelation?.title}}</span>
+                    </a>
+                </div>
+            </div>
+            <div class="d-flex align-items-center col-auto ms-3 gap-2 py-1 coi-me-n-10px">
+                <!-- Conflict Status -->
+                <div *ngIf="!defineRelationshipService.isEditMode && projectSfiRelation?.coiDisclEntProjDetails?.length" class="d-flex align-items-center">
+                    <label class="coi-text-light me-2 fw-500 d-block d-lg-inline"
+                        for="coi_project_relationship_conflict-status_{{projectSfiRelation?.projectId}}">Conflict Status:</label>
+                    <span class="{{DISCLOSURE_CONFLICT_STATUS_BADGE[projectSfiRelation?.conflictStatusCode]}}"></span>
+                    <span class="badgeFont" id="coi_project_relationship_conflict-status_{{projectSfiRelation?.projectId}}">{{projectSfiRelation?.conflictStatus}}</span>
+                </div>
+                <!-- comments -->
+                <button *ngIf="!defineRelationshipService.isEditMode && isShowCommentButton" 
+                    id="coi_project_relationship_comment_{{projectSfiRelation?.projectId}}"
+                    class="d-flex align-items-center btn btn-outline-grey coi-btn-sm fs-13 gap-1 position-relative"
+                    title="Click here to open comment" aria-label="Click here to open comment"
+                    (click)="openReviewerComment(coiDisclEntProjDetail)">
+                    <mat-icon aria-hidden="true" class="flex-shrink-0 coi-comment-icon-size">rate_review</mat-icon>
+                    <span *ngIf="relationshipCommentCount > 0"
+                        [ngClass]="{'comment-count-icon-large':  relationshipCommentCount > 99, 'comment-count-icon':   relationshipCommentCount <= 99 }"
+                        class="position-absolute bg-danger fs-10">{{ relationshipCommentCount > 99 ? '99+' : relationshipCommentCount }}</span>
+                </button>
+                <!-- previous next -->
+                <div *ngIf="isShowPrevNextBtn" class="btn-group">
+                    <!-- previous btn -->
+                    <button id="coi_project_relationship_prev_{{projectSfiRelation?.projectId}}" (click)="navigateToPrevProject()"
+                        class="d-flex align-items-center btn btn-sm fs-13 ps-1 rounded-start-5" [disabled]="previousIndex == null"
+                        [ngClass]="previousIndex == null ? 'btn-secondary opacity-50' : 'btn-outline-grey'"
+                        [title]="previousIndex == null ? '' : 'Click here to go to previous project'"
+                        [attr.aria-label]="previousIndex == null ? '' : 'Click here to go to previous project'">
+                        <mat-icon aria-hidden="true">navigate_before</mat-icon>
+                        <span>Prev</span>
+                    </button>
+                    <!-- next btn -->
+                    <button id="coi_project_relationship_next_{{projectSfiRelation?.projectId}}" (click)="navigateToNextProject()"
+                        class="d-flex align-items-center btn btn-outline-grey btn-sm fs-13 pe-1 rounded-end-5" [disabled]="nextIndex == null"
+                        [ngClass]="nextIndex == null ? 'btn-secondary opacity-50' : 'btn-outline-grey'"
+                        [title]="nextIndex == null ? '' : 'Click here to go to next project'"
+                        [attr.aria-label]="nextIndex == null ? '' : 'Click here to go to next project'">
+                        <span>Next</span>
+                        <mat-icon aria-hidden="true">navigate_next</mat-icon>
+                    </button>
+                </div>
+                <!-- toggle -->
+                <button (click)="expandCollapseProjectCard()" id="coi_project_relationship_toggle_{{projectSfiRelation?.projectId}}"
+                    title="Click here to collapse / expand" aria-label="Click here to collapse / expand"
+                    class="toggle-btn align-items-center border btn d-flex justify-content-center p-0 rounded-5 shadow-sm position-static">
+                    <mat-icon aria-hidden="true" [ngClass]="isCardExpanded ? 'coi-rotate-180' : 'coi-rotate-0'">expand_more</mat-icon>
+                </button>
+            </div>
+        </div>
+        <!-- project details -->
+        <div *ngIf="isCardExpanded" class="row row-gap-2" [class.mt-1]="defineRelationshipService.isEditMode">
+            <ng-container *ngFor="let fieldOrder of PROJECT_DETAILS_ORDER[projectSfiRelation?.projectTypeCode]">
+                <!-- Principal Investigator -->
+                <div *ngIf="fieldOrder === 'PI'" tabindex="-1" class="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-3 col-xxl-3"
+                    [attr.aria-label]="'Principal investigator is ' + (projectSfiRelation?.piName ? projectSfiRelation?.piName : 'empty')">
+                    <label for="coi_project_realtionship_pi" class="coi-text-dark d-block text-nowrap">Principal Investigator</label>
+                    <div id="coi_project_realtionship_pi">
+                        <app-no-data-label [valueToShow]="projectSfiRelation?.piName">
+                            <span class="coi-text-light text-slice" [attr.aria-label]="projectSfiRelation?.piName"
+                                [title]="projectSfiRelation?.piName">{{projectSfiRelation?.piName}}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+                <!-- Reporter's Project Role -->
+                <div *ngIf="fieldOrder === 'REPORTER_ROLE'" tabindex="-1" class="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-3 col-xxl-3"
+                    [attr.aria-label]="'Reporters project role is ' + (projectSfiRelation?.reporterRole ? projectSfiRelation?.reporterRole : 'empty')">
+                    <label for="coi_project_relationship_role_{{projectSfiRelation?.projectId}}" class="coi-text-dark d-block text-nowrap">Reporter's Project Role</label>
+                    <div id="coi_project_relationship_role_{{projectSfiRelation?.projectId}}">
+                        <app-no-data-label [valueToShow]="projectSfiRelation?.reporterRole">
+                            <span class="coi-text-light text-slice" [attr.aria-label]="projectSfiRelation?.reporterRole"
+                                [title]="projectSfiRelation?.reporterRole">{{projectSfiRelation?.reporterRole}}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+                <!-- Period -->
+                <div *ngIf="fieldOrder === 'PERIOD'" tabindex="-1" class="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-3 col-xxl-3"
+                    [attr.aria-label]="'Period is ' + ((projectSfiRelation?.projectStartDate || projectSfiRelation?.projectEndDate) ?
+                    ((projectSfiRelation?.projectStartDate | dateFormatter) + ' - ' + (projectSfiRelation?.projectEndDate | dateFormatter))  : 'empty')">
+                    <label for="coi_project_relationship_period_{{projectSfiRelation?.projectId}}" class="coi-text-dark d-block text-nowrap">Period</label>
+                    <div id="coi_project_relationship_period_{{projectSfiRelation?.projectId}}">
+                        <app-no-data-label [valueToShow]="projectSfiRelation?.projectStartDate || projectSfiRelation?.projectEndDate">
+                            <span [title]="((projectSfiRelation?.projectStartDate | dateFormatter) + ' - ' + (projectSfiRelation?.projectEndDate | dateFormatter))"
+                                [attr.aria-label]="((projectSfiRelation?.projectStartDate | dateFormatter) + ' - ' + (projectSfiRelation?.projectEndDate | dateFormatter))"
+                                class="coi-text-light text-slice">{{projectSfiRelation?.projectStartDate | dateFormatter}} - {{projectSfiRelation?.projectEndDate | dateFormatter}}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+                <!-- Project Status -->
+                <div *ngIf="fieldOrder === 'PROJECT_STATUS'" tabindex="-1" class="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-3 col-xxl-3"
+                    [attr.aria-label]="projectSfiRelation?.projectType + ' status is ' + (projectSfiRelation?.projectStatus ? projectSfiRelation?.projectStatus : 'empty')">
+                    <label for="coi_project_relationship_status_{{projectSfiRelation?.projectId}}" class="coi-text-dark d-block text-nowrap">{{projectSfiRelation?.projectType}} Status</label>
+                    <div id="coi_project_relationship_status_{{projectSfiRelation?.projectId}}">
+                        <app-no-data-label [valueToShow]="projectSfiRelation?.projectStatus">
+                            <span class="coi-text-light text-slice" [attr.aria-label]="projectSfiRelation?.projectStatus"
+                                [title]="projectSfiRelation?.projectStatus">{{projectSfiRelation?.projectStatus}}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+                <!-- Account Number -->
+                <div *ngIf="fieldOrder === 'ACCOUNT_NUMBER'" tabindex="-1" class="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-3 col-xxl-3"
+                    [attr.aria-label]="'Account number is ' + (projectSfiRelation?.accountNumber ? projectSfiRelation?.accountNumber : 'empty')">
+                    <label for="coi_project_account_number_{{projectSfiRelation?.projectId}}" class="coi-text-dark d-block text-nowrap">Account Number</label>
+                    <div id="coi_project_account_number_{{projectSfiRelation?.projectId}}">
+                        <app-no-data-label [valueToShow]="projectSfiRelation?.accountNumber">
+                            <span class="coi-text-light text-slice" [attr.aria-label]="projectSfiRelation?.accountNumber"
+                                [title]="projectSfiRelation?.accountNumber">{{projectSfiRelation?.accountNumber}}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+                <!-- Lead Unit -->
+                <div *ngIf="fieldOrder === 'LEAD_UNIT'" tabindex="-1" class="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-3 col-xxl-3"
+                    [attr.aria-label]="'Lead unit is ' + (commonService.getPersonLeadUnitDetails(projectSfiRelation) ? commonService.getPersonLeadUnitDetails(projectSfiRelation) : 'empty')">
+                    <label for="coi_project_relationship_unit_{{projectSfiRelation?.projectId}}" class="coi-text-dark d-block text-nowrap">Lead Unit</label>
+                    <div id="coi_project_relationship_unit_{{projectSfiRelation?.projectId}}">
+                        <app-no-data-label [valueToShow]="commonService.getPersonLeadUnitDetails(projectSfiRelation)">
+                            <span class="coi-text-light text-slice" [attr.aria-label]="commonService.getPersonLeadUnitDetails(projectSfiRelation)"
+                                [title]="commonService.getPersonLeadUnitDetails(projectSfiRelation)">{{commonService.getPersonLeadUnitDetails(projectSfiRelation)}}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+                <!-- Sponsor -->
+                <div *ngIf="fieldOrder === 'SPONSOR'" tabindex="-1" class="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-3 col-xxl-3"
+                    [attr.aria-label]="'Sponsor is ' + (sponsor ? sponsor : 'empty')">
+                    <label for="coi_project_relationship_sponsor_{{projectSfiRelation?.projectId}}" class="coi-text-dark d-block text-nowrap">Sponsor</label>
+                    <div id="coi_project_relationship_sponsor_{{projectSfiRelation?.projectId}}">
+                        <app-no-data-label [valueToShow]="sponsor">
+                            <span class="coi-text-light text-slice" [attr.aria-label]="sponsor"
+                                [title]="sponsor">{{sponsor}}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+                <!-- Prime Sponsor -->
+                <div *ngIf="fieldOrder === 'PRIME_SPONSOR'" tabindex="-1" class="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-3 col-xxl-3"
+                    [attr.aria-label]="'Prime sponsor is ' + (primeSponsor ? primeSponsor : 'empty')">
+                    <label for="coi_project_relationship_prime_sponsor_{{projectSfiRelation?.projectId}}" class="coi-text-dark d-block text-nowrap">Prime Sponsor</label>
+                    <div id="coi_project_relationship_prime_sponsor_{{projectSfiRelation?.projectId}}">
+                        <app-no-data-label [valueToShow]="primeSponsor">
+                            <span class="coi-text-light text-slice" [attr.aria-label]="primeSponsor"
+                                [title]="primeSponsor">{{primeSponsor}}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+</div>

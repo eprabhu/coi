@@ -1,0 +1,549 @@
+<ng-container *ngIf="!isLoading; else showLoader">
+    <app-scroll-spy [(scrollSpyConfiguration)]="managementPlanService.scrollSpyConfiguration"
+        [elementVisiblePercentageList]="managementPlanService.elementVisiblePercentageList"
+        [(isExpandRightNav)]="isExpandRightNav"
+        (contentChanged)="managementPlanService.scrollSpyCounterChanged($event)">
+        <ng-container scroll-spy-left>
+            <div class="d-flex flex-column gap-2">
+                <!-- sections -->
+                <ng-container *ngFor="let sectionDetails of cmpBuilder?.sections; let sectionIndex = index">
+                    <ng-container *ngTemplateOutlet="sectionTemplate; context: { sectionDetails, sectionIndex }"></ng-container>
+                </ng-container>
+                <!-- recipients -->
+                <ng-container *ngTemplateOutlet="recipientTemplate; context: { recipientsList: cmpBuilder?.recipients, sectionIndex: cmpBuilder?.sections?.length || 0 }"></ng-container>
+                <!-- addendum -->
+                <ng-container *ngIf="cmpBuilder?.addendum?.sectionName">
+                    <ng-container *ngTemplateOutlet="sectionTemplate; context: { sectionDetails: cmpBuilder?.addendum, sectionIndex: cmpBuilder?.sections?.length + 1 }"></ng-container>
+                </ng-container>
+            </div>
+        </ng-container>
+        <ng-container scroll-spy-right>
+            <div class="card coi-card-regular mt-0 h-100 coi-cmp-builder-right-nav">
+                <div class="card-body">
+                    <!-- draggable section name -->
+                    <div cdkDropList cdkDropListOrientation="vertical"
+                        [cdkDropListData]="cmpBuilder?.sections" [cdkDropListDisabled]="isDragDropDisable"
+                        (cdkDropListDropped)="onSectionDrop($event)" [class.cursor-drag]="!isDragDropDisable">
+                        <div *ngFor="let sectionDetails of cmpBuilder?.sections; trackBy: trackBySectionId; let navIndex = index"
+                            cdkDrag cdkDragLockAxis="y" [cdkDragDisabled]="isDragDropDisable"
+                            [class.scrollspy-activate]="managementPlanService.scrollSpyConfiguration.activeCounter === navIndex">
+                            <a class="d-flex gap-2 align-items-center border-bottom p-2 text-decoration-none coi-text-light coi-scrollspy-right"
+                                [id]="'cmp-builder-nav-item-' + sectionDetails?.cmpSectionRelId" tabindex="-1"
+                                [title]="sectionDetails?.sectionName || CMP_LOCALIZE.CMP_BUILDER_DEFAULT_SECTION_NAME">
+                                <span class="d-flex align-items-center"><mat-icon aria-hidden="true" class="coi-text-light">drag_indicator</mat-icon></span>
+                                <span class="text-slice">{{ sectionDetails?.sectionName }}<i *ngIf="!sectionDetails?.sectionName"
+                                    class="coi-text-lighter">{{ CMP_LOCALIZE.CMP_BUILDER_DEFAULT_SECTION_NAME }}</i></span>
+                            </a>
+                        </div>
+                    </div>
+                    <!-- recipient -->
+                    <div [class.scrollspy-activate]="managementPlanService.scrollSpyConfiguration.activeCounter === (cmpBuilder?.sections?.length || 0)">
+                        <a class="d-flex gap-2 align-items-center border-bottom p-2 text-decoration-none coi-text-light coi-scrollspy-right"
+                            [id]="'cmp-builder-nav-item-'" tabindex="-1" [title]="CMP_LOCALIZE.TERM_RECIPIENT + 's'">
+                            <span class="text-slice ps-2">{{ CMP_LOCALIZE.TERM_RECIPIENT }}s</span>
+                        </a>
+                    </div>
+                    <!-- addendum -->
+                    <div *ngIf="cmpBuilder?.addendum?.sectionName"
+                        [class.scrollspy-activate]="managementPlanService.scrollSpyConfiguration.activeCounter === (cmpBuilder?.sections?.length + 1)">
+                        <a class="d-flex gap-2 align-items-center border-bottom p-2 text-decoration-none coi-text-light coi-scrollspy-right"
+                            [id]="'cmp-builder-nav-item-'" tabindex="-1" [title]="cmpBuilder?.addendum?.sectionName">
+                            <span class="text-slice ps-2">{{ cmpBuilder?.addendum?.sectionName }}</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+    </app-scroll-spy>
+</ng-container>
+
+<ng-template #showLoader>
+    <div class="position-fixed top-0 start-0 vw-100 vh-100 z-index-5 cursor-not-allowed"></div>
+    <div class="position-relative coi-min-height-500px">
+        <div appCustomPreloader [spinnerWidth]="2" [spinnerHeight]="2"></div>
+    </div>
+</ng-template>
+
+<ng-template #showNoSection>
+    <app-no-information [isBorderNeeded]="false" [customClass]="'mt-0'"
+        [canShowAddButton]="isBuilderEditable && hasAnyEditRight"
+        [buttonName]="'Add New Section'" (buttonAction)="openPlanBuilderModal('SECTION_ADD')">
+        <span>No sections added yet. <span *ngIf="isBuilderEditable && hasAnyEditRight">Click 'Add New Section' to add new</span></span>
+    </app-no-information>
+</ng-template>
+
+<ng-template #sectionTemplate let-sectionDetails="sectionDetails" let-sectionIndex="sectionIndex">
+    <section tabindex="-1" appVisibleInViewport [enableRepeatedLoad]="true"
+        (visibleInViewport)="updateScrollSpyConfig($event, sectionIndex)" [minHeight]="'auto'"
+        [initialDelayTimeToObserve]="200" [intersectionObserverOptions]="intersectionObserverOptions"
+        [id]="'cmp-builder-section-item-' + sectionDetails?.cmpSectionRelId"
+        class="card coi-card-regular mt-0 overflow-hidden coi-scrollspy-left">
+        <div class="card-header">
+            <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-between">
+                <h4 class="coi-text-dark fs-16 mb-0 text-slice"
+                    [title]="sectionDetails?.sectionName || CMP_LOCALIZE.CMP_BUILDER_DEFAULT_SECTION_NAME">
+                    <span>{{ sectionDetails?.sectionName }}</span>
+                    <i *ngIf="!sectionDetails?.sectionName" class="coi-text-light">{{ CMP_LOCALIZE.CMP_BUILDER_DEFAULT_SECTION_NAME }}</i>
+                </h4>
+                <div class="d-flex gap-2">
+                    <!-- Comments -->
+                    <button (click)="openReviewCommentsSlider(sectionDetails, 'SECTION')"
+                        id="cmp-section-comment-btn-{{ sectionDetails?.cmpSectionRelId }}"
+                        class="btn btn-outline-secondary coi-btn-sm d-flex align-items-center fs-14 gap-2 position-relative"
+                        title="Click here to view / add section comments"
+                        attr.aria-label="Click here to view / add section comments">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0">rate_review</mat-icon>
+                        <span>Comments <ng-container *ngIf="commentCountMap.size > 0 && commentCountMap.get(componentTypeCodeMap.SECTION)?.get(sectionDetails?.cmpSectionRelId)">
+                            <span>({{ commentCountMap.get(componentTypeCodeMap.SECTION)?.get(sectionDetails?.cmpSectionRelId) > 99 ? '99+' :
+                                commentCountMap.get(componentTypeCodeMap.SECTION)?.get(sectionDetails?.cmpSectionRelId) }})</span>
+                        </ng-container></span>
+                    </button>
+                    <!-- Add -->
+                    <button *ngIf="sectionDetails?.components?.length && 
+                        ((isBuilderEditable && hasAnyEditRight && sectionDetails?.sectionType !== 'ADDENDUM') || (hasMaintainCmpRight && sectionDetails?.sectionType === 'ADDENDUM'))"
+                        (click)="openPlanBuilderModal('COMPONENT_ADD', sectionDetails)"
+                        id="cmp-section-add-btn-{{ sectionDetails?.cmpSectionRelId }}"
+                        class="btn btn-primary coi-btn-sm d-flex align-items-center fs-14 gap-2"
+                        title="Click here to add new section" attr.aria-label="Click here to add new section">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0">add</mat-icon>
+                        <span>Add</span>
+                    </button>
+                    <!-- More Option Btn Template -->
+                    <button *ngIf="sectionDetails?.sectionType !== 'ADDENDUM'" [matMenuTriggerFor]="sectionMoreOptions"
+                        id="cmp-section-more-action-btn-{{ sectionDetails?.cmpSectionRelId }}"
+                        class="btn btn-outline-secondary coi-btn-sm d-inline-flex align-items-center fs-14 gap-2"
+                        title="Click here for more actions" aria-label="Click here for more actions">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0 moreActionIcon">more_vert</mat-icon>
+                    </button>
+                    <!-- more actions - mat menu -->
+                    <mat-menu #sectionMoreOptions="matMenu" xPosition="before">
+                        <!-- edit -->
+                        <ng-container *ngIf="isBuilderEditable && hasAnyEditRight">
+                            <button mat-menu-item id="cmp-section-edit-{{sectionDetails?.cmpSectionRelId}}"
+                                class="more-action" title="Click here to edit section."
+                                aria-label="Click here to edit section."
+                                (click)="openPlanBuilderModal('SECTION_EDIT', sectionDetails)">
+                                <mat-icon aria-hidden="true" class="flex-shrink-0 me-2 coi-scale-9">edit</mat-icon>
+                                <span class="fw-medium fs-14">Edit</span>
+                            </button>
+                        </ng-container>
+                        <!-- delete -->
+                        <ng-container *ngIf="isBuilderEditable && (hasMaintainCmpRight || loggedPersonId === sectionDetails.createdBy)">
+                            <button mat-menu-item id="cmp-section-delete-{{sectionDetails?.cmpSectionRelId}}"
+                                class="more-action" title="Click here to delete section."
+                                aria-label="Click here to delete section."
+                                (click)="openPlanBuilderModal('SECTION_DELETE', sectionDetails)">
+                                <mat-icon aria-hidden="true" class="flex-shrink-0 me-2">delete</mat-icon>
+                                <span class="fw-medium fs-14">Delete</span>
+                            </button>
+                        </ng-container>
+                        <!-- history -->
+                        <button mat-menu-item id="cmp-section-edit-{{sectionDetails?.cmpSectionRelId}}"
+                            class="more-action" title="Click here to view version history."
+                            aria-label="Click here to view version history."
+                            (click)="getCmpSectionHistory(sectionDetails)">
+                            <mat-icon aria-hidden="true" class="flex-shrink-0 me-2">history</mat-icon>
+                            <span class="fw-medium fs-14">History</span>
+                        </button>
+                    </mat-menu>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div *ngIf="sectionDetails?.components?.length; else showNoComponent"
+                [class.cursor-drag]="!isDragDropDisable" class="d-flex flex-column gap-2" cdkDropList
+                cdkDropListOrientation="vertical" [cdkDropListData]="sectionDetails?.components"
+                [cdkDropListDisabled]="isDragDropDisable"
+                (cdkDropListDropped)="onComponentDrop(sectionDetails, $event)">
+                <ng-container *ngFor="let componentDetails of sectionDetails?.components;">
+                    <div cdkDrag cdkDragLockAxis="y" [cdkDragDisabled]="isDragDropDisable">
+                        <ng-container
+                            *ngTemplateOutlet="contentTemplate; context: { sectionDetails, componentDetails }"></ng-container>
+                    </div>
+                </ng-container>
+            </div>
+            <!-- No Component Card -->
+            <ng-template #showNoComponent>
+                <app-no-information [isBorderNeeded]="false"
+                    [canShowAddButton]="isBuilderEditable && hasAnyEditRight"
+                    [buttonName]="sectionDetails?.sectionName ? ('Add ' + sectionDetails?.sectionName) : 'Add'"
+                    [customClass]="'mt-0'" (buttonAction)="openPlanBuilderModal('COMPONENT_ADD', sectionDetails)">
+                    <span>No content added yet. <span *ngIf="isBuilderEditable && hasAnyEditRight">Click '{{ sectionDetails?.sectionName ?
+                        ('Add ' + sectionDetails?.sectionName) : 'Add' }}' to add new content</span></span>
+                </app-no-information>
+            </ng-template>
+        </div>
+    </section>
+</ng-template>
+
+<ng-template #contentTemplate let-componentDetails="componentDetails" let-sectionDetails="sectionDetails">
+    <article class="d-flex coi-bg-body rounded-3 col" [id]="'cmp-builder-comp-item-' + componentDetails.secCompId">
+        <span class="d-flex align-items-center px-2 py-3 border-end"><mat-icon aria-hidden="true"
+            class="coi-text-light">drag_indicator</mat-icon></span>
+        <div class="d-flex align-items-center justify-content-between gap-3 p-3 col">
+            <p class="fs-14 coi-text-light mb-0 coi-paragraph-mb-0 text-break" [innerHTML]="componentDetails?.description | safe">
+            </p>
+            <div class="d-flex flex-column align-items-end h-100 col-auto ms-auto">
+                <div class="d-flex gap-1 align-items-center justify-content-end coi-me-n14px">
+                    <!-- comment -->
+                    <button id="cmp-comp-comment-{{componentDetails?.secCompId}}"
+                        class="d-flex align-items-center justify-content-center btn btn-primary-icon rounded-circle p-2 position-relative"
+                        title="Click here to view / add comments." aria-label="Click here to view / add comments."
+                        (click)="openReviewCommentsSlider(sectionDetails, 'COMPONENT', componentDetails)">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0">rate_review</mat-icon>
+                        <span *ngIf="commentCountMap.size > 0 && commentCountMap.get(componentTypeCodeMap.COMPONENT)?.get(componentDetails?.secCompId)"
+                            [ngClass]="{'comment-count-icon-large':  commentCountMap.get(componentTypeCodeMap.COMPONENT)?.get(componentDetails?.secCompId)> 99,
+                                        'custom-comment-count-icon':  commentCountMap.get(componentTypeCodeMap.COMPONENT)?.get(componentDetails?.secCompId) <= 99 }"
+                            class="position-absolute bg-danger custom-count-postion  fs-10">{{
+                            commentCountMap.get(componentTypeCodeMap.COMPONENT)?.get(componentDetails?.secCompId) > 99 ? '99+' :
+                            commentCountMap.get(componentTypeCodeMap.COMPONENT)?.get(componentDetails?.secCompId) }}</span>
+                    </button>
+                    
+                    <!-- edit -->
+                    <button *ngIf="(isBuilderEditable && hasAnyEditRight && sectionDetails?.sectionType !== 'ADDENDUM')
+                        || (hasMaintainCmpRight && sectionDetails?.sectionType === 'ADDENDUM')"
+                        id="cmp-comp-edit-{{componentDetails?.secCompId}}"
+                        class="btn btn-primary-icon d-flex align-items-center justify-content-center rounded-circle p-2"
+                        title="Click here to edit content." aria-label="Click here to edit content."
+                        (click)="openPlanBuilderModal('COMPONENT_EDIT', sectionDetails, componentDetails)">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0">edit</mat-icon>
+                    </button>
+                    <!-- more options button -->
+                    <button [matMenuTriggerFor]="componentMoreOptions" aria-label="Click here for more action"
+                        title="Click here for more action"
+                        class="btn btn-primary-icon d-flex align-items-center justify-content-center rounded-circle p-2">
+                        <mat-icon aria-hidden="true" class="moreActionIcon">more_vert</mat-icon>
+                    </button>
+                    <mat-menu #componentMoreOptions="matMenu" xPosition="before">
+                        <!-- delete -->
+                        <ng-container *ngIf="(isBuilderEditable && (hasMaintainCmpRight || loggedPersonId === sectionDetails.createdBy) && sectionDetails?.sectionType !== 'ADDENDUM')
+                            || (hasMaintainCmpRight && sectionDetails?.sectionType === 'ADDENDUM')">
+                            <button mat-menu-item id="cmp-comp-delete-{{componentDetails?.secCompId}}"
+                                class="more-action" title="Click here to delete text."
+                                aria-label="Click here to delete text."
+                                (click)="openPlanBuilderModal('COMPONENT_DELETE', sectionDetails, componentDetails)">
+                                <mat-icon aria-hidden="true" class="flex-shrink-0 me-2">delete</mat-icon>
+                                <span class="fw-medium fs-14">Delete</span>
+                            </button>
+                        </ng-container>
+                        <!-- history -->
+                        <ng-container>
+                            <button mat-menu-item id="cmp-comp-version-{{componentDetails?.secCompId}}"
+                                class="more-action" title="Click here to view version history."
+                                aria-label="Click here to view version history."
+                                (click)="getCmpComponentHistory(sectionDetails, componentDetails)">
+                                <mat-icon aria-hidden="true" class="flex-shrink-0 me-2">history</mat-icon>
+                                <span class="fw-medium fs-14">History</span>
+                            </button>
+                        </ng-container>
+                    </mat-menu>
+                </div>
+                <span class="coi-text-lighter fs-13">Last Updated By</span>
+                <span class="d-inline-flex coi-text-light fs-13 gap-1">
+                    <span>{{ componentDetails?.updatedBy }}</span>
+                    <span class="coi-text-lighter fs-13">On</span>
+                    <span>{{ componentDetails?.updateTimestamp | dateFormatterWithTimeZone:'long' }}</span>
+                </span>
+            </div>
+        </div>
+    </article>
+</ng-template>
+
+<ng-template #recipientTemplate let-recipientsList="recipientsList" let-sectionIndex="sectionIndex">
+    <section tabindex="-1" appVisibleInViewport [enableRepeatedLoad]="true"
+        (visibleInViewport)="updateScrollSpyConfig($event, sectionIndex)" [minHeight]="'auto'"
+        [initialDelayTimeToObserve]="200" [intersectionObserverOptions]="intersectionObserverOptions"
+        [id]="'cmp-builder-recipient'" class="card coi-card-regular mt-0 overflow-hidden coi-scrollspy-left">
+        <div class="card-header d-flex align-items-center gap-2">
+            <h4 class="coi-text-dark fs-16 mb-0">
+                <span [title]="CMP_LOCALIZE.TERM_RECIPIENT + 's'" class="text-slice">{{ CMP_LOCALIZE.TERM_RECIPIENT }}s</span>
+            </h4>
+            <div class="d-flex gap-2">
+                <!-- Comments -->
+                <button (click)="openReviewCommentsSlider(recipientsList, 'RECIPIENT')"
+                    id="cmp-recipient-comment-btn-{{ recipientsList?.cmpSectionRelId }}"
+                    class="btn btn-outline-secondary coi-btn-sm d-flex align-items-center fs-14 gap-2"
+                    title="Click here to view / add recipient comments"
+                    attr.aria-label="Click here to view / add recipient comments">
+                    <mat-icon aria-hidden="true" class="flex-shrink-0">rate_review</mat-icon>
+                    <span>Comments</span>
+                    <ng-container *ngIf="commentCountMap.size > 0 && commentCountMap.get(componentTypeCodeMap?.RECIPIENT)?.get(recipientSubModuleKey)">
+                        <span>({{ commentCountMap.get(componentTypeCodeMap?.RECIPIENT )?.get(recipientSubModuleKey) > 99 ? '99+' :
+                            commentCountMap.get(componentTypeCodeMap?.RECIPIENT)?.get(recipientSubModuleKey) }})</span>
+                    </ng-container>
+                </button>
+                <!-- Add -->
+                <button *ngIf="recipientsList?.length && isBuilderEditable && hasAnyEditRight"
+                    (click)="openRecipientConfigModal('RECIPIENT_ADD')"
+                    id="cmp-recipient-add-btn-{{ recipientsList?.cmpSectionRelId }}"
+                    class="btn btn-primary coi-btn-sm d-flex align-items-center fs-14 gap-2"
+                    title="Click here to add new recipient" attr.aria-label="Click here to add new recipient">
+                    <mat-icon aria-hidden="true" class="flex-shrink-0">add</mat-icon>
+                    <span>Add</span>
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div *ngIf="recipientsList?.length; else showNoRecipient"
+                class="table-responsive coi-table-striped" cdkDropList cdkDropListOrientation="vertical"
+                [cdkDropListData]="recipientsList" [cdkDropListDisabled]="isDragDropDisable"
+                (cdkDropListDropped)="onRecipientDrop($event)">
+                <table class="table table-bordered table-striped" id="cmp-recipient-table">
+                    <caption class="visually-hidden">{{ CMP_LOCALIZE.TERM_RECIPIENT }}s Table</caption>
+                    <thead>
+                        <tr id="cmp-recipient-table-thead-tr">
+                            <th class="coi-text-dark text-nowrap" [colSpan]="isDragDropDisable ? 1 : 2">Sign Order</th>
+                            <th class="coi-text-dark text-nowrap col-2">Signature Block</th>
+                            <th class="coi-text-dark text-nowrap col-2">Name</th>
+                            <th class="coi-text-dark text-nowrap col-2">Designation</th>
+                            <th class="coi-text-dark text-nowrap col">Attestation Statement</th>
+                            <th *ngIf="isBuilderEditable && hasAnyEditRight"
+                                class="coi-text-dark text-nowrap col-auto text-center">Actions</th>
+                        </tr>
+
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let recipient of recipientsList; let recipientIndex = index"
+                            [class.cursor-drag]="!isDragDropDisable" id="cmp-recipient-tr-{{recipient?.cmpRecipientId}}" cdkDrag
+                            cdkDragLockAxis="y" [cdkDragDisabled]="isDragDropDisable">
+                            <td *ngIf="!isDragDropDisable" class="coi-text-light align-middle coi-cmp-drag-column cursor-drag">
+                                <span class="d-flex align-items-center"><mat-icon aria-hidden="true"
+                                    class="coi-text-light">drag_indicator</mat-icon></span>
+                            </td>
+                            <td class="coi-text-light align-middle coi-cmp-width-90px"
+                                [title]="recipient?.signOrder" [class.cursor-drag]="!isDragDropDisable">
+                                <span class="text-slice"><app-no-data-label
+                                    [valueToShow]="recipient?.signOrder?.toString()"></app-no-data-label></span>
+                            </td>
+                            <td class="coi-text-light align-middle col-2" [title]="recipient?.signatureBlock"
+                                [class.cursor-drag]="!isDragDropDisable">
+                                <span class="text-slice"><app-no-data-label
+                                        [valueToShow]="recipient?.signatureBlock"></app-no-data-label></span>
+                            </td>
+                            <td class="coi-text-light align-middle col-2" [title]="recipient?.fullName"
+                                [class.cursor-drag]="!isDragDropDisable">
+                                <span class="text-slice"><app-no-data-label
+                                        [valueToShow]="recipient?.fullName"></app-no-data-label></span>
+                            </td>
+                            <td class="coi-text-light align-middle col-2" [title]="recipient?.designation"
+                                [class.cursor-drag]="!isDragDropDisable">
+                                <span class="text-slice"><app-no-data-label
+                                        [valueToShow]="recipient?.designation"></app-no-data-label></span>
+                            </td>
+                            <td class="coi-text-light align-middle col" [title]="recipient?.attestationStatement"
+                                [class.cursor-drag]="!isDragDropDisable">
+                                <span class="text-slice"><app-no-data-label
+                                        [valueToShow]="recipient?.attestationStatement"></app-no-data-label></span>
+                            </td>
+                            <td *ngIf="isBuilderEditable && hasAnyEditRight"
+                                class="align-middle col-auto" [class.cursor-drag]="!isDragDropDisable">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <button id="cmp-recipient-edit-{{recipientIndex}}"
+                                        title="Click here to edit recipient: {{recipient?.fullName}}"
+                                        attr.aria-label="Click here to edit recipient: {{recipient?.fullName}}"
+                                        (click)="openRecipientConfigModal('RECIPIENT_EDIT', recipient)"
+                                        class="btn btn-primary-icon d-flex align-items-center justify-content-center rounded-circle p-2 m-1">
+                                        <mat-icon class="flex-shrink-0" aria-hidden="true">edit</mat-icon>
+                                    </button>
+                                    <button id="cmp-recipient-delete-{{recipientIndex}}"
+                                        title="Click here to delete recipient: {{recipient?.fullName}}"
+                                        attr.aria-label="Click here to delete recipient {{recipient?.fullName}}"
+                                        class="btn btn-primary-icon d-flex align-items-center justify-content-center rounded-circle p-2 m-1"
+                                        (click)="openRecipientConfigModal('RECIPIENT_DELETE', recipient)">
+                                        <mat-icon class="flex-shrink-0" aria-hidden="true">delete</mat-icon>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- No Component Card -->
+            <ng-template #showNoRecipient>
+                <app-no-information [isBorderNeeded]="false" [buttonName]="'Add ' + CMP_LOCALIZE.TERM_RECIPIENT+ 's'"
+                    [canShowAddButton]="isBuilderEditable && hasAnyEditRight"
+                    [customClass]="'mt-0'" (buttonAction)="openRecipientConfigModal('RECIPIENT_ADD')">
+                    <span>No content added yet. <span *ngIf="isBuilderEditable && hasAnyEditRight">Click 'Add {{ CMP_LOCALIZE.TERM_RECIPIENT }}s' to add new content</span></span>
+                </app-no-information>
+            </ng-template>
+        </div>
+    </section>
+</ng-template>
+
+<app-common-modal *ngIf="cmpBuilderModalConfig.isOpenModal" [modalConfig]="cmpBuilderModalConfig.modalConfig"
+    (modalAction)="performCmpBuilderAction($event)">
+    <ng-container modal-header>
+        <span [innerHTML]="cmpBuilderModalConfig.modalHeader | safe"></span>
+    </ng-container>
+    <ng-container modal-body>
+        <div *ngIf="cmpBuilderModalConfig.modalBody"
+            class="fs-14 coi-text-light coi-paragraph-mb-0" [innerHTML]="cmpBuilderModalConfig.modalBody | safe"></div>
+        <ng-container *ngIf="['SECTION_ADD', 'SECTION_EDIT', 'COMPONENT_ADD', 'COMPONENT_EDIT'].includes(cmpBuilderModalConfig.actionType)">
+            <fieldset class="row g-3 pb-2">
+                <legend class="visually-hidden">{{ cmpBuilderModalConfig.modalHeader }}</legend>
+                <!-- Section Name -->
+                <div *ngIf="['SECTION_ADD', 'SECTION_EDIT'].includes(cmpBuilderModalConfig.actionType)"
+                    class="position-relative col-12">
+                    <label class="d-flex coi-text-dark pb-1" for="cmp-builder-section-name">
+                        <!-- <span class="mandatory me-1">*</span> -->
+                        <span>Section Name</span>
+                        <app-common-help-text [subSectionId]="2903"
+                            [elementId]="'cmp-builder-section-name'"></app-common-help-text>
+                    </label>
+                    <input type="text" class="form-control" id="cmp-builder-section-name"
+                        [ngClass]="(cmpBuilderModalConfig.errorMsgMap?.has('SECTION_NAME')) ? 'is-invalid d-block' : ''"
+                        [(ngModel)]="cmpBuilderModalConfig.sectionName" placeholder="Please enter the section name."
+                        (ngModelChange)="cmpBuilderModalConfig.sectionName = cmpBuilderModalConfig.sectionName?.trim()"
+                        appLengthValidator [limit]="300"
+                        [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'" [disabled]="false"
+                        [isShowLimiter]="true">
+                    <app-common-information [elementId]="'cmp-builder-section-name'"
+                        [subSectionId]="2903"></app-common-information>
+                    <!-- error -->
+                    <span *ngIf="cmpBuilderModalConfig.errorMsgMap?.has('SECTION_NAME')"
+                        class="d-block invalid-feedback fs-13">{{ cmpBuilderModalConfig.errorMsgMap?.get('SECTION_NAME')
+                        }}</span>
+                </div>
+                <!-- Content -->
+                <div *ngIf="['SECTION_ADD', 'COMPONENT_ADD', 'COMPONENT_EDIT'].includes(cmpBuilderModalConfig.actionType)"
+                    class="position-relative col-12">
+                    <label *ngIf="cmpBuilderModalConfig.actionType === 'SECTION_ADD'" class="d-flex coi-text-dark pb-1"
+                        for="cmp-builder-content">
+                        <span>Content</span>
+                        <app-common-help-text [subSectionId]="2903"
+                            [elementId]="'cmp-builder-content'"></app-common-help-text>
+                    </label>
+                    <div class="col rounded-3 overflow-hidden coi-cmp-builder-content-editor"
+                        [class.coi-invalid-feedback-border]="cmpBuilderModalConfig.errorMsgMap?.has('CONTENT')">
+                        <ckeditor [(ngModel)]="cmpBuilderModalConfig.description" id="cmp-builder-content"
+                            [editor]="cmpBuilderModalConfig.editor" [config]="cmpBuilderModalConfig.editorConfig"
+                            (ready)="onReady($event)">
+                        </ckeditor>
+                    </div>
+                    <app-common-information [elementId]="'cmp-builder-content'"
+                        [subSectionId]="2903"></app-common-information>
+                    <!-- error -->
+                    <span *ngIf="cmpBuilderModalConfig.errorMsgMap?.has('CONTENT')"
+                        class="d-block invalid-feedback fs-13">{{ cmpBuilderModalConfig.errorMsgMap?.get('CONTENT')
+                        }}</span>
+                </div>
+            </fieldset>
+        </ng-container>
+        <ng-container *ngIf="['SECTION_HISTORY', 'COMPONENT_HISTORY'].includes(cmpBuilderModalConfig.actionType)">
+            <ng-container *ngTemplateOutlet="builderComponentHistory;"></ng-container>
+        </ng-container>
+        <ng-container *ngIf="['RECIPIENT_ADD', 'RECIPIENT_EDIT'].includes(cmpBuilderModalConfig.actionType)">
+            <ng-container *ngTemplateOutlet="recipientBuilderTemplate;"></ng-container>
+        </ng-container>
+    </ng-container>
+</app-common-modal>
+
+<ng-template #builderComponentHistory>
+    <div class="card rounded-3 overflow-hidden">
+        <div class="d-flex card-body p-0">
+            <aside class="coi-cmp-history-aside border-end">
+                <ul class="list-unstyled mb-0">
+                    <li *ngFor="let log of historyData.logs; let logIndex = index" class="border-bottom"
+                        [class.coi-card-highlight-bg]="logIndex === historyData.selectedVersion">
+                        <a tabindex="0" class="d-flex flex-column text-decoration-none p-2"
+                            [class.cursor-pointer]="logIndex !== historyData.selectedVersion"
+                            (click)="componentVersionChange(logIndex)" (keyup.enter)="componentVersionChange(logIndex)">
+                            <span class="coi-text-light fw-600 fs-13">{{ log?.newData?.updatedBy }}</span>
+                            <span class="coi-text-light fs-12">{{ log?.newData?.updateTimestamp |
+                                dateFormatterWithTimeZone:'long' }}</span>
+                        </a>
+                    </li>
+                </ul>
+            </aside>
+            <!-- compared history -->
+            <article class="col coi-comparison-container p-3">
+                <p class="fs-14 coi-text-light mb-0 coi-paragraph-mb-0"
+                    [innerHTML]="historyData?.comparedObj?.[historyData?.compareKey] | safe"></p>
+            </article>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #recipientBuilderTemplate>
+    <fieldset class="row g-3">
+        <legend class="visually-hidden">{{ CMP_LOCALIZE.TERM_RECIPIENT }} Add / Update</legend>
+            <!-- Signature Block -->
+            <div class="position-relative col-12">
+                <span class="d-flex coi-text-dark pb-1">
+                    <span *ngIf="recipientConfig.mandatoryFieldsList?.includes('SIGNATURE_BLOCK')" class="mandatory me-1">*</span>
+                    <span>Signature Block</span>
+                    <app-common-help-text [subSectionId]="2902" [elementId]="'cmp-recipient-sign-block'"></app-common-help-text>
+                </span>
+                <input type="text" class="form-control" id="cmp-recipient-sign-block"
+                    [ngClass]="(recipientConfig.errorMsgMap?.has('SIGNATURE_BLOCK')) ? 'is-invalid d-block' : ''"
+                    [disabled]="recipientConfig.disabledFields?.['SIGNATURE_BLOCK']"
+                    [(ngModel)]="recipientConfig.recipient.signatureBlock" placeholder="Please enter the signature block."
+                    (ngModelChange)="recipientConfig.recipient.signatureBlock = recipientConfig.recipient.signatureBlock?.trim()"
+                    appLengthValidator [limit]="300" [isShowLimiter]="true"
+                    [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'" [disabled]="false">
+                <app-common-information [elementId]="'cmp-recipient-sign-block'" [subSectionId]="2902"></app-common-information>
+                <!-- error -->
+                <span *ngIf="recipientConfig.errorMsgMap.has('SIGNATURE_BLOCK')"
+                    class="positon-absolute d-block invalid-feedback fs-13">{{ recipientConfig.errorMsgMap.get('SIGNATURE_BLOCK') }}</span>
+            </div>
+
+            <!-- Person -->
+            <div class="position-relative col-12">
+                <label class="d-flex coi-text-dark pb-1" for="cmp-recipient-person">
+                    <span *ngIf="recipientConfig.mandatoryFieldsList?.includes('PERSON_SEARCH')" class="mandatory me-1">*</span>
+                    <span>Person</span>
+                    <app-common-help-text [subSectionId]="2902" [elementId]="'cmp-recipient-person'"></app-common-help-text>
+                </label>
+                <app-elastic [options]="recipientConfig.personSearchOptions"
+                    [uniqueId]="'cmp-recipient-person'"
+                    [placeHolder]="'Search by Person'"
+                    [isDisabled]="recipientConfig.disabledFields?.['PERSON_SEARCH']"
+                    [canEmitSearchText]="false" (selectedResult)="selectedPerson($event)"
+                    [isError]="recipientConfig.errorMsgMap.has('PERSON_SEARCH')">
+                </app-elastic>
+                <app-common-information [elementId]="'cmp-recipient-person'" [subSectionId]="2902"></app-common-information>
+                <span *ngIf="recipientConfig.errorMsgMap.has('PERSON_SEARCH')"
+                    class="d-block invalid-feedback fs-13">{{ recipientConfig.errorMsgMap.get('PERSON_SEARCH') }}</span>
+            </div>
+
+            <!-- Signature Block -->
+            <div class="position-relative col-12">
+                <span class="d-flex coi-text-dark pb-1">
+                    <span *ngIf="recipientConfig.mandatoryFieldsList?.includes('DESIGNATION')" class="mandatory me-1">*</span>
+                    <span>Designation</span>
+                    <app-common-help-text [subSectionId]="2902" [elementId]="'cmp-recipient-designation'"></app-common-help-text>
+                </span>
+                <input type="text" class="form-control" id="cmp-recipient-designation"
+                    [ngClass]="(recipientConfig.errorMsgMap?.has('DESIGNATION')) ? 'is-invalid d-block' : ''"
+                    [disabled]="recipientConfig.disabledFields?.['DESIGNATION']"
+                    [(ngModel)]="recipientConfig.recipient.designation" placeholder="Please enter the designation."
+                    (ngModelChange)="recipientConfig.signatureBlock = recipientConfig.signatureBlock?.trim()"
+                    appLengthValidator [limit]="300" [isShowLimiter]="true"
+                    [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'" [disabled]="false">
+                <app-common-information [elementId]="'cmp-recipient-designation'" [subSectionId]="2902"></app-common-information>
+                <!-- error -->
+                <span *ngIf="recipientConfig.errorMsgMap.has('DESIGNATION')"
+                    class="positon-absolute d-block invalid-feedback fs-13">{{ recipientConfig.errorMsgMap.get('DESIGNATION') }}</span>
+            </div>
+
+            <!-- Attestation Statement -->
+            <div class="position-relative col-12">
+                <label class="d-flex coi-text-dark pb-1" for="cmp-recipient-attestation">
+                    <span *ngIf="recipientConfig.mandatoryFieldsList?.includes('ATTESTATION')" class="mandatory me-1">*</span>
+                    <span>Attestation Statement</span>
+                    <app-common-help-text [subSectionId]="2902" [elementId]="'cmp-recipient-attestation'"></app-common-help-text>
+                </label>
+                <textarea class="form-control" id="cmp-recipient-attestation" rows="5"
+                    name="cmp-recipient-attestation"
+                    [(ngModel)]="recipientConfig.recipient.attestationStatement"
+                    appLengthValidator [limit]="2000" autocomplete="off"
+                    (ngModelChange)="recipientConfig.recipient.attestationStatement = recipientConfig.recipient.attestationStatement.trim();"
+                    [placeholder]="'Please provide the attestation statement'" [styleList]="'float-end word-count'"
+                    [class.is-invalid]="recipientConfig.errorMsgMap.has('ATTESTATION')">
+                </textarea>
+                <app-common-information [elementId]="'cmp-recipient-attestation'" [subSectionId]="2902"></app-common-information>
+                <span *ngIf="recipientConfig.errorMsgMap.has('ATTESTATION')"
+                    class="positon-absolute d-block invalid-feedback fs-13">{{ recipientConfig.errorMsgMap.get('ATTESTATION') }}</span>
+            </div>
+    </fieldset>
+</ng-template>

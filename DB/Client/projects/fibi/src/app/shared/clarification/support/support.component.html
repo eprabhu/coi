@@ -1,0 +1,136 @@
+<!--Request support-->
+<div class="card mt-3">
+    <div class="card-header py-2">
+        <h4 class="card-title d-flex justify-content-between align-items-center">
+            <div>Support Request</div>
+            <div class="mr-5">
+                <button title="Request for Support" class="btn btn-tertiary btn-sm mt-0" id="prop-support-req-btn"
+                        (click)="showSupportRequestModal();">
+                    <span>Request for Support</span>
+                </button>
+            </div>
+        </h4>
+    </div>
+    <button id="review-summary-ExpandBtn" class="updown-arrow"
+            (click)="isPreReviewSummaryWidgetOpen = !isPreReviewSummaryWidgetOpen">
+        <i aria-hidden="true" [ngClass]="isPreReviewSummaryWidgetOpen?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+           class="fa-large"></i>
+    </button>
+    <!-- clarifications-->
+    <div class="card-content" *ngIf="isPreReviewSummaryWidgetOpen">
+        <div class="no-data-container" *ngIf="clarifications?.length == 0">
+    <span class="no-data-icon-outer">
+        <div class="no-data-icon">
+            <i class="fa fa-file-o" aria-hidden="true"></i>
+            <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+        </div>
+    </span>
+            <h4>There is no information in this section.</h4>
+        </div>
+        <ng-container *ngIf="clarifications?.length >0">
+            <div class="card mb-3" *ngFor="let support of clarifications; let supportIndex = index">
+                <div class="card-header" [ngClass]="isClarificationOpen[supportIndex]?'':'pb-0'">
+                    <h4 class="card-title" [ngClass]="isClarificationOpen[supportIndex]?'':'mb-0'">
+                        <div class="row">
+                            <div class="col-xl-11 col-lg-11 col-md-11 col-sm-11 col-11">
+                                <i class="fa fa-question-circle-o" aria-hidden="true" style="font-size: 2.4rem;"></i> <label
+                                    class="ml-1 new-line-property">{{support?.requestorFullName}} asked : "{{support?.requestorComment}}"</label>
+                            </div>
+                            <div class="col-xl-1 col-lg-1 col-md-1 col-sm-1 col-1">
+                                <button id="support-log-expand-btn" title="Show all replies" class="updown-arrow"
+                                        (click)="isClarificationOpen[supportIndex] = !isClarificationOpen[supportIndex]">
+                                    <i class="fa-large margin-top-5" aria-hidden="true"
+                                       [ngClass]="isClarificationOpen[supportIndex]?'fa fa-angle-double-up':'fa fa-angle-double-down'"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xl-3 col-lg-3 col-md-3 col-sm-3 col-3">
+            <span><a title="Reply" id="prop-faq-reply-btn"
+                     (click)="clarificationData = support;addSupportWarning = null;addSupportObj.reviewComment = null;uploadedFile=[]"
+                     data-toggle="modal" data-target="#addSupportModal" class="hand-cursor" style="color: #31a699;" tabindex="0">
+                <i aria-hidden="true" class="fa fa-reply"></i> Reply</a></span>
+                            </div>
+                        </div>
+                    </h4>
+                </div>
+
+                <div class="card-content" *ngIf="isClarificationOpen[supportIndex]">
+                    <div class="gridSkin block-display-span">
+                        <div class="row" *ngIf="support?.preReviewComments?.length == 0 || support?.preReviewComments == null">
+                            <div class="noDataExists">No replies added yet.</div>
+                        </div>
+                        <ng-container *ngFor="let comments of support?.preReviewComments; let i=index">
+                            <div *ngIf="support?.preReviewComments?.length>0">
+                                <div class="row normalPadd" style="padding: 10px">
+                                    <div class="col-xl-12 col-lg-12 col-md-6 col-sm-12 col-12 review-comments">
+                                        <i class="fa fa-commenting-o comments-icon"
+                                           aria-hidden="true"></i><label>{{comments?.fullName}}</label>
+                                        <span class="comments-font">replied on {{comments?.updateTimeStamp | dateFormatterWithTimeZone: 'long'}}</span>
+                                    </div>
+                                    <div class="col-xl-12 col-lg-12 col-md-6 col-sm-12 col-12 review-border">
+                <span class="comments-font"
+                      title="{{(comments?.reviewComment?.length>80)?(comments?.reviewComment):''}}">
+                  {{comments?.reviewComment}}</span>
+                                    </div>
+                                    <div class="col-xl-12 col-lg-12 col-md-6 col-sm-12 col-12"
+                                         *ngIf="comments?.preReviewAttachments?.length>0">
+                                        <div class="fileChips regularFont">
+                  <span *ngFor="let attachment of comments?.preReviewAttachments;let attachIndex = index"
+                        style="background: #dee2e6;">{{attachment.fileName}}
+                      <i aria-hidden="true" class="fa fa-download hand-cursor" id="prop-support-attach-dwnld"
+                         title="Download File"
+                         (click)="downloadAttachments($event, attachment.fileName, comments?.preReviewAttachments)"></i>
+                  </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </ng-container>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+        <!-- Add comments and attachments modal -->
+        <div class="modal fade mySkinDialog" id="addSupportModal" tabindex="-1" data-backdrop="static" data-keyboard="false"
+             role="dialog" aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><span>Proposal #{{result?.proposal?.proposalId}} -
+                            {{result?.proposal?.title}}</span></h5>
+                        <button type="button" id="prop-add-support-dismiss-btn" class="close" data-dismiss="modal"
+                                (click)="uploadedFile = [];addSupportWarning = null;">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+        <textarea id="prop-support-comments" placeholder="Write your comments"
+                  class="col-12 col-lg-12 mb-2 commentBox comments-box" rows="2" cols="20"
+                  [(ngModel)]="addSupportObj.reviewComment" appLengthValidator
+                  [isShowLimiter]='true' [limit]=4000></textarea>
+                        <app-file-drop [multiple]="true" (filesDropEvent)="fileDrop($event)"></app-file-drop>
+                        <div class="fileChips regularFont">
+          <span *ngFor="let item of uploadedFile; let i=index">{{item.name}}
+              <i aria-hidden="true" class="fa fa-close hand-cursor" title="Remove File"
+                 id="prop-support-attach-remove" (click)="deleteFromUploadedFileList(item)"></i>
+          </span>
+                        </div>
+                        <div *ngIf="addSupportWarning != null"><span class="mandatory font">{{addSupportWarning}}</span></div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-6">
+                            <button type="button" id="prop-add-support-btn" class="btn btn-primary-sub btn-sm rate-float"
+                                    (click)="addClarification()">Add Reply</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Request support -->
+        <app-request-support *ngIf="showRequestModal.isRequestSupport" [result]="result"
+                             [showRequestModal]="showRequestModal" [clarifications]="clarifications" [supportReq]="supportReq"
+                             (emitClarification)="getUpdatedClarifications($event)"></app-request-support>
+
+    </div>
+</div>

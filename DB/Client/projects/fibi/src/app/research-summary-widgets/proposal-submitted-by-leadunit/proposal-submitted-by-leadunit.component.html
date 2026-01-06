@@ -1,0 +1,83 @@
+<div class="card card-widget-box h-100" [@fadeDown]>
+  <div class="card-header">
+    <h4 class="card-title d-flex justify-content-between">{{widgetDescription?.widgetName}} ({{currentFY}})
+      <span *ngIf="widgetDescription?.description" class="d-inline-block icon-hover">
+        <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med" aria-hidden="true"></i>
+          <div class="tooltiptext-right card card-inner p-15 text-left">
+            <span class="font-cv new-line-property">{{widgetDescription?.description}}</span>
+          </div>
+        </a>
+      </span>
+    </h4>
+  </div>
+  <div class="card-content" [ngClass]="{'d-flex align-items-center': !proposalByLeadUnitData?.length}">
+    <div class="card-body">
+      <div *ngIf="isShowLoader" appCustomPreloader></div>
+      <div class="searchBox">          
+        <app-endpoint-search [httpOptions]="leadUnitHttpOptions" [clearField]="clearLeadUnitField"
+            [placeHolder]="'Search Lead Unit'"
+            (onSelect)="onLeadUnitSelection($event)">
+        </app-endpoint-search>
+      </div>
+      <div class="py-0 pl-2 px-2 fixed-header-table">         
+        <div *ngIf='selectedUnitNumber' class="pb-4">
+                  <span class="highlight-text">
+                      {{selectedUnitName}}
+                      <i aria-hidden="true" class="fa fa-close hand-cursor ng-star-inserted"
+                          (click)="removeUnit()" title="Remove this Lead Unit"></i>
+                  </span>
+        </div>
+        <table class="table tableSkin table-bordered grid2 mb-0" *ngIf="proposalByLeadUnitData?.length">
+          <caption class="sr-only">Proposals By Lead Unit</caption>
+          <thead>
+            <th (click)="isDesc =!isDesc;sortBy(0)">Department
+              <span>
+                <i [ngClass]="((column == 0) ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                aria-hidden="true"></i>    
+              </span>
+            </th>
+            <th style="width: 25%;" (click)="isDesc =!isDesc;sortBy(1)">Submitted
+              <span class="content-color">
+                ({{totalProposalCount}})
+              </span>
+              <span>
+                <i [ngClass]="((column == 1) ? (isDesc ? 'fa fa-sort-numeric-asc sortIcon' : 'fa fa-sort-numeric-desc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"
+                  aria-hidden="true"></i>    
+              </span>
+            </th>
+            <th style="width: 18%;" (click)="isDesc =!isDesc;sortBy(2)">Shortlisted
+              <span>
+                <i [ngClass]="((column == 2) ? (isDesc ? 'fa fa-sort-numeric-asc sortIcon' : 'fa fa-sort-numeric-desc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"
+                aria-hidden="true"></i>    
+              </span>
+            </th>
+            <th style="width: 20%;" (click)="isDesc =!isDesc;sortBy(3)">Awarded
+              <span class="content-color">
+                ({{totalAwardedProposalCount}})</span>
+              <span>
+                <i [ngClass]="((column == 3) ? (isDesc ? 'fa fa-sort-numeric-asc sortIcon' : 'fa fa-sort-numeric-desc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"
+                  aria-hidden="true"></i>    
+              </span>
+            </th>
+          </thead>
+          <tbody>
+            <tr *ngFor="let data of proposalByLeadUnitData | orderByIndex: {property: column, direction: direction};">
+              <ng-container *ngFor="let eachData of data; let proposalIndex=index">
+                <td [ngClass]="{'text-center': proposalIndex > 0}">{{!eachData ? 0 : eachData}}</td>
+              </ng-container>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="no-data-container" *ngIf="proposalByLeadUnitData?.length === 0">
+        <span class="no-data-icon-outer">
+          <div class="no-data-icon">
+            <i class="fa fa-file-o" aria-hidden="true"></i>
+            <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+          </div>
+        </span>
+        <h4>There is no information in this section.</h4>
+      </div>
+    </div>
+  </div>
+</div>

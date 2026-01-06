@@ -1,0 +1,359 @@
+<!-- Last Updated By Ramlekshmy I on 16-01-2020 -->
+<div id="proposal-simple-budget" class="card-widget-container mb-3" *ngIf="budgetData?.budgetHeader">
+    <div class="card h-100">
+        <div class="card-content">
+            <div class="card-body pt-0">
+                <app-unsaved-change-warning [hasUnsavedChanges]="hasUnsavedChanges" [buttonName]="'Save'">
+                </app-unsaved-change-warning>
+                <div>
+                    <div class="row my-md-3 my-2">
+                        <div class="col-lg-6 col-md-6 col-sm-6 col-6 colorBlack">
+                            <h4 class="card-title" id="proposal-simple-budget-details">Budget Details - All Periods
+                                <span *ngIf="budgetData.isBudgetVersionEnabled">: Version
+                                    {{budgetData?.budgetHeader?.versionNumber}}</span>
+                            </h4>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6 col-6 float-right">
+                            <span class="bold font float-right">Total Cost:
+                                {{budgetData?.budgetHeader?.totalCost| customCurrency}}</span>
+                        </div>
+                    </div>
+                    <div *ngIf="!_budgetDataService.isBudgetViewMode || (_budgetDataService.isBudgetViewMode
+            && budgetData?.budgetHeader?.budgetPeriods[0]?.budgetDetails?.length)" class="table-responsive">
+                        <table class="tableStyle" aria-describedby="proposal-simple-budget-details">
+                            <thead>
+                                <tr class="th-seperation">
+                                    <th scope="col" style="width:25%">Items</th>
+                                    <th scope="col" style="width:10%">Quantity</th>
+                                    <th scope="col" *ngFor="let period of budgetData?.budgetHeader?.budgetPeriods">
+                                        <span class="float-left ml-2">Period {{period.budgetPeriod}}</span>
+                                        <span class="float-right mr-2">
+                                            <i class="fa fa-files-o action-btn-padding" aria-hidden="true"
+                                                *ngIf="period.budgetPeriod !== 1 && !_budgetDataService.isBudgetViewMode && simpleBudgetVo?.length > 0"
+                                                title="Copy cost from Period {{period.budgetPeriod - 1}}"
+                                                data-toggle="modal" data-target="#budgetActionsModal"
+                                                (click)="openActionModal('COPY', period.budgetPeriod, null, null)"></i>
+                                        </span>
+                                    </th>
+                                    <th scope="col" style="width:10%">Total</th>
+                                    <th scope="col" style="width:8%">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngIf="!_budgetDataService.isBudgetViewMode">
+                                    <td class="align-top">
+                                        <span
+                                            [ngClass]="helpText?.budget && helpText?.budget[lineItemObj?.budgetCategoryCode]?.helpTextInfo ? 'd-inline-block w-94' : ''">
+                                            <app-endpoint-search id="simple-budget-costElement"
+                                                [isError]="this.isInvalidLineItem.message"
+                                                [clearField]="clearCostElementField" [searchOnFocus]=true
+                                                [httpOptions]="!budgetData.isSysGeneratedCostElementEnabled ? costElementHttpOptions : costElementByParamHttpOptions"
+                                                [placeHolder]="'Type here for Cost Elements'"
+                                                (onSelect)="onCostElementSelect($event)"
+                                                (onEmpty)="onCostElementSelect($event)"></app-endpoint-search>
+                                        </span>
+                                        <span
+                                            *ngIf="helpText?.budget && helpText?.budget[lineItemObj?.budgetCategoryCode]?.helpTextInfo"
+                                            class="d-inline-block icon-hover">
+                                            <a class="tooltip z-index-0 tooltip-helptext"><i
+                                                    class="fa fa-question-circle fa-med" aria-hidden="true"></i>
+                                                <div class="tooltiptext-left card card-inner p-15 text-left">
+                                                    <span
+                                                        class="font-cv">{{helpText?.budget[lineItemObj?.budgetCategoryCode]?.helpTextInfo}}</span>
+                                                </div>
+                                            </a>
+                                        </span>
+                                        <div *ngIf="isInvalidLineItem.message"
+                                            class="invalid-feedback d-block text-left">
+                                            {{isInvalidLineItem.message}}
+                                        </div>
+                                    </td>
+                                    <td class="align-top">
+                                        <input type="text" step="any" placeholder="" class="dateBox committeeBox"
+                                            [(ngModel)]="lineItemObj.quantity" appCurrencyFormat
+                                            (ngModelChange)="isInvalidLineItem.quantityMsg = inputRestrictionForQuantityField(lineItemObj.quantity);setUnsavedChanges(true)"
+                                            [ngClass]="{'lineItem-mandatory': isInvalidLineItem?.quantityMsg}"
+                                            [initialValue]="lineItemObj.quantity" [isNumberFormatOnly]="true"
+                                            [disabled]="_budgetDataService.isBudgetViewMode" />
+                                        <div *ngIf="isInvalidLineItem?.quantityMsg"
+                                            class="invalid-feedback d-block text-left">
+                                            {{isInvalidLineItem?.quantityMsg}}
+                                        </div>
+                                    </td>
+                                    <td class="align-top"
+                                        *ngFor="let period of budgetData?.budgetHeader?.budgetPeriods; let i=index">
+                                        <input appCurrencyFormat type="text" step="any"
+                                            placeholder="{{_commonService.currencyFormat}}0"
+                                            class="dateBox committeeBox text-right "
+                                            [(ngModel)]="lineItemObj.yearCosts[i]"
+                                            (ngModelChange)="onYearCostsChange();inputRestrictionForAmountFieldValidation(i);setUnsavedChanges(true)"
+                                            [disabled]="_budgetDataService.isBudgetViewMode"
+                                            [initialValue]="lineItemObj.yearCosts[i]"
+                                            [ngClass]="{'lineItem-mandatory': isInvalidLineItem?.cost?.length && isInvalidLineItem?.cost[i]}" />
+                                        <div *ngIf="isInvalidLineItem?.cost?.length && isInvalidLineItem?.cost[i]"
+                                            class="invalid-feedback d-block text-left">
+                                            {{isInvalidLineItem?.cost[i]}}
+                                        </div>
+                                    </td>
+                                    <td class="align-top">
+                                        <input appCurrencyFormat type="text" disabled
+                                            placeholder="{{_commonService.currencyFormat}}0"
+                                            class="dateBox committeeBox text-right" [(ngModel)]="lineItemObj.yearTotal"
+                                            [initialValue]="lineItemObj.yearTotal" />
+                                    </td>
+                                    <td class="text-center align-top">
+                                        <button class="btn btn-primary-sub btn-sm"
+                                            (click)="addBudgetDetail()">Add</button>
+                                    </td>
+                                </tr>
+                                <tr *ngIf="!_budgetDataService.isBudgetViewMode">
+                                    <td [colSpan]="budgetData?.budgetHeader?.budgetPeriods?.length + 3"
+                                        class="no-border">
+                                        <div class="row">
+                                            <div class="col-lg-2 col-md-2 col-sm-2 col-2">
+                                                <span>Justification</span>
+                                            </div>
+                                            <div class="col-lg-10 col-md-10 col-sm-10 col-10">
+                                                <textarea class="form-control"
+                                                    [disabled]="_budgetDataService.isBudgetViewMode"
+                                                    [(ngModel)]="lineItemObj.lineItemDescription"
+                                                    (ngModelChange)="setUnsavedChanges(true)" appLengthValidator
+                                                    [isShowLimiter]='true' [limit]=4000>
+                          </textarea>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="no-border pd-bt text-center">
+                                    </td>
+                                </tr>
+                                <ng-template #iterativeList let-simpleBudgetVo>
+                                    <ng-container *ngFor="let budgetDetail of simpleBudgetVo; let i = index">
+                                        <tr *ngIf="budgetDetail.categoryCode">
+                                            <td class="category-highlight"
+                                                [colSpan]="budgetData?.budgetHeader?.budgetPeriods?.length + 4">
+                                                <div class="row">
+                                                    <div class="col-12 col-lg-5 col-sm-5">
+                                                        <span>{{budgetDetail?.categoryName}}</span>
+                                                        <span
+                                                            *ngIf="helpText?.budget && helpText?.budget[budgetDetail.categoryCode]?.helpTextInfo"
+                                                            class="d-inline-block icon-hover">
+                                                            <a class="tooltip z-index-0 tooltip-helptext"><i
+                                                                    class="fa fa-question-circle fa-med"
+                                                                    aria-hidden="true"></i>
+                                                                <div
+                                                                    class="tooltiptext-left card card-inner p-15 text-left">
+                                                                    <span
+                                                                        class="font-cv">{{helpText?.budget[budgetDetail.categoryCode]?.helpTextInfo}}</span>
+                                                                </div>
+                                                            </a>
+                                                        </span>
+                                                    </div>
+                                                    <div class="col-lg-7 col-sm-7 col-12 text-right">
+                                                        <div class="col-lg-12 col-md-12 col-sm-12 col-12">
+                                                            <span>Total: {{budgetDetail?.totalCategoryCost |
+                                                                customCurrency}}</span>
+                                                            <i class="ml-0 pl-8"
+                                                                (click)="toggleCategoryList[budgetDetail.categoryCode] = !toggleCategoryList[budgetDetail.categoryCode]; onCategoryToggle(budgetDetail.categoryCode)"
+                                                                aria-hidden="true"
+                                                                [ngClass]="toggleCategoryList[budgetDetail.categoryCode] ? 'fa-large fa fa-angle-double-up' : 'fa-large fa fa-angle-double-down'"></i>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr
+                                            *ngIf="!budgetDetail.categoryCode && toggleCategoryList[budgetDetail.budgetCategoryCode]">
+                                            <td>{{budgetDetail?.costElement?.description}}</td>
+                                            <td>
+                                                <input type="text" step="any" class="dateBox committeeBox"
+                                                    [(ngModel)]="budgetDetail.quantity" appCurrencyFormat
+                                                    [initialValue]="budgetDetail.quantity" [isNumberFormatOnly]="true"
+                                                    (ngModelChange)="editQuantityOrDesc('QUANTITY', budgetDetail.quantity, null, budgetDetail.costElementCode, budgetDetail.lineItemNumber)"
+                                                    [disabled]="budgetDetail?.isSystemGeneratedCostElement==true || _budgetDataService.isBudgetViewMode" />
+                                            </td>
+                                            <td
+                                                *ngFor="let periodCost of budgetDetail?.periodCostsList; let pc_index = index">
+                                                <input #cost type="text" appCurrencyFormat step="any"
+                                                    class="dateBox committeeBox text-right"
+                                                    [(ngModel)]="periodCost.cost"
+                                                    (ngModelChange)="editYearCost(periodCost.cost, budgetDetail.lineItemNumber, budgetDetail.budgetCategory.code, periodCost.budgetPeriodId, periodCost.budgetDetailId)"
+                                                    [disabled]="_budgetDataService.isBudgetViewMode || (budgetDetail?.isSystemGeneratedCostElement==true && budgetData?.budgetHeader?.isAutoCalc)"
+                                                    [initialValue]="periodCost.cost" />
+                                            </td>
+                                            <td>
+                                                <input type="text" appCurrencyFormat
+                                                    class="dateBox committeeBox text-right" disabled
+                                                    [(ngModel)]="budgetDetail.totalLineItemCost"
+                                                    [initialValue]="budgetDetail.totalLineItemCost" />
+                                            </td>
+                                            <td class="text-center">
+                                                <i class="fa fa-file-text hand-cursor hoverColor mr-1"
+                                                    *ngIf="budgetDetail?.isSystemGeneratedCostElement==false"
+                                                    title="{{justificationToggleList[budgetDetail.lineItemNumber] ? 'Hide Justification' : 'Show Justification'}}"
+                                                    aria-hidden="true"
+                                                    (click)="justificationToggleList[budgetDetail.lineItemNumber]=!justificationToggleList[budgetDetail.lineItemNumber]"></i>
+                                                <i class="fa fa-trash hand-cursor hoverColor mr-1"
+                                                    title="Delete Cost Element"
+                                                    *ngIf="!_budgetDataService.isBudgetViewMode && budgetDetail?.isSystemGeneratedCostElement===false"
+                                                    aria-hidden="true" data-toggle="modal"
+                                                    data-target="#budgetActionsModal"
+                                                    (click)="openActionModal('DELETE_LINEITEM', i, budgetDetail.budgetCategoryCode, budgetDetail.lineItemNumber)"></i>
+                                                <i class="fa fa-eye hand-cursor hoverColor"
+                                                    title="View Application Rates"
+                                                    *ngIf="budgetDetail?.isSystemGeneratedCostElement===false && budgetData?.isAutoCalculateEnabled && budgetData?.isAutoCalculateEnabled"
+                                                    aria-hidden="true" data-toggle="modal" data-target="#showRatesCalc"
+                                                    (click)="showRatesCalcAmount(budgetDetail.costElementCode)"></i>
+                                            </td>
+                                        </tr>
+                                        <tr
+                                            *ngIf="!budgetDetail.categoryCode && justificationToggleList[budgetDetail.lineItemNumber]">
+                                            <td [colSpan]="budgetData?.budgetHeader?.budgetPeriods?.length + 3"
+                                                class="no-border">
+                                                <div class="row">
+                                                    <div class="col-lg-2 col-md-2 col-sm-2 col-2">
+                                                        <span>Justification</span>
+                                                    </div>
+                                                    <div class="col-lg-10 col-md-10 col-sm-10 col-10">
+                                                        <textarea class="form-control"
+                                                            [disabled]="_budgetDataService.isBudgetViewMode"
+                                                            [(ngModel)]="budgetDetail.lineItemDescription"
+                                                            (ngModelChange)="editQuantityOrDesc('DESC', null, budgetDetail.lineItemDescription, budgetDetail.costElementCode, budgetDetail.lineItemNumber)"
+                                                            appLengthValidator [isShowLimiter]='true' [limit]=4000>
+                              </textarea>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="no-border pd-bt text-center">
+                                            </td>
+                                        </tr>
+                                        <ng-container *ngIf="budgetDetail?.lineItemList">
+                                            <ng-container
+                                                *ngTemplateOutlet="iterativeList; context:{ $implicit: budgetDetail.lineItemList }">
+                                            </ng-container>
+                                        </ng-container>
+                                    </ng-container>
+                                </ng-template>
+                                <ng-container *ngTemplateOutlet="iterativeList; context:{ $implicit: simpleBudgetVo }">
+                                </ng-container>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="no-data-container p-3" *ngIf="_budgetDataService.isBudgetViewMode
+          && !budgetData?.budgetHeader?.budgetPeriods[0]?.budgetDetails?.length">
+                        <span class="no-data-icon-outer">
+                            <div class="no-data-icon">
+                                <i class="fa fa-file-o" aria-hidden="true"></i>
+                                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                            </div>
+                        </span>
+                        <h4 class="text-content-color">There are no cost elements added.</h4>
+                    </div>
+                </div>
+                <div>
+                    <button class="btn btn-primary-sub btn-sm float-right mt-2 mb-2"
+                        *ngIf="!_budgetDataService.isBudgetViewMode && isAnyPeriodFilled"
+                        (click)="saveOrUpdateProposalBudget()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ACTIONS MODAL -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="budgetActionsModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="budgetActionsModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{actionsModalObj.modalHeading}}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    (click)="clearModalActions()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>{{actionsModalObj.modalMessage}}</p>
+            </div>
+            <div class="modal-footer" *ngIf="!actionsModalObj.isWarning">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                    (click)="clearModalActions()">Cancel</button>
+                <button type="button" class="btn btn-primary-sub" data-dismiss="modal"
+                    (click)="performBudgetAction()">OK</button>
+            </div>
+            <div class="modal-footer" *ngIf="actionsModalObj.isWarning">
+                <button type="button" class="btn btn-primary-sub" data-dismiss="modal"
+                    (click)="clearModalActions()">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SHOW CALCULATED RATES MODAL -->
+<div class="modal fade mySkinDialog" *ngIf="actionsModalObj.showlineItemRate" tabindex="-1" id="showRatesCalc"
+    tabindex="-1" role="dialog" aria-labelledby="showRatesTitle" aria-hidden="true">
+    <div class="modal-dialog" [ngClass]="[rateObj.rateList.length == 0?'modal-md modal-dialog-centered':'modal-lg']"
+        role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="proposal-simple-budget-rates">Applied Rates</h5>
+                <button type="button" class="close" data-dismiss="modal" (click)="!actionsModalObj.showlineItemRate">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" *ngIf="rateObj.rateList.length > 0">
+                <div class="tabs">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li *ngFor="let period of budgetData?.budgetHeader?.budgetPeriods" role="presentation"
+                            [ngClass]="selectedRateYear == period.budgetPeriod?'activeTab':'inActiveTab'">
+                            <a href="" role="tab" data-toggle="tab" (click)="selectedRateYear=period.budgetPeriod">
+                                Period {{period.budgetPeriod}}
+                            </a>
+                        </li>
+                    </ul>
+                    <div *ngIf="getPeriodRateList(rateObj.rateList, selectedRateYear).length > 0"
+                        class="fixed-header-table">
+                        <table id="ratesTable" aria-describedby="proposal-simple-budget-rates"
+                            class="table tableStyle tableSkin">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th scope="col">Class</th>
+                                    <th scope="col">Type</th>
+                                    <th scope="col">Rate (%)</th>
+                                    <th scope="col">Rate Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let rateItem of periodRateList">
+                                    <!-- <ng-container *ngIf="rateItem.budgetPeriod == selectedRateYear"> -->
+                                    <td class="no-border">{{rateItem.rateClass?.description}}</td>
+                                    <td class="no-border">{{rateItem.rateTypeDescription}}</td>
+                                    <td class="no-border">{{rateItem.applicableRate}}</td>
+                                    <td class="no-border">{{rateItem.calculatedFundRequested | customCurrency}}</td>
+                                    <!-- </ng-container> -->
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="no-data-container p-3" *ngIf="periodRateList.length == 0">
+                        <span class="no-data-icon-outer">
+                            <div class="no-data-icon">
+                                <i class="fa fa-file-o" aria-hidden="true"></i>
+                                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                            </div>
+                        </span>
+                        <h4 class="text-content-color">There is no information in this section.</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body" *ngIf="rateObj.rateList.length === 0">
+                <p>There are no applied rates for selected cost element.</p>
+            </div>
+            <div class="modal-footer">
+                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-6">
+                    <button type="button" class="btn btn-primary-sub float-right" data-dismiss="modal"
+                        (click)="!actionsModalObj.showlineItemRate">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,458 @@
+<!-- header -->
+<div class="header-sticky shadow-sm" id="COI-DISCLOSURE-HEADER">
+    <div class="col-12">
+        <!-- new top card -->
+        <div class="card coi-card-expanded">
+            <div class="row mx-0 gap-3 coloured-bg-header align-items-center py-3">
+                <div class="d-flex align-items-center rounded-top-3 col-xl col-12 gap-3">
+                    <div class="position-relative">
+                        <span class="coi-entity-icon-bg coi-coloured-icons flex-shrink-0 fs-24 d-inline-flex align-items-center justify-content-center custom_icon_size"
+                            aria-hidden="true" [class.verified-border]="entityDetails?.entityStatusType?.entityStatusTypeCode === ENTITY_VERIFIED">
+                            <mat-icon class="font-size">domain</mat-icon>
+                        </span>
+                        <span *ngIf="entityDetails?.entityStatusType?.entityStatusTypeCode === ENTITY_VERIFIED"
+                            title="The entity confirmation status of '{{ entityDetails?.entityName }}' is Confirmed"
+                            class="align-items-center d-flex badge coi-confirm-badge fw-normal fs-11 coi-confirm-badge-position">
+                            <mat-icon class="me-1 fs-13">check_circle</mat-icon>
+                            <span>Confirmed</span>
+                        </span>
+                    </div>
+                    <div>
+                        <div class="d-inline-flex align-items-center">
+                            <span class="fs-18 fw-medium text-slice" [title]="entityDetails?.entityName">{{entityDetails?.entityName}}</span>
+                            <span *ngIf="latestPriorName" class="fs-13 ms-1 text-slice" [title]="latestPriorName">{{'('}}Formerly known as
+                                <strong>{{latestPriorName}}</strong>{{')'}}</span>
+                            <ng-container *ngIf="entityDetails?.isForeign">
+                                <app-common-foreign-flag [entityName]="entityDetails?.entityName"></app-common-foreign-flag>
+                            </ng-container>
+                            <span title="The entity status of '{{ entityDetails?.entityName }}' is {{ entityDetails?.entityDocumentStatusType?.description }}"
+                                class="d-block badge ms-2 px-2 rounded-pill {{badgeClass}}">{{entityDetails?.entityDocumentStatusType?.description}}</span>
+                            <!-- Modifying -->
+                            <div *ngIf="entityDetails?.entityStatusType?.entityStatusTypeCode === ENTITY_MODIFYING && entityDetails?.versionStatus !== cancelledVersion"
+                                class="coi-warning-pill rounded-pill fs-13 px-3 py-0 ms-2"
+                                title="The entity '{{ entityListData?.entityName }}' is in Modifying">
+                                <span>Modifying</span>
+                            </div>
+                            <!-- DUNS Refresh Modifying -->
+                            <div *ngIf="entityDetails?.entityStatusType?.entityStatusTypeCode === ENTITY_DUNS_REFRESH_MODIFYING && entityDetails?.versionStatus !== cancelledVersion"
+                                class="coi-warning-pill rounded-pill fs-13 px-3 py-0 ms-2"
+                                title="The entity '{{ entityListData?.entityName }}' is in Modifying-DUNS Refresh">
+                                <span class="text-nowrap">Modifying - DUNS Refresh</span>
+                            </div>
+                            <!-- Cancelled -->
+                            <div *ngIf="entityDetails?.entityStatusType?.entityStatusTypeCode === ENTITY_MODIFYING && entityDetails?.versionStatus === cancelledVersion"
+                                class="coi-danger-pill rounded-pill fs-13 px-3 py-0 ms-2"
+                                title="The entity version status of '{{ entityDetails?.entityName }}' is Cancelled">
+                                <span>Cancelled</span>
+                            </div>
+                        </div>
+                        <div class="fs-14 d-flex align-items-center" *ngIf="originalEntityName && entityDetails?.entityDocumentStatusType?.documentStatusTypeCode === ENTITY_DUPLICATE"
+                        (click)="openEntity()">
+                                <span class="link-primary me-1">
+                                    <app-common-help-text [helpTextHardCoded]="'This is the genuine entity. Click to view details'" [placement]="'bottom'"></app-common-help-text>
+                                    <span class="ms-1">{{originalEntityName}}</span>
+                                </span>
+                                <mat-icon aria-hidden="true" class="fs-16 ms-1">open_in_new</mat-icon>
+                        </div>
+                        <div class="d-flex">
+                            <!-- home unit -->
+                            <span class="d-flex align-items-center mt-1">
+                                <mat-icon aria-hidden="true"
+                                    class="fw-bolder flex-shrink-0 coi-mat-icon-size me-1 coi-coloured-icons">location_on</mat-icon>
+                                <span class="text-slice coi-text-light fs-13" [title]="entityFullAddress">{{entityFullAddress}}</span>
+                            </span>
+                        </div>
+                        <div class="d-flex">
+                            <!-- number -->
+                            <span class="d-flex align-items-center mt-1 me-3" *ngIf="entityDetails?.phoneNumber">
+                                <mat-icon aria-hidden="true"
+                                    class="fw-bolder flex-shrink-0 coi-mat-icon-size me-1 coi-coloured-icons">call</mat-icon>
+                                <span class="text-slice coi-text-light fs-13" [title]="entityDetails?.phoneNumber">{{entityDetails?.phoneNumber}}</span>
+                            </span>
+                            <!-- email -->
+                            <span class="d-flex align-items-center mt-1 me-3" *ngIf="entityDetails?.certifiedEmail">
+                                <mat-icon aria-hidden="true"
+                                    class="fw-bolder flex-shrink-0 coi-mat-icon-size me-1 coi-coloured-icons">mail</mat-icon>
+                                <span class="text-slice coi-text-light fs-13" [title]="entityDetails?.certifiedEmail">{{entityDetails?.certifiedEmail}}</span>
+                            </span>
+                            <!-- website -->
+                            <span class="d-flex align-items-center mt-1" *ngIf="entityDetails?.websiteAddress">
+                                <mat-icon aria-hidden="true"
+                                    class="fw-bolder flex-shrink-0 coi-mat-icon-size me-1 coi-coloured-icons">language</mat-icon>
+                                <span class="text-slice coi-text-light fs-13" [title]="entityDetails?.websiteAddress">{{entityDetails?.websiteAddress}}</span>
+                            </span>
+                        </div>
+                        <!-- corporate linkage -->
+                        <div *ngIf="entityFamilyTreeRoles?.length" class="d-flex align-items-center gap-1">
+                            <mat-icon aria-hidden="true" class="flex-shrink-0 coi-text-lighter coi-scale-8 coi-coloured-icons">mediation</mat-icon>
+                            <ng-container *ngFor="let roles of entityFamilyTreeRoles; let lastLinkage = last">
+                                <div class="coi-text-light fs-13 text-slice" [title]="roles?.familyRoleType?.description">{{ roles?.familyRoleType?.description }}</div>
+                                <!-- divider -->
+                                <span *ngIf="!lastLinkage" class="coi-text-lighter">|</span>
+                            </ng-container>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 col-auto ms-auto flex-wrap justify-content-end">
+                    <!-- Cancel Modification -->
+                    <button *ngIf="isShowCancelModifyBtn" id="coi-entity-cancel-modification-btn"
+                        class="btn btn-primary fs-14 d-flex align-items-center btn-sm"
+                        (click)="openCancelConfirmtaionModal()"
+                        [disabled]="commonService.autoSaveSavingSpinner !== 'HIDE' || confirmationModalConfig?.isOpenVerifyModal || isOpenEntityDuplicate || commonService.hasChangesAvailable || entityManagementService?.reviewCommentsSliderConfig?.isOpenCommentSlider || isOpenComparisonSlider"
+                        title="Click here to cancel entity modification" aria-label="Click here to cancel entity modification">
+                        Cancel Modification
+                    </button>
+                    <!-- Validate -->
+                    <button *ngIf="isEditMode && [ENTITY_UNVERIFIED, ENTITY_MODIFYING, ENTITY_DUNS_REFRESH_MODIFYING].includes(entityDetails?.entityStatusType?.entityStatusTypeCode) && hasVerifyEntityRight && entityDetails?.versionStatus != cancelledVersion && hasOverviewEditRight" id="coi-entity-validate-btn"
+                        class="btn btn-outline-grey fs-14 d-flex align-items-center btn-sm" (click)="openVerifyEntityModal('VALIDATION')"
+                        [disabled]="commonService.autoSaveSavingSpinner !== 'HIDE' || confirmationModalConfig?.isOpenVerifyModal || isOpenEntityDuplicate || commonService.hasChangesAvailable || entityManagementService?.reviewCommentsSliderConfig?.isOpenCommentSlider || isOpenComparisonSlider"
+                        title="Click here to validate entity" aria-label="Click here to validate entity">
+                        Validate
+                    </button>
+                    <!-- Confirm -->
+                    <button *ngIf="isEditMode && [ENTITY_UNVERIFIED, ENTITY_MODIFYING, ENTITY_DUNS_REFRESH_MODIFYING].includes(entityDetails?.entityStatusType?.entityStatusTypeCode) && hasVerifyEntityRight && entityDetails?.versionStatus != cancelledVersion && hasOverviewEditRight" id="coi-entity-Confirm-btn"
+                        class="btn btn-primary fs-14 d-flex align-items-center btn-sm" (click)="openVerifyEntityModal('CONFIRM')"
+                        [disabled]="commonService.autoSaveSavingSpinner !== 'HIDE' || confirmationModalConfig?.isOpenVerifyModal || isOpenEntityDuplicate || commonService.hasChangesAvailable || entityManagementService?.reviewCommentsSliderConfig?.isOpenCommentSlider || isOpenComparisonSlider"
+                        title="Click here to Confirm entity" aria-label="Click here to Confirm entity">
+                        Confirm
+                    </button>
+                    <!-- modify -->
+                    <button *ngIf="canModifyEntity" id="coi-entity-modify-btn"
+                        name="coi-entity-modify-btn"
+                        class="btn btn-primary fs-14 d-flex align-items-center btn-sm"
+                        (click)="openModifyConfirmationModal()"
+                        title="Click here to modify entity" aria-label="Click here to modify entity">
+                        Modify
+                    </button>
+                    <!-- All Comments -->
+                    <button *ngIf="isShowCommentButton" (click)="openAllReviewComment()" id="entity-comments"
+                        [disabled]="confirmationModalConfig?.isOpenVerifyModal || isOpenEntityDuplicate || entityManagementService?.reviewCommentsSliderConfig?.isOpenCommentSlider || isOpenComparisonSlider"
+                        aria-label="Click here to add new comment" title="Click here to add new comment"
+                        class="btn btn-outline-grey fs-14 d-flex align-items-center btn-sm gap-1">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0">rate_review</mat-icon>
+                        <span>All Comments<span *ngIf="commentCount > 0">({{commentCount}})</span></span>
+                    </button>
+                    <!-- versions -->
+                    <ng-container *ngIf="entityVersionList?.length > 0">
+                        <div class="btn-group">
+                            <!-- version btn -->
+                            <button id="coi-entity-version-btn" (click)="triggerClickForId('coi-entity-version-dropdown-btn')"
+                                class="d-flex btn btn-outline-grey fs-14 align-items-center btn-sm"
+                                [disabled]="commonService.autoSaveSavingSpinner !== 'HIDE' || confirmationModalConfig?.isOpenVerifyModal || isOpenEntityDuplicate || commonService?.hasChangesAvailable || entityManagementService?.reviewCommentsSliderConfig?.isOpenCommentSlider || isOpenComparisonSlider"
+                                title="Click here for entity versions" aria-label="Click here for entity versions">
+                                <span>Version <span *ngIf="selectedVersion?.entityId">{{ selectedVersion?.versionNumber }} <span *ngIf="selectedVersion?.versionStatus === activeVersion">(Active)</span><span *ngIf="selectedVersion?.versionStatus === cancelledVersion">(Cancelled)</span></span></span>
+                            </button>
+                            <!-- dropdown btn -->
+                            <button [matMenuTriggerFor]="entityVersionChangeBtn" id="coi-entity-version-dropdown-btn"
+                                class="btn btn-outline-grey fs-14 dropdown-width dropdown-toggle dropdown-toggle-split btn-sm"
+                                [disabled]="commonService.autoSaveSavingSpinner !== 'HIDE' || confirmationModalConfig?.isOpenVerifyModal || isOpenEntityDuplicate || commonService?.hasChangesAvailable || entityManagementService?.reviewCommentsSliderConfig?.isOpenCommentSlider || isOpenComparisonSlider"
+                                title="Click here for entity versions" aria-label="Click here for entity versions">
+                            </button>
+                        </div>
+                        <!-- options -->
+                        <mat-menu #entityVersionChangeBtn="matMenu" xPosition="before">
+                            <ng-container *ngFor="let version of entityVersionList">
+                                <button mat-menu-item id="btn-version-change-{{version?.versionNumber}}" (click)="versionChange(version)"
+                                    title="Click here to select {{version?.versionStatus === activeVersion ? 'active' : ''}} version: {{version?.versionNumber}}"
+                                    attr.aria-label="Click here to select {{version?.versionStatus === activeVersion ? 'active' : ''}} version: {{version?.versionNumber}}">
+                                    <span class="coi-text-light fw-medium">{{ 'Version ' + version?.versionNumber }}</span>
+                                    <span *ngIf="version?.versionStatus === activeVersion" class="coi-text-light fw-medium ms-1">(Active)</span>
+                                    <span *ngIf="version?.versionStatus === cancelledVersion" class="coi-text-light fw-medium ms-1">(Cancelled)</span>
+                                </button>
+                            </ng-container>
+                        </mat-menu>
+                    </ng-container>
+                    <!-- more option -->
+                    <button *ngIf="isShowMoreActions" [matMenuTriggerFor]="entityMoreActions" id="coi-entity-details-moreaction-btn"
+                        class="d-flex btn btn-outline-grey fs-14 align-items-center btn-sm"
+                        [disabled]="commonService?.autoSaveSavingSpinner !== 'HIDE' || confirmationModalConfig?.isOpenVerifyModal || isOpenEntityDuplicate || commonService?.hasChangesAvailable || entityManagementService?.reviewCommentsSliderConfig?.isOpenCommentSlider || isOpenComparisonSlider"
+                        title="Click here for more actions" aria-label="Click here for more actions">
+                        <mat-icon aria-hidden="true">more_vert</mat-icon>
+                    </button>
+                    <!-- back -->
+                    <button id="coi-entity-Confirm-match-btn" (click)="navigateToBack()"
+                        [disabled]="confirmationModalConfig?.isOpenVerifyModal || isOpenEntityDuplicate || entityManagementService?.reviewCommentsSliderConfig?.isOpenCommentSlider || isOpenComparisonSlider"
+                        class="btn btn-outline-grey fs-14 d-flex align-items-center btn-sm"
+                        title="Click here to navigate back" aria-label="Click here to navigate back">
+                        <mat-icon aria-hidden="true">reply</mat-icon>
+                    </button>
+                </div>
+            </div>
+            <mat-menu #entityMoreActions="matMenu" xPosition="before">
+                <button *ngIf="isShowComparisonBtn" mat-menu-item id="coi-entity-change-status-btn" class="more-action" (click)="isOpenComparisonSlider = true;"
+                    title="Click here to view compare with active version" aria-label="Click here to view compare with active version">
+                    <mat-icon aria-hidden="true" class="coi-text-lighter flex-shrink-0 me-2 coi-rotate-90">compare_arrows</mat-icon>
+                    <span class="coi-text-light fw-medium">Compare with Active Version</span>
+                </button>
+                <button *ngIf="isShowChangeEntityStatusBtn" mat-menu-item id="coi-entity-change-status-btn" class="more-action" (click)="openStatusChangeModal()"
+                    title="Click here to change entity status" aria-label="Click here to change entity status">
+                    <mat-icon aria-hidden="true" class="coi-text-lighter coi-scale-9 flex-shrink-0 me-2">edit</mat-icon>
+                    <span class="coi-text-light fw-medium">Change Entity Status</span>
+                </button>
+                <!-- Graph -->
+                <button *ngIf="isShowGraph" mat-menu-item id="coi-entity-more-optn-graph-btn"
+                    class="more-action" (click)="openGraph(entityDetails?.entityId, entityDetails?.entityName)"
+                    aria-label="Click here to view entity graph" title="Click here to view entity graph">
+                    <mat-icon aria-hidden="true" class="coi-text-lighter coi-scale-9 flex-shrink-0 me-2">hub</mat-icon>
+                    <span class="coi-text-light fw-medium">Graph</span>
+                </button>
+            </mat-menu>
+        </div>
+        <!-- new top card ends -->
+    </div>
+    <div *ngIf="commonService.isEnableEntityDunsMatch && isEditMode && hasOverviewEditRight && isShowDunsMatchSection" class="col-12">
+        <div class="card border-r-0 p-1">
+            <span class="fs-14 px-2 py-1 rounded-1 matching-card d-flex align-items-center">
+                <div class="d-flex align-items-start gap-1">
+                    <mat-icon aria-hidden="true" class="mb-auto flex-shrink-0">info</mat-icon>
+                    <span>{{ isShowCheckForDuns ? CHECK_FOR_DUNS_MATCHES_INFO : UNLINK_DUNS_MATCHES_INFO }}</span>
+                </div>
+                <button *ngIf="isShowCheckForDuns" id="coi-entity-duns-check-match-btn"
+                    class="btn btn-primary ms-auto fs-14 d-flex align-items-center col-auto"
+                    [disabled]="confirmationModalConfig?.isOpenVerifyModal || isOpenEntityDuplicate || entityManagementService?.reviewCommentsSliderConfig?.isOpenCommentSlider || isOpenComparisonSlider"
+                    (click)="viewSlider(true)" [disabled]="commonService?.autoSaveSavingSpinner !== 'HIDE'"
+                    title="Click here to check for D&B match" aria-label="Click here to check for D&B match">
+                    <mat-icon aria-hidden="true" class="me-1 flex-shrink-0">check_circle</mat-icon>
+                    <span class="text-nowrap">Check for D&B Matches</span>
+                </button>
+                <button *ngIf="!isShowCheckForDuns" id="coi-entity-duns-unlink-btn"
+                    class="btn btn-primary ms-auto fs-14 d-flex align-items-center col-auto"
+                    [disabled]="confirmationModalConfig?.isOpenVerifyModal || isOpenEntityDuplicate || entityManagementService?.reviewCommentsSliderConfig?.isOpenCommentSlider"
+                    (click)="openUnlinkConfirmationModal()" [disabled]="commonService?.autoSaveSavingSpinner !== 'HIDE'"
+                    title="Click here to unlink D&B match" aria-label="Click here to unlink D&B match">
+                    <mat-icon aria-hidden="true" class="me-1 flex-shrink-0">link_off</mat-icon>
+                    <span class="text-nowrap">Unlink D&B Match</span>
+                </button>
+            <!-- <button id="coi-entity-duns-resync-btn"
+            class="btn btn-outline-primary ms-2  fs-14 d-flex align-items-center"
+            title="Click here to resync D&B match" aria-label="Click here to resync D&B match">
+            <mat-icon aria-hidden="true" class="me-1 flex-shrink-0">sync</mat-icon>Resync
+        </button> -->
+            </span>
+        </div>
+    </div>
+    <ul tabindex="-1" id="coi-entity-responsive-nav" role="menu" aria-label="navigation"
+        class="header-navigation-links d-flex align-items-center m-0 fs-14 p-0 scrollbar-sm">
+        <li [routerLink]="['/coi/manage-entity/entity-overview']" class="mr-2 cursor-pointer d-flex align-items-center"
+            role="tab" (click)="onClickMenuBar()" queryParamsHandling='merge' routerLinkActive="active"
+            [attr.title]="router.url.includes('/coi/manage-entity/entity-overview') ? 'Overview' : 'Go to Overview'"
+            aria-label="Click here to go to overview">
+            <span class="me-2">Overview</span>
+            <span *ngIf="entityTabStatus?.entity_overview"><mat-icon aria-hidden="true" class="fs-16 text-success">check_circle</mat-icon></span>
+            <span *ngIf="router.url.includes('/coi/manage-entity/entity-overview')" class="active-color"></span>
+        </li>
+        <li [routerLink]="['/coi/manage-entity/entity-sponsor']" class="mr-2 cursor-pointer d-flex align-items-center"
+            role="tab" (click)="onClickMenuBar()" queryParamsHandling='merge' routerLinkActive="active"
+            [attr.title]="router.url.includes('entity-sponsor') ? 'Sponsor' : 'Go to Sponsor'"
+            aria-label="Click here to go to sposnor">
+            <span class="me-2">Sponsor</span>
+            <span *ngIf="entityTabStatus?.entity_sponsor_info"><mat-icon aria-hidden="true" class="fs-16 text-success">check_circle</mat-icon></span>
+            <span *ngIf="router.url.includes('entity-sponsor')" class="active-color"></span>
+        </li>
+        <li [routerLink]="['/coi/manage-entity/entity-subaward']" class="mr-2 cursor-pointer d-flex align-items-center"
+            role="tab" (click)="onClickMenuBar()" queryParamsHandling='merge' routerLinkActive="active"
+            [attr.title]="router.url.includes('entity-subaward') ? 'Sub-award Organization' : 'Go to Sub-award Organization'"
+            aria-label="Click here to go to subaward organization">
+            <span class="me-2">Sub-award Organization</span>
+            <span *ngIf="entityTabStatus?.entity_sub_org_info"><mat-icon aria-hidden="true" class="fs-16 text-success">check_circle</mat-icon></span>
+            <span *ngIf="router.url.includes('entity-subaward')" class="active-color"></span>
+        </li>
+        <li [routerLink]="['/coi/manage-entity/entity-compliance']" class="mr-2 cursor-pointer" role="tab"
+            (click)="onClickMenuBar()" queryParamsHandling='merge' routerLinkActive="active"
+            [attr.title]="router.url.includes('entity-compliance') ? 'Compliance' : 'Go to Compliance'"
+            aria-label="Click here to go to compliance">Compliance
+            <span *ngIf="router.url.includes('entity-compliance')" class="active-color"></span>
+        </li>
+        <li *ngIf="isShowNotesTab" [routerLink]="['/coi/manage-entity/entity-notes']" class="mr-2 cursor-pointer" role="tab"
+            (click)="onClickMenuBar()" queryParamsHandling='merge' routerLinkActive="active"
+            [attr.title]="router.url.includes('entity-notes') ? 'Notes' : 'Go to Notes'"
+            aria-label="Click here to go to notes">Notes
+            <span *ngIf="router.url.includes('entity-notes')" class="active-color"></span>
+        </li>
+        <li [routerLink]="['/coi/manage-entity/entity-attachments']" class="mr-2 cursor-pointer" role="tab"
+            (click)="onClickMenuBar()" queryParamsHandling='merge' routerLinkActive="active"
+            [attr.title]="router.url.includes('entity-attachments') ? 'Attachments' : 'Go to Attachments'"
+            aria-label="Click here to go to attachments">Attachments
+            <span *ngIf="router.url.includes('entity-attachments')" class="active-color"></span>
+        </li>
+        <li [routerLink]="['/coi/manage-entity/entity-corporate-family']" class="mr-2 cursor-pointer" role="tab"
+            (click)="onClickMenuBar()" queryParamsHandling='merge' routerLinkActive="active"
+            [attr.title]="router.url.includes('entity-corporate-family') ? 'Corporate Family' : 'Go to Corporate Family'"
+            aria-label="Click here to go to corporate family">Corporate Family
+            <span *ngIf="router.url.includes('entity-corporate-family')" class="active-color"></span>
+        </li>
+        <li [routerLink]="['/coi/manage-entity/entity-history']" class="mr-2 cursor-pointer" role="tab"
+            (click)="onClickMenuBar()" queryParamsHandling='merge' routerLinkActive="active"
+            [attr.title]="router.url.includes('entity-history') ? 'History' : 'Go to History'"
+            aria-label="Click here to go to history">History
+            <span *ngIf="router.url.includes('entity-history')" class="active-color"></span>
+        </li>
+    </ul>
+    <div *ngIf="isEditMode" role="alert"
+        class="d-inline-flex align-items-center saved-toast invisible badge fw-normal fs-13 py-1 px-2 rounded-5 text-bg-light-success"
+        id="success-toast" [class.saved-toast-position]="!isShowDunsMatchSection || !commonService.isEnableEntityDunsMatch">
+        <span class="me-1">Last saved at {{autoSaveService.lastSavedTime ? autoSaveService.lastSavedTime : getCurrentTime()}}</span>
+        <mat-icon aria-hidden="true" class="coi-success-icon">cloud_done</mat-icon>
+    </div>
+    <div *ngIf="commonService?.autoSaveSavingSpinner !== 'HIDE'" class="saved-toast py-1 align-items-center d-inline-flex fw-normal px-2 rounded-5"
+        id="inprogress-toast" [class.saved-toast-position]="!isShowDunsMatchSection || !commonService.isEnableEntityDunsMatch">
+        <span class="me-1 fs-14">Saving...</span>
+        <mat-icon aria-hidden="true" class="text-success fw-600 coi-rotating">autorenew</mat-icon>
+    </div>
+    <div class="header-menu-icon px-3 py-2">
+        <button class="btn-none" aria-label="Click here for menu" title="Click here for menu" (click)="onClickMenuBar()">
+            <mat-icon class="cursor-pointer mt-2">menu</mat-icon>
+        </button>
+    </div>
+    <!-- overlay for responsive nav -->
+    <div *ngIf="isShowNavBarOverlay" class="nav-bar-custom-overlay" (click)="onClickMenuBar()"></div>
+    </div>
+
+<ng-container *ngIf="showSlider">
+    <app-coi-slider (closeSlider)="validateSliderClose()"
+        [elementId]="sliderElementId" [isHeaderNeeded]="true" [sliderWidth]="'w-md-90 w-lg-75 w-xxl-50 w-100'">
+
+        <ng-container header>
+            <span id="coi-entity-duns-match-header">{{matchedEntities?.length}} D&B Matching Entities<app-common-help-text [subSectionId]="2643" [elementId]="'coi-entity-duns-match-header'"></app-common-help-text></span>
+        </ng-container>
+
+        <!-- slider content -->
+        <ng-container content>
+            <ng-container *ngIf="matchedEntities?.length; else showNoData">
+                <ng-container *ngFor="let entity of cardDetails; let cardIndex = index">
+                    <app-entity-duns-card [entityDetailsObj]="entity" [uniqueId]="cardIndex"
+                        (emitCardNextAction)="openConfirmationModal($event, entity)"></app-entity-duns-card>
+                </ng-container>
+            </ng-container>
+            <ng-template #showNoData>
+                <app-no-information customClass="mt-0 rounded-3">
+                    <span>No D&B matching entities found.</span>
+                </app-no-information>
+            </ng-template>
+        </ng-container>
+    </app-coi-slider>
+</ng-container>
+
+<ng-container *ngIf="confirmationModalConfig?.isOpenVerifyModal">
+    <app-enitity-verify-modal
+        [modalType]="confirmationModalConfig.modalType"
+        [hasConfirmedNoDuplicate]="entityDupCheckConfig.hasConfirmedNoDuplicate"
+        (verifyModalAction)="verifyModalAction($event)">
+    </app-enitity-verify-modal>
+</ng-container>
+
+<ng-container *ngIf="isOpenEntityDuplicate">
+    <app-duplicate-entity-check [dupCheckPayload]="dupCheckPayload" [entityDupCheckConfig]="entityDupCheckConfig"
+        (actionResponse)="duplicateCheckResponse($event)" (openModal)="openDuplicateConfirmationModal($event)"></app-duplicate-entity-check>
+</ng-container>
+
+<!-- D&B match confirmation pop-up starts -->
+<app-common-modal [modalConfig]="dunsMatchConfirmationModalConfig" (modalAction)="callEnrichAPI($event)">
+    <ng-container modal-header>
+        <span>Confirmation<app-common-help-text [subSectionId]="2643" [elementId]="'coi-entity-dnb-confirm'"></app-common-help-text></span>
+    </ng-container>
+    <ng-container modal-body>
+        <p>Are you sure to use this D&B match?</p>
+    </ng-container>
+</app-common-modal>
+<!-- D&B match confirmation pop-up ends -->
+
+<div class="modal fade mySkinDialog" data-bs-backdrop="static" [id]="'coi-entity-confirmation-modal'" role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Confirmation
+                </h5>
+                <button type="button" class="fs-12 btn-close d-none" data-bs-dismiss="modal" tabindex="-1" aria-hidden="true"></button>
+                <button type="button" class="fs-12 btn-close" data-bs-dismiss="modal" title="Click here to close"
+                        aria-label="Click here to close" (click)="resetNavigationStop()">
+                </button>
+            </div>
+            <div class="modal-body title-descriptions">
+                <p>Do you want to discard changes and leave the page?</p>
+            </div>
+            <div class="modal-footer mx-2">
+                <button type="button" class="btn btn-outline-secondary fs-14" id="entity-overview-leave-page"
+                        (click)="leaveSlider()" title="Click here to leave page">
+                    Leave Page
+                </button>
+                <button (click)="resetNavigationStop()" type="button" class="btn btn-primary fs-14" id="entity-overview-stay-on-page"
+                        data-bs-dismiss="modal" title="Click here to stay on page">
+                    Stay On Page
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<app-duplicate-marking-confirmation [duplicateEntityDetails]="duplicateEntityDetails" (emitAPISuccess)="isOpenEntityDuplicate = false"></app-duplicate-marking-confirmation>
+
+<app-entity-status-modal-change [$triggerModalOpen]="$triggerModalOpen" (openDuplicatesSlider)="duplicateModalAction($event)"
+    [entityCardDetails]="entityDupCheckConfig.entityCardDetails">
+</app-entity-status-modal-change>
+
+<app-entity-review-comments-slider *ngIf="entityManagementService?.reviewCommentsSliderConfig?.isOpenCommentSlider"
+    [reviewCommentsSliderConfig]="entityManagementService.reviewCommentsSliderConfig" [entityDetails]="entityDetails">
+</app-entity-review-comments-slider>
+
+<app-coi-entity-comparison-slider *ngIf="isOpenComparisonSlider" 
+    [currentEntityId]="entityDetails?.entityId"
+    [currentEntityNumber]="entityDetails?.entityNumber"
+    (comparisonSliderAction)="comparisonSliderActions($event)">
+</app-coi-entity-comparison-slider>
+
+<app-common-modal [modalConfig]="cancelModificationModalConfig" (modalAction)="cancelModificationPostConfirmation($event)">
+    <ng-container modal-header>
+        <span>Confirmation</span>
+        <app-common-help-text [subSectionId]="2640" [elementId]="'coi-entity-cancel-modify-modal'"></app-common-help-text>
+    </ng-container>
+    <ng-container modal-body>
+        <p class="mb-2">Are you sure you want to cancel the modification?</p>
+        <div class="d-flex alert alert-primary py-2 mb-2">
+            <mat-icon class="flex-shrink-0" aria-hidden="true">info</mat-icon>
+            <p class="fs-14 mb-0 ms-2"><span class="d-flex algin-items-start">All the changes will be discarded, and the
+                    entity will revert to the last active version.</span></p>
+        </div>
+        <!-- description -->
+        <div class="mt-1">
+            <label for="cancel_entity_modification_description" class="coi-text-dark d-block mb-1">
+                <span class="mandatory me-1" aria-label="Mandatory field">*</span>
+                <span>Description</span>
+                <app-common-help-text [subSectionId]="2640" [elementId]="'coi-entity-cancel-modify-desc'"></app-common-help-text>
+            </label>
+            <textarea class="form-control" id="cancel_entity_modification_description" rows="5"
+                name="cancel_entity_modification_description" [(ngModel)]="cancelModificationDesc" appLengthValidator
+                [limit]=2000 spellcheck="false"
+                (ngModelChange)="cancelModificationDesc = cancelModificationDesc.trim();"
+                title="Click here to provide your description" placeholder="Please provide the description here."
+                [attr.aria-label]="cancelModificationDesc"
+                [class.is-invalid]="cancelModificationMandatoryList.has('CANCEL_MODIFICATION_DESC')">
+            </textarea>
+            <!-- description error -->
+            <span *ngIf="cancelModificationMandatoryList.has('CANCEL_MODIFICATION_DESC')" class="invalid-feedback">{{
+                cancelModificationMandatoryList.get('CANCEL_MODIFICATION_DESC') }}</span>
+        </div>
+    </ng-container>
+</app-common-modal>
+
+<app-common-modal [modalConfig]="modifyConfirmationConfig" (modalAction)="modifyPostConfirmation($event)">
+    <ng-container modal-header>
+        <span>Confirmation</span>
+        <app-common-help-text [subSectionId]="2641" [elementId]="'coi-entity-modify-cnfrm-modal'"></app-common-help-text>
+    </ng-container>
+    <ng-container modal-body>
+        <p>Are you sure you want to modify this entity?</p>
+    </ng-container>
+</app-common-modal>
+
+<!-- Entity duns unlink confirmation modal -->
+<app-common-modal [modalConfig]="unlinkConfirmationConfig" (modalAction)="unlinkPostConfirmation($event)">
+    <ng-container modal-header>
+        <span>Confirmation</span>
+        <app-common-help-text [subSectionId]="2641" [elementId]="'coi-entity-unlink-cnfrm-modal'"></app-common-help-text>
+    </ng-container>
+    <ng-container modal-body>
+        <p>Are you sure you want to unlink this entity from D&B?</p>
+    </ng-container>
+</app-common-modal>

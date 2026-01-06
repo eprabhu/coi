@@ -1,0 +1,369 @@
+<ng-container *ngIf="showSlider">
+    <app-coi-slider (closeSlider)="validateSliderClose()" [elementId]="sliderElementId" [overlay_z_index]="1056" [slider_z_index]="1057" [isHeaderNeeded]="true" [sliderWidth]="'w-xl-50 w-md-75'">
+        <ng-container header>
+            <mat-icon aria-hidden="true" class="coi-text-lighter me-1 align-middle">rate_review</mat-icon>
+            <span class="coi-text-darker fs-20" id="coi-disclosure-comments-header">Comments</span>
+        </ng-container>
+        <ng-container content-sticky>
+            <div class="bg-white" id="review-comment-slider-header">
+                <div *ngIf="disclosureType === 'COI' && !isProjectTabCommentSection('12') && !generalCommentFromProjectTab" class="coi-box-red coi-border-grey border-secondary border-opacity-50 rounded-2 shadow-medium p-3">
+                    <div class="row mb-2">
+                        <div class="col d-flex align-items-start coi-card-body-notch-container">
+                            <div class="d-flex fs-16 label-text">
+                                <mat-icon class="fs-2 coi-text-lighter">person</mat-icon>
+                                <span id="coi-comment-slider-project-title" class="text-slice">
+                                    {{disclosureDetails?.person?.fullName}} - <span class="coi-text-light fst-italic">{{disclosureDetails?.person?.primaryTitle}}</span></span>
+                            </div>
+                        </div>
+                        <div class="col-auto d-flex align-items-center justify-content-end">
+                            <span class="ml-2 fw-normal">
+                                <app-no-data-label [valueToShow]="disclosureDetails?.coiConflictStatusType?.description">
+                                    <span
+                                        class="{{disclosureConflictBadge[disclosureDetails?.conflictStatusCode] || 'yellow-badge'}}"></span>
+                                    <span class="badgeFont p-0">
+                                        {{disclosureDetails?.coiConflictStatusType?.description}}
+                                    </span>
+                                </app-no-data-label>
+                            </span>
+                        </div>
+                    </div>
+    
+                    <div class="row mb-2">
+                        <div class="col-md-9 col-lg-10 d-flex align-items-start coi-card-body-notch-container">
+                            <div class="col-auto p-0 d-flex align-items-center coi-text-lighter">
+                                <mat-icon class="fs-2">mail</mat-icon>
+                                <span class="fst-italic">{{disclosureDetails?.person?.emailAddress}}</span>
+                                <span class="d-inline-block mx-2 fst-italic">|</span>
+                            </div>
+                            <div class="col-auto p-0 d-flex align-items-center coi-text-lighter">
+                                <mat-icon class="fs-2">home</mat-icon>
+                            <span class="fst-italic">{{commonService.getPersonLeadUnitDetails(disclosureDetails?.person?.unit)}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div *ngIf="isProjectTabCommentSection('12') || generalCommentFromProjectTab">
+                    <app-shared-project-details-card [projectDetails]="projectDetailsForHeader" [uniqueId]="'project-overview-comments'"
+                    customClass="coi-box-red shadow-medium"></app-shared-project-details-card>
+                </div>
+                
+                <div *ngIf="!['3', '9'].includes(reviewCommentDetails?.componentTypeCode) && !(reviewCommentDetails?.formBuilderSectionId && reviewCommentDetails?.formBuilderComponentId)">
+                    <div class="row mt-4">
+
+                        <!-- new ui for comment heading -->
+                        <div class="col" *ngIf="isReviewComment('4')">
+                            <h2 class="d-flex justify-content-between mb-0">
+                                <span class="d-flex">
+                                    <img class="proposal-icon me-1" src="{{deployMap}}assets/images/qstnr.png" alt="icon">
+                                    <span class="fs-6">{{coiSubSectionsTitle}}</span>
+                                </span>
+                                <button *ngIf="(commentList.length) && !showAddComment && !isViewMode"
+                                    class="btn btn-sm btn-tertiary d-inline-flex align-self-end text-nowrap flex-shrink-0" id="coi-add-comment-btn"
+                                    (click)="showAddComment = !showAddComment" title="Click here to add new comment"
+                                    aria-label="Click here to add new comment">
+                                    <mat-icon aria-hidden="true" class="hyper-link me-1">add</mat-icon>Add Comment</button>
+                            </h2>
+                        </div>
+
+                        <div class="col d-flex justify-content-end mb-0" *ngIf="isProjectTabCommentSection('12') && (hasMaintainCoiComments || hasMaintainPrivateComments)">
+                            <button *ngIf="(commentList.length) && !showAddComment && !isViewMode"
+                                class="btn btn-sm btn-tertiary d-inline-flex align-self-end text-nowrap flex-shrink-0" id="coi-add-comment-btn"
+                                (click)="showAddComment = !showAddComment" title="Click here to add new comment"
+                                aria-label="Click here to add new comment">
+                                <mat-icon aria-hidden="true" class="hyper-link me-1">add</mat-icon>Add Comment
+                            </button>
+                        </div>
+
+                        <div class="col" *ngIf="isReviewComment('5')">
+                            <h2 class="d-flex justify-content-between mb-0">
+                                <span class="d-flex">
+                                    <mat-icon class="grey-text coi-scale-9 overflow-visible me-1">apartment</mat-icon>
+                                    <a tabindex="0" class="fs-6 coi-text-dark link-primary" (click)="openSFI(reviewCommentDetails?.subModuleItemKey)"
+                                        (keyup.enter)="openSFI(reviewCommentDetails?.subModuleItemKey)">
+                                        {{coiSubSectionsTitle}}
+                                    </a>
+                                </span>
+                                <button *ngIf="(commentList.length) && !showAddComment && !isViewMode"
+                                    class="btn btn-sm btn-tertiary d-inline-flex align-self-end text-nowrap flex-shrink-0" id="coi-add-comment-btn"
+                                    (click)="showAddComment = !showAddComment" title="Click here to add new comment"
+                                    aria-label="Click here to add new comment">
+                                    <mat-icon aria-hidden="true" class="hyper-link me-1">add</mat-icon>
+                                    Add Comment
+                                </button>
+                            </h2>
+                        </div>
+                        <div class="col-12" *ngIf="isReviewComment('6')">
+                            <h2 class="d-flex justify-content-between mb-0 gap-2">
+                                <div class="d-flex">
+                                <mat-icon aria-hidden="true" class="ms-2 coi-text-light flex-shrink-0 coi-scale-9">{{selectedProjectDetails?.projectIcon}}</mat-icon>
+                                <a tabindex="0" class="fs-6 text-decoration-underline link-primary fw-600 coi-text-dark" id="link-{{selectedProjectDetails?.projectId}}"
+                                                        title="Click here to navigate to project details of #{{selectedProjectDetails?.projectNumber}} - {{selectedProjectDetails?.title}}"
+                                                        attr.aria-label="Click here to navigate to project details of {{selectedProjectDetails?.projectNumber}} - {{selectedProjectDetails?.title}}"
+                                                        (click)="redirectToProjectDetails()" (keyup.enter)="redirectToProjectDetails()">
+                                                        <span class="text-slice">#{{selectedProjectDetails?.projectNumber}} - {{selectedProjectDetails?.title}}</span>
+                                                    </a>
+                            </div>
+                            <button *ngIf="(commentList.length) && !showAddComment && !isViewMode"
+                                    class="btn btn-sm btn-tertiary d-inline-flex align-self-end text-nowrap flex-shrink-0" id="coi-add-comment-btn"
+                                    (click)="showAddComment = !showAddComment" title="Click here to add new comment"
+                                    aria-label="Click here to add new comment">
+                                    <mat-icon aria-hidden="true" class="hyper-link me-1">add</mat-icon>Add Comment</button>
+                            </h2>
+                        </div>
+                        <div class="col-12">
+                            <div class="row">
+                                <div class="col-12" *ngIf="isReviewComment('8') || isReviewComment('10') || isReviewComment('11')">
+                                    <h2 class="d-flex justify-content-between mb-0">
+                                        <span class="d-flex">
+                                            <span class="fs-6">{{coiSubSectionsTitle}}</span>
+                                        </span>
+                                        <button *ngIf="(commentList.length) && !showAddComment && !isViewMode"
+                                            class="btn btn-sm btn-tertiary d-inline-flex align-self-end text-nowrap flex-shrink-0" id="coi-add-comment-btn"
+                                            (click)="showAddComment = !showAddComment" title="Click here to add new comment"
+                                            aria-label="Click here to add new comment">
+                                            <mat-icon aria-hidden="true" class="hyper-link me-1">add</mat-icon>Add Comment</button>
+                                    </h2>
+                                </div>
+                                <ng-container *ngIf="isReviewComment('6') && subSectionId">
+                                    <div class="col-12 col-xl-6 position-relative">
+                                        <div class="" [class.down-line]="isReviewComment('6') && subSectionId">
+                                            <div class="col-12 left-spacing d-flex" (click)="openSFI(subSectionId)">
+                                                <div class="d-flex top-5px position-relative">
+                                                    <mat-icon class="coi-scale-9 grey-text flex-shrink-0 overflow-visible">apartment</mat-icon>
+                                                    <span class="link-primary text-slice coi-text-dark"
+                                                        [title]="subSectionTitle">{{subSectionTitle}}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                                <div class="col-12 col-xl-6 d-flex align-items-center justify-content-xl-end mt-2" *ngIf="sfiStatus">
+                                    <label>Conflict Status : </label>
+                                    <span class="ml-2 fw-normal">
+                                        <app-no-data-label [valueToShow]="disclosureDetails?.coiConflictStatusType?.description">
+                                            <span
+                                                class="{{projectDisclosureConflictBadge[sfiStatus?.projectConflictStatusCode]}}"></span>
+                                            <span class="badgeFont p-0">
+                                                {{sfiStatus?.description}}
+                                            </span>
+                                        </app-no-data-label>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="px-3">
+                </div>
+                <div *ngIf="disclosureType === 'OPA'" class="coi-box-red coi-border-grey border-secondary border-opacity-50 rounded-2 shadow-medium p-3">
+                    <div class="row mb-2">
+                        <div class="col px-4 py-2">
+                            <div class="row">
+                                <div class="col-auto p-0 d-flex align-items-center">
+                                    <mat-icon class="fs-2 me-1">person</mat-icon> {{disclosureDetails?.personName}} -
+                                    <span class="fst-italic">{{disclosureDetails?.personPrimaryTitle}}</span>
+                                    <span class="d-inline-block mx-2 fst-italic">|</span>
+                                </div>
+                                <div class="col-auto p-0 d-flex align-items-center">
+                                    <mat-icon class="fs-2 me-1">mail</mat-icon>
+                                    <span class="fst-italic">{{disclosureDetails?.personEmail}}</span>
+                                    <span class="d-inline-block mx-2 fst-italic">|</span>
+                                </div>
+                                <div class="col-auto p-0 d-flex align-items-center">
+                                    <mat-icon class="fs-2 me-1">home</mat-icon>
+                                    <span class="fst-italic text-slice">{{disclosureDetails?.homeUnit}} - {{disclosureDetails?.homeUnitName}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+        <ng-container content>
+            <div class="coi-search-box overflow-hide-nav advance-search mt-2 sticky-searchbar" [ngStyle]="{'top': disclosureType === 'OPA' ? '66px' : generalCommentFromProjectTab ? getDynamicTop() : ''}" 
+             *ngIf="requestBodyData?.componentTypeCode === null && commentList.length">
+                <div class="row m-0">
+                    <div class="col-8 d-flex px-3 py-2 search-area position-relative"
+                    [ngClass]="{'col-md-6 col-lg-5 col-xl-7': (reviewSliderConfig?.isDisclosureOwner || hasMaintainCoiComments || hasMaintainPrivateComments)}">
+                        <span class="filter-search">
+                            <mat-icon aria-hidden="true" class="fs-25px searchButton">search</mat-icon>
+                            <input class="form-control pe-5" type="text" id="searchText" placeholder="Search by comments"
+                                [(ngModel)]="searchText">
+                        </span>
+                        <span tabindex="0" aria-label="Clear Search Text" class="d-flex align-items-center" *ngIf="searchText" (click)="resetDashboardAfterSearch()" (keyup.enter)="resetDashboardAfterSearch()">
+                            <mat-icon class="closeButton" id="coi-user-disclosure-dashboard-filterby-close-btn">close</mat-icon>
+                        </span>
+                    </div>
+                    <div class="col-4 px-3 py-2  border-start d-flex justify-content-center"
+                    [ngClass]="{'col-md-2 col-lg-3 col-xl-2': (reviewSliderConfig?.isDisclosureOwner || hasMaintainCoiComments || hasMaintainPrivateComments)}">
+                        <button [matMenuTriggerFor]="beforeMenu" aria-label="Click here to view the section navigation list" title="Click here to view the section navigation list"
+                            class="btn-none more-info-icon rounded-circle d-inline-flex justify-content-center align-items-center coi-text-light text-nowrap"
+                            (click)="sectionNavigationCollapsed()">
+                            <i aria-hidden="true" class="fa fa-list mr-2" aria-hidden="true"></i> Go To
+                            <mat-icon [title]="isSectionNavigationCollapsed ? 'Click here to collapse section navigation list':'Click here to expand  section navigation list'"
+                                            [ngClass]="isSectionNavigationCollapsed ? 'coi-rotate-180' : 'coi-rotate-0'"
+                                            aria-hidden="true">expand_more</mat-icon>
+                        </button>
+                        <mat-menu #beforeMenu="matMenu" xPosition="before" (closed)="sectionNavigationCollapsed()">
+                            <ng-container *ngFor="let subsection of groupedCommentsList | keyvalue; let i = index;">
+                                <button mat-menu-item title="Click here to navigate to {{getSectionName(subsection.value)}}" aria-label="Click here to navigate to {{getSectionName(subsection.value)}}"
+                                    id="coi-commment-sections" (click)="scrollToSection(getSectionName(subsection.value), i)"
+                                    class="text-nowrap border-0 rounded-0 btn-primary-icon fs-14 d-flex justify-content-start w-100 align-items-center more-action">
+                                    <span class="ms-2 fw-medium fs-14">{{getSectionName(subsection.value)}}</span>
+                                </button>
+                            </ng-container>
+                        </mat-menu>
+                    </div>
+                    <div *ngIf="(reviewSliderConfig?.isDisclosureOwner || hasMaintainCoiComments || hasMaintainPrivateComments)" class="col-md-4 col-lg-4 col-xl-3 d-flex align-items-end justify-content-end border-start search-area p-2">
+                        <button *ngIf="(commentList.length) && !showAddComment && !isViewMode && !reviewCommentsService.isEditOrReplyClicked;
+                        " class="btn btn-sm btn-tertiary d-inline-flex position-relative flex-shrink-0 text-nowrap"
+                            id="coi-add-comment-btn" (click)="toggleAddCommentBox()" title="Click here to add new comment" aria-label="Click here to add new comment">
+                            <mat-icon aria-hidden="true" class="hyper-link me-1">add</mat-icon>Add Comment
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        <!-- default add comment section -->
+        <div class="card pt-2 px-2 shadow-medium pb-3 mt-3" *ngIf="(!commentList.length || showAddComment) && !isViewMode && (reviewSliderConfig?.isDisclosureOwner || hasMaintainCoiComments || hasMaintainPrivateComments)">
+            <div class="p-3 br-12 pb-0">
+                <div [ngClass]="mandatoryMap.has('comment') ? 'coi-invalid-feedback-border' : ''">
+                    <ckeditor [(ngModel)]="reviewCommentDetails.comment" [editor]="Editor" [config]="editorConfig"
+                        (ready)="onReady($event)" placeholder="Comment" row="1" maxlength="2000"
+                        (ngModelChange)="isChangesInField = true"></ckeditor>
+                </div>
+                <div *ngIf="mandatoryMap.has('comment')" class="invalid-feedback d-block fs-12">
+                    {{mandatoryMap?.get('comment')}}</div>
+            </div>
+
+            <div class="d-flex align-items-center justify-content-between mt-3 mx-2">
+                <div *ngIf="hasMaintainPrivateComments" class="d-flex align-items-center p-2">
+                    <input type="checkbox" [(ngModel)]="privateComment" class="cursor-pointer me-1"
+                        id="disclosure-private-cmnt" aria-label="Check this box to make the comment private"
+                        title="Check this box to make the comment private">
+                    <label for="disclosure-private-cmnt" class="f-14 fw-600 cursor-pointer ps-1"
+                        title="Check this box to make the comment private" (click)="setToPrivateComment()" (keyup.enter)="setToPrivateComment()" (keyup.space)="setToPrivateComment()">
+                        Private Comment
+                    </label>
+                </div>
+
+                <div *ngIf="isCOIAdministrator && requestBodyData?.componentTypeCode === null" class="d-flex align-items-center p-2">
+                    <input type="checkbox" [(ngModel)]="caComment" class="cursor-pointer me-1"
+                        id="disclosure-ca-cmnt" aria-label="Check this box to make the comment as ca comment"
+                        title="Check this box to make the comment as ca comment">
+                    <label for="disclosure-ca-cmnt" class="f-14 fw-600 cursor-pointer ps-1"
+                        title="Check this box to make the comment as ca comment" (click)="setToCaComment()" (keyup.enter)="setToCaComment()" (keyup.space)="setToCaComment()">
+                        CA Comment
+                    </label>
+                </div>
+
+                <div class="col-auto ms-auto">
+                        <button class="btn btn-outline-secondary px-4 py-2 fs-14 me-3" (click)="cancelOrClearCommentsDetails();showAddComment = !showAddComment" title="Clear">
+                            Clear
+                        </button>
+                        <button class="btn btn-primary px-4 py-2 fs-14" id="add-comment-btn"
+                            (click)="addCommentsDetails()" title="{{isEditComment ? 'Save Comment' : 'Add Comment'}}">{{isEditComment ? 'Save Comment' : 'Add Comment'}}</button>
+                </div>
+            </div>
+        </div>
+
+        <app-review-comment-list-view [commentReviewerList]="commentList"
+            [reviewTypeList]="reviewTypeList?.coiSectionsTypeList"
+            [selectedReviewType]="selectedReviewType.coiSectionsTypeCode"
+            (deleteReviewComment)="deleteReviewComment($event)"
+            (editReviewParentComment)="editReviewerParentComment($event)"
+            (emitReplayCommentDetails)="addReplayComment($event)" [disclosureDetails]="disclosureDetails"
+            (deleteChidReviewComment)="removeChidReviewComment($event)"
+            (groupedCommentsListChange)="groupedCommentsListChange($event)"
+            [disclosureType]="disclosureType" [isViewMode]="isViewMode" [showAddComment]="showAddComment"
+            [hasMaintainCoiComments]="hasMaintainCoiComments"
+            [reviewCommentDetails]="reviewCommentDetails" [hasMaintainPrivateComments]="hasMaintainPrivateComments"
+            [searchText]="searchText" [coiData]="coiData"
+            [isHeaderNeeded]="['3', '9'].includes(reviewCommentDetails.componentTypeCode)"></app-review-comment-list-view>
+        </ng-container>
+    </app-coi-slider>
+</ng-container>
+
+<!--conflict confirmation Modal-->
+<app-confirmation-modal [modalName]="'review-comments-confirmation-modal'"
+    (secondaryBtnAction)="leavePageClicked($event)" [primaryBtnName]="'Stay On Page'" [secondaryBtnName]="'Leave Page'">
+    <!-- modal header -->
+    <ng-container header>
+        <span>Confirmation</span>
+    </ng-container>
+    <!-- modal content -->
+    <p content class="fs-14 ms-2">
+        Are you sure you want to leave the <strong>Review Comments</strong> page without saving?
+    </p>
+</app-confirmation-modal>
+
+<!--attachment modal-->
+<div class="modal modal-coi fade mySkinDialog" id="add-attachment-modal" role="dialog"
+    [attr.aria-labelledby]="'add-attachment-modal'" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" tabindex="0" id="modal-header">
+                    Add Comment Attachment
+                </h5>
+                <button type="button" id="add-attachment-modal-dismiss-btn" class="btn-close fs-12"
+                    data-bs-dismiss="modal" aria-label="click to Close popup" role="button"
+                    (click)="dismissAttachmentModal()">
+                </button>
+            </div>
+
+            <div class="modal-padding px-3">
+                <app-file-drop class="mt-2" (filesDropEvent)="fileDrop($event)" [multiple]="false"></app-file-drop>
+
+                <div class="gridSkin attachment-height-container">
+                    <div class="card shadow mb-3" *ngFor="let item of uploadedFile; let i=index">
+                        <div class="row mb-15 mt-3">
+                            <div class="col-lg-3 col-12">
+                                <label for="prop-doc-popup-type"><span class="mandatory">*</span>Attachment Type</label>
+                                <select id="prop-doc-popup-type" class="form-control form-select"
+                                    [(ngModel)]="selectedAttachmentType[i]">
+                                    <option value="null">--Select--</option>
+                                    <option *ngFor="let attachType of personnelAttachTypes"
+                                        [value]="attachType.attaTypeCode" [hidden]="attachType.isActive != true">
+                                        {{attachType?.description}}</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-5 col-12">
+                                <label for="desc">Description</label>
+                                <textarea id="desc" cols=2 rows="1" id="prop-doc-popup-desc"
+                                    [(ngModel)]="selectedAttachmentDescription[i]" placeholder="Type Description"
+                                    class="form-control dateBox text-area-height" appLengthValidator
+                                    [isShowLimiter]='true' [limit]=2000>
+                        </textarea>
+                            </div>
+                            <div class="col-lg-2 col-12" title="{{item?.name}}">
+                                <label class="d-block"><span class="mandatory">*</span>File Name</label>
+                                <span>{{ item.name }}</span>
+                            </div>
+                            <div class="col-lg-1 col text-right">
+                                <label>Action</label>
+                                <ul class="action-btn mt-3">
+                                    <li>
+                                        <a id="prop-doc-popup-dlt-btn" class="fa fa-trash-o hand-cursor fs-16"
+                                            title="Remove File" (click)="deleteFromUploadedFileList(i)"></a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" (click)="dismissAttachmentModal()"
+                    aria-label="'click here to cancel'" title="'click here to cancel'">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-primary btn-sm fs-14" (click)="addToAttachment()"
+                    aria-label="'click here to add'" title="'click here to add'">
+                    Add
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+

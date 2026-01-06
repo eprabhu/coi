@@ -1,0 +1,135 @@
+<!-- Last Updated By Ramlekshmy I on 23-11-2019 -->
+<!-- ADD ATTACHMENT MODAL -->
+<div class="modal fade mySkinDialog" id="prop-add-attach-modal" tabindex="-1" role="dialog"
+  aria-labelledby="skippedSchedulesTitle" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 *ngIf="!addAttachment.isReplaceAttachment" class="modal-title">Add
+          <span *ngIf="attachmentType == 'keyPerssonel'">Key Personnel</span> Attachments
+        </h5>
+        <h5 *ngIf="addAttachment.isReplaceAttachment" class="modal-title">Replace Attachment</h5>
+        <button type="button" class="close" data-dismiss="modal" id="prop-doc-popup-dismiss-btn" aria-label="Close"
+          (click)="addAttachment.isShowAddAttachment = false">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div *ngIf="isAttachmentHelpText"
+        class="success-banner px-2 my-2 mx-4 d-flex justify-content-between align-items-center pb-2 pt-2">
+        <div><i class="fa fa-info-circle info-icon mr-1" aria-hidden="true"></i>
+          <em>User can see attachments under the Attachments Tab. Edit option is under the proposal attachment tab.</em>
+        </div>
+        <button type="button" id="modal-close" class="close close-button" (click)="isAttachmentHelpText = false"
+          aria-label="Close">
+          <span class="d-block" aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" [class.pt-1]="isAttachmentHelpText">
+        <app-file-drop [multiple]="true" (filesDropEvent)="fileDrop($event)"></app-file-drop>
+        <div class="attachment-scroll" *ngIf="uploadedFile.length > 0">
+          <div class="row" *ngIf="attachmentType == 'general'">
+            <div class="col-12 text-right fs-14 align-items-center d-flex justify-content-end">
+              <label class="mr-3">Mark All As:</label>
+              <div class="form-check form-check-inline mr-3">
+                <input class="radio-inline" type="radio" name="addattachmentComplete" id="addattachmentComplete"
+                  [value]="false" [(ngModel)]="statusSelected" (ngModelChange)="markStatusCompleteOrIncomplete()">
+                <label class="form-check-label text-primary" for="addattachmentComplete">Draft</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="radio-inline" type="radio" name="addattachmentIncomplete" id="addattachmentIncomplete"
+                  [(ngModel)]="statusSelected" [value]="true" (ngModelChange)="markStatusCompleteOrIncomplete()">
+                <label class="form-check-label text-primary" for="addattachmentIncomplete">Final</label>
+              </div>
+            </div>
+          </div>
+          <div class="gridSkin attachment-height-container">
+            <div class="card shadow" *ngFor="let item of uploadedFile; let i=index">
+              <div class="row">
+                <div class="col-lg-2 col-8 pl-1" *ngIf="attachmentType == 'keyPerssonel'">
+                  <label for="prop-doc-popup-type"><span class="mandatory">*</span>Person
+                  </label>
+                  <span class="list-group" *ngIf="addAttachment.isReplaceAttachment == true">
+                    {{selectedKeyPersonnel[i]}}
+                  </span>
+                  <select id="prop-doc-popup-type" class="form-control dateBox"
+                    *ngIf="addAttachment.isReplaceAttachment != true" [(ngModel)]="selectedKeyPersonnel[i]">
+                    <option [value]=null>--Select--</option>
+                    <option *ngFor="let person of keypersonnal" [value]="person.proposalPersonId">{{person?.fullName}}
+                    </option>
+                  </select>
+                </div>
+                <div class="col-lg-3 col-12">
+                  <label for="prop-doc-popup-type"><span class="mandatory">*</span>Attachment Type</label>
+                  <span class="list-group" *ngIf="addAttachment.isReplaceAttachment == true">
+                    {{selectedAttachmentType[i]}}
+                  </span>
+                  <select *ngIf="addAttachment.isReplaceAttachment != true && attachmentType == 'keyPerssonel'"
+                    id="prop-doc-popup-type" class="form-control dateBox" [(ngModel)]="selectedAttachmentType[i]">
+                    <option [value]=null>--Select--</option>
+                    <option *ngFor="let attachType of personnelAttachTypes" [value]="attachType.attachmentTypeCode"
+                      [disabled]="!attachType.isActive" [hidden]="!attachType.isActive">{{attachType?.description}}<span
+                        *ngIf="attachType?.isPrivate">(Confidential)</span></option>
+                  </select>
+                  <select *ngIf="addAttachment.isReplaceAttachment != true && attachmentType == 'general'"
+                    id="prop-doc-popup-type" class="form-control dateBox" [(ngModel)]="selectedAttachmentType[i]">
+                    <option [value]=null>--Select--</option>
+                    <option *ngFor="let attachType of result?.proposalAttachmentTypes"
+                      [value]="attachType.attachmentTypeCode" [disabled]="!attachType.isActive"
+                      [hidden]="!attachType.isActive">{{attachType?.description}}<span
+                        *ngIf="attachType?.isPrivate">(Confidential)</span></option>
+                  </select>
+                </div>
+                <div class="col-lg-4 col-12">
+                  <label for="desc">Description</label>
+                  <textarea id="desc" cols=2 rows="1" id="prop-doc-popup-desc"
+                    [(ngModel)]="selectedAttachmentDescription[i]" placeholder=""
+                    class="form-control dateBox text-area-height" appLengthValidator [isShowLimiter]='true' [limit]=200>
+                </textarea>
+                </div>
+                <div class="col-lg-2 col-12" title="{{item?.name}}">
+                  <label class="d-block"><span class="mandatory">*</span>File Name</label>
+                  <span>{{(item?.name?.length
+                    > 15)?(item?.name | slice:0:15)+'...':(item?.name)}}</span>
+                </div>
+                <div class="col-lg-2 col-8" *ngIf="attachmentType == 'general'">
+                  <label for="prop-doc-popup-status"><span class="mandatory">*</span>Status</label>
+                  <select class="form-control dateBox" id="prop-doc-popup-status"
+                    [(ngModel)]="selectedAttachmentStatus[i]">
+                    <!-- <option [value]=null>--Select--</option> -->
+                    <option *ngFor="let attachStatus of result?.narrativeStatus" [ngValue]="attachStatus"
+                      [hidden]="attachStatus.isActive != true">
+                      {{attachStatus?.description}}</option>
+                  </select>
+                </div>
+                <div class="col-lg-1 col text-right">
+                  <!-- <label>Action</label> -->
+                  <ul class="actionButtonGroup mt-5">
+                    <li>
+                      <a id="prop-doc-popup-dlt-btn" class="fa fa-trash-o hand-cursor" title="Remove File"
+                        (click)="deleteFromUploadedFileList(i)"></a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="attachmentWarningMsg != null">
+          <span class="mandatory font">{{attachmentWarningMsg}}</span>
+        </div>
+      </div>
+      <div class="modal-footer" *ngIf="uploadedFile.length > 0">
+        <button type="button" class="btn btn-secondary" id="prop-doc-popup-close-btn" data-dismiss="modal"
+          (click)="addAttachment.isShowAddAttachment = false">Close</button>
+        <button *ngIf="!addAttachment.isReplaceAttachment" type="button" class="btn btn-primary-sub btn-sm"
+          id="prop-doc-popup-add-btn"
+          (click)="attachmentType == 'general' ? addAttachments() : addPerssonnalAttachment()">Add</button>
+        <button *ngIf="addAttachment.isReplaceAttachment" type="button" class="btn btn-primary-sub btn-sm"
+          id="prop-doc-popup-add-btn"
+          (click)="attachmentType == 'general' ? addAttachments() : addPerssonnalAttachment()">Replace</button>
+      </div>
+    </div>
+  </div>
+</div>
+<button id="trigger-add-attachment-modal" [hidden]="true" data-toggle="modal"
+  data-target="#prop-add-attach-modal"></button>

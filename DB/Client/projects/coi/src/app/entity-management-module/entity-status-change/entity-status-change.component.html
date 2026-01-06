@@ -1,0 +1,122 @@
+<app-common-modal [modalConfig]="statusChangeModalConfig" (modalAction)="statusChangeModalAction($event)">
+    <!-- header -->
+    <ng-container modal-header>
+        <span>Entity Status Change</span>
+        <app-common-help-text [subSectionId]="2631"></app-common-help-text>
+    </ng-container>
+    <!-- body -->
+    <ng-container modal-body>
+        <div class="row row-gap-3">
+
+            <!-- Status -->
+            <div class="col-12">
+                <label class="d-block coi-text-dark" for="coi-entity-status-change-type">
+                    <span>
+                        <span class="mandatory me-1">*</span>Status<app-common-help-text [subSectionId]="2631" [elementId]="'coi-entity-status-change-type'"></app-common-help-text>
+                    </span>
+                </label>
+                <select [(ngModel)]="statusChangeObject.selectedType" class="form-control form-select w-50"
+                    (ngModelChange)="onStatusTypeChange()" id="coi-entity-status-change-type"
+                    title="Click here to select an entity status"
+                    [attr.aria-label]="statusChangeObject.selectedType ? 'Selected Type is' : 'Please select an entity status'"
+                    [ngClass]="{'is-invalid d-block': mandatoryList?.has('statusType') || mandatoryList?.has('inValidType')}">
+                    <option [ngValue]="null">--Select--</option>
+                    <option [ngValue]="type.documentStatusTypeCode" *ngFor="let type of entityStatusTypeList">
+                        {{type.description}}</option>
+                </select>
+                <span *ngIf="mandatoryList?.has('statusType')"
+                    class="invalid-feedback d-inline fs-13">{{mandatoryList?.get('statusType')}}</span>
+                <span *ngIf="mandatoryList?.has('inValidType')"
+                    class="invalid-feedback d-inline fs-13">{{mandatoryList?.get('inValidType')}}</span>
+            </div>
+
+            <!-- Description -->
+            <div class="col-12">
+                <label class="d-block coi-text-dark" for="coi-entity-status-change-desc">
+                    <span>
+                        <span class="mandatory me-1">*</span>Description<app-common-help-text [subSectionId]="2631" [elementId]="'coi-entity-status-change-desc'"></app-common-help-text>
+                    </span>
+                </label>
+                <textarea appAutoGrow appTailingSpaceRemover class="form-control" id="coi-entity-status-change-desc" rows="1"
+                    [(ngModel)]="statusChangeObject.description"
+                    [ngClass]="{ 'is-invalid d-block': mandatoryList?.has('description')}"
+                    appLengthValidator [limit]="2000" [styleList]="'mt-2 float-end word-count'"
+                    placeholder="Please enter description"
+                    aria-label="Please enter description">
+                </textarea>
+                <span *ngIf="mandatoryList?.has('description')"
+                    class="invalid-feedback d-inline fs-13"> {{mandatoryList?.get('description')}}</span>
+            </div>
+
+            <!-- Help Text -->
+             <ng-container *ngIf="this.statusChangeObject?.selectedType === ENTITY_DUPLICATE">
+                <div class="position-sticky coi-negative-top z-index-2 bg-white">
+                    <div class="d-flex alert alert-primary m-0">
+                        <mat-icon class="flex-shrink-0" aria-hidden="true">info</mat-icon>
+                        <p class="fs-14 mb-0 ms-2">
+                            <span class="d-flex algin-items-start">{{entityInfoText}}</span>
+                        </p>
+                    </div>
+                </div>
+                <!-- Duplicate slider -->
+                <div *ngIf="!matchedDuplicateEntites?.length" class="col-12">
+                    <div class="d-flex alert alert-secondary m-0">
+                        <mat-icon class="flex-shrink-0 me-2" aria-hidden="true">info</mat-icon>
+                        <p class="fs-14 mb-0">
+                            <span class="d-flex algin-items-start">No Potential Duplicate Entites found</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-lg-auto col-md-12 col-sm-12" *ngIf="matchedDuplicateEntites?.length">
+                        <div class="d-flex align-items-center gap-2 fs-14">
+                            <strong>{{'Potential Duplicate Entites Found (' + matchedDuplicateEntites?.length + ')'}}</strong>
+                        </div>
+                        <!-- list -->
+                        <ul class="m-0 list-unstyled">
+                            <li class="d-flex mt-2">
+                                <a tabindex="0" class="link-primary"
+                                    title="Click here to view duplicate entities"
+                                    aria-label="Click here to view duplicate entities"
+                                    (click)="navigateToSection('entity-duplicate')" (keyup.enter)="navigateToSection('entity-duplicate')">
+                                    <span class="fs-14 fw-500">View Duplicate Entites</span>
+                                </a>
+                            </li>
+                        </ul>
+                </div>
+                <div class="col-lg-auto col-md-12 col-sm-12 d-flex align-items-center" *ngIf="matchedDuplicateEntites?.length">
+                    <span class="coi-text-dark">(OR)</span>
+                </div>
+
+                <!-- Entity Search -->
+                <div [ngClass]="matchedDuplicateEntites?.length ? 'col-lg col-md-12 col-sm-12': 'col-12'">
+                    <label class="d-block coi-text-dark" for="coi-status-change-entity">
+                        <span>Search Entity<app-common-help-text [subSectionId]="2631" [elementId]="'coi-status-change-entity'"></app-common-help-text>
+                        </span>
+                    </label>
+                    <app-elastic [uniqueId]="'coi-status-change-entity'" class="w-100 mt-4" [options]="entitySearchOptions"
+                        [placeHolder]="'Type here to search an Entity'" [clearField]="entityClearField"
+                        [isError]="mandatoryList?.has('entityName') || mandatoryList?.has('sameEntity')"
+                        (selectedResult)="selectedEvent($event)">
+                    </app-elastic>
+                </div>
+
+                <!-- Entity Error Message -->
+                <div *ngIf="mandatoryList?.has('entityCard') && !entityCardDetails?.uniqueId" class="col-12">
+                    <div class="d-flex alert alert-danger mb-0 py-2 mt-2">
+                        <mat-icon class="mat-icon material-icons flex-shrink-0" aria-hidden="true">info</mat-icon>
+                        <p class="fs-14 mb-0 ms-2">
+                            <span class="d-flex algin-items-start">{{mandatoryList?.get('entityCard')}}</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Entity Details Card -->
+                <div *ngIf="entityCardDetails?.uniqueId" class="col-12">
+                    <app-shared-entity-details-card [entityCardConfig]="entityCardDetails"
+                        (actions)="actionsFromCard($event)"></app-shared-entity-details-card>
+                </div>
+             </ng-container>
+        </div>
+    </ng-container>
+</app-common-modal>

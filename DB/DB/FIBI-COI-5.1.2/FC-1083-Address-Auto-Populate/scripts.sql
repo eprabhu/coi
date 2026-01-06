@@ -1,0 +1,2 @@
+ALTER TABLE entity_mailing_address 
+ADD COLUMN IS_COPY CHAR(1) NULL AFTER UPDATED_BY;

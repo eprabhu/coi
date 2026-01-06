@@ -1,0 +1,146 @@
+
+ <div class="mb-3">
+  <ul class="subTabs mb-0">
+    <li role="presentation" [ngClass]="{'active': activeTab == 'REPORT'}">
+        <a class="subTabLink" title="View system defined Reports"
+            (click)="setActiveTab('REPORT'); filterListByType();" tabindex="0">
+            <ng-container> Reports</ng-container></a>
+    </li>
+    <li role="presentation" [ngClass]="{'active': activeTab == 'BIRT'}" *ngIf="isBirtReportViewer">
+        <a class="subTabLink" title="View BIRT Reports"
+            (click)="setActiveTab('BIRT'); filterListByType();" tabindex="0">
+            <ng-container>BIRT Reports</ng-container></a>
+    </li>
+  </ul>
+</div>
+<div class="card mb-15 rounded-0">
+  <div class="card-body">
+    <div class="form-row justify-content-between mx-1 mx-md-0">
+      <div class="align-items-center d-flex ml-2 mt-2">
+        <label class="mr-3" for="type">Type: </label>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" role="radio" name="template_type" id="system_defined_type"
+            value="S" [(ngModel)]="selectedTemplateType" (ngModelChange)="filterListByType()">
+          <label class="form-check-label" for="system_defined_type">Default</label>
+          <span class="d-inline-block icon-hover">
+          <a class="tooltip z-index-0 tooltip-helptext ml-1"><i class="fa fa-question-circle fa-med hand-cursor" 
+            aria-hidden="true"></i>
+            <div class="tooltiptext-left card card-inner p-15 text-left">
+                <span class="font-cv">These are the Default System Reports for the various modules.</span>
+            </div>
+        </a>
+      </span>
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" role="radio" name="template_type" id="user_defined_type"
+            value="U" [(ngModel)]="selectedTemplateType" (ngModelChange)="filterListByType()">
+          <label class="form-check-label" for="user_defined_type">User Defined</label>
+          <span class="d-inline-block icon-hover">
+            <a class="tooltip z-index-0 tooltip-helptext ml-1"><i class="fa fa-question-circle fa-med hand-cursor" 
+              aria-hidden="true"></i>
+              <div class="tooltiptext-left card card-inner p-15 text-left">
+                  <span class="font-cv"> These are the customized Reports that are defined from the Default System Reports after editing / modifying the Filter Criteria and Result Columns.</span>
+              </div>
+          </a>
+        </span>
+        </div>
+      </div>
+      <div class="col-md-6 col-6 searchBox p-0">
+        <input type="text" class="form-control" placeholder="Search by Reports" [(ngModel)]="searchText"
+          (ngModelChange)="filter()">
+        <a class="searchButton"><i class="fa fa-search fa-med pt-2" aria-hidden="true"></i></a>
+      </div>
+    </div>
+    <div class="card card-table-box rounded-0 pt-3">
+      <div class="card-content">
+        <div class="table-responsive">
+          <table class="table tableSkin mb-0">
+            <caption class="sr-only">Reports</caption>
+            <thead>
+              <tr>
+                <th scope="col" id="sortby-module" (click)="sortResult('module');" tabindex="0" class="hand-cursor">Module
+                  <i aria-hidden="true" *ngIf="sortType != 'module'" class="fa fa-sort-alpha-asc blrcolor"></i>
+                  <i aria-hidden="true" *ngIf="sortType == 'module'"
+                    [ngClass]="sortOrder ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon'"></i>
+                </th>
+                <th scope="col" id="sortby-title" (click)="sortResult('title');" tabindex="0" class="hand-cursor">Report Title
+                  <i aria-hidden="true" *ngIf="sortType != 'title'" class="fa fa-sort-alpha-asc blrcolor"></i>
+                  <i aria-hidden="true" *ngIf="sortType == 'title'"
+                    [ngClass]="sortOrder ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon'"></i>
+                </th>
+                <th scope="col" id="sortby-description" (click)="sortResult('description'); " tabindex="0" class="hand-cursor"> Description
+                  <i aria-hidden="true" *ngIf="sortType != 'description'" class="fa fa-sort-alpha-asc blrcolor"></i>
+                  <i aria-hidden="true" *ngIf="sortType == 'description'"
+                    [ngClass]=" sortOrder ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon'"></i>
+                </th> 
+                <th scope="col">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let template of filteredList" class="pull-up" tabindex="0">
+                <td [routerLink]="['/fibi/report/template']"
+                  [queryParams]={id:template.reportTemplateId,tc:template.typeCode,R:template.reportType.type}>{{template.moduleDescription || template?.module?.description}}</td>
+                <td [routerLink]="['/fibi/report/template']"
+                  [queryParams]={id:template.reportTemplateId,tc:template.typeCode,R:template.reportType.type}>{{template.templateName}}</td>
+                <td [routerLink]="['/fibi/report/template']"
+                  [queryParams]={id:template.reportTemplateId,tc:template.typeCode,R:template.reportType.type}>{{template.templateDescription}}
+                </td>
+                <td>
+                  <ul class="actionButtonGroup d-inline-block">
+                    <li [routerLink]="['/fibi/report/template']"
+                      [queryParams]={id:template.reportTemplateId,tc:template.typeCode,R:template.reportType.type}>
+                      <a class="pointer" title="Open report: {{template.templateName}}" tabindex="0">
+                        <i class="fa fa-eye pointer" aria-hidden="true"></i>
+                      </a>
+                    </li>
+                    <li *ngIf="template.templateType == 'U' && (loginPersonId == template.templateOwnerPersonId)">
+                      <a class="pointer" title="Delete report: {{template.templateName}}" tabindex="0"
+                        (click)="deleteTemplateId = template.reportTemplateId" aria-hidden="true">
+                        <i class="fa fa-trash-o pointer" aria-hidden="true" data-toggle="modal"
+                          data-target="#reportDeleteModal"></i>
+                      </a>
+                    </li>
+                  </ul>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="no-data-container" *ngIf="filteredList == null || filteredList?.length == 0">
+            <span class="no-data-icon-outer">
+              <div class="no-data-icon">
+                <i class="fa fa-file-o" aria-hidden="true"></i>
+                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+              </div>
+            </span>
+            <h4>No data is available based on user right or search criteria</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Delete Report Modal -->
+<div class="modal fade show mySkinDialog" id="reportDeleteModal" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Delete</h4>
+        <button class="close" aria-label="Close" data-dismiss="modal" type="button">
+          <span class="ng-tns-c3-0" aria-hidden="true" title="Close">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="form-group col-12">
+            <p>Are you sure you want to delete this Report?</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+        <button type="button" class="btn btn-primary-sub btn-sm" (click)="deleteTemplate();"
+          data-dismiss="modal">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,535 @@
+<div class="card mb-3">
+  <div class="card-header py-2">
+    <h4 class="card-title" id="version-header">
+      <div class="row">
+        <!-- Type -->
+        <div class="align-items-center col-auto d-flex">
+          <label class="mb-0 mr-2 label-styler">Type : </label>
+          <span class="font-weight-normal">{{awardBudgetData?.awardBudgetHeader?.budgetType?.description}}</span>
+        </div>
+        <!-- Versions -->
+        <div class="align-items-center col-auto d-flex px-0">
+          <label for="budget-version" class="mb-0 mr-2 label-styler">Version</label>
+          <select id="budget-version" class="form-control d-inline-block slctbx-ht pt-1"
+            [(ngModel)]="awardBudgetData.awardBudgetHeader.versionNumber" (ngModelChange)="onVersionChange()">
+            <option *ngFor="let version of budgetVersionList" [value]="version?.versionNumber">
+              {{version?.versionNumber}}</option>
+          </select>
+        </div>
+        <!-- status -->
+        <div class="col-auto d-flex align-items-center pr-0">
+          <span
+            class="rounded-icon status-badge-{{getBadgeByStatusCode(awardBudgetData?.awardBudgetHeader?.budgetStatus?.budgetStatusCode)}} py-2"
+            title="{{awardBudgetData?.awardBudgetHeader?.budgetStatus?.description}}">{{awardBudgetData?.awardBudgetHeader?.budgetStatus?.description}}</span>
+        </div>
+        <span *ngIf="helpText?.budget && helpText?.budget?.helpTextInfo">
+          <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med ml-2"
+            [ngClass]="isRebudgetAllowed ? 'mt-3' : 'mt-2'" aria-hidden="true"></i>
+              <div class="tooltiptext-left card card-inner p-15 text-left">
+                  <span class="font-cv">{{helpText?.budget?.helpTextInfo}}</span>
+              </div>
+          </a>
+        </span>
+        <!-- Available Fund -->
+        <div class="align-items-center col-auto d-flex ml-auto">
+          <span *ngIf= "['1','5'].includes(awardBudgetData?.awardBudgetHeader?.budgetStatus?.budgetStatusCode)
+          && awardData.award?.awardSequenceStatus !== 'CANCELLED'" class="status-badge-success ml-2 py-2 badge-clr">
+            Remaining Fund : <strong>{{awardBudgetData?.awardBudgetHeader?.availableFund | currency: currency}}</strong></span>
+        </div>
+        <!-- Create New Budget Version || Rebudget-->
+        <div class="align-items-center col-auto text-sm-right">
+          <button *ngIf="isRebudgetAllowed" class="btn btn-primary-sub btn-sm mr-2" id="create-new-budget-version-modal"
+            (click)="checkCreateNewModal()">Create New Budget Version</button>
+          <button *ngIf="isRebudgetAllowed" class="btn btn-primary btn-sm"
+            (click)="createBudgetOnAwardEdit('REBUDGET')">Rebudget</button>
+        </div>
+        <!-- tooltip -->
+        <span>
+          <a class="tooltip"><i class="fa fa-info-circle fa-med mr-3" [ngClass]="isRebudgetAllowed ? 'mt-3' : 'mt-2'" aria-hidden="true"></i>
+            <div class="tooltiptext-right card card-inner p-15 text-left">
+              <span class="font-cv">Last Updated By</span>
+              <span class="font-cv font-weight-bold">{{awardBudgetData?.awardBudgetHeader?.updateUserName}}
+                on {{awardBudgetData?.awardBudgetHeader?.updateTimeStamp | dateFormatterWithTimeZone: 'long'}}
+              </span>
+            </div>
+          </a>
+        </span>
+      </div>
+    </h4>
+  </div>
+  <div class="card-body">
+    <div class="form-row">
+      <!-- Start Date -->
+      <div class="col-md-2 col-sm col-6">
+        <label class="d-block"><span class="mandatory">*</span>Start Date</label>
+        <span class="dateField">
+          <input matInput [matDatepicker]="startDate" placeholder="{{datePlaceHolder}}" id="award-start-date" autocomplete="off"
+            style="width: 100% !important" class="d-inline-block form-control"
+            [ngClass]="{'is-invalid d-block' : startDateWarningText}"
+            (keypress)="_commonService._keyPress($event, 'date')"
+            [(ngModel)]="awardBudgetData.awardBudgetHeader.startDate" (ngModelChange)="_commonDataService.isAwardDataChange = true;startDateValidation();"
+            (click)="startDate.open()" *ngIf="_budgetDataService.isBudgetEditable; else startDateSpan" />
+          <i class="fa fa-calendar fa-large hand-cursor insidePicker" id="award-start-date-icon"
+            (click)="startDate.open()" *ngIf="_budgetDataService.isBudgetEditable" aria-hidden="true"></i>
+          <mat-datepicker #startDate (opened)="setFocusToElement('award-start-date');">
+          </mat-datepicker>
+        </span>
+        <div class="invalid-feedback block-display" *ngIf="startDateWarningText">
+          {{startDateWarningText}}
+        </div>
+        <ng-template #startDateSpan>
+          <span class="d-inline-block d-sm-block content-color">
+              {{awardBudgetData.awardBudgetHeader.startDate |dateFormatterWithTimeZone }}
+         </span> 
+      </ng-template>
+      </div>
+      <!-- End Date -->
+      <div class="col-md-2 col-sm col-6">
+        <label class="d-block"><span class="mandatory">*</span>End Date</label>
+        <span class="dateField">
+          <input matInput [matDatepicker]="endDate" placeholder="{{datePlaceHolder}}" id="award-end-date" autocomplete="off" style="width: 100% !important"
+            class="d-inline-block form-control" [ngClass]="{'is-invalid d-block': endDateWarningText}"
+            (keypress)="_commonService._keyPress($event, 'date')"
+            [(ngModel)]="awardBudgetData.awardBudgetHeader.endDate"
+            (ngModelChange)="_commonDataService.isAwardDataChange = true;endDateValidation();"
+             (click)="endDate.open()" *ngIf="_budgetDataService.isBudgetEditable; else endDateSpan" />
+          <i class="fa fa-calendar fa-large hand-cursor insidePicker" id="award-end-date-icon"
+            (click)="endDate.open()" *ngIf="_budgetDataService.isBudgetEditable" aria-hidden="true"></i>
+          <mat-datepicker #endDate (opened)="setFocusToElement('award-end-date')">
+          </mat-datepicker>
+        </span>
+        <div class="invalid-feedback block-display" *ngIf="endDateWarningText">
+          {{endDateWarningText}}
+        </div>
+          <ng-template #endDateSpan>
+              <span class="d-inline-block d-sm-block content-color">
+                  {{awardBudgetData.awardBudgetHeader.endDate |dateFormatterWithTimeZone }}
+              </span> 
+          </ng-template>
+      </div>
+      <!-- On/Off Campus -->
+      <div class="col-md-2 col-sm col-6 form-group" *ngIf="awardBudgetData?.enabledCampusFlagAward">
+        <label for="on/offcampus" class="d-block">
+          Campus Flag
+        </label>
+        <span *ngIf="_budgetDataService.isBudgetEditable; else campusFlagSpan">
+          <select id="on/offcampus" class="form-control" [(ngModel)]="awardBudgetData.awardBudgetHeader.onOffCampusFlag"
+            (ngModelChange)="_commonDataService.isAwardDataChange = true">
+            <option value='N'>ON</option>
+            <option value='F'>OFF</option>
+            <option value='D'>BOTH</option>
+          </select>
+        </span>
+        <ng-template #campusFlagSpan>
+          <span>
+            <span class="content-color" *ngIf='awardBudgetData.awardBudgetHeader.onOffCampusFlag === "N"'>ON</span>
+            <span class="content-color" *ngIf='awardBudgetData.awardBudgetHeader.onOffCampusFlag === "F"'>OFF</span>
+            <span class="content-color" *ngIf='awardBudgetData.awardBudgetHeader.onOffCampusFlag === "D"'>BOTH</span>
+          </span>
+        </ng-template>
+      </div>
+      <!-- Over Head Rate Type -->
+      <div class="col-md-2 col-sm col-6 form-group">
+        <label for="F&A-rate-type" class="d-block"><ng-container i18n="@@PROPOSAL_OVER_HEAD_RATE_TYPE">Over Head Rate Type</ng-container></label>
+        <select id="F&A-rate-type" *ngIf="_budgetDataService.isBudgetEditable; else overHeadRateTypeSpan" class="form-control"
+          [(ngModel)]="awardBudgetData.awardBudgetHeader.rateClassCode"
+          (ngModelChange)="setFandAType(awardBudgetData?.awardBudgetHeader?.rateClassCode);_commonDataService.isAwardDataChange = true">
+          <option [ngValue]="null">--Select--</option>
+          <option *ngFor="let rate of awardBudgetData?.rateTypes" [ngValue]="rate.rateClassCode" [hidden]="rate.isActive != true">{{rate.description}}
+          </option>
+        </select>
+        <ng-template #overHeadRateTypeSpan>
+          <span class="d-inline-block d-sm-block content-color">
+            {{!awardBudgetData.awardBudgetHeader.rateClassCode ? 'No Over Head Rate Type specified': awardBudgetData.awardBudgetHeader.rateType.description}}
+          </span> 
+        </ng-template>
+      </div>
+      <!-- Available Fund based on -->
+      <div class="col-md-3 col-sm col-6 form-group">
+        <label for="remaining-fund-basedon" class="d-block">Remaining Fund based on</label>
+        <select id="remaining-fund-basedon" *ngIf="_budgetDataService.isBudgetEditable"
+          class="form-control" [(ngModel)]="awardBudgetData.awardBudgetHeader.availableFundType">
+          <option *ngFor="let budgetFundType of fundTypeList"
+          [value]="budgetFundType?.fundTypeCode">
+          {{budgetFundType?.fundType}}</option>
+        </select>
+        <span class="content-color"
+          *ngIf="!_budgetDataService.isBudgetEditable && awardBudgetData.awardBudgetHeader.availableFundType=='O'">
+          Obligated Distributable
+        </span>
+        <span class="content-color"
+          *ngIf="!_budgetDataService.isBudgetEditable && awardBudgetData.awardBudgetHeader.availableFundType=='A'">
+          Total Project Cost
+        </span>
+      </div>
+      <!-- Auto Calculate -->
+      <div *ngIf="awardBudgetData?.isAutoCalculationEnabled" class="col-lg-1 col-sm-6 col-12">
+        <label class="d-block">Auto Calculate</label>
+        <span>
+          <a *ngIf="!awardBudgetData.awardBudgetHeader.isAutoCalc">
+            <label class="switch">
+              <input type="checkbox" (click)="onAutoCalcChange()" [disabled]="!_budgetDataService.isBudgetEditable"
+              data-toggle="modal" data-target="#autocalcToggleModal">
+              <span class="slider round"><small class="deactivate-text">Off</small></span>
+            </label>
+          </a>
+          <a *ngIf="awardBudgetData.awardBudgetHeader.isAutoCalc">
+            <label class="switch">
+              <input type="checkbox" (click)="onAutoCalcChange()" checked
+                [disabled]="!_budgetDataService.isBudgetEditable" data-toggle="modal" data-target="#autocalcToggleModal">
+              <span class="slider round"><small>On</small></span>
+            </label>
+          </a>
+        </span>
+      </div>
+    </div>
+      <!-- Budget Template -->
+    <div class="form-row">
+      <div class="col-2" *ngIf="awardBudgetData.budgetTemplateTypes && awardBudgetData.budgetTemplateTypes.length">
+        <label for="award-budget-template">Budget Template</label>
+        <select *ngIf="_budgetDataService.isBudgetEditable; else budgetTemplateSpan" id="award-budget-template" class="form-control"
+          [(ngModel)]="awardBudgetData.awardBudgetHeader.budgetTemplateTypeId" (ngModelChange)="triggerConfirmationPopup();">
+          <option [ngValue]="null">--Select--</option>
+          <option *ngFor="let template of awardBudgetData.budgetTemplateTypes" [ngValue]="template.budgetTemplateTypeId">
+            {{template?.description}}
+          </option>
+        </select>
+        <ng-template #budgetTemplateSpan>
+          <span class="d-inline-block d-sm-block content-color">
+            {{!awardBudgetData.awardBudgetHeader.budgetTemplateTypeId ? 'No Budget Template specified': awardBudgetData.awardBudgetHeader.budgetTemplateType.description}}
+          </span> 
+        </ng-template>
+      </div>
+    
+      <!-- Cost Sharing Type -->
+      <div class="col-xl col-lg col-md-6 col-sm-6 col-12" *ngIf="awardBudgetData?.enableCostShareStatus">
+        <label for="prop-doc-status">Cost Sharing</label>
+        <select *ngIf="_budgetDataService.isBudgetEditable; else costSharingSpan" id="prop-doc-status" class="form-control"
+            [(ngModel)]="awardBudgetData.awardBudgetHeader.costSharingTypeCode"
+            (ngModelChange)="_budgetDataService.budgetDataChanged = true">
+            <option [ngValue]="null">--Select--</option>
+            <option *ngFor="let flag of awardBudgetData.costSharingTypes" [ngValue]="flag.costSharingTypeCode">
+                {{flag?.description}}
+            </option>
+        </select>
+        <ng-template #costSharingSpan>
+          <span class="d-inline-block d-sm-block content-color">
+            {{!awardBudgetData.awardBudgetHeader.costSharingTypeCode ? 'No Cost Sharing specified': awardBudgetData.awardBudgetHeader.costSharingType.description}}
+          </span> 
+        </ng-template>
+      </div>
+      <!-- On-Campus rates -->
+      <div class="col-lg-2 col-md-4 col-sm-3 col-12" *ngIf="awardBudgetData?.isShowBudgetOHRatePercentage">
+        <label for="prop-doc-status">On-Campus Rate</label>
+        <input type="text" *ngIf="_budgetDataService.isBudgetEditable; else onCampusRateSpan" id="on-campus-rates" class="form-control"
+          [(ngModel)]="awardBudgetData.awardBudgetHeader.onCampusRates" placeholder="Enter On-Campus Rate"
+          (ngModelChange)="_commonDataService.isAwardDataChange = true">
+        <ng-template #onCampusRateSpan>
+          <span class="d-inline-block d-sm-block content-color">
+            {{!awardBudgetData.awardBudgetHeader.onCampusRates ? 'No On-Campus Rate specified': awardBudgetData.awardBudgetHeader.onCampusRates}}
+          </span> 
+        </ng-template>
+      </div>
+       <!-- Off-Campus rates-->
+       <div class="col-lg-2 col-md-4 col-sm-3 col-12" *ngIf="awardBudgetData?.isShowBudgetOHRatePercentage">
+        <label for="prop-doc-status">Off-Campus Rate</label>
+        <input type="text" *ngIf="_budgetDataService.isBudgetEditable; else offCampusRateSpan" id="off-campus-rates" class="form-control"
+          [(ngModel)]="awardBudgetData.awardBudgetHeader.offCampusRates" placeholder="Enter Off-Campus Rate"
+          (ngModelChange)="_commonDataService.isAwardDataChange = true">
+          <ng-template #offCampusRateSpan>
+            <span class="d-inline-block d-sm-block content-color">
+              {{!awardBudgetData.awardBudgetHeader.offCampusRates ? 'No Off-Campus Rate specified': awardBudgetData.awardBudgetHeader.offCampusRates}}
+            </span> 
+          </ng-template>
+       </div>
+        
+          <!-- Direct Cost , Indirect Cost, Total Cost -->
+       <div class="col-md-2 col-sm col-6">
+        <label class="d-block">Direct Cost</label>
+        <span class="content-color">{{awardBudgetData?.awardBudgetHeader?.totalDirectCost | currency: currency}}</span>
+      </div>
+      <div class="col-md-2 col-sm col-6">
+        <label class="d-block">Indirect Cost</label>
+        <span
+          class="content-color">{{awardBudgetData?.awardBudgetHeader?.totalIndirectCost | currency: currency}}</span>
+      </div>
+      <div class="col-md-2 col-sm col-6">
+        <label class="d-block">Total Cost</label>
+        <span class="content-color">{{awardBudgetData?.awardBudgetHeader?.totalCost | currency: currency}}</span>
+      </div>
+
+        <!-- Virement and Cumulative Virement -->
+       <div class="col-md-2 col-sm col-6"
+       *ngIf="awardBudgetData?.awardBudgetHeader?.enableAwardBudgetVirementCalculation">
+       <label class="d-block">Virement %</label>
+       <span
+         class="content-color">{{awardBudgetData?.awardBudgetHeader?.virement!= null ? awardBudgetData?.awardBudgetHeader?.virement : "00.00" }}
+         %</span>
+     </div>
+     <div class="col-md-2 col-sm col-6"
+       *ngIf="awardBudgetData?.awardBudgetHeader?.enableAwardBudgetVirementCalculation">
+       <label class="d-block">Cumulative Virement %</label>
+       <span
+         class="content-color">{{awardBudgetData?.awardBudgetHeader?.cumulativeVirement != null ? awardBudgetData?.awardBudgetHeader?.cumulativeVirement : "00.00" }}
+         %</span>
+     </div>
+        
+              <!-- Fund Centre, Fund Code ,Fund Disbursement Basis-
+              these fields depends on the parameter 'ENABLE_AB_FIELDS_FOR_SAP' -->
+      
+      <ng-container *ngIf="awardBudgetData?.showAwardBudgetFieldForSap">
+        <div class="col-lg-2 col-sm-6 col-12" >
+          <label class="d-block">Fund Centre</label>
+          <input type="text" class="form-control" *ngIf="_budgetDataService.isBudgetEditable && !_budgetDataService.isBudgetPartiallyEditable; else fundCenterSpan"
+            [(ngModel)]="awardBudgetData.awardBudgetHeader.fundCenter"
+            (ngModelChange)="_commonDataService.isAwardDataChange = true">
+          <ng-template #fundCenterSpan>
+            <span class="d-inline-block d-sm-block content-color">
+              {{!awardBudgetData.awardBudgetHeader.fundCenter ? 'No Fund Centre specified': awardBudgetData.awardBudgetHeader.fundCenter}}
+            </span> 
+          </ng-template>
+        </div>
+        <div class="col-lg-2 col-sm-6 col-12" >
+          <label class="d-block">Fund Code</label>
+          <span><input type="text" class="form-control" *ngIf="_budgetDataService.isBudgetEditable && !_budgetDataService.isBudgetPartiallyEditable; else fundCodeSpan"
+              [(ngModel)]="awardBudgetData.awardBudgetHeader.fundCode"
+              (ngModelChange)="_commonDataService.isAwardDataChange = true">
+          </span>
+          <ng-template #fundCodeSpan>
+            <span class="d-inline-block d-sm-block content-color">
+              {{!awardBudgetData.awardBudgetHeader.fundCode ? 'No Fund Code specified': awardBudgetData.awardBudgetHeader.fundCode}}
+            </span> 
+          </ng-template>
+        </div>
+        <div class="col-lg-2 col-sm-6 col-12" >
+          <label class="d-block">Fund Disbursement Basis</label>
+          <select *ngIf="_budgetDataService.isBudgetEditable && !_budgetDataService.isBudgetPartiallyEditable; else fundDisbursementBasisSpan"  class="form-control"
+              [(ngModel)]="awardBudgetData.awardBudgetHeader.fundDisbursementBasisTypeCode"
+              (ngModelChange)="_commonDataService.isAwardDataChange = true">
+              <option [ngValue]="null">--Select--</option>
+              <option *ngFor="let type of awardBudgetData.fundDisbursementBasisTypes" [ngValue]="type?.fundDisbursementBasisTypeCode">
+                {{type?.description}}
+            </option>
+          </select>
+          <ng-template #fundDisbursementBasisSpan>
+            <span class="d-inline-block d-sm-block content-color">
+              {{!awardBudgetData.awardBudgetHeader.fundDisbursementBasisTypeCode ? 'No Disbursement Basis specified': awardBudgetData.awardBudgetHeader.fundDisbursementBasisType.description}}
+            </span> 
+          </ng-template>
+        </div>
+      </ng-container>   
+    </div>
+    <div class="form-row">
+      <!-- Description -->
+      <div class="col-lg col-10">
+        <label for="desc" class="d-block">Description</label>
+        <textarea id="desc" rows="1" class="form-control"  *ngIf="_budgetDataService.isBudgetEditable; else descriptionSpan"
+          [(ngModel)]="awardBudgetData.awardBudgetHeader.comments"
+          (ngModelChange)="_commonDataService.isAwardDataChange = true" appLengthValidator
+          [isShowLimiter]='_budgetDataService.isBudgetEditable' limit=4000></textarea>
+          <ng-template #descriptionSpan>
+            <span class="d-inline-block d-sm-block content-color">
+              {{!awardBudgetData.awardBudgetHeader.comments ? 'No Description specified': awardBudgetData.awardBudgetHeader.comments}}
+            </span> 
+          </ng-template>
+      </div>
+      <!-- save -->
+      <div class="col-auto d-flex align-items-center "
+       [class.flex-column-reverse] = "!_budgetDataService.isBudgetEditable"
+        *ngIf="_budgetDataService.isBudgetEditable || _budgetDataService.isBudgetPartiallyEditable">
+        <button class="btn btn-primary-sub btn-xs" (click)="saveOrUpdateAwardBudgetOverView('SAVE')">Save</button>
+      </div>
+    </div>
+  </div>
+  <!-- Create New Budget Version Modal -->
+  <button [hidden]="true" id="choose-fundType-modal-overview-button" data-toggle="modal"
+  data-target="#newBudgetVersionModal"></button>
+  <div class="modal fade mySkinDialog" id="newBudgetVersionModal" data-backdrop="static" data-keyboard="false"
+    tabindex="-1" role="dialog" aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+    <div class="modal-dialog modal-md" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Total Budget Cost Amount (Remaining Fund) based on:</h5>
+          <button type="button" class="close" id="award-budget-fundtype-dismiss-btn" data-dismiss="modal">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-row mb-3" *ngFor="let budgetFundType of fundTypeList">
+            <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 d-flex align-items-center">
+              <span>
+                <input id="total-project-cost" type="radio" name="fundType" [value]="budgetFundType?.fundTypeCode"
+                  [(ngModel)]="fundType" (ngModelChange)="_budgetDataService.setBudgetFundType(fundType)" />
+              </span>
+              <span class="ml-4">
+                <label for="total-project-cost">{{budgetFundType?.fundType}}</label>
+                <span class="d-block font-weight-light">{{budgetFundType?.decription}}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btnSkin btn-secondary" data-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary-sub" (click)="createBudgetOnAwardEdit('NEW')" data-dismiss="modal">
+            Create New Budget Version</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- SHOW RATES MODAL -->
+  <div class="modal fade mySkinDialog" id="awardBudgetRatesModal" tabindex="-1" role="dialog"
+    aria-labelledby="showRatesTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="proposal-budget-rates">Rates</h5>
+          <button type="button" class="close" data-dismiss="modal">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div *ngIf="awardBudgetData?.awardBudgetHeader?.awardRates?.length > 0" class="tabs m-0">
+            <ul class="nav nav-tabs" role="tablist">
+              <li *ngFor="let rateClassType of awardBudgetData?.rateClassTypes" role="presentation"
+                [ngClass]="selectedRateClassType == rateClassType?'activeTab':'inActiveTab'">
+                <a href="" role="tab" data-toggle="tab" (click)="selectedRateClassType=rateClassType">{{rateClassType}}
+                </a>
+              </li>
+            </ul>
+            <div class="fixed-header-table">
+              <table id="ratesTable" aria-describedby="proposal-budget-rates" class="table tableStyle tableSkin"
+                *ngIf="awardBudgetData?.awardBudgetHeader?.awardRates?.length > 0">
+                <thead>
+                  <tr class="thead-light">
+                    <th scope="col" width="20%">Activity Type</th>
+                    <th scope="col" width="10%">Fiscal Year</th>
+                    <th scope="col" width="20%">Start Date</th>
+                    <th scope="col" width="15%">Institute Rate(%)</th>
+                    <th scope="col" width="15%">Applicable Rate(%)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let rate of awardBudgetData?.awardBudgetHeader?.awardRates">
+                    <ng-container *ngIf="rate.rateClass.description == selectedRateClassType">
+                      <td>{{rate.activityType.description}}</td>
+                      <td>{{rate.fiscalYear}}</td>
+                      <td>{{rate.startDate | dateFormatter}}</td>
+                      <td>{{rate.instituteRate}}</td>
+                      <td>
+                        <input type="text" [(ngModel)]="rate.applicableRate" (ngModelChange)="isApplyRates=true"
+                          [disabled]="!_budgetDataService.isBudgetEditable || !awardBudgetData?.awardBudgetHeader?.isAutoCalc"
+                          class="dateBox committeeBox text-right"/>
+                      </td>
+                    </ng-container>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="no-data-container p-3" *ngIf="awardBudgetData?.awardBudgetHeader?.awardRates?.length == 0">
+            <span class="no-data-icon-outer">
+              <div class="no-data-icon">
+                <i class="fa fa-file-o" aria-hidden="true"></i>
+                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+              </div>
+            </span>
+            <h4 class="text-content-color">There is no information in this section.</h4>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <ng-container
+            *ngIf="awardBudgetData?.awardBudgetHeader?.awardRates?.length > 0 && awardBudgetData?.awardBudgetHeader?.isAutoCalc">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" *ngIf="isApplyRates && _budgetDataService.isBudgetEditable"
+              class="btn btn-primary-sub btn-sm" title="Apply rates" (click)="applyRates()">Apply Rates</button>
+            <button *ngIf="_budgetDataService.isBudgetEditable" type="button" class="btn btn-primary-sub btn-sm"
+              title="Reset Rates" (click)="resetAwardBudgetRates()">Reset</button>
+          </ng-container>
+          <button *ngIf="_budgetDataService.isBudgetEditable" type="button" class="btn btn-primary-sub btn-sm"
+          title="Sync Rates" (click)="getSyncAwardBudgetRates()">Sync Rates</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- SHOW RATES MODAL ENDS-->
+
+  <!-- AVAILABLE FUND WARNING MODAL -->
+  <button style="display: none" id="awardBudgetavailableFundModalBtn" data-toggle="modal"
+    data-target="#awardBudgetavailableFundModal"></button>
+  <div class="modal fade mySkinDialog" id="awardBudgetavailableFundModal" role="dialog" data-backdrop="static"
+    data-keyboard="false">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header ct-footer-padding">
+          <h4 class="modal-title">Total Cost Exceeded!</h4>
+          <button id="addPersonCloseId" type="button" class="close" data-dismiss="modal">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body ct-modal-padding">
+          <p><ng-container i18n="@@AWARD_TOTAL_COST_EXCEEDED_REMAINING_FUND_ERR">Total cost exceeded remaining fund. Please make necessary corrections
+            in line item costs to submit the award.</ng-container></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary-sub" data-dismiss="modal">Ok</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- AVAILABLE FUND WARNING MODAL ENDS-->
+
+  <!-- AUTOCALC TOGGLE MODAL -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="autocalcToggleModal" tabindex="-1" role="dialog"
+data-backdrop="static" data-keyboard="false" aria-labelledby="autocalcToggleModal" aria-hidden="true">
+<div class="modal-dialog" role="document">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 *ngIf="awardBudgetData?.awardBudgetHeader?.isAutoCalc" class="modal-title">Auto Calculate On</h5>
+      <h5 *ngIf="!awardBudgetData?.awardBudgetHeader?.isAutoCalc" class="modal-title">Auto Calculate Off</h5>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="onAutoCalcChange()">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p *ngIf="awardBudgetData?.awardBudgetHeader?.isAutoCalc">
+        Do you want to enable auto calculation ?
+      </p>
+      <p *ngIf="!awardBudgetData?.awardBudgetHeader?.isAutoCalc">
+        Do you want to disable auto calculation ?
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button id="autoCalcToggleCancelBtn" type="button" class="btn btn-secondary" data-dismiss="modal" (click)="onAutoCalcChange()">Cancel</button>
+      <button *ngIf="awardBudgetData?.awardBudgetHeader?.isAutoCalc" type="button" class="btn btn-primary-sub" data-dismiss="modal" (click)="saveOrUpdateAwardBudgetOverView('AUTOCALCULATE')">Enable</button>
+      <button *ngIf="!awardBudgetData?.awardBudgetHeader?.isAutoCalc" type="button" class="btn btn-primary-sub" data-dismiss="modal" (click)="saveOrUpdateAwardBudgetOverView('AUTOCALCULATE')">Disable</button>
+    </div>
+  </div>
+</div>
+</div>
+<!--  AUTOCALC TOGGLE MODAL ENDS -->
+
+<!-- CONFIRM BUDGET TEMPLATE MODAL -->
+<div class="modal fade mySkinDialog" id="confirmAwardBudgetTemplateModal" role="dialog" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header ct-footer-padding">
+        <h4 class="modal-title">Confirmation</h4>
+        <button type="button" id="award-budget-template-close-btn" class="close" data-dismiss="modal" aria-label="Close"
+          (click)="awardBudgetData.awardBudgetHeader.budgetTemplateTypeId = tempBudgetTemplateId;">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body ct-modal-padding">
+        <p>The fields in Periods & Total becomes non editable and the existing Budget will be Reset.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+        (click)="awardBudgetData.awardBudgetHeader.budgetTemplateTypeId = tempBudgetTemplateId;">Cancel</button>
+        <button type="button" class="btn btn-primary-sub" data-dismiss="modal"
+          (click)="saveOrUpdateAwardBudgetOverView('BUDGET_TEMPLATE')">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- CONFIRM BUDGET TEMPLATE MODAL -->

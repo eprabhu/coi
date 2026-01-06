@@ -1,0 +1,469 @@
+<div class="card mt-3">
+    <div class="card-header" [ngClass]="result.agreementHeader.agreementStatusCode !== '1' 
+    && result?.agreementHeader?.agreementStatusCode !== '2' ? '' : ' py-2'">
+        <h4 class="card-title align-items-center d-flex">
+            <span class="mr-auto">Other Supporting Documents</span>
+            <span class="mr-5">
+                <button title="Add Attachments"
+                    id="agreement-add-doc-btn" class="btn btn-tertiary btn-sm mt-0"
+                    (click)="isShowAddAttachmentModal = true;isReplaceAttachment = false;">
+                    <span>Add Attachments</span>
+                </button>
+                <button id="attachmentExpandBtn" class="updown-arrow btnPositionFullWidget mt-1"
+                    (click)="isAttachmentListOpen = !isAttachmentListOpen">
+                    <i [ngClass]="isAttachmentListOpen?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                        class="fa-large" aria-hidden="true"></i>
+                </button>
+            </span>
+        </h4>
+    </div>
+    <div class="card-content" *ngIf="isAttachmentListOpen">
+        <div class="card-body">
+            <div *ngIf="result?.agreementAttachments?.length == 0 && questionnaireAttachments?.length == 0" class="noDataExists">
+                <div class="no-data-container">
+                    <span class="no-data-icon-outer">
+                            <div class="no-data-icon">
+                                <i aria-hidden="true" class="fa fa-file-o"></i>
+                                <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                            </div>
+                        </span>
+                        <h4>There is no information in this section.</h4>
+                </div>
+            </div>
+            <div class="table-responsive" *ngIf="result?.agreementAttachments?.length > 0 || questionnaireAttachments.length > 0">
+                <table class="table tableSkin grid2">
+                    <caption class="sr-only">Attachments List</caption>
+                    <thead class="d-none">
+                        <tr>
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th scope="col" style="width: 20%;" id="sort-by-attach-type">
+                                <label>Document Type</label>
+                            </th>
+                            <th scope="col" style="width: 23%;" id="sort-by-attach-desc">
+                                <label>Description</label>
+                            </th>
+                            <th scope="col" class="hand-cursor" id="sort-by-attach-name">
+                                <label>File Name</label>
+                            </th>
+                            <th scope="col" class="hand-cursor" id="sort-by-attach-update">
+                                <label>Updated by</label>
+                            </th>
+                            <th style="width: 15%;" scope="col">Actions</th>
+                        </tr>
+                        <ng-container *ngFor="let attachment of result?.agreementAttachments;let i = index">
+                            <tr *ngIf="attachment?.documentStatusCode == 1">
+                                <td>{{getAttachmentType(attachment?.agreementAttachmentTypeCode)}}</td>
+                                <td title="{{(attachment?.description?.length>30)?(attachment?.description):''}}">
+                                    <ng-container>
+                                        {{(attachment?.description?.length > 30)?(attachment?.description | slice:0:30)+'...':(attachment?.description)}}
+                                    </ng-container>
+                                </td>
+                                <td title="{{(attachment?.fileName?.length>50)?(attachment?.fileName):''}}">
+                                    {{(attachment?.fileName?.length > 50)?(attachment?.fileName |
+                              slice:0:50)+'...':(attachment?.fileName)}}
+                                </td>
+                                <td>
+                                    <span>{{attachment.updateUserFullName}} on
+                                        {{attachment.updateTimestamp | dateFormatterWithTimeZone : 'long'}}</span>
+                                </td>
+                                <td>
+                                    <ul class="actionButtonGroup">
+                                        <li>
+                                            <a data-toggle="modal">
+                                              <i class="fa fa-pencil pointer" title="Click here to edit {{attachment?.fileName}}" aria-hidden="true"
+                                              (click)="editAgreementAttachment(attachment,i)" data-toggle="modal" data-target="#editAgreementAttachmentModal"></i>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a (click)="downloadAgreementAttachments(attachment)"
+                                                id="agreement-doc-dwnlod-btn"
+                                                title="Click here to download {{(attachment?.fileName?.length > 20)?(attachment?.fileName | slice:0:20)+'...':(attachment?.fileName)}}">
+                                                <i class="fa fa-download pointer" aria-hidden="true"></i>
+                                            </a>
+                                        </li>
+                                        <li
+                                            *ngIf="attachment.agreementAttachmentId">
+                                            <a id="agreement-doc-replace-btn"
+                                                (click)="openModal(i)"
+                                                title="Click here to replace file {{(attachment?.fileName?.length > 20)?(attachment?.fileName | slice:0:20)+'...':(attachment?.fileName)}}">
+                                                <i class="fa fa-retweet pointer" aria-hidden="true"></i>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a id="agreement-doc-version-btn"
+                                                (click)="getVersion(attachment.documentId, attachment.fileName )"
+                                                title="Click here to view file versions" data-toggle="modal"
+                                                data-target="#agreement-doc-version-modal">
+                                                <img class="version-icon" alt="versions icon"
+                                                    src="{{deployMap}}assets/images/version-icons.png"
+                                                    aria-hidden="true">
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a (click)="temprySaveAttachments(attachment.agreementAttachmentId,i,attachment.documentId)"
+                                                id="agreement-doc-dlt-btn" data-toggle="modal"
+                                                data-target="#deleteAttachment">
+                                                <i class="fa fa-trash-o" aria-hidden="true"
+                                                    title="Click here to delete {{attachment?.fileName}}"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </td>
+                            </tr>
+                        </ng-container>
+                        <ng-container *ngFor="let attachment of questionnaireAttachments;let i = index">
+                            <tr>
+                                <td>Questionnaire attachment</td>
+                                <td title="{{(attachment?.description?.length>30)?(attachment?.description):''}}">
+                                    <ng-container>
+                                        {{(attachment?.description?.length > 30)?(attachment?.description | slice:0:30)+'...':(attachment?.description)}}
+                                    </ng-container>
+                                </td>
+                                <td title="{{(attachment?.fileName?.length>50)?(attachment?.fileName):''}}">
+                                    {{(attachment?.fileName?.length > 50)?(attachment?.fileName |
+                              slice:0:50)+'...':(attachment?.fileName)}}
+                                </td>
+                                <td>
+                                    <span>{{attachment.updateUser}} on
+                                        {{attachment.updateTimestamp | dateFormatterWithTimeZone : 'long'}}</span>
+                                </td>
+                                <td>
+                                    <ul class="actionButtonGroup">
+                                        <li>
+                                            <a (click)="downloadQuestionnaireAttachment(attachment.answerAttachmentId, attachment.fileName)"
+                                                id="agreement-doc-dwnlod-btn"
+                                                title="Click here to download {{(attachment?.fileName?.length > 20)?(attachment?.fileName | slice:0:20)+'...':(attachment?.fileName)}}">
+                                                <i class="fa fa-download pointer" aria-hidden="true"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </td>
+                            </tr>
+                        </ng-container>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="isAgreementAdministrator || isGroupAdministrator" class="card mb-3 mt-3">
+    <div class="card-header px-4">
+        <h4 class="card-title">Activity Attachments
+            <span class="float-right mr-5">
+                <!-- <button *ngIf="negotiationAttachments?.length > 0" title="Download All Activity Attachments"
+                    id="nego-download-doc-btn" class="btn btn-primary-sub btn-sm"
+                    (click)="downloadAllAttachments('negotiationAttachments');">
+                    <i class="fa fa-download pointer" aria-hidden="true"></i>&nbsp;
+                    <span class="d-none d-sm-inline-block">Download All Activity Attachments</span>
+                </button> -->
+                <button id="activityAttachmentExpandBtn" class="updown-arrow"
+                    (click)="isActivityAttachmentListOpen = !isActivityAttachmentListOpen">
+                    <i [ngClass]="isActivityAttachmentListOpen?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                        class="fa-large" aria-hidden="true"></i>
+                </button>
+            </span>
+        </h4>
+    </div>
+    <div class="card-content" *ngIf="isActivityAttachmentListOpen">
+        <div class="card-body">
+            <div *ngIf="negotiationAttachments?.length == 0" class="noDataExists">
+                <div class="no-data-container">
+                    <span class="no-data-icon-outer">
+                            <div class="no-data-icon">
+                                <i aria-hidden="true" class="fa fa-file-o"></i>
+                                <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                            </div>
+                        </span>
+                        <h4>There is no information in this section.</h4>
+            </div>
+            </div>
+            <div class="table-responsive" *ngIf="negotiationAttachments?.length > 0">
+                <table class="table tableSkin grid2">
+                    <caption class="sr-only">Negotiation Attachments</caption>
+                    <thead>
+                        <th scope="col" style="width: 25%" class="hand-cursor" id="sort-by-attach-type">
+                            <label>Activity Type</label>
+                        </th>
+                        <th scope="col" style="width: 35%" class="hand-cursor" id="sort-by-attach-name">
+                            <label>File Name</label>
+                        </th>
+                        <th scope="col" style="width: 25%" class="hand-cursor" id="sort-by-attach-update">
+                            <label>Updated by</label>
+                        </th>
+                        <th scope="col" style="width: 8%">Actions</th>
+                    </thead>
+                    <ng-container *ngFor="let attachment of negotiationAttachments;let i = index">
+                        <tbody>
+                            <tr>
+                                <td>{{attachment?.negotiationsActivity?.negotiationsActivityType?.description}}</td>
+                                <td title="{{(attachment?.fileName?.length>30)?(attachment?.fileName):''}}">
+                                    {{(attachment?.fileName?.length > 30)?(attachment?.fileName | slice:0:30)+'...':(attachment?.fileName)}}
+                                </td>
+                                <td>
+                                    <span>{{attachment.updateUserFullName}} on
+                                        {{attachment.updateTimestamp | dateFormatterWithTimeZone : 'long'}}</span>
+                                </td>
+                                <td>
+                                    <ul class="actionButtonGroup">
+                                        <!-- <li>
+                                            <a *ngIf="(isModifyNegotiationAttachments)"
+                                                (click)="temprySaveAttachments(attachment)" id="nego-doc-dlt-btn"
+                                                data-toggle="modal" data-target="#deleteAttachment">
+                                                <i class="fa fa-trash-o" aria-hidden="true"
+                                                    title="Click here to delete {{attachment?.fileName}}"></i>
+                                            </a>
+                                        </li> -->
+                                        <li>
+                                            <a (click)="downloadNegotiationAttachments(attachment)"
+                                                id="nego-doc-dwnlod-btn"
+                                                title="Click here to download {{(attachment?.fileName?.length > 20)?(attachment?.fileName | slice:0:20)+'...':(attachment?.fileName)}}">
+                                                <i class="fa fa-download pointer" aria-hidden="true"></i>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a title="Click here to view {{(attachment?.fileName?.length > 20)?(attachment?.fileName | slice:0:20)+'...':(attachment?.fileName)}}"
+                                                 (click) = "getAttachmentDetails(attachment?.negotiationsActivity?.negotiationLocationId,attachment?.negotiationsActivity?.negotiationsActivityId)"
+                                                class="pointer">
+                                                <i aria-hidden="true" class="fa fa-eye pointer"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </ng-container>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<app-common-attchments *ngIf="isShowAddAttachmentModal"
+                 [result] = "result" [isReplaceAttachment] = "isReplaceAttachment" 
+                 [replaceIndex] = "replaceIndex"
+                 (attachmentSave)="updateAddedAttachments($event)">
+</app-common-attchments>
+
+<!-- DELETE ATTACHMENT WARNING MODAL -->
+<div class="modal fade mySkinDialog" *ngIf="isShowDeleteAttachment" tabindex="-1" id="deleteAttachment" tabindex="-1"
+    role="dialog" aria-labelledby="deleteModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete</h5>
+                <button type="button" class="close" data-dismiss="modal" id="agreement-doc-dlt-dismiss"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this item?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="agreement-doc-dlt-no-btn" class="btn btn-secondary btn-sm"
+                    data-dismiss="modal" data-toggle="modal" (click)="isShowDeleteAttachment = false">Cancel</button>
+                <button type="button" id="agreement-doc-dlt-yes-btn" class="btn btn-primary-sub btn-sm"
+                    (click)="deleteAttachments()" data-dismiss="modal">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--document version modal-->
+<div class="modal fade mySkinDialog" *ngIf="isShowAttachmentVersionModal" tabindex="-1" id="agreement-doc-version-modal"
+    tabindex="-1" role="dialog" aria-labelledby="versionModalTitle" aria-hidden="true">
+    <div [ngClass]="(attachmentVersions.length == 0)?'modal-dialog':'modal-dialog modal-lg'" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 *ngIf="attachmentVersions.length > 0" class="modal-title"
+                    title="{{(fileName?.length>55)?(fileName):''}}">Versions
+                    of {{(fileName?.length > 55)?(fileName | slice:0:55)+'...':(fileName)}}</h5>
+                <h5 *ngIf="attachmentVersions.length == 0" class="modal-title"
+                    title="{{(fileName?.length>35)?(fileName):''}}">Versions
+                    of {{(fileName?.length > 35)?(fileName | slice:0:28)+'...':(fileName)}}</h5>
+                <button type="button" id="agreement-version-close" class="close"
+                    (click)="isShowAttachmentVersionModal = false" data-dismiss="modal"
+                    id="agreement-doc-version-dlt-dismiss" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" *ngIf="attachmentVersions.length > 0">
+                <table id="doc-version-table" class="table table-responsive tableSkin"
+                    [ngClass]="(attachmentVersions.length > 8)? 'version-table-scroll' : 'version-table-noscroll'">
+                    <caption class="sr-only">Attachment Versions</caption>
+                    <thead *ngIf="attachmentVersions.length > 0">
+                        <tr>
+                            <th scope="col" style="width: 5%;">Version</th>
+                            <th scope="col">File Name</th>
+                            <th scope="col">Updated By</th>
+                            <th scope="col" style="width: 5%;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody *ngIf="attachmentVersions.length > 0">
+                        <tr *ngFor="let version of attachmentVersions">
+                            <td style="width: 5%;">
+                                <span>{{version.versionNumber}}</span>
+                            </td>
+                            <td>
+                                <span title="{{(version?.fileName?.length>40)?(version?.fileName):''}}">{{(version?.fileName?.length
+                                  > 40)?(version?.fileName | slice:0:40)+'...':(version?.fileName)}}</span>
+                            </td>
+                            <td>
+                                <span>{{version.updateUserFullName}} on
+                                    {{version.updateTimestamp | dateFormatterWithTimeZone  : 'long'}}</span>
+                            </td>
+                            <td style="width: 5%;">
+                                <ul class="actionButtonGroup">
+                                    <li>
+                                        <a (click)="downloadAgreementAttachments(version)" id="agreement-doc-dwnlod-btn"
+                                            title="Click here to download {{(version?.fileName?.length > 20)?(version?.fileName | slice:0:20)+'...':(version?.fileName)}}">
+                                            <i class="fa fa-download pointer" aria-hidden="true"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-body" *ngIf="attachmentVersions.length == 0">
+                <p>There are no versions found</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="grant-doc-dlt-no-btn" class="btnSkin btn-secondary" data-dismiss="modal"
+                    data-toggle="modal" (click)="isShowAttachmentVersionModal = false">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade mySkinDialog" tabindex="-1" id="attachment-details-modal"
+    tabindex="-1" role="dialog" aria-labelledby="attachmentDetails" aria-hidden="true">
+    <div  [ngClass]="attachmentDetails?.activityType === 'Comment' && !attachmentDetails?.location ? 'modal-dialog' :'modal-dialog modal-lg'" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Attachment Details</h5>
+                <button type="button" class="close" data-dismiss="modal" id="agreement-doc-dlt-dismiss"
+                    aria-label="Close" (click) = "clearValues()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" *ngIf="attachmentDetails">
+                <div class="row" *ngIf="attachmentDetails?.location">
+                      <div class="col-3">
+                        <label class="d-block">Location </label>
+                        <span  class = "bolder-font">
+                          {{attachmentDetails?.location}}<span *ngIf="attachmentDetails?.locationDescription">
+                              ({{attachmentDetails?.locationDescription}})
+                          </span>
+                        </span>
+                    </div>
+                    <div class="col-3">
+                        <label class="d-block">Status </label>
+                        <span  class = "bolder-font">
+                          {{attachmentDetails?.status}}
+                        </span>
+                    </div>
+                    <div class="col-3">
+                        <label class="d-block">Assignee</label>
+                        <span [ngClass]="attachmentDetails?.assignee !== null ? 'bolder-font' : 'dull-font'">
+                          {{attachmentDetails?.assignee ? attachmentDetails?.assignee : 'No Assignee specified'}}
+                        </span>
+                    </div>
+                    <div class="col-3">
+                        <label class="d-block">Assigned On</label>
+                        <span  class = "bolder-font">
+                          {{attachmentDetails?.assignedOn | dateFormatterWithTimeZone: 'long' }}
+                        </span>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div [ngClass]="attachmentDetails?.activityType === 'Comment' && !attachmentDetails?.location ? 'col-6' :'col-3'" *ngIf="!attachmentDetails?.location">
+                        <label class="d-block">Location </label>
+                        <span  class = "bolder-font">
+                         General
+                        </span>
+                    </div>
+                    <div  [ngClass]="attachmentDetails?.activityType === 'Comment' && !attachmentDetails?.location ? 'col-6' : 'col-3'">
+                        <label class="d-block">Activity Type</label>
+                        <span class = "bolder-font">
+                          {{attachmentDetails?.activityType}}
+                        </span>
+                    </div>
+                    <div class="col-3" *ngIf="attachmentDetails?.activityType !== 'Comment'">
+                        <label class="d-block">Start Date</label>
+                        <span *ngIf="attachmentDetails?.startDate" class = "bolder-font">{{attachmentDetails?.startDate| dateFormatter}}</span>
+                        <span *ngIf="!attachmentDetails?.startDate" class = "dull-font">No Date Specified</span> 
+                    </div>
+                    <div class="col-3" *ngIf="attachmentDetails?.activityType !== 'Comment'">
+                        <label class="d-block">End Date</label>
+                        <span *ngIf="attachmentDetails?.endDate" class = "bolder-font">{{attachmentDetails?.endDate| dateFormatter}}</span>
+                        <span *ngIf="!attachmentDetails?.endDate" class = "dull-font">No Date Specified</span> 
+                    </div>
+                    <div class="col-3" *ngIf="attachmentDetails?.activityType !== 'Comment'">
+                        <label class="d-block">Follow up Date</label>
+                        <span *ngIf="attachmentDetails?.followupDate" class = "bolder-font">{{attachmentDetails?.followupDate| dateFormatter}}</span>
+                        <span *ngIf="!attachmentDetails?.followupDate" class = "dull-font">No Date Specified</span> 
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="close-btn" class="btnSkin btn-secondary" data-dismiss="modal" (click) = "clearValues()"
+                    data-toggle="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Edit modal begins-->
+<div class="modal fade mySkinDialog" id="editAgreementAttachmentModal" tabindex="-1" role="dialog"
+    aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Attachments</h5>
+                <button type="button" class="close" data-dismiss="modal" id="agreement-doc-popup-dismiss-btn"
+                    aria-label="Close" (click)="clearEditAttachmentDetails()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                     <div class="gridSkin">
+                        <div class="mb-2">
+                            <div class="row mb-2">
+                                <div class="col-lg-3 col-12">
+                                    <label class="d-block"><span class="mandatory">*</span>Document Type</label>
+                                    <span>
+                                        {{getAttachmentType(editAttachmentDetails?.agreementAttachmentTypeCode)}}
+                                    </span>
+                                </div>
+                                <div class="col-lg-4 col-12">
+                                    <label>Description</label>
+                                    <textarea id="desc" cols="2" rows="1" id="agreement-doc-popup-desc"
+                                        [(ngModel)]="editAttachmentDetails.description" placeholder=""
+                                        class="form-control dateBox">
+                                   </textarea>
+                                </div>
+                                <div class="col-lg-4 col-12">
+                                    <label><span class="mandatory">*</span>File</label>
+                                    <span
+                                        class="d-block">{{(editAttachmentDetails.fileName?.length > 30)?(editAttachmentDetails.fileName | slice:0:30)+'...':(editAttachmentDetails.fileName)}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="agreement-doc-popup-close-btn" data-dismiss="modal"
+                    (click)="clearEditAttachmentDetails()">Close</button>
+                <button type="button" class="btn btn-primary-sub" id="agreement-doc-popup-add-btn"
+                    (click)="updateAttachments()">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--Edit modals ends-->

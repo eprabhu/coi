@@ -1,0 +1,151 @@
+<div class="card overflow-hidden coi-card-bg-body mt-0">
+    <div class="card-header px-1" [class.border-bottom-0]="!keyPersonData?.disclosures?.length || !isShowAllDisclosures">
+        <div class="row row-gap-2 w-100 mx-0 position-relative">
+            <!-- Name -->
+            <div tabindex="-1" class="col-12 col-md-6 col-lg-6 col-xl-3 col-xxl-3"
+                [attr.aria-label]="'Name is ' + (keyPersonData?.keyPersonName ? keyPersonData?.keyPersonName : 'empty')">
+                <label for="coi-keyperson-{{uniqueId}}-keyPersonName" class="coi-text-dark d-block">Name</label>
+                <div id="coi-keyperson-{{uniqueId}}-keyPersonName" class="text-slice">
+                    <app-no-data-label [valueToShow]="keyPersonData?.keyPersonName">
+                        <a class="link-primary text-slice fs-14 fw-500"
+                            id="coi-keyperson-{{uniqueId}}-keyPersonName-link" tabindex="0"
+                            (click)="redirectToPersonDetails(keyPersonData)"
+                            (keyup.enter)="redirectToPersonDetails(keyPersonData)"
+                            [title]="'Click here to view details of ' + keyPersonData?.keyPersonName"
+                            [attr.aria-label]="'Click here to view details of ' + keyPersonData?.keyPersonName">
+                            {{keyPersonData?.keyPersonName}}
+                        </a>
+                    </app-no-data-label>
+                </div>
+            </div>
+            <!-- Role -->
+            <div tabindex="-1" class="col-12 col-md-6 col-lg-6 col-xl-3 col-xxl-3"
+                [attr.aria-label]="'Role is ' + (keyPersonData?.keyPersonRole ? keyPersonData?.keyPersonRole : 'empty')">
+                <label for="coi-keyperson-{{uniqueId}}-keyPersonRole" class="coi-text-dark d-block">Role</label>
+                <div id="coi-keyperson-{{uniqueId}}-keyPersonRole" class="text-slice">
+                    <app-no-data-label [valueToShow]="keyPersonData?.keyPersonRole">
+                        <span class="coi-text-light"
+                            [title]="keyPersonData?.keyPersonRole">{{keyPersonData?.keyPersonRole}}</span>
+                    </app-no-data-label>
+                </div>
+            </div>
+            <!-- Department -->
+            <div tabindex="-1" class="col-12 col-md-6 col-lg-6 col-xl-3 col-xxl-3"
+                [attr.aria-label]="'Department is ' + ((keyPersonData?.homeUnitNumber || keyPersonData?.homeUnitName) ? leadUnit : 'empty')">
+                <label for="coi-keyperson-{{uniqueId}}-department" class="coi-text-dark d-block"><ng-container i18n="@@COMMON_DEPARTMENT">Department</ng-container></label>
+                <div id="coi-keyperson-{{uniqueId}}-department" class="text-slice">
+                    <app-no-data-label [valueToShow]="(keyPersonData?.homeUnitNumber || keyPersonData?.homeUnitName)">
+                        <span [title]="leadUnit" class="coi-text-light">{{leadUnit}}</span>
+                    </app-no-data-label>
+                </div>
+            </div>
+            <!-- COI Review Status -->
+            <div tabindex="-1" class="col">
+                <span class="coi-text-dark d-block"><ng-container i18n="@@COI_REVIEW_STATUS">Review Status</ng-container></span>
+                <div id="coi-keyperson-{{uniqueId}}-reviewStatus" class="text-slice">
+                    <ng-container *ngIf="!keyPersonData?.disclosureRequired && keyPersonData?.nonEmployeeFlag === 'N'; else showNotRequired">
+                        --
+                    </ng-container>
+                    <ng-template #showNotRequired>
+                        <ng-container
+                            *ngIf="keyPersonData?.nonEmployeeFlag === 'Y'; else showReviewStatus">
+                            <!-- Not Required -->
+                            <span class="coi-text-light" title="Not Required">Not Required</span>
+                        </ng-container>
+                    </ng-template>
+                    <!-- COI Review status -->
+                    <ng-template #showReviewStatus>
+                        <ng-container *ngIf="keyPersonData?.disclosures?.length; else showNoDisclosure">
+                            <app-no-data-label [valueToShow]="keyPersonData?.overallReviewStatus">
+                                <span [attr.aria-label]="(keyPersonData?.overallReviewStatus ? keyPersonData?.overallReviewStatus : 'empty')"
+                                    [title]="keyPersonData?.overallReviewStatus" class="coi-text-light">{{keyPersonData?.overallReviewStatus}}</span>
+                            </app-no-data-label>
+                        </ng-container>
+                    </ng-template>
+                    <!-- no disclosure -->
+                    <ng-template #showNoDisclosure>
+                        <span class="coi-text-light" title="No Disclosure">No Disclosure</span>
+                    </ng-template>
+                </div>
+            </div>
+            <!-- expand / collapse -->
+            <div *ngIf="keyPersonData?.disclosures?.length"
+                class="col-auto d-flex justify-content-center align-items-center ps-0 ms-auto">
+                <button (click)="isShowAllDisclosures = !isShowAllDisclosures"
+                    id="coi-keyperson-{{uniqueId}}-expand-btn" name="coi-keyperson-{{uniqueId}}-expand-btn"
+                    class="p-0 shadow-sm toggle-btn mt-0 position-static"
+                    aria-label="Click here to {{isShowAllDisclosures ? 'collapse' : 'expand'}}">
+                    <mat-icon title="Click here to {{isShowAllDisclosures ? 'collapse' : 'expand'}}"
+                        [ngClass]="isShowAllDisclosures ? 'coi-rotate-180' : 'coi-rotate-0'" aria-hidden="true"
+                        class="flex-shrink-0">expand_more</mat-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- key person table -->
+    <div *ngIf="keyPersonData?.disclosures?.length && isShowAllDisclosures" class="card-body overflow-hidden p-0" [@heightAnimation]>
+        <div class="table-responsive coi-table-striped rounded-bottom-3">
+            <table class="table fs-14 fw-medium table-striped mb-0"
+                id="COI_KEYPERSON_DISCLOSURE_TABLE_{{keyPersonData?.keyPersonId}}_{{uniqueId}}">
+                <thead id="COI_KEYPERSON_DISCLOSURE_TABLE_{{keyPersonData?.keyPersonId}}_{{uniqueId}}_header">
+                    <tr class="fw-600" id="COI_KEYPERSON_DISCLOSURE_TABLE_{{keyPersonData?.keyPersonId}}_{{uniqueId}}_header_tr">
+                        <th scope="col" class="col-3" tabindex="-1">Disclosure Type</th>
+                        <th scope="col" class="col-3" tabindex="-1">Conflict Status</th>
+                        <th scope="col" class="col-3" tabindex="-1"><ng-container i18n="@@COI_REVIEW_STATUS">Review Status</ng-container></th>
+                        <th scope="col" class="col-2" tabindex="-1">Submission Date</th>
+                        <th scope="col" class="col-1 text-center" tabindex="-1">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="coi-table-last-border-0">
+                    <ng-container *ngFor="let keyPersonDisclosure of keyPersonData?.disclosures; let disclosureIndex = index;">
+                        <tr id="{{keyPersonDisclosure?.disclosureId + disclosureIndex}}">
+                            <!-- Disclosure Type -->
+                            <td class="align-middle">
+                                <app-no-data-label [valueToShow]="keyPersonDisclosure?.disclosureType">
+                                    <span class="coi-text-light">{{keyPersonDisclosure?.disclosureType}}</span>
+                                </app-no-data-label>
+                            </td>
+                             <!-- Disclosure Status -->
+                            <td class="align-middle">
+                                <app-no-data-label [valueToShow]="keyPersonDisclosure?.disclosureStatus">
+                                    <span class="coi-text-light">{{keyPersonDisclosure?.disclosureStatus}}</span>
+                                </app-no-data-label>
+                            </td>
+                             <!-- Review Status -->
+                            <td class="align-middle">
+                                <app-no-data-label [valueToShow]="keyPersonDisclosure?.reviewStatus">
+                                    <span class="coi-text-light">{{keyPersonDisclosure?.reviewStatus}}</span>
+                                </app-no-data-label>
+                            </td>
+                             <!-- Submission Date -->
+                            <td class="align-middle">
+                                <app-no-data-label [valueToShow]="keyPersonDisclosure?.certificationDate">
+                                    <span class="coi-text-light">{{keyPersonDisclosure?.certificationDate | dateFormatterWithTimeZone}}</span>
+                                </app-no-data-label>
+                            </td>
+                            <!-- Actions -->
+                            <td class="align-middle">
+                                <div class="d-flex align-items-center justify-content-center w-100 h-100">
+                                    <!-- view disclosure -->
+                                    <button *ngIf="keyPersonDisclosure?.canOpenDisclosure" id="view-btn-{{keyPersonDisclosure?.disclosureId + disclosureIndex}}"
+                                        name="view-btn-{{keyPersonDisclosure?.disclosureId + disclosureIndex}}"
+                                        class="btn btn-primary-icon d-flex align-items-center justify-content-center rounded-circle p-2 coi-scale-9 mt-0 position-absolute"
+                                        attr.aria-label="Click here to view {{keyPersonDisclosure?.disclosureType}}"
+                                        title="Click here to view {{keyPersonDisclosure?.disclosureType}}"
+                                        (click)="redirectToFCOIDisclosure(keyPersonDisclosure.disclosureId)">
+                                        <mat-icon aria-hidden="true" class="flex-shrink-0">visibility</mat-icon>
+                                    </button>
+                                    <span *ngIf="!keyPersonDisclosure?.canOpenDisclosure" title="You don't have access to view this disclosure."
+                                     class="d-flex align-items-center justify-content-center coi-scale-9 mt-0 coi-text-lighter rounded-circle px-2">
+                                        <mat-icon aria-hidden="true"
+                                        class="flex-shrink-0">visibility_off</mat-icon>
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                    </ng-container>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

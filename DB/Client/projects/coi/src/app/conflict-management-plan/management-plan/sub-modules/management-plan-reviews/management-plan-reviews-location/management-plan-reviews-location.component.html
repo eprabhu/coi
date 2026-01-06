@@ -1,0 +1,371 @@
+<!-- Location -->
+<div class="card">
+    <div class="card-header py-2 coi-reviewer-header-sticky" [style.top]="managementPlanReviewsService.headerTop">
+        <h4 class="mb-0">
+            <div class="justify-content-between row d-flex align-items-center position-relative">
+                <div class="col fs-6 my-2 fw-bold">Reviewers</div>
+                <div *ngIf="(hasMaintainReviewRights && isReviewMode) && reviewerList?.length" class="col-auto">
+                    <button (click)="openAddReviewModal()"
+                        class="btn btn-primary fs-14 btn-sm mt-0 justify-content-center d-flex align-items-center me-5"
+                        title="Click here to add reviewer" aria-label="Click here to add reviewer"
+                        id="cmp-review-add-btn">
+                        <mat-icon aria-hidden="true" class="me-2">person_add</mat-icon>
+                        Add Reviewer
+                    </button>
+                </div>
+                <button *ngIf="reviewerList?.length" (click)="isExpanded = !isExpanded" id="cmp-review-toggle"
+                    title="Click to {{isExpanded ? 'collapse' : 'view'}} Review Details"
+                    attr.aria-label="{{ isExpanded ? 'collapse' : 'view' }} Review Details"
+                    class="toggle-btn align-items-center border btn d-flex justify-content-center p-0 rounded-5 shadow-sm">
+                    <mat-icon aria-hidden="true">{{!!isExpanded? 'expand_less' : 'expand_more'}}</mat-icon>
+                </button>
+            </div>
+        </h4>
+    </div>
+    <div *ngIf="isExpanded" class="card-body">
+        <div *ngIf="!reviewerList?.length" class="d-flex align-items-center justify-content-center">
+            <app-no-information [isBorderNeeded]="false" [canShowAddButton]="(hasMaintainReviewRights && isReviewMode)"
+                [buttonName]="'Add Reviewer'" (buttonAction)="openAddReviewModal()">
+                <span *ngIf="(hasMaintainReviewRights && isReviewMode)">{{ noDataMessage?.['NO_REVIEWERS_ADDED'] }}</span>
+                <span *ngIf="!(hasMaintainReviewRights && isReviewMode)">{{ noDataMessage?.['NO_REVIEWERS_ASSIGNED'] }}</span>
+            </app-no-information>
+        </div>
+        <div class="table-responsive coi-table-striped">
+            <table *ngIf="reviewerList?.length"
+                class="table table-bordered table-striped" id="cmp-location-review-table">
+                <caption class="visually-hidden">Review</caption>
+                <thead>
+                    <tr id="cmp-location-review-table-thead-tr">
+                        <th class="coi-text-dark">Location</th>
+                        <th class="coi-text-dark">Reviewers</th>
+                        <th class="desc-col coi-text-dark">Description</th>
+                        <th class="coi-text-dark">Assigned On</th>
+                        <th class="coi-text-dark">Review End Date</th>
+                        <th class="coi-text-dark">Days at Location</th>
+                        <th class="coi-text-dark">Status</th>
+                        <th class="coi-text-dark text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let reviewer of reviewerList; let reviewerIndex = index"
+                        id="cmp-location-review-table-tbody-tr-{{reviewerIndex}}">
+                        <td class="coi-text-light fw-600"
+                            [class.align-middle]="!collapseViewMore[reviewer?.cmpReviewId]">
+                            {{reviewer?.locationType?.description}}</td>
+                        <td class="coi-text-light" [class.align-middle]="!collapseViewMore[reviewer?.cmpReviewId]">
+                            <app-no-data-label [classesToApply]="fs-14"
+                                [valueToShow]="reviewer?.assigneePerson?.fullName"
+                                [customNoDataFoundMessage]="'-- No Reviewer assigned --'">
+                                <span class="fw-600">{{reviewer?.assigneePerson?.fullName}}</span>
+                            </app-no-data-label>
+                        </td>
+                        <td class="desc-col align-middle coi-text-light text-break">
+                            <app-no-data-label [valueToShow]="reviewer?.description">
+                                <span *ngIf="reviewer?.description">{{ reviewer?.description.length > 180 && !collapseViewMore[reviewer?.cmpReviewId] 
+                                    ? (reviewer?.description | slice:0:75)+'...' : reviewer?.description }}
+                                    <ng-container *ngIf="reviewer?.description.length > 180">
+                                        <a (click)="collapseViewMoreOption(reviewer?.cmpReviewId, collapseViewMore[reviewer?.cmpReviewId])"
+                                            tabindex="0" role="link"
+                                            attr.aria-label="Click to {{collapseViewMore[reviewer?.cmpReviewId] ? 'Read Less' : 'Read More'}} Description of {{reviewer?.locationType?.description}}"
+                                            title="{{collapseViewMore[reviewer?.cmpReviewId] ? 'Read Less' : 'Read More'}}"
+                                            (keyup.enter)="collapseViewMoreOption(reviewer?.cmpReviewId, collapseViewMore[reviewer?.cmpReviewId])"
+                                            (keyup.space)="collapseViewMoreOption(reviewer?.cmpReviewId, collapseViewMore[reviewer?.cmpReviewId])"
+                                            *ngIf="reviewer?.description.length > 180"
+                                            class="link-primary fs-14 fw-medium">
+                                            {{collapseViewMore[reviewer?.cmpReviewId] ? "Read Less" : "Read More"}}
+                                        </a>
+                                    </ng-container>
+                                </span>
+                            </app-no-data-label>
+                        </td>
+                        <td class="coi-text-light" [class.align-middle]="!collapseViewMore[reviewer?.cmpReviewId]">
+                            {{reviewer?.startDate | dateFormatter }}
+                        </td>
+                        <td class="coi-text-light" [class.align-middle]="!collapseViewMore[reviewer?.cmpReviewId]">
+                            {{ reviewer?.endDate? (reviewer.endDate | dateFormatter) : '' }}
+                        </td>
+                        <td class="coi-text-light" [class.align-middle]="!collapseViewMore[reviewer?.cmpReviewId]">
+                            {{getDaysAtLocation(reviewer.startDate, reviewer.endDate)}}</td>
+                        <td class="coi-text-light" [class.align-middle]="!collapseViewMore[reviewer?.cmpReviewId]">
+                            <app-no-data-label *ngIf="!reviewer?.reviewStatusTypeCode"
+                                [valueToShow]="reviewer?.reviewStatusTypeCode"></app-no-data-label>
+                            <span *ngIf="reviewer?.reviewStatusTypeCode"
+                                [class.text-black]="reviewer?.reviewStatusTypeCode?.toString() === CMP_REVIEWER_STATUS.ASSIGNED.toString()"
+                                class="fw-medium badge bg-{{CMP_REVIEWER_STATUS_BADGE[reviewer?.reviewStatusType?.reviewStatusCode] || 'danger'}} fs-14 rounded-5">
+                                {{reviewer?.reviewStatusType?.description}}
+                            </span>
+                        </td>
+                        <td [class.align-middle]="!collapseViewMore[reviewer?.cmpReviewId]">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <ng-container *ngIf="(hasMaintainReviewRights || loginPersonId === reviewer?.assigneePersonId)">
+                                    <!-- Start Review -->
+                                    <button *ngIf="reviewer?.reviewStatusTypeCode?.toString() === CMP_REVIEWER_STATUS.ASSIGNED.toString()"
+                                        id="cmp-reviewer-start-review-btn-{{reviewer?.cmpReviewId}}"
+                                        title="Start Review of {{reviewer?.locationType?.description}}"
+                                        attr.aria-label="Start Review of {{reviewer?.locationType?.description}}"
+                                        (click)="updateReviewLocation(reviewerIndex, reviewer, 'START_LOCATION_REVIEW')"
+                                        (keyup.enter)="updateReviewLocation(reviewerIndex, reviewer, 'START_LOCATION_REVIEW')"
+                                        (keyup.space)="updateReviewLocation(reviewerIndex, reviewer, 'START_LOCATION_REVIEW')"
+                                        class="btn btn-primary-icon d-flex align-items-center justify-content-center rounded-circle p-2 m-1">
+                                        <mat-icon aria-hidden="true"
+                                            class="material-icons-outlined">play_circle_filled</mat-icon>
+                                    </button>
+                                    <!-- Complete Review -->
+                                    <button *ngIf="reviewer?.reviewStatusTypeCode?.toString() === CMP_REVIEWER_STATUS.INPROGRESS.toString()"
+                                        id="cmp-reviewer-complete-review-btn-{{reviewer.cmpReviewId}}"
+                                        title="Complete Review of {{reviewer.locationType?.description}}"
+                                        attr.aria-label="Complete Review of {{reviewer.locationType?.description}}"
+                                        class="btn btn-primary-icon d-flex align-items-center justify-content-center rounded-circle p-2 m-1"
+                                        (keyup.enter)="updateReviewLocation(reviewerIndex, reviewer, 'COMPLETE_LOCATION_REVIEW')"
+                                        (keyup.space)="updateReviewLocation(reviewerIndex, reviewer, 'COMPLETE_LOCATION_REVIEW')"
+                                        (click)="updateReviewLocation(reviewerIndex, reviewer, 'COMPLETE_LOCATION_REVIEW')">
+                                        <mat-icon aria-hidden="true"
+                                            class="material-icons-outlined">stop_circle</mat-icon>
+                                    </button>
+                                </ng-container>
+                                <button *ngIf="isShowCommentBtn"
+                                    id="cmp-reviewer-comment-btn-{{reviewer?.cmpReviewId}}"
+                                    class="btn btn-primary-icon d-flex align-items-center justify-content-center rounded-circle p-2 m-1"
+                                    title="Click here to view/add review comments for {{reviewer?.locationType?.description}}"
+                                    attr.aria-label="Click here to view/add review comments for {{reviewer?.locationType?.description}}"
+                                    (click)="modifyReviewComment(reviewer)">
+                                    <mat-icon aria-hidden="true">rate_review</mat-icon>
+                                    <span *ngIf="commentCounts[reviewer?.cmpReviewId] > 0"
+                                        [ngClass]="commentCounts[reviewer?.cmpReviewId] > 99 ? 'comment-count-icon-large' : 'comment-count-icon'"
+                                        class="position-absolute translate-middle align-items-center bg-danger fs-10">{{
+                                        commentCounts[reviewer?.cmpReviewId] > 99 ? '99+' :
+                                        commentCounts[reviewer?.cmpReviewId] }}</span>
+                                </button>
+                                <ng-container *ngIf="hasMaintainReviewRights && isReviewMode">
+                                    <button *ngIf="reviewer?.reviewStatusTypeCode?.toString() !== CMP_REVIEWER_STATUS.COMPLETED.toString()"
+                                        [matMenuTriggerFor]="beforeMenu"
+                                        class="btn btn-primary-icon d-flex align-items-center justify-content-center rounded-circle p-2 m-1"
+                                        id="cmp-reviewer-more-action-btn-{{reviewer?.cmpReviewId}}"
+                                        attr.aria-label="More Actions of {{reviewer?.locationType?.description}}"
+                                        type="button" title="More Actions of {{reviewer?.locationType?.description}}">
+                                        <mat-icon aria-hidden="true">more_vert</mat-icon>
+                                    </button>
+                                </ng-container>
+                                <mat-menu #beforeMenu="matMenu" xPosition="before">
+                                    <button mat-menu-item class="more-action"
+                                        id="cmp-reviewer-edit-review-btn-{{reviewer?.cmpReviewId}}"
+                                        title="Edit Review of {{reviewer?.locationType?.description}}"
+                                        attr.aria-label="Edit Review of {{reviewer?.locationType?.description}}"
+                                        data-bs-toggle="modal" data-bs-target="#add-coi-reviewer-modal"
+                                        (click)="editReview(reviewer, reviewerIndex)">
+                                        <mat-icon aria-hidden="true" class="me-2 coi-scale-9">edit</mat-icon>
+                                        <span class="fw-medium fs-14">Edit Review</span>
+                                    </button>
+                                    <button mat-menu-item class="more-action"
+                                        id="cmp-reviewer-delete-review-btn-{{reviewer?.cmpReviewId}}"
+                                        title="Delete Review of {{reviewer?.locationType?.description}}"
+                                        attr.aria-label="Delete Review of {{reviewer?.locationType?.description}}"
+                                        data-bs-toggle="modal" data-bs-target="#cmp-review-delete-modal"
+                                        (click)="modifyIndex = reviewerIndex; reviewActionConfirmation = reviewer">
+                                        <mat-icon aria-hidden="true" class="me-2 coi-scale-9">delete</mat-icon>
+                                        <span class="fw-medium fs-14">Delete Review</span>
+                                    </button>
+                                </mat-menu>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<!-- Review Ends-->
+<!-- DELETE MEMBER WARNING MODAL -->
+<div class="modal modal-coi fade mySkinDialog modal-opacity" tabindex="-1" id="cmp-review-delete-modal" role="dialog"
+    aria-labelledby="cmp-review-delete-modal-header" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cmp-review-delete-modal-header">
+                    <span>Delete Review at {{reviewActionConfirmation?.locationType?.description}}</span>
+                    <app-common-help-text [helpTextHardCoded]="deleteReviewHelpText"></app-common-help-text>
+                </h5>
+                <button aria-label="Click here to close delete reviewer modal" class="btn-close fs-12"
+                    title="Click here to close" data-bs-dismiss="modal" id="cmp-review-delete-modal-close" type="button">
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="fs-14">Are you sure you want to delete this review?</p>
+            </div>
+            <div class="modal-footer">
+                <button id="cmp-review-delete-modal-cancel" type="button" class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal" title="Click here to cancel"
+                    aria-label="Click here to cancel delete reviewer">Cancel</button>
+                <button id="cmp-review-delete-modal-confirm" type="button" class="btn btn-primary fs-14"
+                    title="Click here to delete review" (click)="deleteReview()" data-bs-dismiss="modal"
+                    aria-label="Click here to delete reviewer">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal modal-coi fade mySkinDialog" id="add-coi-reviewer-modal" tabindex="-1"
+    aria-labelledby="add-coi-reviewer-modal-header" role="dialog" data-bs-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="add-coi-reviewer-modal-header">
+                    <span *ngIf="modifyIndex === -1">Add Reviewer</span>
+                    <span *ngIf="modifyIndex !== -1">Edit Reviewer at <span 
+                        class="coi-text-light fs-18 fw-bold">{{ reviewDetails?.locationType?.description }}</span></span>
+                </h5>
+                <button type="button" title="Click here to close" class="btn-close fs-12" data-bs-dismiss="modal"
+                    id="add-coi-reviewer-modal-close"
+                    attr.aria-label="Click to close {{modifyIndex != -1 ? 'Edit Reviewer' : 'Add Reviewer'}} modal"
+                    (click)="reviewDetails = {}">
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="margin-person-card mb-3 mx-0">
+                    <app-cmp-header-card [managementPlan]="managementPlan"></app-cmp-header-card>
+                </div>
+                <div class="row g-3">
+                    <div class="col-4" role="listbox" aria-label="Review Location dropdown">
+                        <label class="block-display" for="cmp-review-modal-location">
+                            <span class="mandatory text-danger me-1">*</span>Location
+                            <app-common-help-text [subSectionId]="2905"
+                                [elementId]="'cmp-review-modal-location'"></app-common-help-text>
+                        </label>
+                        <app-look-up (selectedResult)="onLocationSelect($event)" [options]="cmpReviewLocation"
+                            [selectedLookUpList]="locationType" [isError]="validationMap.has('location')"
+                            [defaultValue]="reviewDetails.locationType ? reviewDetails.locationType.description : ''"
+                            [title]="'Review Location'" [uniqueId]="'cmp-review-modal-location'">
+                        </app-look-up>
+                        <app-common-information [elementId]="'cmp-review-modal-location'"
+                            [subSectionId]="2905"></app-common-information>
+                        <div *ngIf="validationMap.has('location')">
+                            <span
+                                class="mandatory d-inline-block text-danger fs-14">{{validationMap.get('location')}}</span>
+                        </div>
+                    </div>
+                    <div class="col-4" title="Reviewer">
+                        <label class="block-display" for="cmp-review-modal-reviewer">Reviewer
+                            <app-common-help-text [subSectionId]="2905"
+                                [elementId]="'cmp-review-modal-reviewer'"></app-common-help-text>
+                        </label>
+                        <app-elastic [options]="personElasticOptions" [clearField]="assigneeClearField"
+                            [isError]="validationMap.has('reviewer')" [uniqueId]="'cmp-review-modal-reviewer'"
+                            [placeHolder]="'Search Reviewer'" (selectedResult)="assigneeSelect($event)">
+                        </app-elastic>
+                        <app-common-information [elementId]="'cmp-review-modal-reviewer'"
+                            [subSectionId]="2905"></app-common-information>
+                        <div *ngIf="validationMap?.has('reviewer')">
+                            <span
+                                class="mandatory d-inline-block text-danger fs-14">{{validationMap?.get('reviewer')}}</span>
+                        </div>
+                    </div>
+                    <div class="col-4" role="listbox" aria-label="Review Status dropdown">
+                        <label class="block-display" for="cmp-review-modal-status">
+                            <span class="mandatory text-danger me-1">*</span>Status
+                            <app-common-help-text [subSectionId]="2905"
+                                [elementId]="'cmp-review-modal-status'"></app-common-help-text>
+                        </label>
+                        <app-look-up (selectedResult)="onStatusSelect($event)" [options]="cmpReviewStatus"
+                            [isError]="validationMap.has('reviewStatus')" [selectedLookUpList]="reviewStatusType"
+                            [title]="'Review Status'"
+                            [defaultValue]="reviewDetails.reviewStatusType ? reviewDetails.reviewStatusType.description : ''"
+                            [uniqueId]="'cmp-review-modal-status'">
+                        </app-look-up>
+                        <app-common-information [elementId]="'cmp-review-modal-status'"
+                            [subSectionId]="2905"></app-common-information>
+                        <div *ngIf="validationMap?.has('reviewStatus')">
+                            <span
+                                class="mandatory d-inline-block text-danger fs-14">{{validationMap?.get('reviewStatus')}}</span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <label class="block-display" for="cmp-review-modal-start-date">
+                            <span class="mandatory text-danger me-1">*</span>Assigned On
+                            <app-common-help-text [subSectionId]="2905"
+                                [elementId]="'cmp-review-modal-start-date'"></app-common-help-text>
+                        </label>
+                        <div>
+                            <span class="dateField w-100">
+                                <input matInput [matDatepicker]="startDate" id="cmp-review-modal-start-date"
+                                    placeholder="{{datePlaceHolder}}" style="width: 100% !important"
+                                    (click)="startDate.open()" autocomplete="off" class="d-inline-block form-control"
+                                    [(ngModel)]="reviewStartDate" (keypress)="_commonService._keyPress($event, 'date')"
+                                    (ngModelChange)="compareDates('REVIEW_START_DATE')"
+                                    [ngClass]="(validationMap?.has('REVIEW_START_DATE')) ? 'is-invalid d-block' : ''"
+                                    title="Assgined On" />
+                                <i title="Click to select Start date" (click)="startDate.open()"
+                                    [class.date-field-error]="validationMap?.has('REVIEW_START_DATE')"
+                                    class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                    title="Click to select date"></i>
+                                <mat-datepicker #startDate></mat-datepicker>
+                            </span>
+                            <app-common-information [elementId]="'cmp-review-modal-start-date'"
+                                [subSectionId]="2905"></app-common-information>
+                            <div *ngIf="validationMap.has('REVIEW_START_DATE')">
+                                <span class="mandatory d-inline-block text-danger fs-14">{{validationMap.get('REVIEW_START_DATE')}}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4"
+                        *ngIf="reviewDetails?.reviewStatusTypeCode?.toString() === CMP_REVIEWER_STATUS.COMPLETED.toString()">
+                        <label class="d-block" for="cmp-review-modal-end-date"><span
+                                class="mandatory text-danger me-1">*</span>Review End Date
+                            <app-common-help-text [subSectionId]="2905"
+                                [elementId]="'cmp-review-modal-end-date'"></app-common-help-text>
+                        </label>
+                        <div>
+                            <span class="dateField w-100">
+                                <input matInput [matDatepicker]="endDate" id="cmp-review-modal-end-date"
+                                    placeholder="{{datePlaceHolder}}" title="Review End Date"
+                                    style="width: 100% !important" (click)="endDate.open()" autocomplete="off"
+                                    class="d-inline-block form-control" [(ngModel)]="reviewEndDate"
+                                    (keypress)="_commonService._keyPress($event, 'date')"
+                                    (ngModelChange)="compareDates('REVIEW_END_DATE')"
+                                    [ngClass]="validationMap?.has('REVIEW_END_DATE') ? 'is-invalid d-block' : ''" />
+                                <i title="Click to select End date" (click)="endDate.open()"
+                                    [class.date-field-error]="validationMap?.has('REVIEW_END_DATE') || validationMap?.has('endDate')"
+                                    class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                    title="Click to select date"></i>
+                                <mat-datepicker #endDate></mat-datepicker>
+                            </span>
+                            <app-common-information [elementId]="'cmp-review-modal-end-date'"
+                                [subSectionId]="2905"></app-common-information>
+                            <div *ngIf="validationMap.has('REVIEW_END_DATE')">
+                                <span class="mandatory d-inline-block text-danger fs-14">{{validationMap.get('REVIEW_END_DATE')}}</span>
+                            </div>
+                            <div *ngIf="validationMap.has('endDate')">
+                                <span class="mandatory d-inline-block text-danger fs-14">{{validationMap.get('endDate')}}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="block-display" for="cmp-review-modal-description">
+                            Description
+                            <app-common-help-text [subSectionId]="2905"
+                                [elementId]="'cmp-review-modal-description'"></app-common-help-text>
+                        </label>
+                        <textarea [(ngModel)]="reviewDetails.description" appLengthValidator [isShowLimiter]="true"
+                            title="Description" [limit]="2000" rows="3" class="form-control"
+                            id="cmp-review-modal-description" placeholder="Please provide the description"></textarea>
+                        <app-common-information [elementId]="'cmp-review-modal-description'"
+                            [subSectionId]="2905"></app-common-information>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary fs-14" data-bs-dismiss="modal" id="add-reviewer-cancel"
+                    attr.aria-label="Click here to cancel {{ modifyIndex != -1 ? 'Edit Reviewer' : 'Add Reviewer' }} and Close modal"
+                    type="button" (click)="clearReviewModal();"
+                    title="Click here to cancel">Cancel</button>
+                <button id="cmp-review-modal-confirm" class="btn btn-primary fs-14"
+                    attr.aria-label="Click here to {{ modifyIndex != -1 ? 'Update Reviewer' : 'Add Reviewer' }}"
+                    (click)="saveOrUpdateCoiReview();" type="button"
+                    [title]="modifyIndex != -1 ? 'Click here to update reviewer' : 'Click here to add reviewer'">
+                    {{ modifyIndex != -1 ? 'Update Reviewer' : 'Add Reviewer' }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<span (click)="clearReviewModal()" [id]="addReviewModalId" data-bs-target="#add-coi-reviewer-modal"
+    data-bs-toggle="modal" class="d-none"></span>

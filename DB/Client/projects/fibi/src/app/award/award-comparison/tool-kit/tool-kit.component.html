@@ -1,0 +1,207 @@
+<div class="tool-kit-body" *ngIf="isToolkitVisible" [@enterAnimation]>
+  <div class="show-changes-label">
+    <div class="col-12 d-flex justify-content-between p-0">
+        <div class="py-3 px-4 f-13 pointer">
+              <!-- If necessary add 'getFilterCommentReviewersList(leftVersion.awardId);' 
+                to the click event of span below when comment filter enabled ( ie.. "isCurrentReviewTab = ‘FILTERS’") -->
+              <span class=" tool-tab-icon-clr pointer"
+                (click)="currentActiveLink = 'COMMENTS';isCurrentReviewTab = 'SECTION';"
+                [routerLink]="['comments'] " preserveQueryParams
+                *ngIf="currentActiveLink == 'REVIEW'">
+                <i class="fa fa-comments-o pr-2 f-15"  aria-hidden="true"></i>Comments View
+              </span>
+              <span class="tool-tab-icon-clr pointer"
+                (click)="currentActiveLink = 'REVIEW';isCurrentReviewTab = 'SECTION'; onShowChanges(false)"  [routerLink]="['review']" preserveQueryParams
+                *ngIf="currentActiveLink == 'COMMENTS'">
+                <i class="fa fa-file-o pr-2 f-15 " aria-hidden="true"></i> Review View
+              </span>
+        </div>
+        <!-- <label class="py-3 px-4 f-13 pointer ">
+          <input id="show-changes-toolkit" [(ngModel)]= "isCompareFlag" (ngModelChange)="onShowChanges(isCompareFlag)"  type="checkbox">
+          <span class="ml-1 "> Show Changes</span>
+          <a class="tooltip "><i class=" fa fa-question-circle-o f-14" aria-hidden="true"></i>
+              <div class="tooltiptext-right text-left">
+                  <span class="font-cv">Click the Show Changes option to enable Version Comparison </span>
+              </div>
+          </a>
+        </label> -->
+    </div>
+  </div>
+  <div class="row m-0 border-bottom">
+    <div class="col-12 p-0">
+      <ul class="subTabs tool-tab mb-0">
+        <li [ngClass]="{'active':isCurrentReviewTab == 'SECTION'}" class="w-50">
+          <a class="subTabLink" (click)='isCurrentReviewTab = "SECTION"' tabindex="0">
+            <i [ngClass]="isCurrentReviewTab == 'SECTION'? 'text-success': 'text-muted' "  class="fa fa-list-ul text-success ml-2 " aria-hidden="true"></i>
+            <span class="pl-2">Section </span>
+          </a>
+        </li>
+        <ng-container *ngIf="currentActiveLink === 'REVIEW' || currentActiveLink === 'COMMENTS'">
+          <li [ngClass]="{'active':isCurrentReviewTab == 'VERSION'}" class="w-50" >
+            <a (click)='isCurrentReviewTab = "VERSION"' class="subTabLink " tabindex="0">
+              <i [ngClass]="isCurrentReviewTab == 'VERSION'? 'text-success': 'text-muted' " class="fa fa-history text-success ml-2"aria-hidden="true"></i>
+              <span class="pl-2">History 
+                <span *ngIf="awardVersionsData.length" class="badge badge-pill badge-info">
+                {{awardVersionsData.length}}</span> </span>
+            </a>
+          </li>
+        </ng-container>
+        <!-- <ng-container *ngIf="currentActiveLink === 'COMMENTS'">
+          <li [ngClass]="{'active':isCurrentReviewTab == 'FILTERS'}" >
+            <a (click)='isCurrentReviewTab = "FILTERS"' class="subTabLink ">
+              <i class="fa fa-filter text-success " aria-hidden="true"></i>
+              <span class="pl-2">Filters </span>
+              </a>
+          </li>
+        </ng-container> -->
+      </ul>
+    </div>
+    <span class="col-1 close-btn" (click)="updateToolkitView()">
+      <i class="fa fa-times-circle f-18" aria-hidden="true"></i>
+    </span>
+  </div>
+  <div class="py-2" *ngIf="isCurrentReviewTab == 'SECTION'">
+    <div class="inner-scroll" >
+      <div class="section-body ">
+        <ul class=" p-0 m-0">
+            <ng-container *ngFor="let section of sections; let i = index">
+                <li *ngIf="_commonData.awardSectionConfig[section.subSectionCode]?.isActive" (click)="scrollToSection(section.documentId)" tabindex="0">
+                    <i class="fa fa-chevron-left pr-2"></i>
+                    {{section.reviewSectionDescription}}
+                    <span [ngClass]="sectionCommentsCount[section.reviewSectionCode] ? '' : 'opacity-3'">
+                      ({{sectionCommentsCount[section.reviewSectionCode] ? sectionCommentsCount[section.reviewSectionCode] : '0'}})
+                    </span>
+                </li>
+            </ng-container>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <div *ngIf="isCurrentReviewTab == 'VERSION'">
+    <div class="inner-scroll">
+      <div class="success-banner p-2 mb-4 d-flex align-items-center">
+        <i aria-hidden="true" class="fa fa-info-circle mr-2 info-icon"></i>
+        <em class="text-secondary">Select any one of the version to view the details.</em>
+    </div>
+    <div *ngIf="masterVersion?.awardId" class="active-card mx-5 p-4 fw-600 hand-cursor"
+    [ngClass]="{'highlight-active':  (masterVersion?.awardId == leftVersion?.awardId || (masterVersion?.awardId == rightVersion?.awardId && isMasterCompare)  )}">
+      <span class="f-14 align-items-center d-flex" (click)='viewAward(masterVersion)' *ngIf="masterVersion?.sequenceNumber == 0">
+        <span class="mr-auto">#{{masterVersion?.awardNumber}}</span>
+      <span class="status-badge-success bg-transparent">ACTIVE </span>  
+    </span>
+    </div>
+      <div class="px-5 mb-4 history-tl-container " >
+        <ul class="tl mb-2 mt-4 pr-1">
+          <li class="tl-item hand-cursor"
+            [ngClass]="{'highlight': (version?.awardId == leftVersion?.awardId || version?.awardId == rightVersion?.awardId )}"
+            *ngFor="let version of awardVersionsData;" (click)='viewAward(version)' tabindex="0">
+            <div class="f-13 fw-600">
+              <span *ngIf="version.sequenceNumber != 0">Version {{version?.sequenceNumber}} ({{version?.serviceRequestType}})
+                <div class="bg-transparent p-0" [ngClass]="{
+                  'status-badge-warning' :version.awardSequenceStatus == 'PENDING',
+                  'status-badge-info' :version.awardSequenceStatus == 'ARCHIVE',
+                  'status-badge-danger' : version.awardSequenceStatus == 'CANCELLED'}"
+                       [innerHTML]='version.awardSequenceStatus'>
+                </div>
+              </span>
+              <!-- <span *ngIf="version.sequenceNumber == 0"> #{{version?.awardNumber}}(Active Award)</span> -->
+            </div>
+            <div *ngIf="version.sequenceNumber != 0" class="item-detail">{{version?.serviceRequestType.slice(0,40)}} 
+            </div>
+          </li>
+           <li class="no-hover-effect" *ngIf="awardVersionsData.length == 1">
+            <div class="item-detail"> No previous versions available.</div>
+          </li>
+        </ul>
+        <!-- <div class="row info-box border-top py-2">
+          <span class="col txt-medium fw-600  py-1 text-center">
+            <i *ngIf="leftVersion?.serviceRequestType" (click)='leftVersion = null'
+              class="fa fa-times-circle-o mr-2"></i>{{leftVersion?.serviceRequestType.slice(0,25)}}</span>
+          <span (click)='switchVersions()' class="col-1 text-center txt-large"><i
+              class="fa fa-exchange-alt text-primary" aria-hidden="true"></i></span>
+          <span class="col txt-medium fw-600 py-1 text-center">
+            <i *ngIf="rightVersion?.serviceRequestType" (click)='rightVersion = null'
+              class="fa fa-times-circle-o mr-2"></i>{{rightVersion?.serviceRequestType.slice(0,20)}}</span>
+        </div> -->
+      </div>
+    </div>
+  </div>
+  <div *ngIf="isCurrentReviewTab == 'FILTERS'" class="mb-2 py-2">
+    <div class="section-body p-3 inner-scroll ">
+      <div class="form-row txt-medium px-3">
+        <div class="col-12 mb-3">
+        <label class="d-block text-secondary">  Comment Type</label>
+        <span >
+          <div class="form-check form-check-block pl-3">
+            <input type="radio" name="commentType" id="commentType1" value='private' [(ngModel)]="filter[0].commentType"
+              (ngModelChange)="updateFilterChange()">
+            <label class="pl-2" for="commentType1">Private</label>
+          </div>
+          <div class="form-check form-check-block pl-3">
+            <input type="radio" name="commentType" id="commentType2" value='public' [(ngModel)]="filter[0].commentType"
+              (ngModelChange)="updateFilterChange()">
+            <label class="pl-2" for="commentType2">Public</label>
+          </div>
+        </span>
+        </div>
+        <div class="col-12 mb-3">
+          <label class="d-block text-secondary">  Comment Status</label>
+        <span>
+          <div class="form-check form-check-block pl-3">
+            <input type="radio" name="commentStatus" id="commentStatus1" value='resolved'
+              [(ngModel)]="filter[1].commentStatus" (ngModelChange)="updateFilterChange()">
+            <label class="pl-2" for="commentStatus1">Resolved</label>
+          </div>
+          <div class="form-check form-check-block pl-3">
+            <input type="radio" name="commentStatus" id="commentStatus2" value='unresolved'
+              [(ngModel)]="filter[1].commentStatus" (ngModelChange)="updateFilterChange()">
+            <label class="pl-2" for="commentStatus2">Unresolved</label>
+          </div>
+        </span>
+        </div>
+        <div class="col-12 mb-3">
+          <label class="d-block text-secondary mb-2"> Reviewer</label>
+        <span>
+          <div class="input-group pl-3">
+            <select class="custom-select txt-medium" id="inputGroupSelect02" [(ngModel)]="filter[2].reviewer"
+              (ngModelChange)="updateFilterChange()">
+              <option [value]=null>Select a Reviewer</option>
+              <option [value]="reviewer.personID" *ngFor="let reviewer of filterCommentReviewersList">
+                {{reviewer.fullName}}
+              </option>
+            </select>
+          </div>
+        </span>
+        </div>
+        <div class="col-12 text-right">
+          <button type="button" (click)="clearFilter()" class="btn btn-secondary btn-clear btn-sm ">Clear</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- <ng-container >
+    <div class="row">
+      <div class="col-12 highlight-div">
+        <div class=" border-top px-4 py-3"
+          (click)="currentActiveLink = 'COMMENTS';isCurrentReviewTab = 'SECTION'; getFilterCommentReviewersList(leftVersion.awardId);
+            onShowChanges(false)" [routerLink]="['comments'] " preserveQueryParams
+          *ngIf="currentActiveLink == 'REVIEW'">
+          <i class="fa fa-chevron-left pr-2"  aria-hidden="true"></i>Switch to Comments View
+        </div>
+        <div class="border-top px-4 py-3"
+          (click)="currentActiveLink = 'REVIEW';isCurrentReviewTab = 'SECTION';"  [routerLink]="['review']" preserveQueryParams
+          *ngIf="currentActiveLink == 'COMMENTS'">
+          <i class="fa fa-chevron-left pr-2" aria-hidden="true"></i> <ng-container i18n="@@AWARD_SWITCH_TO_AWARD_VIEW">Switch to Award View</ng-container>
+        </div>
+      </div>
+    </div>
+</ng-container> -->
+</div>
+<!-- <div class="nav-style tool-kit d-flex align-items-center hand-cursor " id="custom-mini-tool-kit"
+  *ngIf="!isToolkitVisible" [@enterAnimation] (click)="updateToolkitView()">
+  <span class="nav-icon ml-3 hvr-icon-down" id="custom-tool-kit">
+    <i aria-hidden="true" id="custom-tool-kit" class="fa fa-angle-double-left"></i>
+  </span>
+  <span class="ml-2"> Show Toolkit </span>
+</div> -->

@@ -1,0 +1,1 @@
+INSERT INTO dyn_element_config (UI_REFERENCE_ID, DESCRIPTION, SUB_SECTION_CODE, SECTION_CODE, HELP, UPDATE_USER, UPDATE_TIMESTAMP) VALUES ('coi-entity-use-this-addr', 'Entity Name', '2602', 'GE2601', 'Use this primary address for Sponsor/Organization', 'admin', now());

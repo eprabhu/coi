@@ -1,0 +1,100 @@
+<div class="row">
+    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 padding-tbx">
+        <div class="card mb-3">
+            <div class="card-header py-2">
+                <h5 class="card-title d-flex align-items-center"><span>{{heading}}</span>
+                    <div class="ml-auto">
+                        <span *ngIf="serviceRequestResult?.length">
+                            <span class="mr-2">Export as:</span>
+                            <a title="Export data to Excel sheet" (click)="exportAsTypeDoc('excel')"><i aria-hidden="true"
+                                class="fa fa-file-excel-o hand-cursor mr-2"></i></a>
+                            <a class="mr-2">|</a>
+                            <a title="Export data to PDF Document" (click)="exportAsTypeDoc('pdf')"><i aria-hidden="true"
+                                class="fa fa-file-pdf-o hand-cursor"></i></a>
+                          </span>
+                        <span>
+                          <button class="btn more-btn" title="Back to My Dashboard" type="button">
+                            <i [routerLink]="['fibi/dashboard']" aria-hidden="true" class="fa fa-reply"></i></button>
+                        </span>
+                    </div>
+                </h5>
+            </div>
+            <div class="card-content">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table *ngIf="serviceRequestResult?.length > 0" class="table tableSkin">
+                            <caption class="sr-only">Proposal List</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col" width="10%" (click)="isDesc =!isDesc;sortBy(0)">Proposal #
+                                        <i [ngClass]="((column == 0) ? (isDesc ? 'fa fa-sort-numeric-asc sortIcon' : 'fa fa-sort-numeric-desc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"
+                                        aria-hidden="true"></i>     
+                                    </th>
+                                    <th scope="col" width="30%" (click)="isDesc =!isDesc;sortBy(1)">Title
+                                        <i [ngClass]="((column == 1) ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                        aria-hidden="true"></i>     
+                                    </th>
+                                    <th scope="col" width="8%" (click)="isDesc =!isDesc;sortBy(2)">Sponsor
+                                        <i [ngClass]="((column == 2) ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                        aria-hidden="true"></i>     
+                                    </th>
+                                    <th scope="col" width="12%" (click)="isDesc =!isDesc;sortBy(3)" [class.text-right]="isPendingProposal">{{(isPendingProposal) ? 'Budget' : 'Proposal Type'}}
+                                        <i *ngIf="isPendingProposal" [ngClass]="((column == 3) ? (isDesc ? 'fa fa-sort-numeric-asc sortIcon' : 'fa fa-sort-numeric-desc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"
+                                        aria-hidden="true"></i> 
+                                        <i *ngIf="!isPendingProposal" [ngClass]="((column == 3) ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                        aria-hidden="true"></i>     
+                                    </th>
+                                    <th scope="col" width="20%" (click)="isDesc =!isDesc;sortBy(4)">Principal Investigator
+                                        <i [ngClass]="((column == 4) ? (isDesc ? 'fa fa-sort-alpha-asc sortIcon' : 'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                        aria-hidden="true"></i>     
+                                    </th>
+                                    <th *ngIf="!isPendingProposal" (click)="isDesc =!isDesc;sortBy(5)" scope="col" width="15%">Sponsor Deadline
+                                        <i [ngClass]="((column == 5) ? (isDesc ? 'fa fa-sort-numeric-asc sortIcon' : 'fa fa-sort-numeric-desc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"
+                                        aria-hidden="true"></i>     
+                                    </th>
+                                    <th scope="col" width="5%">Actions</th>
+                                </tr>
+                                </thead>    
+                            <tbody>
+                            <tr *ngFor="let proposalDetails of serviceRequestResult | orderByIndex: {property: column, direction: direction}">                                    <td>{{proposalDetails[0]}}</td>
+                                <td class="text-break">{{proposalDetails[1]}}</td>
+                                <td>{{proposalDetails[2]}}</td>
+                                <td [class.text-right]="isPendingProposal">
+                                    <ng-container *ngIf="isPendingProposal else active">
+                                        {{proposalDetails[3] ? (proposalDetails[3] | customCurrency: 2) : '-'}}
+                                    </ng-container>
+                                    <ng-template #active>
+                                        {{proposalDetails[3]}}
+                                    </ng-template>
+                                </td>
+                                <td>{{proposalDetails[4]}}</td>
+                                <td *ngIf="!isPendingProposal">{{proposalDetails[5] | dateFormatter}}</td>
+                                <td>
+                                    <ul class="actionButtonGroup">
+                                        <li><a (click)="setCurrentProposalTab()"
+                                               [queryParams]="{proposalId :proposalDetails[0]}"
+                                               [routerLink]="['/fibi/proposal/summary']"
+                                               title="Open {{proposalDetails[0]}}"><i aria-hidden="true"
+                                                                                      class="fa fa-eye"></i>
+                                        </a>
+                                        </li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div *ngIf="serviceRequestResult?.length === 0" class="no-data-container ng-star-inserted">
+                        <span class="no-data-icon-outer">
+                              <div class="no-data-icon">
+                                    <i class="fa fa-file-o"></i>
+                                    <i class="fa fa-times-circle-o"></i>
+                              </div>
+                        </span>
+                        <h4>There is no information in this section.</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

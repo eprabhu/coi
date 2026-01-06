@@ -1,0 +1,396 @@
+<div class="card my-3 title-descriptions">
+    <div class="card-header p-2 px-4">
+        <h4 *ngIf="ruleIdForEdit == 0" class="card-title justify-content-between d-flex align-items-center">
+            Create Rule
+            <button title="Back to Rule List" class="btn more-btn float-right" (click)="backToRuleList()"
+                data-target="#confirmGoBack" data-toggle="modal">
+                <i class="fa fa-reply" aria-hidden="true"></i>
+            </button>
+        </h4>
+        <h4 *ngIf="ruleIdForEdit != 0" class="card-title justify-content-between d-flex align-items-center">
+            Modify Rule
+            <button title="Back to Rule List" class="btn more-btn float-right" (click)="backToRuleList()"
+                data-target="#confirmGoBack" data-toggle="modal">
+                <i class="fa fa-reply" aria-hidden="true"></i>
+            </button>
+        </h4>
+    </div>
+    <div class="card-content">
+        <div class="card-body">
+            <p class="fnt-wight mb-2">Business rule for
+                <span *ngIf="ruleDefinition.ruleAppliedToSubModule != 0">{{moduleName}} -</span>
+                <span> {{ruleDefinition.ruleAppliedToName}}</span>
+                {{ruleDefinition.ruleAppliedToSubModule == 0 ? 'module' : 'submodule'}} at
+                <span> {{ruleDefinition.createRuleAtName}}</span> used for
+                <span> {{ruleDefinition.ruleIsUsedForToName}}.</span>
+            </p>
+            <p class="fnt-wight"><span class="mandatory">*</span>Description :
+                <textarea [(ngModel)]="ruleDefinition.description" (ngModelChange)="ruleDefinition.isDirty = true;"
+                    [ngClass]="{'border border-danger': validationText == 'Please specify a description for rule.'}"
+                    class="forTextAreaEntry scheduleBoxes ng-pristine ng-valid ng-touched txt-area" name="abstract"
+                    placeholder="Description for rule" appLengthValidator [isShowLimiter]='true' [limit]=200></textarea>
+            </p>
+            <div *ngIf="validationText == 'Please specify a description for rule.'" class="invalid-feedback d-block">
+                {{validationText}}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mb-3">
+    <div class="card" [ngClass]="{'border border-danger': showEmptySetValidation}">
+        <h4 class="card-header p-2 px-4 d-flex align-items-center justify-content-between"><span>Build a
+                Rule</span>
+            <span><button (click)="addRuleSet(undefined)" class="btn btn-primary-sub btn-sm float-right"><a>Add
+                        Condition </a></button>
+                <button (click)="deleteAllRuleSet()" class="btn btn-outline-danger btn-sm float-right mr-2">
+                    <a>Remove All</a> </button></span>
+        </h4>
+        <div class="card-content">
+            <div class="card-body">
+                <section class="row">
+                    <div class="col-lg-12">
+                        <div class="">
+                            <div class="ui-tree ml-5">
+                                <span *ngIf="checkRuleSet?.ruleSet?.length>0" class="start-dot"></span>
+                                <ul class="ruleList-1">
+                                    <ng-container>
+                                        <ng-template #ruleList let-checkRuleSet>
+                                            <ng-container *ngFor="let data of checkRuleSet.ruleSet;let i = index">
+                                                <li class="m-b-0 mb-35 rule-border">
+                                                    <div class="row">
+                                                        <div class="col-lg-12 text-right">
+                                                            <button (click)="addRule(data)"
+                                                                class="btn btn-primary-sub btn-sm"> <a> Add
+                                                                    Expression </a> </button>
+                                                            <button (click)="deleteRuleSet(data)"
+                                                                class="btn btn-outline-danger btn-sm"> <a> Close
+                                                                    Condition </a> </button>
+                                                        </div>
+                                                    </div>
+                                                    <div *ngIf="data.subRules.length==0 && data.ruleSet.length==0"
+                                                        class="row">
+                                                        <div class="col-lg-12">
+                                                            <div class="alert alert-danger alrt-rule margin-top-10"
+                                                                role="alert">
+                                                                Please specify at least one rule
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <ng-container
+                                                        *ngFor="let singleRule of data.subRules; let j = index">
+                                                        <div *ngIf="data.condition!=='' || singleRule.condition!==''"
+                                                            class="row">
+                                                            <ng-container>
+                                                                <div *ngIf="singleRule.condition!=='';else ruleSetCondition"
+                                                                    class="col-2 offset-md-5 p-0 text-center">
+                                                                    <div class="block condition-block l-20">
+                                                                        <div class="switch-field smooth">
+                                                                            <input
+                                                                                (click)="changeLogicalOperator($event,singleRule,data)"
+                                                                                [checked]="!singleRule.isLogicalAnd"
+                                                                                type="checkbox"
+                                                                                id="{{singleRule.EXPRESSION_NUMBER}}"
+                                                                                value="{{singleRule.EXPRESSION_NUMBER}}">
+                                                                            <div for="none" class="background">
+                                                                            </div>
+                                                                            <label
+                                                                                for="{{singleRule.EXPRESSION_NUMBER}}"
+                                                                                [ngClass]="{'switch-active':singleRule.isLogicalAnd}"
+                                                                                class="left">AND</label>
+                                                                            <label
+                                                                                for="{{singleRule.EXPRESSION_NUMBER}}"
+                                                                                [ngClass]="{'switch-active':!singleRule.isLogicalAnd}"
+                                                                                class="right">OR</label>
+                                                                            <div for="none" class="marked_ghost"></div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <ng-template #ruleSetCondition>
+
+                                                                    <div class="col-2 p-0">
+                                                                        <div class="block ruleset-block">
+                                                                            <div class="switch-field smooth">
+                                                                                <input
+                                                                                    (click)="changeLogicalOperator($event,singleRule,data)"
+                                                                                    [checked]="!data.isLogicalAnd"
+                                                                                    type="checkbox"
+                                                                                    id="{{singleRule.EXPRESSION_NUMBER}}"
+                                                                                    value="{{singleRule.EXPRESSION_NUMBER}}">
+                                                                                <div for="none" class="background">
+                                                                                </div>
+                                                                                <label
+                                                                                    for="{{singleRule.EXPRESSION_NUMBER}}"
+                                                                                    [ngClass]="{'switch-active':data.isLogicalAnd}"
+                                                                                    class="left">AND</label>
+                                                                                <label
+                                                                                    for="{{singleRule.EXPRESSION_NUMBER}}"
+                                                                                    [ngClass]="{'switch-active':!data.isLogicalAnd}"
+                                                                                    class="right">OR</label>
+                                                                                <div for="none" class="marked_ghost">
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </ng-template>
+                                                            </ng-container>
+                                                            <div class="col-5"></div>
+                                                        </div>
+                                                        <app-rule-definition [singleRule]="singleRule" [ruleIndex]="i"
+                                                            [subRuleIndex]="j" [ruleDefinition]="ruleDefinition"
+                                                            [ruleSet]="data" (emitRule)="getEmittedRule($event)"
+                                                            (viewFunctionParameters)="functionParameters($event)"
+                                                            (setQuestionAnswer)="setQuestionAnswer($event)"
+                                                            (deleteRule)="deleteSubRule($event)"></app-rule-definition>
+                                                    </ng-container>
+                                                    <ng-container *ngIf="data.ruleSet?.length > 0">
+                                                        <ul class="ruleList-1">
+                                                            <ng-container
+                                                                *ngTemplateOutlet="ruleList; context:{ $implicit: data }">
+                                                            </ng-container>
+                                                        </ul>
+                                                    </ng-container>
+                                                </li>
+                                            </ng-container>
+                                        </ng-template>
+                                        <ng-container *ngTemplateOutlet="ruleList; context:{ $implicit: checkRuleSet }">
+                                        </ng-container>
+                                    </ng-container>
+                                </ul>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            <h4 class="card-title">Rule Summary</h4>
+        </div>
+        <div class="card-content">
+            <div class="card-body">
+                <div class="card card-inner">
+                    <div class="row rw-style">
+                        <div class="title-descriptions p-3">
+                            <p>Condition :
+                                <span [innerHTML]="ruleDefinition.ruleSummery">
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="borderBox m-b-0 p-relative brderNone">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="row">
+                                <div class="col-md-12" *ngIf="ruleDefinition.ruleIsUsedForToName == 'Routing'">
+                                    <label class="fnt-siz inline-block">If this condition is
+                                        <span class="highlight-text">true</span>, the following map will be used
+                                        for routing</label>
+                                    <div class="label-color inline-block w-65 p-left-5">
+                                        <div>
+                                            <select [(ngModel)]="ruleDefinition.mapId"
+                                                (ngModelChange)="ruleDefinition.isDirty = true;"
+                                                class="m-left-5 hand-icon col-6 committeeBox ng-pristine ng-valid ng-touched">
+                                                <option [ngValue]="undefined" disabled selected> Please select
+                                                    map </option>
+                                                <option [value]="maps.MAP_ID" *ngFor="let maps of mapList">
+                                                    {{maps?.MAP_ID}} - {{maps?.MAP_NAME}}</option>
+                                            </select>
+                                            <a class="eyeIcons" *ngIf="ruleDefinition.mapId != 0"
+                                                (click)="viewMap(ruleDefinition.mapId)" data-toggle="modal"
+                                                data-target="#modal-edit">
+                                                <i class="fa fa-eye pointer hand-icon" aria-hidden="true"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <label class="col-9 fnt-siz"
+                                    *ngIf="ruleDefinition.ruleIsUsedForToName == 'Validation-Error' || ruleDefinition.ruleIsUsedForToName == 'Validation-Warning'">If
+                                    this condition is
+                                    <span class="highlight-text">true</span>, the <span class="highlight-text">
+                                        {{ruleDefinition.ruleAppliedToName}}</span> is<span class="red-text">invalid </span>and the following message will be displayed.</label>
+                                <div class="col-md-12" *ngIf="ruleDefinition.ruleIsUsedForToName == 'Notification'">
+                                    <label class="fnt-siz inline-block">If this condition is
+                                        <span class="highlight-text">true</span>, the following notification
+                                        will be triggered</label>
+                                    <div class="label-color inline-block w-65 p-left-15">
+                                        <div class="row">
+
+                                            <select [(ngModel)]="ruleDefinition.notificationId"
+                                                class="m-left-5 col-6 hand-icon committeeBox ng-pristine ng-valid ng-touched">
+                                                <option [ngValue]="undefined" disabled selected> Please select
+                                                    notification </option>
+                                                <option [value]="notification.NOTIFICATION_TYPE_ID"
+                                                    *ngFor="let notification of notificationList">
+                                                    {{notification.DESCRIPTION}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12 label-color px-2"
+                            *ngIf="ruleDefinition.ruleIsUsedForToName == 'Validation-Error' || ruleDefinition.ruleIsUsedForToName == 'Validation-Warning'">
+
+                            <textarea class="forTextAreaEntry scheduleBoxes ng-pristine ng-valid ng-touched"
+                                [(ngModel)]="ruleDefinition.userMessage"
+                                placeholder="">{{ruleDefinition.userMessage}}</textarea>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-12 text-right">
+            <button (click)="navigateToRuleList()" class="btn btn-secondary btn-sm">Cancel</button>
+            <button (click)="saveClick()" class="btn btn-primary btn-sm">Save</button>
+            <button (click)="onActivateOrDeactivateRule(ruleDefinition.isActive)"
+                *ngIf="ruleDefinition.ruleIsUsedForToName !== 'Routing' && ruleDefinition.isActive === 'N'" class="btn btn-primary-sub btn-sm">Activate</button>
+            <button (click)="onActivateOrDeactivateRule(ruleDefinition.isActive)"
+                *ngIf="ruleDefinition.ruleIsUsedForToName !== 'Routing' && ruleDefinition.isActive === 'Y'" class="btn btn-primary-sub btn-sm">Deactivate</button>
+        </div>
+    </div>
+
+    <div class="modal fade bd-example-modal-lg mySkinDialog " id="modal-edit">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">#{{mapId}} - {{mapDescription}} - {{mapUnit}}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body title-descriptions">
+                    <div class="scroll-outer">
+                        <ng-container *ngFor="let item of stopGroupListKeys; let mainIndex = index">
+                            <div class="apprvr-outr mb-10 mdl-back bdrbox">
+                                <div class="borderBoxHeading">
+                                    <strong>Sequential Stop: {{mainIndex+1}}</strong>
+                                </div>
+                                <table class="table seq-table">
+                                    <caption class="sr-only">Sequential Stop</caption>
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 7%;" scope="col"></th>
+                                            <th style="width: 31%;font-size:1.28rem;" scope="col">Approve By
+                                            </th>
+                                            <th style="width: 38%;font-size:1.28rem;" scope="col">Description
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <ng-container
+                                            *ngFor="let approver of stopGroupList[item]; let subIndex = index">
+                                            <ng-container *ngIf="approver.PRIMARY_APPROVER_FLAG=='Y'">
+                                                <tr class="apprv-row">
+                                                    <td style="width: 7%;">
+                                                        <i class="apr-flag fa fa-flag usrIcon apr-flag"
+                                                            aria-hidden="true"></i>
+                                                    </td>
+                                                    <td style="width: 31%;">
+                                                        <span> {{approver.APPROVER_NAME}}</span>
+                                                    </td>
+                                                    <td style="width: 38%;">
+                                                        <span> {{approver.DESCRIPTION}}</span>
+                                                    </td>
+                                                </tr>
+                                                <ng-container *ngFor="let alternateApprover of   stopGroupList[item]">
+                                                    <ng-container
+                                                        *ngIf="alternateApprover.APPROVER_NUMBER==approver.APPROVER_NUMBER && alternateApprover.PRIMARY_APPROVER_FLAG=='N'">
+                                                        <tr class="apprv-row">
+                                                            <td style="width: 7%;">
+                                                                <i aria-hidden="true" class="float-right fa fa-user userIcon"></i>
+                                                            </td>
+                                                            <td>
+                                                                <span>{{alternateApprover.APPROVER_NAME}}</span>
+                                                            </td>
+                                                            <td>
+                                                                <span>{{alternateApprover.DESCRIPTION}}</span>
+                                                            </td>
+                                                        </tr>
+                                                    </ng-container>
+                                                </ng-container>
+                                            </ng-container>
+                                        </ng-container>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </ng-container>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary-sub" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade bd-example-modal-lg mySkinDialog" tabindex="-1" id="modal-Question" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Question Details</h5>
+
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body title-descriptions">
+                    <p>Question ID :
+                        <span class="qustionModal"> {{questionId}}</span>
+                    </p>
+                    <p>Question :
+                        <span class="qustionModal"> {{questionDetails.QUESTION}}</span>
+                    </p>
+                    <p>Answer Type :
+                        <span class="qustionModal"> {{questionDetails.ANSWER_TYPE}}</span>
+                    </p>
+                </div>
+                <div class="modal-footer">
+
+                    <button type="button" class="btn btn-primary-sub" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button type="button" id="update-button" style="display: none" data-toggle="modal"
+        data-target="#modal-update"></button>
+    <div class="modal fade mySkinDialog" id="modal-update" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        Are you sure you want to leave this page?
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body title-descriptions">
+                    <p> You have unsaved changes. Do you want to leave the page without saving?
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary-sub btn-sm" data-dismiss="modal">Stay on this
+                        Page</button>
+                    <button type="button" class="btn btn-sm btn-secondary" (click)="navigateToRuleList()"
+                        data-dismiss="modal" data-toggle="modal">Leave this Page</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footerPush"></div>
+</div>
+<app-rule-function-parameters *ngIf="functionParameterData" [functionDetailsInput]="functionParameterData"
+    (emitArguments)="getEmittedRule($event)"></app-rule-function-parameters>
+<app-question-answer *ngIf="isShowQuestionModal" [moduleCode]="ruleDefinition.ruleAppliedToModule"
+    [questionnaireModalValues]="questionnaireModalValues" (updateRule)="updateRule($event)"
+    (closeModal)="closeModal($event)">
+</app-question-answer>

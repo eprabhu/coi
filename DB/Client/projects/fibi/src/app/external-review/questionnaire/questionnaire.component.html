@@ -1,0 +1,55 @@
+<div class="card my-3">
+    <div class="card-header">
+        <div class="form-row">
+            <h4 class="card-title">Questions for the Reviewer(s)</h4>
+        </div>
+    </div>
+    <div class="card-body" *ngIf="isEditMode">
+        <div class="form-row">
+            <div class="col">
+                <label for="Questionnaire" class="d-block"><span class="mandatory">*</span>Select Questionnaire</label>
+                <select id="Questionnaire" class="form-control" [(ngModel)]="selectedQuestionnaire"
+                    (ngModelChange)="saveReviewQuestionnaire()">
+                    <option value="null">--Select--</option>
+                    <option *ngFor="let questionnaire of applicableQuestionnaire"
+                        [value]="questionnaire.QUESTIONNAIRE_NUMBER" [hidden]="questionnaire.extReviewQuestionnaireId">
+                        {{ questionnaire.QUESTIONNAIRE }}
+                    </option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="no-data-container p-3"
+        *ngIf="(!selectedQuestionnaire || selectedQuestionnaire === 'null') && !questionnaireList?.length">
+        <span class="no-data-icon-outer">
+            <div class="no-data-icon">
+                <i class="fa fa-file-o" aria-hidden="true"></i>
+                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+            </div>
+        </span>
+        <h4 class="text-content-color">There is no information in this section.</h4>
+    </div>
+</div>
+<div *ngIf="questionnaireList?.length" class="px-4">
+    <ul class="nav nav-tabs mb-0">
+        <li class="nav-item hand-cursor mb-2 qst-warning-nav"
+            *ngFor='let questionnaire of questionnaireList; let i= index' id="questionnaire-tab{{i}}"
+            (click)="activeQuestionnaire = questionnaire?.questionnaireDetail; selectedIndex = i">
+            <a class="tab subTabLink nav-item txt-medium text-black hand-cursor text-info fw-600"
+                [ngClass]="{'active':selectedIndex === i}">
+                {{questionnaire?.questionnaireDetail?.QUESTIONNAIRE}}
+                <i [ngClass]="{'txt-green':questionnaire.QUESTIONNAIRE_COMPLETED_FLAG == 'Y',
+                                'txt-red':questionnaire.QUESTIONNAIRE_COMPLETED_FLAG == 'N' || 
+                                            questionnaire.QUESTIONNAIRE_COMPLETED_FLAG == null}"
+                    aria-hidden="true"></i>
+                <span *ngIf="isEditMode" id="quest-close" class="close-button"
+                    (click)="deleteReviewQuestionnaire(i, questionnaire.extReviewQuestionnaireId);" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </span>
+            </a>
+        </li>
+    </ul>
+    <app-view-questionnaire *ngIf="activeQuestionnaire && activeQuestionnaire.QUESTIONNAIRE_ID"
+        [questionnaireDetails]="activeQuestionnaire" [isViewMode]="true" [moduleDetails]="_reviewService.moduleDetails">
+    </app-view-questionnaire>
+</div>

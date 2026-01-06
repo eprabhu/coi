@@ -1,0 +1,129 @@
+<div class="table-responsive coi-table-striped">
+    <table role="table" class="table table-bordered table-striped" id="coi-project-notification-history-table">
+        <caption class="sr-only">Past Notifications</caption>
+        <thead class="notification-history-table-thead">
+            <tr role="row" id="coi-project-notification-history-table-thead-tr">
+                <th role="columnheader" scope="col" class="coi-text-dark col-2">
+                    <button
+                        title="{{ isDesc['requestedBy'] ? 'Click here to sort from in ascending order' : 'Click here to sort from in descending order' }}"
+                        class="btn-none w-100 h-100 py-2 mt-0 d-flex align-items-center coi-table-sort-btn"
+                        attr.aria-label="{{ isDesc['requestedBy'] ? 'Click here to sort from in ascending order' : 'Click here to sort from in descending order' }}"
+                        (click)="onSortClick('requestedBy')">
+                        <span class="coi-text-darker" title="Originator of the notification">From</span>
+                        <i class="fa coi-text-light ms-2 coi-table-sort-icon" [ngClass]="{
+                                                        'fa-sort-alpha-asc': !isDesc['requestedBy'],
+                                                        'fa-sort-alpha-desc': isDesc['requestedBy']}"
+                            aria-hidden="true"></i>
+                    </button>
+                </th>
+                <th role="columnheader" scope="col" class="coi-text-dark col-2">
+                   <span title="Recipients who received the notification">To</span>
+                </th>
+                <th role="columnheader" scope="col" class="coi-text-dark col">
+                    <button
+                        title="{{ isDesc['subject'] ? 'Click here to sort subject in ascending order' : 'Click here to sort subject in descending order' }}"
+                        class="btn-none w-100 h-100 py-2 mt-0 d-flex align-items-center coi-table-sort-btn"
+                        attr.aria-label="{{ isDesc['subject'] ? 'Click here to sort subject in ascending order' : 'Click here to sort subject in descending order' }}"
+                        (click)="onSortClick('subject')">
+                        <span class="coi-text-darker" title="Notification subject">Subject</span>
+                        <i class="fa coi-text-light ms-2 coi-table-sort-icon" [ngClass]="{
+                                                        'fa-sort-alpha-asc': !isDesc['subject'],
+                                                        'fa-sort-alpha-desc': isDesc['subject']}"
+                            aria-hidden="true"></i>
+                    </button>
+                </th>
+                <th role="columnheader" scope="col" class="coi-text-dark col-2 col-md-3">
+                    <button
+                        title="{{ isDesc['sendDate'] ? 'Click here to sort sent date in ascending order' : 'Click here to sort sent date in descending order' }}"
+                        class="btn-none w-100 h-100 py-2 mt-0 d-flex align-items-center coi-table-sort-btn"
+                        attr.aria-label="{{ isDesc['sendDate'] ? 'Click here to sort sent date in ascending order' : 'Click here to sort sent date in descending order' }}"
+                        (click)="onSortClick('sendDate')">
+                        <span class="coi-text-darker" title="Date and time when the notification was triggered">Sent Date</span>
+                        <i class="fa coi-text-light ms-2 coi-table-sort-icon" [ngClass]="{
+                                                        'fa-sort-numeric-asc': !isDesc['sendDate'],
+                                                        'fa-sort-numeric-desc': isDesc['sendDate']}"
+                            aria-hidden="true"></i>
+                    </button>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <ng-container *ngFor="let notification of notificationList; let rowIndex = index">
+                <tr role="row" id="coi-project-notification-history-table-tbody-tr-{{rowIndex}}">
+                    <td>
+                        <div class="coi-text-light">
+                            <a class="link-primary text-slice"
+                                id="coi-project-notification-history-from-person-name-{{rowIndex}}" tabindex="0"
+                                (click)="openPersonDetailsModal(notification?.requestedBy)"
+                                (keyup.enter)="openPersonDetailsModal(notification?.requestedBy)"
+                                [title]="'Click here to view details of ' + notification?.fromUserFullName"
+                                [attr.aria-label]="fromUserFullName">
+                                {{notification?.fromUserFullName}}
+                            </a>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="coi-text-light" [class.d-flex]="!isRecipientReadMore[rowIndex]"
+                            [class.gap-1]="!isRecipientReadMore[rowIndex]">
+                            <ng-container
+                                *ngFor="let person of notification?.notificationLogRecipients; let personIndex = index">
+                                <ng-container *ngIf="personIndex === 0 || isRecipientReadMore[rowIndex]">
+                                    <a class="link-primary text-slice"
+                                        id="coi-project-notification-history-recipient-name-{{personIndex}}-{{rowIndex}}"
+                                        tabindex="0" (click)="openPersonDetailsModal(person?.recipientPersonId)"
+                                        (keyup.enter)="openPersonDetailsModal(person?.recipientPersonId)"
+                                        [title]="'Click here to view details of ' + person?.recipientFullName"
+                                        [attr.aria-label]="person?.recipientFullName">
+                                        {{person?.recipientFullName}}
+                                    </a>
+                                </ng-container>
+                            </ng-container>
+                            <button
+                                *ngIf="!isRecipientReadMore[rowIndex] && notification?.notificationLogRecipients?.length > 1"
+                                class="coi-btn-halo rounded-pill d-flex fs-12 col-auto" title="Click here to view more"
+                                attr.aria-label="Click here to view more" (click)="toggleReadMore(rowIndex, true)"
+                                id="coi-project-notification-history-recipient-view-more-{{personIndex}}-{{rowIndex}}">
+                                <span>{{ '+' + (notification?.notificationLogRecipients?.length - 1) + ' More' }}</span>
+                            </button>
+                        </div>
+                        <div
+                            *ngIf="isRecipientReadMore[rowIndex] && notification?.notificationLogRecipients?.length > 1">
+                            <button class="coi-btn-halo rounded-pill d-flex fs-12 mt-1" title="Click here to view less"
+                                id="coi-project-notification-history-recipient-view-less-{{personIndex}}-{{rowIndex}}"
+                                attr.aria-label="Click here to view less" (click)="toggleReadMore(rowIndex, false)">
+                                <span>View Less</span>
+                            </button>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="row row-gap-2 align-items-center coi-text-light mx-0">
+                            <span class="text-slice col-12 col-lg px-0"
+                                [title]="notification?.subject">{{notification?.subject}}</span>
+                            <div class="col-12 col-lg-auto px-0">
+                                <button id="coi-project-notification-history-view-message-{{rowIndex}}"
+                                    class="d-flex align-items-center btn btn-outline-secondary btn-sm"
+                                    title="Click here to {{isViewMessage[rowIndex] ? 'hide' : 'view'}} message"
+                                    aria-label="Click here to {{isViewMessage[rowIndex] ? 'hide' : 'view'}} message"
+                                    (click)="toggleViewMessage(rowIndex, isViewMessage[rowIndex] ? false : true)">
+                                    {{isViewMessage[rowIndex] ? 'Hide Message' : 'View Message'}}
+                                    <mat-icon class="coi-mat-icon-size" aria-hidden="true">{{isViewMessage[rowIndex] ?
+                                        'keyboard_arrow_up' : 'keyboard_arrow_down'}}</mat-icon>
+                                </button>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="coi-text-light" title="Date and time when the notification was triggered.">
+                            {{notification?.sendDate | dateFormatterWithTimeZone:'long'}}</div>
+                    </td>
+                </tr>
+                <tr role="row" *ngIf="isViewMessage[rowIndex]"
+                    id="coi-project-notification-history-table-tbody-tr-view-message-{{rowIndex}}">
+                    <td colspan="4" class="py-0 fs-14 project-history-message-row">
+                        <div class="mt-1" [innerHTML]="notificationList[rowIndex]?.message"></div>
+                    </td>
+                </tr>
+            </ng-container>
+        </tbody>
+    </table>
+</div>

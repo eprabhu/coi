@@ -1,0 +1,245 @@
+<div class="card coi-card-regular shadow-sm {{customClass}}" [ngClass]="isDunsMatchAlreadyDone ? 'coi-card-highlight' : 'card-light-gray-border'">
+    <div class="card-body" id="coi-common-entity-card-body">
+        <div class="row row-gap-2">
+            <div class="col-12 d-flex">
+                <div class="d-flex align-items-center">
+                    <h4 class="d-flex align-items-center col mb-0 coi-text-darker fs-6 pe-5">
+                        <!-- icon -->
+                        <span class="coi-icon-bg me-2 fs-14 d-inline-flex"><mat-icon aria-hidden="true" class="coi-entity-icon-size coi-coloured-icons">domain</mat-icon></span>
+                        <!-- Entity Name -->
+                        <div class="d-flex flex-column">
+                            <div class="d-flex align-items-center">
+                                <span [title]="entityDetailsObj?.entityName" class="text-slice fs-6">{{ entityDetailsObj?.entityName }}</span>
+                                <span class="coi-text-light fs-13 ps-1">(Confidence Score: <span class="coi-text-dark">{{ entityDetailsObj?.matchQualityInformation }}</span> )</span>
+                                <ng-container *ngIf="entityDetailsObj?.isForeign">
+                                    <app-common-foreign-flag [entityName]="entityDetailsObj?.entityName"></app-common-foreign-flag>
+                                </ng-container>
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <!-- Ownership Type -->
+                                <div class="d-flex align-items-center gap-1">
+                                    <label for="coi-{{uniqueId}}-ownership-type" class="coi-text-dark fs-13 text-nowrap">Ownership Type:</label>
+                                    <div id="coi-{{uniqueId}}-ownership-type" class="text-slice coi-text-light fs-13 coi-min-width-25px">
+                                        <app-no-data-label [valueToShow]="entityDetailsObj?.ownershipType">
+                                            <span [title]="entityDetailsObj?.ownershipType"
+                                                class="coi-text-light fs-13">{{ entityDetailsObj?.ownershipType }}</span>
+                                        </app-no-data-label>
+                                    </div>
+                                </div>
+                                <!-- divider -->
+                                <span class="coi-text-lighter">|</span>
+                                <!-- Business Type -->
+                                <div class="d-flex align-items-center gap-1">
+                                    <label for="coi-{{uniqueId}}-business-type" class="coi-text-dark fs-13 text-nowrap">Business Type:</label>
+                                    <div id="coi-{{uniqueId}}-business-type" class="text-slice coi-text-light fs-13 coi-min-width-25px">
+                                        <app-no-data-label [valueToShow]="entityDetailsObj?.businessEntityType?.description">
+                                            <span [title]="entityDetailsObj?.businessEntityType?.description"
+                                                class="coi-text-light fs-13">{{ entityDetailsObj?.businessEntityType?.description }}</span>
+                                        </app-no-data-label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- corporate linkage -->
+                            <div *ngIf="entityDetailsObj?.entityFamilyTreeRoles?.length" class="d-flex align-items-center gap-1">
+                                <mat-icon aria-hidden="true" class="flex-shrink-0 coi-text-lighter coi-scale-7 coi-ms-n3px">mediation</mat-icon>
+                                <ng-container *ngFor="let role of entityDetailsObj?.entityFamilyTreeRoles; let lastLinkage = last">
+                                    <div class="coi-text-light fs-13">{{ role?.description }}</div>
+                                    <!-- divider -->
+                                    <span *ngIf="!lastLinkage" class="coi-text-lighter">|</span>
+                                </ng-container>
+                            </div>
+                        </div>
+                    </h4>
+                </div>
+                <div class="align-items-center d-flex gap-2 ms-auto">
+                    <!-- use this / used -->
+                    <button *ngIf="!isDuplicateEntityAvailable" id="use-entity-common-card"
+                        [disabled]="isDunsMatchAlreadyDone" (click)="sendEntityDetails()"
+                        aria-label="Click here to use this entity" title="Click here to use this entity"
+                        [class.btn-primary]="isDunsMatchAlreadyDone" class="btn btn-outline-secondary fs-14 text-nowrap"
+                        name="use-entity-common-card">
+                        {{isDunsMatchAlreadyDone ? 'Used' : 'Use this'}}
+                    </button>
+                </div>
+            </div>
+            <ng-container *ngFor="let fieldOrder of cardOrder">
+                <!-- Address -->
+                <div *ngIf="fieldOrder === 'ADDRESS'" tabindex="-1" class="col-12"
+                    [attr.aria-label]="'Address is ' + (entityDetailsObj?.primaryAddress ? entityDetailsObj?.primaryAddress : 'empty')">
+                    <label for="coi-{{uniqueId}}-address" class="coi-text-dark d-block">Primary Address</label>
+                    <div id="coi-{{uniqueId}}-address" class="text-slice">
+                        <app-no-data-label [valueToShow]="entityDetailsObj?.primaryAddress">
+                            <span [title]="entityDetailsObj?.primaryAddress"
+                                class="coi-text-light">{{entityDetailsObj?.primaryAddress}}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+                <!-- City -->
+                <div *ngIf="fieldOrder === 'CITY'" tabindex="-1" class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-3 col-xxl-3"
+                    [attr.aria-label]="'City is ' + (entityDetailsObj?.city ? entityDetailsObj?.city : 'empty')">
+                    <label for="coi-{{uniqueId}}-city" class="coi-text-dark d-block">City</label>
+                    <div id="coi-{{uniqueId}}-city" class="text-slice">
+                        <app-no-data-label [valueToShow]="entityDetailsObj?.city">
+                            <span [title]="entityDetailsObj?.city"
+                                class="coi-text-light">{{entityDetailsObj?.city}}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+                <!-- State/Province/Region -->
+                <div *ngIf="fieldOrder === 'STATE'" tabindex="-1" class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-3 col-xxl-3"
+                    [attr.aria-label]="'State/Province/Region is ' + (entityDetailsObj?.state ? entityDetailsObj?.state : 'empty')">
+                    <label for="coi-{{uniqueId}}-state" class="coi-text-dark d-block">State/Province/Region</label>
+                    <div id="coi-{{uniqueId}}-state" class="text-slice">
+                        <app-no-data-label [valueToShow]="entityDetailsObj?.state">
+                            <span [title]="entityDetailsObj?.state"
+                                class="coi-text-light">{{ entityDetailsObj?.state }}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+                <!-- Country -->
+                <div *ngIf="fieldOrder === 'COUNTRY'" tabindex="-1" class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-3 col-xxl-3"
+                    [attr.aria-label]="'Country is ' + (entityDetailsObj?.country ? entityDetailsObj?.country : 'empty')">
+                    <label for="coi-{{uniqueId}}-country" class="coi-text-dark d-block">Country</label>
+                    <div id="coi-{{uniqueId}}-country" class="text-slice">
+                        <app-no-data-label [valueToShow]="entityDetailsObj?.country">
+                            <span [title]="entityDetailsObj?.country"
+                                class="coi-text-light">{{ entityDetailsObj?.country }}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+                <!-- DUNS Number -->
+                <div *ngIf="fieldOrder === 'DUNS_NUMBER'" tabindex="-1" class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-3 col-xxl-3"
+                    [attr.aria-label]="'DUNS number is ' + (entityDetailsObj?.dunsNumber ? entityDetailsObj?.dunsNumber : 'empty')">
+                    <label for="coi-{{uniqueId}}-duns-number" class="coi-text-dark d-block">DUNS Number</label>
+                    <div id="coi-{{uniqueId}}-duns-number" class="text-slice">
+                        <app-no-data-label [valueToShow]="entityDetailsObj?.dunsNumber">
+                            <span [title]="entityDetailsObj?.dunsNumber"
+                                class="coi-text-light">{{entityDetailsObj?.dunsNumber}}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+                <!-- UEI Number -->
+                <div *ngIf="fieldOrder === 'UEI_NUMBER'" tabindex="-1" class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-3 col-xxl-3"
+                    [attr.aria-label]="'UEI number is ' + (entityDetailsObj?.ueiNumber ? entityDetailsObj?.ueiNumber : 'empty')">
+                    <label for="coi-{{uniqueId}}-uei-number" class="coi-text-dark d-block">UEI Number</label>
+                    <div id="coi-{{uniqueId}}-uei-number" class="text-slice">
+                        <app-no-data-label [valueToShow]="entityDetailsObj?.ueiNumber">
+                            <span [title]="entityDetailsObj?.ueiNumber"
+                                class="coi-text-light">{{entityDetailsObj?.ueiNumber}}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+                <!-- ZIP/Postal Code -->
+                <div *ngIf="fieldOrder === 'ZIP_CODE'" tabindex="-1" class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-3 col-xxl-3"
+                    [attr.aria-label]="'UEI number is ' + (entityDetailsObj?.postalCode ? entityDetailsObj?.postalCode : 'empty')">
+                    <label for="coi-{{uniqueId}}-zip-code" class="coi-text-dark d-block">ZIP/Postal Code</label>
+                    <div id="coi-{{uniqueId}}-zip-code" class="text-slice">
+                        <app-no-data-label [valueToShow]="entityDetailsObj?.postalCode">
+                            <span [title]="entityDetailsObj?.postalCode"
+                                class="coi-text-light">{{entityDetailsObj?.postalCode}}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+                <!-- CAGE Number -->
+                <div *ngIf="fieldOrder === 'CAGE_NUMBER'" tabindex="-1" class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-3 col-xxl-3"
+                    [attr.aria-label]="'CAGE number is ' + (entityDetailsObj?.cageNumber ? entityDetailsObj?.cageNumber : 'empty')">
+                    <label for="coi-{{uniqueId}}-cage-number" class="coi-text-dark d-block">CAGE Number</label>
+                    <div id="coi-{{uniqueId}}-cage-number" class="text-slice">
+                        <app-no-data-label [valueToShow]="entityDetailsObj?.cageNumber">
+                            <span [title]="entityDetailsObj?.cageNumber"
+                                class="coi-text-light">{{entityDetailsObj?.cageNumber}}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+                <!-- Website -->
+                <div *ngIf="fieldOrder === 'WEBSITE'" tabindex="-1" class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-3 col-xxl-3"
+                    [attr.aria-label]="'Website is ' + (entityDetailsObj?.website? entityDetailsObj?.website: 'empty')">
+                    <label for="coi-{{uniqueId}}-website" class="coi-text-dark d-block">Website</label>
+                    <div id="coi-{{uniqueId}}-website" class="text-slice">
+                        <app-no-data-label [valueToShow]="entityDetailsObj?.website">
+                            <span [title]="entityDetailsObj?.website"
+                                class="coi-text-light">{{entityDetailsObj?.website}}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+                <!-- Prior Name -->
+                <div *ngIf="fieldOrder === 'PRIOR_NAME'" tabindex="-1" class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-3 col-xxl-3"
+                    [attr.aria-label]="'Prior name is ' + (entityDetailsObj?.priorName? entityDetailsObj?.priorName: 'empty')">
+                    <label for="coi-{{uniqueId}}-prior-name" class="coi-text-dark d-block">Prior Name</label>
+                    <div id="coi-{{uniqueId}}-prior-name" class="text-slice">
+                        <app-no-data-label [valueToShow]="entityDetailsObj?.priorName">
+                            <span [title]="entityDetailsObj?.priorName"
+                                class="coi-text-light">{{entityDetailsObj?.priorName}}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+                <!-- Foreign Name(s) -->
+                <div *ngIf="fieldOrder === 'FOREIGN_NAME'" tabindex="-1" class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-3 col-xxl-3"
+                    [attr.aria-label]="'Foreign name(s) are ' + (entityDetailsObj?.foreignName? entityDetailsObj?.foreignName: 'empty')">
+                    <label for="coi-{{uniqueId}}-foreign-name" class="coi-text-dark d-block">Foreign Name(s)</label>
+                    <div id="coi-{{uniqueId}}-foreign-name" class="text-slice">
+                        <app-no-data-label [valueToShow]="entityDetailsObj?.foreignName">
+                            <span [title]="entityDetailsObj?.foreignName"
+                                class="coi-text-light">{{ entityDetailsObj?.foreignName }}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+                <!-- Organization ID -->
+                <div *ngIf="fieldOrder === 'ORGANIZATION_ID'" tabindex="-1" class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-3 col-xxl-3"
+                    [attr.aria-label]="'Organization ID is ' + (entityDetailsObj?.organizationId ? entityDetailsObj?.organizationId : 'empty')">
+                    <label for="coi-{{uniqueId}}-organization-id" class="coi-text-dark d-block">Organization ID</label>
+                    <div id="coi-{{uniqueId}}-organization-id" class="text-slice">
+                        <app-no-data-label [valueToShow]="entityDetailsObj?.organizationId ? entityDetailsObj?.organizationId : ''">
+                            <span [title]="entityDetailsObj?.organizationId"
+                                class="coi-text-light">{{ entityDetailsObj?.organizationId }}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+                <!-- Sponsor Code -->
+                <div *ngIf="fieldOrder === 'SPONSOR_CODE'" tabindex="-1" class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-3 col-xxl-3"
+                    [attr.aria-label]="'Sponsor code is ' + (entityDetailsObj?.sponsorCode ? entityDetailsObj?.sponsorCode : 'empty')">
+                    <label for="coi-{{uniqueId}}-sponsor-code" class="coi-text-dark d-block">Sponsor Code</label>
+                    <div id="coi-{{uniqueId}}-sponsor-code" class="text-slice">
+                        <app-no-data-label [valueToShow]="entityDetailsObj?.sponsorCode ? entityDetailsObj?.sponsorCode : ''">
+                            <span [title]="entityDetailsObj?.sponsorCode"
+                                class="coi-text-light">{{ entityDetailsObj?.sponsorCode }}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+                <!-- Mailing Address -->
+                <div *ngIf="fieldOrder === 'MAILING_ADDRESS' && entityDetailsObj?.mailingAddress" tabindex="-1" class="col-12"
+                    [attr.aria-label]="'Mailing address is ' + entityDetailsObj.mailingAddress">
+                    <span class="coi-text-dark d-block">Mailing Address</span>
+                    <span class="coi-text-light" id="coi-{{uniqueId}}-mailing-address">{{ entityDetailsObj.mailingAddress }}</span>
+                </div>
+            </ng-container>
+            <!-- footer -->
+            <div *ngIf="isDuplicateEntityAvailable && !isDunsMatchAlreadyDone" class="col-12">
+                <div class="d-flex rounded-1 matching-card mb-0 py-2 mt-2 px-2 align-items-center justify-content-between">
+                    <!-- info -->
+                    <p class="fs-14 mb-0">
+                        <span *ngIf="!isAlreadyMarkedAsDuplicate" class="d-flex algin-items-start">Entity with this DUNS number already exist.</span>
+                        <span *ngIf="isAlreadyMarkedAsDuplicate" class="d-flex algin-items-start">The currently opened entity is marked as a duplicate of this entity.</span>
+                    </p>
+                    <!-- buttons -->
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- View -->
+                        <button id="view-original-entity-duns-common-card" aria-label="Click here to view entity details"
+                            title="Click here to view entity details" class="btn btn-outline-secondary fs-14"
+                            name="view-original-entity-duns-common-card"
+                            (click)="openEntity(entityDetailsObj?.duplicateEntityDetails?.entityId)">
+                            View
+                        </button>
+                        <!-- Set as Original -->
+                        <button *ngIf="!isAlreadyMarkedAsDuplicate" id="mark-as-duplicate-entity-common-card"
+                            (click)="openMarkAsDuplicateModal()" aria-label="Click here to mark as duplicate this entity"
+                            title="Click here to mark as duplicate this entity" class="btn btn-primary fs-14"
+                            name="mark-as-duplicate-entity-common-card">
+                            Set as Original
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

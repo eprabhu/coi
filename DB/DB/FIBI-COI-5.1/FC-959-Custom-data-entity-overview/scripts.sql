@@ -1,0 +1,7 @@
+
+-- ALTER TABLE coeus_module
+-- ADD COLUMN DYN_MODULE_CODE VARCHAR(5) NULL DEFAULT NULL AFTER IS_ACTIVE;
+
+-- UPDATE COEUS_MODULE SET DYN_MODULE_CODE = 'GE26' WHERE (MODULE_CODE = '26');
+
+-- Cross check the above query(Existing Fibi-Base)

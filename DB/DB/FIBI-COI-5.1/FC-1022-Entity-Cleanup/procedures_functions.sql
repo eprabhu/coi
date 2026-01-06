@@ -1,0 +1,1 @@
+\. ./FIBI-COI-5.1/FC-1022-Entity-Cleanup/Procedures/COI_INT_GET_ENTITY_DETAILS.sql

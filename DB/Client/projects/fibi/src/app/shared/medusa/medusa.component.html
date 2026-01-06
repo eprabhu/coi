@@ -1,0 +1,470 @@
+<section class="row mt-20">
+  <div class="col-lg-12">
+    <div class="row" *ngIf="treeData?.length > 0">
+      <div class="col-md-4 col-12 mb-4">
+        <div class="card">
+          <div class="card-body">
+            <div class="u-tree-outer">
+              <ul class="unit-tree ui-tree">
+                <ng-template #recursiveList let-treeData>
+                  <li *ngFor="let node of treeData; let i=index" class="child-li pointer">
+                    <div class="container-fluid " data-toggle="modal"
+                      title="Click to view {{node?.moduleName}} : {{node?.projectNumber}}">
+                      <div class="row">
+                        <div *ngIf="node?.medusa?.length > 0" class="col-lg-2 md-box" (click)="listClick($event, node)">
+                          <span><i aria-hidden="true"
+                              [ngClass]="(node.visible)?'fa fa-chevron-down u-down-arrow':'fa fa-chevron-right u-left-arrow pl-2 '"
+                              ></i></span>
+                        </div>
+                        <div (click)="viewUnitDetails(node)" *ngIf="node?.medusa?.length > 0"
+                          id="{{node?.moduleName}}{{node?.projectNumber}}"
+                          class="col-lg-10 u-content-middle unit-tree-blocks pointer f-13">
+                          <span class="uh-ml">{{node?.moduleName}}</span> &nbsp;{{node?.projectNumber}}
+                        </div>
+                        <div (click)="viewUnitDetails(node)" *ngIf="node?.medusa?.length <= 0"
+                          id="{{node?.moduleName}}{{node?.projectNumber}}"
+                          class="col-lg-10 unit-tree-blocks u-content-middle pointer f-13">
+                          <span class="uh-ml">{{node?.moduleName}}</span> &nbsp;{{node?.projectNumber}}
+                        </div>
+                      </div>
+                    </div>
+                    <ul *ngIf="node?.medusa?.length > 0 && node?.visible"
+                      [ngClass]="{ 'subfolder': selectedNode == node }">
+                      <ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: node.medusa }">
+                      </ng-container>
+                    </ul>
+                  </li>
+                </ng-template>
+                <ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: treeData }"></ng-container>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+<div class="col-md-8 col-12">
+      <div *ngIf="isNegotiation">
+        <div class="card card-widget-box h-100">
+          <div class="card-header">
+            <h4 class="card-title d-flex justify-content-between flex-nowrap align-items-center">Negotiation Overview
+              (#{{medusaDetails?.projectNumber}})
+              <ul class="actionButtonGroup" *ngIf="medusaDetails.projectNumber">
+                <li>
+                  <a [routerLink]="['/fibi/negotiation/negotiationhome']"
+                    [queryParams]={negotiationId:medusaDetails.projectNumber} target="_blank">
+                    <i aria-hidden="true" class="fa fa-eye"
+                      title="view negotiation {{medusaDetails?.projectNumber}}"></i>
+                  </a>
+                </li>
+              </ul>
+            </h4>
+
+          </div>
+          <div class="card-content">
+            <div class="card-body">
+              <table class="table tableSkin grid2">
+                <caption class="sr-only">Negotiation</caption>
+                <thead class="d-none">
+                  <tr>
+                    <th scope="col"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><label>Negotiator:</label>{{medusaResult?.negotiatorFullName}}</td>
+                    <td><label>Status:</label>{{medusaResult?.negotiationStatus}}</td>
+                  </tr>
+                  <tr>
+                    <td><label>Start Date:</label>{{medusaResult?.startDate | dateFormatter}}</td>
+                    <td *ngIf="medusaResult?.endDate"><label>End Date:</label>{{medusaResult?.endDate | dateFormatter}}
+                    </td>
+                    <td *ngIf="!medusaResult?.endDate"><label>End Date:</label>No data available</td>
+                  </tr>
+                  <tr>
+                    <td><label>Negotiator
+                        Comment:</label><p class="new-line-property">{{medusaResult?.negotiatorComment ? medusaResult?.negotiatorComment : 'Negotiator comment not added'}}</p>                    </td>
+                    <td><label>Legal
+                        Comment:</label><p class="new-line-property">{{medusaResult?.legalComment ? medusaResult?.legalComment : 'Legal comment not added'}}</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><label>Summary
+                        Comment:</label> <p class="new-line-property" >{{medusaResult?.summaryComment ? medusaResult?.summaryComment : 'Summary comment not added'}} </p>
+                    </td>
+                    <td><label>Created By:</label>{{medusaResult?.createUser}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="isAward">
+        <div class="card card-widget-box h-100">
+          <div class="card-header">
+            <h4 class="card-title d-flex justify-content-between flex-nowrap align-items-center">
+              <ng-container i18n="@@AWARD_OVERVIEW">Award Overview</ng-container>
+              (#{{medusaDetails?.projectNumber}})
+              <ul class="actionButtonGroup" *ngIf="medusaResult.award_id">
+                <li>
+                  <a [routerLink]="['/fibi/award/overview']" [queryParams]={awardId:medusaResult.award_id}
+                    target="_blank">
+                    <i aria-hidden="true" class="fa fa-eye" title="view award {{medusaDetails?.projectNumber}}"></i>
+                  </a>
+                </li>
+              </ul>
+            </h4>
+          </div>
+          <div class="card-content">
+            <div class="card-body">
+              <table class="table tableSkin grid2">
+                <caption class="sr-only">Award</caption>
+                <thead class="d-none">
+                  <tr>
+                    <th scope="col"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="2"><label>Title: </label>
+                      <span [ngClass]="{'noDataExists': !medusaResult?.title}">{{medusaResult?.title ? medusaResult?.title : noDataLabel}}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><label>Principal Investigator: </label>
+                      <span [ngClass]="{'noDataExists': !medusaResult?.piName}">{{medusaResult?.piName ? medusaResult?.piName : noDataLabel}}</span>
+                    </td>
+                    <td><label>Status: </label>
+                      <span [ngClass]="{'noDataExists': !medusaResult?.awardStatus}">{{medusaResult?.awardStatus ? medusaResult?.awardStatus : noDataLabel}}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colspan="2"><label>
+                        <ng-container i18n="@@COMMON_SPONSOR">Sponsor</ng-container>:
+                      </label><span [ngClass]="{'noDataExists': !medusaResult?.sponsorName}">{{medusaResult?.sponsorName ? medusaResult?.sponsorName : noDataLabel}}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><label>Sponsor Award Number: </label>
+                      <span [ngClass]="{'noDataExists': !medusaResult?.sponsorAwardNumber}">{{medusaResult?.sponsorAwardNumber ? medusaResult?.sponsorAwardNumber : noDataLabel}}</span>
+                    </td>
+                    <td><label>Award Notice Date: </label>
+                      <span *ngIf="!medusaResult?.awardEffectiveDate">{{medusaResult?.awardEffectiveDate | dateFormatter}}</span>                    
+                      <span *ngIf="!medusaResult?.awardEffectiveDate" class="noDataExists">{{noDataLabel}}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colspan="2"><label>Lead Unit: </label>
+                      <span *ngIf="medusaResult?.leadUnitNumber">{{medusaResult?.leadUnitNumber}} - {{medusaResult?.leadUnitName}}</span>
+                      <span *ngIf="!medusaResult?.leadUnitNumber" class="noDataExists">{{noDataLabel}}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><label>
+                        <ng-container i18n="@@COMMON_AWARD_EFFECTIVE_DATE">Award Effective Date</ng-container>:
+                      </label>
+                      <span *ngIf="medusaResult?.beginDate">{{medusaResult?.beginDate | dateFormatter}}</span>
+                      <span *ngIf="!medusaResult?.beginDate" class="noDataExists">{{noDataLabel}}</span>
+                    </td>
+                    <td><label>
+                        <ng-container i18n="@@COMMON_FINAL_EXPIRATION_DATE">Final Expiration Date</ng-container>:
+                      </label>
+                      <span *ngIf="medusaResult?.finalExpirationDate">{{medusaResult?.finalExpirationDate | dateFormatter}}</span>
+                      <span *ngIf="!medusaResult?.finalExpirationDate" class="noDataExists">{{noDataLabel}}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><label>
+                        <ng-container i18n="@@AWARD_ACCOUNT_NUMBER">Account Number</ng-container>:
+                      </label>
+                      <span [ngClass]="{'noDataExists': !medusaResult?.accountNumber}">{{medusaResult?.accountNumber ? medusaResult?.accountNumber : noDataLabel}}</span>
+                    </td>
+                    <td><label>Anticipated Total: </label>
+                      <span *ngIf="medusaResult?.anticipatedTotalAmount">{{medusaResult?.anticipatedTotalAmount | customCurrency}}</span>
+                      <span *ngIf="!medusaResult?.anticipatedTotalAmount" class='noDataExists'>{{noDataLabel}}</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="isip">
+        <div class="card card-widget-box h-100">
+          <div class="card-header">
+            <h4 class="card-title d-flex justify-content-between flex-nowrap align-items-center">Institute Proposal
+              Overview (#{{medusaDetails?.projectNumber}})
+              <ul class="actionButtonGroup" *ngIf="medusaResult.proposalId">
+                <li>
+                  <a [routerLink]="['/fibi/instituteproposal']"
+                    [queryParams]={instituteProposalId:medusaResult?.proposalId} target="_blank">
+                    <i aria-hidden="true" class="fa fa-eye"
+                      title="view Institute Proposal {{medusaResult?.proposalId}}"></i>
+                  </a>
+                </li>
+              </ul>
+            </h4>
+          </div>
+          <div class="card-content">
+            <div class="card-body">
+              <table class="table tableSkin grid2 ">
+                <caption class="sr-only">Institute Proposal</caption>
+                <thead class="d-none">
+                  <tr>
+                    <th scope="col"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="2"><label>Title:</label>{{medusaResult?.title}}</td>
+                  </tr>
+                  <tr>
+                    <td><label>Proposal Type:</label>{{medusaResult?.proposalType}}</td>
+                    <td><label>Activity Type:</label>{{medusaResult?.activityType}}</td>
+                  </tr>
+                  <tr>
+                    <td><label>Principal Investigator:</label>{{medusaResult?.investigator}}</td>
+                    <td><label>Status:</label>{{medusaResult?.status}}</td>
+                  </tr>
+                  <tr>
+                    <td colspan="2"><label>Lead Unit:</label>{{medusaResult?.leadUnitNumber}} -
+                      {{medusaResult?.unitName}}</td>
+                  </tr>
+                  <tr>
+                    <td colspan="2"><label>Sponsor:</label>{{medusaResult?.sponsor}}</td>
+                  </tr>
+                  <tr>
+                    <td><label>Proposal Start Date:</label>{{medusaResult?.startDate | dateFormatter}}</td>
+                    <td><label>Proposal End Date:</label>{{medusaResult?.endDate | dateFormatter}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="isdev">
+        <div class="card card-widget-box h-100">
+          <div class="card-header">
+            <h4 class="card-title d-flex justify-content-between align-items-center">Developmental Proposal Overview
+              (#{{medusaDetails?.projectNumber}})
+              <ul class="actionButtonGroup" *ngIf="medusaDetails.projectNumber">
+                <li>
+                  <a [routerLink]="['/fibi/proposal/summary']" [queryParams]={proposalId:medusaDetails.projectNumber}
+                    target="_blank" (click)="setProposalTab()">
+                    <i aria-hidden="true" class="fa fa-eye" title="view Proposal {{medusaDetails?.projectNumber}}"></i>
+                  </a>
+                </li>
+              </ul>
+            </h4>
+          </div>
+          <div class="card-content">
+            <div class="card-body">
+              <table class="table tableSkin grid2">
+                <caption class="sr-only">Proposal</caption>
+                <thead class="d-none">
+                  <tr>
+                    <th scope="col"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="2"><label>Title:</label>{{medusaResult?.title}}</td>
+                  </tr>
+                  <tr>
+                    <td><label>Proposal Type:</label>{{medusaResult?.proposalType}}</td>
+                    <td><label>Activity Type:</label>{{medusaResult?.activityType}}</td>
+                  </tr>
+                  <tr>
+                    <td><label>Principal Investigator:</label>{{medusaResult?.investigator}}</td>
+                    <td><label>Status:</label>{{medusaResult?.status}}</td>
+                  </tr>
+                  <tr>
+                    <td colspan="2"><label>Lead Unit:</label>{{medusaResult?.leadUnitNumber}} -
+                      {{medusaResult?.unitName}}</td>
+                  </tr>
+                  <tr>
+                    <td colspan="2"><label>Sponsor:</label>{{medusaResult?.sponsor}}</td>
+                  </tr>
+                  <tr>
+                    <td><label>Proposal Start Date:</label>{{medusaResult?.startDate | dateFormatter}}</td>
+                    <td><label>Proposal End Date:</label>{{medusaResult?.endDate | dateFormatter}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="isGrant">
+        <div class="card card-widget-box h-100">
+          <div class="card-header">
+            <h4 class="card-title d-flex justify-content-between flex-nowrap align-items-center">Grant Call Overview
+              (#{{medusaDetails?.projectNumber}})
+              <ul class="actionButtonGroup" *ngIf="medusaDetails.projectNumber">
+                <li>
+                  <a [routerLink]="['/fibi/grant']" [queryParams]={grantId:medusaDetails.projectNumber} target="_blank">
+                    <i aria-hidden="true" class="fa fa-eye"
+                      title="view Grant Call {{medusaDetails?.projectNumber}}"></i>
+                  </a>
+                </li>
+              </ul>
+            </h4>
+          </div>
+          <div class="card-content">
+            <div class="card-body">
+              <table class="table tableSkin grid2">
+                <caption class="sr-only">Grant Call</caption>
+                <thead class="d-none">
+                  <tr>
+                    <th scope="col"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="2"><label>Title:</label>{{medusaResult?.title}}</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <label>Budget:</label>{{medusaResult?.maximumBudget ? medusaResult?.maximumBudget : 'No data available'}}
+                    </td>
+                    <td><label>Status:</label>{{medusaResult?.status}}</td>
+                  </tr>
+                  <tr>
+                    <td><label>Grant Type:</label>{{medusaResult?.title}}</td>
+                    <td><label>Funding
+                        Source:</label>{{medusaResult?.status ? medusaResult?.status : 'No data available'}}</td>
+                  </tr>
+                  <tr>
+                    <td><label>Sponsor:</label>{{medusaResult?.sponsor}}</td>
+                    <td><label>Lead Unit:</label>{{medusaResult?.leadUnitNumber}} -
+                      {{medusaResult?.unitName}}</td>
+                  </tr>
+                  <tr>
+                    <td colspan="2"><label>Application
+                        Procedure:</label>
+                        <span innerHTML="{{medusaResult?.applicationProcedure ? medusaResult?.applicationProcedure :
+                          'No data available'}}"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><label>Start Date:</label>{{medusaResult?.startDate | dateFormatter}}</td>
+                    <td><label>End Date:</label>{{medusaResult?.endDate | dateFormatter}}</td>
+                  </tr>
+                  <tr>
+                    <td colspan="2"><label>Description:</label>
+                      <span innerHTML="{{medusaResult?.description}}"></span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Service request card for Medusa -->
+      <div *ngIf="getServiceRequestList?.length > 0">
+        <div class="card h-100">
+          <div class="card-header">
+            <span class="d-flex align-items-center">
+              <h4 class="card-title f-14">
+                Service Request(s)
+              </h4>
+              <div class="count-icon ml-2 fw-600 py-0">
+                {{getServiceRequestList?.length}}
+              </div>
+            </span>
+          </div>
+          <div class="card-content">
+            <div class="card-body">
+              <table class="table tableSkin mb-0 grid2 mt-2">
+                <tbody>
+                  <ng-container *ngFor="let serviceRequest of getServiceRequestList">
+                    <tr [ngClass]="collapseServiceRequest[serviceRequest?.serviceRequestId] ? 'card-border' : ''">
+                      <td>
+                        <div class="d-flex f-13 justify-content-between"
+                          [ngClass]="collapseServiceRequest[serviceRequest?.serviceRequestId] ? 'fw-700' : ''">
+                          {{serviceRequest.subject}} (#{{serviceRequest?.serviceRequestId}})
+                        </div>
+                      </td>
+                      <td class="align-baseline collapse-alignment" style="width:13%">
+                        <ul class="actionButtonGroup text-right">
+                          <li><a id="serviceReqExpandBtn" class="position-relative mr-3"
+                              (click)="collapseCriteria(serviceRequest?.serviceRequestId, collapseServiceRequest[serviceRequest?.serviceRequestId])">
+                              <i [ngClass]="collapseServiceRequest[serviceRequest?.serviceRequestId]?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                                class="fa-large" aria-hidden="true"></i>
+                            </a></li>
+                          <li><a [routerLink]="['/fibi/service-request/overview']"
+                              [queryParams]={serviceRequestId:serviceRequest.serviceRequestId} target="_blank">
+                              <i aria-hidden="true" class="fa fa-eye" title="view award {{medusaDetails?.projectNumber}}"></i>
+                            </a></li>
+                        </ul>
+                      </td>
+                    </tr>
+                    <tr [ngClass]="collapseServiceRequest[serviceRequest?.serviceRequestId] ? 'card-border' : ''"
+                      *ngIf="collapseServiceRequest[serviceRequest?.serviceRequestId]">
+                      <td colspan="2" class="p-0">
+                        <div class="text-secondary">
+                          <div class="card h-100">
+                            <div class="card-content">
+                              <div class="card-body">
+                                <table class="table tableSkin mb-0 grid2 mt-2">
+                                  <thead class="d-none">
+                                    <tr>
+                                      <th scope="col"></th>
+                                    </tr>
+                                  </thead>
+                                  <tbody class="fs-12">
+                                    <tr>
+                                      <td><label>Reported By: </label>{{serviceRequest?.reportedBy}} on
+                                        {{serviceRequest?.reportedOn |
+                                        dateFormatter}}</td>
+                                      <td><label>Current Status: </label>{{serviceRequest?.status}}</td>
+                                    </tr>
+                                    <tr>
+                                      <td><label>Reported Person Id: </label>{{serviceRequest?.reportedPersonId}}</td>
+                                      <td><label>Service Request Id: </label>{{serviceRequest?.serviceRequestId}}</td>
+                                    </tr>
+                                    <tr>
+                                      <td><label>Department: </label>{{serviceRequest?.unitName}}</td>
+                                      <td><label>Type: </label>{{serviceRequest?.type}}</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </ng-container>
+                </tbody>
+              </table>
+              <div class="no-data-container" *ngIf="!getServiceRequestList?.length">
+                <span class="no-data-icon-outer">
+                  <div class="no-data-icon">
+                    <i class="fa fa-file-o" aria-hidden="true"></i>
+                    <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                  </div>
+                </span>
+                <h4>There is no information in this section.</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+    <div class="no-data-container" *ngIf="treeData?.length == 0">
+      <span class="no-data-icon-outer">
+        <div class="no-data-icon">
+          <i class="fa fa-file-o" aria-hidden="true"></i>
+          <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+        </div>
+      </span>
+      <h4>There is no information in this section.</h4>
+    </div>
+  </div>
+</section>

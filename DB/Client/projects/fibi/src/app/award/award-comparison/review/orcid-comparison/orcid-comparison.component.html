@@ -1,0 +1,231 @@
+<div class="mb-3">
+  <div *ngIf="orcidData?.personOrcidWorks?.length">
+    <div
+      *ngFor="let work of orcidData.personOrcidWorks; let index = index"
+      class="mt-3">
+      <div class="card box-shadow">
+        <div class="card-header py-2">
+          <div class="align-items-center d-flex justify-content-center row show-collapse-arrow">
+            <div class="col">
+              <span>
+                <label class="font-weight-bold f-15 mb-0">
+                  <span class="privacy-icon" *ngIf="work?.orcidWork?.visibility=='public'" title="Everyone"><i
+                      class="ml-1 fa fa-users public-works" aria-hidden="true"></i></span>
+                  <span class="privacy-icon" *ngIf="work?.orcidWork?.visibility=='limited'" title="Trusted Parties"><i
+                      class="ml-1 fa fa-user limited-works" aria-hidden="true"></i></span>
+                  <span class="privacy-icon" *ngIf="work?.orcidWork?.visibility=='private'" title="Only Me"><i
+                      class="ml-1 fa fa-lock private-works" aria-hidden="true"></i></span>
+                  <span [innerHTML]="work?.orcidWork?.title"></span>
+                </label>
+              </span>
+              <div>
+                <label class="pl-3 fs-14 font-italic"
+                  [innerHTML]="'Created on : '+ dateFormatter.parseDate(work?.orcidWork?.createDate)  +' |'"></label>
+                <label *ngIf="work?.orcidWork?.source" class="pl-1 fs-14 font-italic"
+                  [innerHTML]="'Source: '+work?.orcidWork?.source"></label>
+                <span class="badge badge-pill" [ngClass]="work?.orcidWork?.orcidWorkStatus?.orcidWorkStatusCode == 'A' ?
+                'badge-success' : 'badge-warning'" [innerHTML]="work?.orcidWork?.orcidWorkStatus?.description"></span>
+              </div>
+            </div>
+            <div class="show-collapse-arrow">
+              <ul class="actionButtonGroup">
+                <li>
+                  <a (click)="isCollapse[index] = !isCollapse[index]" class="position-relative">
+                    <i [ngClass]="!isCollapse[index]?'fa fa-angle-double-down':'fa fa-angle-double-up'" class="fa-large"
+                      aria-hidden="true"></i>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="isCollapse[index]">
+          <div class="card-body py-0 gridSkin">
+            <div class="row pb-2">
+              <div class="col-lg-5 col-md-4 col-sm-6 col-12 pb-0">
+                <label class="d-sm-block"
+                  [innerHTML]="titleLabelSwitch(work?.orcidWork?.orcidWorkType?.orcidWorkTypeCode) +':'"></label>
+                <span *ngIf="work?.orcidWork?.journalTitle" [innerHTML]="work?.orcidWork?.journalTitle"></span>
+                <span *ngIf="!work?.orcidWork?.journalTitle" class="noDataExists">No Data Specified</span>
+              </div>
+              <div class="col-lg-2 col-md-4 col-sm-6 col-12 pb-0">
+                <label class="d-sm-block">Publication Date :</label>
+                <span *ngIf="work?.orcidWork?.publicationDate" [innerHTML]="work?.orcidWork?.publicationDate"></span>
+                <span *ngIf="!work?.orcidWork?.publicationDate" class="noDataExists">No Data Specified</span>
+              </div>
+              <div class="col-lg-2 col-md-4 col-sm-6 col-12 pb-0">
+                <label class="d-sm-block">Work Category/ Type :</label>
+                <span *ngIf="work?.orcidWork?.orcidWorkType?.orcidWorkCategory?.description" [innerHTML]="work?.orcidWork?.orcidWorkType?.orcidWorkCategory?.description+'/'+
+                 work?.orcidWork?.orcidWorkType?.description">
+                </span>
+                <span *ngIf="!work?.orcidWork?.orcidWorkType?.orcidWorkCategory?.description" class="noDataExists">No
+                  Data
+                  Specified</span>
+              </div>
+              <div class="col-lg-2 col-md-4 col-sm-6 col-12 pb-0">
+                <label class="d-sm-block">Person Linked to this Work :</label>
+                <span *ngIf="work?.personFullname"><i class="fa fa-user" aria-hidden="true"></i><label
+                    [innerHTML]="work?.personFullname"></label></span>
+                <span *ngIf="!work?.personFullname" class="noDataExists">No Data Specified</span>
+              </div>
+              <div
+                *ngIf="!isMoreInfoShowLevel2[index] && ['3', '4'].includes(work.orcidWork.orcidWorkType.orcidWorkCategory.orcidWorkCategoryCode)"
+                class="col-12 pb-0">
+                <label class="d-sm-block" title="{{work?.orcidWork?.citationValue}}"
+                  [innerHTML]="'Citation (Type : ' +work?.orcidWork?.citationType?.description +'):'">
+                </label>
+                <span *ngIf="!work?.orcidWork?.citationValueFormatted?.length && !work?.orcidWork?.citationValue"
+                  class="noDataExists">No Data Specified</span>
+                <span
+                  *ngIf="work?.orcidWork?.citationValue && work?.orcidWork?.citationType?.orcidWorkCitationTypeCode !== 'bibtex'"
+                  [innerHTML]="work?.orcidWork?.citationValue"></span>
+                <div *ngIf="work?.orcidWork?.citationValueFormatted?.length &&
+                work?.orcidWork?.citationType?.orcidWorkCitationTypeCode === 'bibtex'" class="row pl-0">
+                  <ng-container
+                    *ngFor="let citation of work?.orcidWork?.citationValueFormatted;let citationIndex = index">
+                    <div *ngIf="citationIndex%2 == 0" class="col-3">
+                      <span *ngIf="citation === '~' || citation === '}'"> </span>
+                      <span *ngIf="citation !== '~' && citation !== '}'" [innerHTML]="citation"></span>
+                    </div>
+                    <div *ngIf="citationIndex%2 != 0" class="col-9">
+                      <span *ngIf="citation === '~' || citation === '}'"> </span>
+                      <span *ngIf="citation !== '~' && citation !== '}'" [innerHTML]="citation"></span>
+                    </div>
+                  </ng-container>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="isMoreInfoShowLevel1[index]" class="row">
+              <div class="col-lg-7 col-md-4 col-sm-6 col-12 pb-0">
+                <label class="d-sm-block">Contributors :</label>
+                <span *ngIf="work?.orcidWork?.orcidWorkContributors?.length">
+                  <span *ngFor="let contributor of work?.orcidWork?.orcidWorkContributors;let contriindex = index">
+                    <span *ngIf="contriindex < work?.orcidWork?.orcidWorkContributors?.length"
+                      [innerHTML]="contributor?.creditName">
+                      <span *ngIf="contriindex != (work?.orcidWork?.orcidWorkContributors?.length-1)">|</span></span>
+                  </span>
+                </span>
+                <span *ngIf="!work?.orcidWork?.orcidWorkContributors?.length" class="noDataExists">No Data
+                  Specified</span>
+              </div>
+              <div class="col-lg-5 col-md-4 col-sm-6 col-12 pb-0">
+                <label class="d-sm-block">External Identifier :</label>
+                <span *ngIf="work?.orcidWork?.orcidWorkExternalIdentifiers?.length">
+                  <div *ngFor="let identifier of work?.orcidWork?.orcidWorkExternalIdentifiers">
+                    <span><label [innerHTML]="identifier?.identifierValue"></label> <b
+                        [innerHTML]="'(Type : '+identifier?.identifierType+')'"></b> <span
+                        title="{{identifier?.identifierUrl}}" *ngIf="identifier?.identifierUrl"
+                        class="pl-1 text-primary"><i class="fa fa-external-link mr-2"
+                          (click)="redirectUrl(identifier?.identifierUrl)" aria-hidden="true"></i></span></span>
+                  </div>
+                </span>
+                <span *ngIf="!work?.orcidWork?.orcidWorkExternalIdentifiers?.length" class="noDataExists">No Data
+                  Specified</span>
+              </div>
+            </div>
+            <div class="collapse-orcid gridSkin py-3">
+              <i *ngIf="!isMoreInfoShowLevel1[index] && !isMoreInfoShowLevel2[index]"
+                class="fa fa-chevron-down collapse-arrow"
+                (click)="isMoreInfoShowLevel1[index] = !isMoreInfoShowLevel1[index]" aria-hidden="true"></i>
+              <i *ngIf="isMoreInfoShowLevel1[index]" class="fa fa-chevron-down collapse-arrow"
+                (click)="isMoreInfoShowLevel2[index] = !isMoreInfoShowLevel2[index]; isMoreInfoShowLevel1[index] = !isMoreInfoShowLevel1[index]"
+                aria-hidden="true"></i>
+              <i *ngIf="isMoreInfoShowLevel2[index]" class="fa fa-chevron-up collapse-arrow"
+                (click)="isMoreInfoShowLevel2[index] = !isMoreInfoShowLevel2[index]" aria-hidden="true"></i>
+              <div *ngIf="isMoreInfoShowLevel2[index]" class="row">
+                <div class="col-lg-5 col-md-4 col-sm-6 col-12">
+                  <label class="d-sm-block">Translated Title :</label>
+                  <span *ngIf="work?.orcidWork?.translatedTitle" [innerHTML]="work?.orcidWork?.translatedTitle"></span>
+                  <span *ngIf="!work?.orcidWork?.translatedTitle" class="noDataExists">No Data Specified</span>
+                </div>
+                <div class="col-lg-2 col-md-4 col-sm-6 col-12 pb-0">
+                  <label class="d-sm-block">Language of this Title :</label>
+                  <span *ngIf="work?.orcidWork?.locale?.description"
+                    [innerHTML]="work?.orcidWork?.translatedLocale?.description"></span>
+                  <span *ngIf="!work?.orcidWork?.locale?.description" class="noDataExists">No Data Specified</span>
+                </div>
+                <div class="col-lg-2 col-md-4 col-sm-6 col-12">
+                  <label class="d-sm-block">Subtitle :</label>
+                  <span *ngIf="work?.orcidWork?.subTitle" [innerHTML]="work?.orcidWork?.subTitle"></span>
+                  <span *ngIf="!work?.orcidWork?.subTitle" class="noDataExists">No Data Specified</span>
+                </div>
+                <div class="col-lg-3 col-md-4 col-sm-6 col-12 pb-0">
+                  <label class="d-sm-block">Country of publication :</label>
+                  <span *ngIf="work?.orcidWork?.countryName" [innerHTML]="work?.orcidWork?.countryName"></span>
+                  <span *ngIf="!work?.orcidWork?.countryName" class="noDataExists">No Data Specified</span>
+                </div>
+                <div class="col-lg-7 col-md-4 col-sm-6 col-12 pb-0">
+                  <label class="d-sm-block">Contributors :</label>
+                  <span *ngIf="work?.orcidWork?.orcidWorkContributors?.length">
+                    <span *ngFor="let contributor of work?.orcidWork?.orcidWorkContributors;let contriindex = index">
+                      <span *ngIf="contriindex < work?.orcidWork?.orcidWorkContributors?.length">
+                        <label [innerHTML]="contributor?.creditName"></label>
+                        <span *ngIf="contriindex != (work?.orcidWork?.orcidWorkContributors?.length-1)">|</span></span>
+                    </span>
+                  </span>
+                  <span *ngIf="!work?.orcidWork?.orcidWorkContributors?.length" class="noDataExists">No Data
+                    Specified</span>
+                </div>
+                <div class="col-lg-5 col-md-4 col-sm-6 col-12 pb-0">
+                  <label class="d-sm-block">URL :</label>
+                  <span *ngIf="work?.orcidWork?.url" (click)="redirectUrl(work?.orcidWork?.url)" class="anchor-link"
+                    [innerHTML]="work?.orcidWork?.url"></span>
+                  <span *ngIf="!work?.orcidWork?.url" class="noDataExists">No Data Specified</span>
+                </div>
+                <div class="col-12 pb-0">
+                  <label class="d-sm-block">External Identifier :</label>
+                  <span *ngIf="work?.orcidWork?.orcidWorkExternalIdentifiers?.length">
+                    <div *ngFor="let identifier of work?.orcidWork?.orcidWorkExternalIdentifiers">
+                      <span><label [innerHTML]="identifier?.identifierValue"></label> <b
+                          [innerHTML]="'(Type : '+identifier?.identifierType+')'"></b> <span
+                          title="{{identifier?.identifierUrl}}" *ngIf="identifier?.identifierUrl"
+                          class="pl-1 text-primary"><i class="fa fa-external-link mr-2"
+                            (click)="redirectUrl(identifier?.identifierUrl)" aria-hidden="true"></i></span></span>
+                    </div>
+                  </span>
+                  <span *ngIf="!work?.orcidWork?.orcidWorkExternalIdentifiers?.length" class="noDataExists">No Data
+                    Specified</span>
+                </div>
+                <div class="col-12 pb-0">
+                  <label class="d-sm-block" title="{{work?.orcidWork?.citationValue}}" [innerHTML]="'Citation (Type :'+
+                   work?.orcidWork?.citationType?.description+'):'">
+                  </label>
+                  <span *ngIf="!work?.orcidWork?.citationValueFormatted?.length && !work?.orcidWork?.citationValue"
+                    class="noDataExists">No Data Specified</span>
+                  <span
+                    *ngIf="work?.orcidWork?.citationValue && work?.orcidWork?.citationType?.orcidWorkCitationTypeCode !== 'bibtex'"
+                    [innerHTML]="work?.orcidWork?.citationValue">
+                  </span>
+                  <div *ngIf="work?.orcidWork?.citationValueFormatted?.length &&
+                    work?.orcidWork?.citationType?.orcidWorkCitationTypeCode === 'bibtex'" class="row pl-0">
+                    <ng-container
+                      *ngFor="let citation of work?.orcidWork?.citationValueFormatted;let citationIndex = index">
+                      <div *ngIf="citationIndex%2 == 0" class="col-3">
+                        <span *ngIf="citation === '~' || citation === '}'"> </span>
+                        <span *ngIf="citation !== '~' && citation !== '}'" [innerHTML]="citation"></span>
+                      </div>
+                      <div *ngIf="citationIndex%2 != 0" class="col-9">
+                        <span *ngIf="citation === '~' || citation === '}'"> </span>
+                        <span *ngIf="citation !== '~' && citation !== '}'" [innerHTML]="citation"></span>
+                      </div>
+                    </ng-container>
+                  </div>
+                </div>
+                <div class="col-12 pb-0">
+                  <label class="d-sm-block">Description :</label>
+                  <span *ngIf="work?.orcidWork?.shortDescription"
+                    [innerHTML]="work?.orcidWork?.shortDescription"></span>
+                  <span *ngIf="!work?.orcidWork?.shortDescription" class="noDataExists">No Data Specified</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="!orcidData?.personOrcidWorks?.length" class="noDataExists px-2">
+    <ng-container>There is no information in this Award.
+    </ng-container>
+  </div>
+</div>

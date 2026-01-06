@@ -1,0 +1,235 @@
+<div class="card coi-card-regular" [ngClass]="{'coi-card-highlight' : hasSameDocument}">
+    <div class="card-body">
+        <div class="row">
+            <!-- header -->
+            <div class="col-12 align-items-end coi-card-body-notch-container pe-0">
+                <!-- badge -->
+                <div class="d-flex gap-1">
+                    <span [style.backgroundColor]="'#9e4b32'"
+                        class="coi-card-notch-ribbon shadow-sm">{{ cmpLocalize.TERM_CMP }}
+                        <!-- - {{ cmpDetails?.versionNumber === initialVersionNumber ? 'Initial' : 'Revision' }} -->
+                    </span>
+                    <h4 class="d-flex gap-2 mt-1 mb-0">
+                        <ng-container *ngIf="!isHistoryCard">
+                            <!-- Person Name -->
+                            <span *ngIf="cmpDetails?.personFullName" class="d-inline-flex gap-1">
+                                <mat-icon aria-hidden="true" class="coi-text-light flex-shrink-0">person</mat-icon>
+                                <a [title]="'Click here to view the details of ' + cmpDetails?.personFullName"
+                                    class="coi-text-light fs-6 text-nowrap link-primary cursor-pointer" tabindex="0"
+                                    (click)="commonService.openPersonDetailsModal(cmpDetails?.personId, 'PERSON')"
+                                    (keyup.enter)="commonService.openPersonDetailsModal(cmpDetails?.personId, 'PERSON')"
+                                    [attr.aria-label]="'Click here to view details of ' + cmpDetails?.personFullName"
+                                    id="cmp-card-person-{{ cmpDetails?.cmpId }}">
+                                    {{ cmpDetails?.personFullName }}
+                                </a>
+                            </span>
+                            <!-- Rolodex Name -->
+                            <span *ngIf="cmpDetails?.rolodexFullName" class="d-inline-flex gap-1">
+                                <mat-icon aria-hidden="true" class="text-danger flex-shrink-0">account_circle</mat-icon>
+                                <a [title]="'Click here to view the details of ' + cmpDetails?.rolodexFullName"
+                                    class="coi-text-light fs-6 text-nowrap link-primary cursor-pointer" tabindex="0"
+                                    (click)="commonService.openPersonDetailsModal(cmpDetails?.rolodexId, 'ROLODEX')"
+                                    (keyup.enter)="commonService.openPersonDetailsModal(cmpDetails?.rolodexId, 'ROLODEX')"
+                                    [attr.aria-label]="'Click here to view details of ' + cmpDetails?.rolodexFullName"
+                                    id="cmp-card-rolodex-person-{{ cmpDetails?.cmpId }}">
+                                    {{ cmpDetails?.rolodexFullName }}
+                                </a>
+                            </span>
+                            <span *ngIf="cmpDetails?.personFullName || cmpDetails?.rolodexFullName" class="coi-vertical-divider"></span>
+                        </ng-container>
+                        <!-- Entity Name -->
+                        <span class="d-inline-flex gap-1">
+                            <mat-icon aria-hidden="true" class="coi-text-light flex-shrink-0">domain</mat-icon>
+                            <a [title]="'Click here to view the details of ' + cmpDetails?.entityName"
+                                class="fs-6 text-nowrap link-primary cursor-pointer" tabindex="0"
+                                (click)="commonService.openEntityDetailsModal(cmpDetails?.entityId)"
+                                (keyup.enter)="commonService.openEntityDetailsModal(cmpDetails?.entityId)"
+                                [attr.aria-label]="'Click here to view details of ' + cmpDetails?.entityName"
+                                id="cmp-card-entity-{{cmpDetails?.entityId}}-{{ cmpDetails?.cmpId }}">
+                                {{ cmpDetails?.entityName }}
+                            </a>
+                        </span>
+                    </h4>
+                    <span class="ms-auto mt-2 {{CMP_TYPE_PILLS[cmpDetails?.cmpTypeCode]}}">{{ cmpLocalize.TERM_CMP }} Type - {{ cmpDetails?.cmpType }}</span>
+                </div>
+            </div>
+            <div class="col-lg">
+                <div class="row row-gap-2">
+                    <ng-container *ngFor="let fieldOrder of cardOrder">
+                        <!-- Department -->
+                        <div *ngIf="fieldOrder === 'DEPARTMENT'"
+                            class="col-lg-4 col-md-6" id="cmp-card-expire-date-{{ cmpDetails?.cmpId }}">
+                            <span class="d-block coi-text-dark">{{ cmpLocalize.TERM_DEPARTMENT }}</span>
+                            <span class="coi-text-light text-slice" [title]="cmpDetails?.homeUnitDisplayName">
+                                <app-no-data-label [valueToShow]="cmpDetails?.homeUnitDisplayName"></app-no-data-label>
+                            </span>
+                        </div>
+                        <!-- Approval Date -->
+                        <div *ngIf="fieldOrder === 'APPROVAL_DATE'"
+                            class="col-lg-4 col-md-6" id="cmp-card-cerify-date-{{ cmpDetails?.cmpId }}">
+                            <span class="d-block coi-text-dark">Approval Date</span>
+                            <span class="coi-text-light text-slice" [title]="cmpDetails?.approvalDate | dateFormatterWithTimeZone">
+                                <app-no-data-label
+                                    [valueToShow]="cmpDetails?.approvalDate | dateFormatterWithTimeZone"></app-no-data-label>
+                            </span>
+                        </div>
+                        <!-- Expiration Date -->
+                        <div *ngIf="fieldOrder === 'EXPIRATION_DATE'"
+                            class="col-lg-4 col-md-6" id="cmp-card-expire-date-{{ cmpDetails?.cmpId }}">
+                            <span class="d-block coi-text-dark">Expiration Date</span>
+                            <span class="coi-text-light text-slice" [title]="cmpDetails?.expirationDate | dateFormatterWithTimeZone">
+                                <app-no-data-label
+                                    [valueToShow]="cmpDetails?.expirationDate | dateFormatterWithTimeZone"></app-no-data-label>
+                            </span>
+                        </div>
+                        <!-- Sponsor Award Number -->
+                        <div *ngIf="fieldOrder === 'PROJECT_SPONSOR_AWARD_NUMBER'"
+                            class="col-lg-4 col-md-6" id="cmp-card-admin-person-{{ cmpDetails?.cmpId }}">
+                            <span class="d-block coi-text-dark">Sponsor Award Number</span>
+                            <span class="coi-text-light text-slice" [title]="cmpDetails?.sponsorAwardNumber">
+                                <app-no-data-label [valueToShow]="cmpDetails?.sponsorAwardNumber"></app-no-data-label>
+                            </span>
+                        </div>
+                        <!-- Lead Unit -->
+                        <div *ngIf="fieldOrder === 'PROJECT_LEAD_UNIT'"
+                            class="col-lg-4 col-md-6" id="cmp-card-admin-person-{{ cmpDetails?.cmpId }}">
+                            <span class="d-block coi-text-dark">Lead Unit</span>
+                            <span class="coi-text-light text-slice" [title]="cmpDetails?.leadUnitDisplayName">
+                                <app-no-data-label [valueToShow]="cmpDetails?.leadUnitDisplayName"></app-no-data-label>
+                            </span>
+                        </div>
+                        <!-- Period -->
+                        <div *ngIf="fieldOrder === 'PROJECT_PERIOD'"
+                            class="col-lg-4 col-md-6" id="cmp-card-expire-date-{{ cmpDetails?.cmpId }}">
+                            <span class="d-block coi-text-dark">Project Period</span>
+                            <span  class="coi-text-light text-slice" [title]="cmpDetails?.projectPeriod">
+                                <app-no-data-label [valueToShow]="cmpDetails?.projectPeriod"></app-no-data-label>
+                            </span>
+                        </div>
+                        <!-- Sponsor -->
+                        <div *ngIf="fieldOrder === 'PROJECT_SPONSOR'"
+                            class="col-lg-4 col-md-6" id="cmp-card-expire-date-{{ cmpDetails?.cmpId }}">
+                            <span class="d-block coi-text-dark">Sponsor</span>
+                            <span  class="coi-text-light text-slice" [title]="cmpDetails?.sponsorDisplayName">
+                                <app-no-data-label [valueToShow]="cmpDetails?.sponsorDisplayName"></app-no-data-label>
+                            </span>
+                        </div>
+                        <!-- PrimeSponsor -->
+                        <div *ngIf="fieldOrder === 'PROJECT_PRIME_SPONSOR'"
+                            class="col-lg-4 col-md-6" id="cmp-card-expire-date-{{ cmpDetails?.cmpId }}">
+                            <span class="d-block coi-text-dark">Prime Sponsor</span>
+                            <span  class="coi-text-light text-slice" [title]="cmpDetails?.primeSponsorDisplayName">
+                                <app-no-data-label [valueToShow]="cmpDetails?.primeSponsorDisplayName"></app-no-data-label>
+                            </span>
+                        </div>
+                        <!-- Project -->
+                        <div *ngIf="fieldOrder === 'PROJECT'"
+                            class="col-lg-4 col-md-6" id="cmp-card-admin-group-{{ cmpDetails?.cmpId }}">
+                            <span class="d-block coi-text-dark">Project</span>
+                            <span class="coi-text-light">
+                                <app-no-data-label [valueToShow]="cmpDetails?.projectHeader">
+                                    <a tabindex="0" class="link-primary d-inline-flex align-items-center gap-1"
+                                        (click)="commonService.openProjectHierarchySlider(cmpDetails?.projectTypeCode, cmpDetails?.projectNumber)"
+                                        (keyup.enter)="commonService.openProjectHierarchySlider(cmpDetails?.projectTypeCode, cmpDetails?.projectNumber)"
+                                        [title]="'Click here to view details of ' + cmpDetails?.projectHeader"
+                                        [attr.aria-label]="'Click here to view details of ' + cmpDetails?.projectHeader">
+                                        <mat-icon class="coi-text-light flex-shrink-0 coi-mat-icon-size"
+                                            aria-hidden="true">{{ projectTypes?.[cmpDetails?.projectTypeCode]?.projectIcon }}</mat-icon>
+                                        <span class="text-slice">{{cmpDetails?.projectHeader}}</span>
+                                    </a>
+                                </app-no-data-label>
+                            </span>
+                        </div>
+                    </ng-container>
+                </div>
+            </div>
+            <!-- status -->
+            <div class="col-lg-3 col-xxl-2 d-flex mt-lg-0 mt-2">
+                <div class="d-flex flex-lg-column gap-2 coi-box-purple p-2 col mt-auto">
+                    <!-- Review Status -->
+                    <div class="flex-grow-1 lh-sm">
+                        <span class="d-block coi-text-lighter">{{ cmpLocalize.TERM_CMP_STATUS }}</span>
+                        <app-no-data-label [valueToShow]="cmpDetails?.cmpStatus">
+                            <span class="coi-status-badge" [style.background-color]="cmpDetails?.cmpStatusBadgeColor"></span>
+                            <span class="coi-text-dark ms-1" [title]="cmpDetails?.cmpStatus">{{ cmpDetails?.cmpStatus }}</span>
+                        </app-no-data-label>
+                    </div>
+
+                    <!-- Version Status -->
+                    <div *ngIf="isHistoryCard" class="flex-grow-1 lh-sm">
+                        <span class="d-block coi-text-lighter">Version Status</span>
+                        <app-no-data-label [valueToShow]="cmpDetails?.versionStatus">
+                            <span class="{{ versionStatusBadgeClass[cmpDetails?.versionStatus] }}"></span>
+                            <span class="coi-text-dark ms-1 text-capitalize"
+                                [title]="cmpDetails?.versionStatus">{{ cmpDetails?.versionStatus?.toLowerCase() }}</span>
+                        </app-no-data-label>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="!hasSameDocument && isHistoryCard && isShowViewBtn" class="d-flex align-items-center justify-content-end ms-auto col-auto">
+                <!-- view -->
+                <ng-container *ngTemplateOutlet="viewBtnTemplate;"></ng-container>
+            </div>
+        </div>
+    </div>
+    <!-- Footer -->
+    <div *ngIf="!isHistoryCard" class="d-flex justify-content-between align-items-center card-footer flex-wrap gap-2">
+        <!-- Last Updated -->
+        <div class="d-flex flex-column">
+            <span class="coi-text-lighter fs-13 mb-0">Last Updated By</span>
+            <span class="coi-text-dark fs-13 fw-normal"
+                [attr.aria-label]="cmpDetails?.updatedBy + ' on ' + (cmpDetails?.updateTimestamp | dateFormatterWithTimeZone: 'long')">
+                <span>{{ cmpDetails?.updatedBy }}</span>
+                <span class="coi-text-lighter"> On </span>
+                <span>{{ cmpDetails?.updateTimestamp | dateFormatterWithTimeZone: 'long' }}</span>
+            </span>
+        </div>
+        <!-- actions -->
+        <div class="d-flex align-items-center gap-2">
+            <!-- all comments -->
+            <ng-container *ngTemplateOutlet="allCommentsBtnTemplate;"></ng-container>
+            <!-- download -->
+            <ng-container *ngTemplateOutlet="downloadBtnTemplate;"></ng-container>
+            <!-- view -->
+            <ng-container *ngTemplateOutlet="viewBtnTemplate;"></ng-container>
+        </div>
+    </div>
+</div>
+
+<!-- View Btn -->
+<ng-template #viewBtnTemplate>
+    <button (click)="redirectToCMP()"
+        id="cmp-card-view-btn-{{ cmpDetails?.cmpId }}"
+        class="btn btn-outline-secondary coi-btn-sm d-flex align-items-center fs-14 gap-2"
+        title="Click here to view {{ cmpLocalize.TERM_CMP }}"
+        attr.aria-label="Click here to view the {{ cmpLocalize.TERM_CMP }}">
+        <mat-icon aria-hidden="true">visibility</mat-icon>
+        <span>View</span>
+    </button>
+</ng-template>
+
+<!-- Download Btn -->
+<ng-template #downloadBtnTemplate>
+    <button *ngIf="cmpDetails?.isShowDownload" (click)="downloadCmpAttachment()"
+        id="cmp-card-download-btn-{{ cmpDetails?.cmpId }}"
+        class="btn btn-outline-secondary coi-btn-sm d-flex align-items-center fs-14 gap-2"
+        title="Click here to download {{ cmpLocalize.TERM_CMP }}"
+        attr.aria-label="Click here to download the {{ cmpLocalize.TERM_CMP }}">
+        <mat-icon aria-hidden="true">download</mat-icon>
+        <span>Download {{ cmpLocalize.TERM_CMP }}</span>
+    </button>
+</ng-template>
+
+<!-- Comments Btn -->
+<ng-template #allCommentsBtnTemplate>
+    <button *ngIf="isShowCommentBtn" id="cmp-card-comment-btn-{{ cmpDetails?.cmpId }}"
+        (click)="openReviewComment()" title="Click here to open {{ cmpLocalize.TERM_CMP }} comments"
+        attr.aria-label="Click here to open {{ cmpLocalize.TERM_CMP }} comments"
+        class="btn btn-outline-secondary coi-btn-sm d-flex align-items-center fs-14">
+        <mat-icon aria-hidden="true" class="flex-shrink-0">rate_review</mat-icon>
+        <span class="ms-2">{{ cmpLocalize.TERM_CMP }} Comments</span>
+        <ng-container *ngIf="cmpDetails?.totalCommentsCount > 0">
+            <span>({{ cmpDetails?.totalCommentsCount > 99 ? '99+' : cmpDetails?.totalCommentsCount }})</span>
+        </ng-container>
+    </button>
+</ng-template>

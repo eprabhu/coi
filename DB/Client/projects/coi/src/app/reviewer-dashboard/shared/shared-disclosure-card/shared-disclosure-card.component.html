@@ -1,0 +1,460 @@
+<ng-container *ngFor="let coi of coiList;let index=index;">
+    <!-- <div *ngIf="reviewerDashboardService.disclosureRequestObject.tabName !== 'TRAVEL_DISCLOSURES'" -->
+    <div
+        class="card coi-card-regular" [class.coi-selected-border]="selectedDisclosures[index]">
+        <div class="card-body px-3 py-2" id="coi-admin-dashboard-card-body">
+            <div class="row" *ngIf="!coi?.travelDisclosureId && !coi?.disclosureId">
+                <div class="col-12 d-inline-flex mb-2 coi-card-body-notch-container align-items-end">
+                    <!-- Coi card badge -->
+                    <span *ngIf="coi?.fcoiTypeCode === DISCLOSURE_TYPE.PROJECT"
+                        [style.backgroundColor]="coi?.projectBadgeColor"
+                        attr.aria-label="{{COMMON_DISCL_LOCALIZE.PROJECT_BADGE_PREFIX + coi?.projectType}} Disclosure"
+                        class="coi-card-notch-ribbon shadow-sm">{{ COMMON_DISCL_LOCALIZE.PROJECT_BADGE_PREFIX +
+                        coi?.projectType }}</span>
+                    <span *ngIf="coi?.fcoiTypeCode != DISCLOSURE_TYPE.PROJECT"
+                        attr.aria-label="{{COMMON_DISCL_LOCALIZE.ANNUAL_BADGE_PREFIX + coi?.fcoiType}} Disclosure"
+                        class="coi-card-notch-ribbon shadow-sm bg-fcoi-clip">{{
+                        COMMON_DISCL_LOCALIZE.ANNUAL_BADGE_PREFIX + coi?.fcoiType }}</span>
+                    <!-- Coi card header -->
+                    <h4 *ngIf="!coi?.travelDisclosureId && !coi?.opaDisclosureId" class="mb-0 d-flex ms-1">
+                        <span class="d-inline-flex align-items-center">
+                            <mat-icon aria-hidden="true" class="coi-text-light me-1 flex-shrink-0">person</mat-icon>
+                            <span class="coi-text-light text-nowrap fs-6 text-slice link-primary cursor-pointer"
+                                tabindex="-1" (click)="openPersonDetailsModal(coi)"
+                                id="coi-admin-dashboard-coi-card-personinfo-{{index}}"
+                                [attr.aria-label]="'Disclosure person ' + coi?.disclosurePersonFullName">
+                                {{coi?.disclosurePersonFullName}}</span>
+                        </span>
+                        <ng-container *ngIf="coi?.fcoiTypeCode === DISCLOSURE_TYPE.PROJECT">
+                            <span class="coi-vertical-divider mx-1"></span>
+                            <mat-icon aria-hidden="true"
+                                class="coi-text-light flex-shrink-0">{{coi?.projectIcon}}</mat-icon>
+                            <a tabindex="0" class="link-primary cursor-pointer fs-6 fw-600"
+                                (click)="commonService.openProjectHierarchySlider(coi?.coiProjectTypeCode, coi?.projectNumber)"
+                                (keyup.enter)="commonService.openProjectHierarchySlider(coi?.coiProjectTypeCode, coi?.projectNumber)"
+                                [title]="'Click here to view details of ' + coi?.projectHeader"
+                                [attr.aria-label]="'Click here to view details of ' + coi?.projectHeader">
+                                <span class="text-slice">{{coi?.projectHeader}}</span>
+                            </a>
+                        </ng-container>
+                    </h4>
+                </div>
+                <div class="col-lg-10 mb-3 mb-lg-0 mb-md-3 px-0">
+                    <div class="row mx-0">
+                        <div class="col row">
+                            <div class="col-lg-4 col-md-6 mb-2">
+                                <!-- Coi card Department -->
+                                <div tabindex="-1" [attr.aria-label]="'Department' + coi?.unit?.unitDetail">
+                                    <label class="d-block coi-text-dark"><ng-container
+                                            i18n="@@COMMON_DEPARTMENT">Department</ng-container></label>
+                                    <span class="coi-text-light"
+                                        id="coi-admin-dashboard-department-{{index}}">{{commonService.getPersonLeadUnitDetails(coi?.unit)}}</span>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-6 mb-2">
+                                <!-- Coi card Submission Date -->
+                                <div tabindex="-1"
+                                    [attr.aria-label]="'Submission Date' + (coi?.certifiedAt | dateFormatterWithTimeZone)">
+                                    <label class="d-block coi-text-dark"><ng-container
+                                            i18n="@@COI_CERTIFICATION_DATE">Certification
+                                            Date</ng-container></label>
+                                    <span class="coi-text-light">
+                                        <app-no-data-label [valueToShow]="coi?.certifiedAt">
+                                            <span class="coi-text-light"
+                                                id="coi-admin-dashboard-certification-date-{{index}}">{{coi?.certifiedAt
+                                                | dateFormatterWithTimeZone}}</span>
+                                        </app-no-data-label>
+                                    </span>
+                                </div>
+                            </div>
+                            <div *ngIf="!coi?.disclosureId && (coi?.fcoiTypeCode?.toString() !== DISCLOSURE_TYPE.PROJECT || coi?.coiProjectTypeCode?.toString() === PROJECT_TYPE.AWARD)"
+                                class="col-lg-4 col-md-6 mb-2">
+                                <!-- Coi card Expiration Date -->
+                                <div tabindex="-1">
+                                    <label class="d-block coi-text-dark">Expiration Date</label>
+                                    <span>
+                                        <app-no-data-label [valueToShow]="coi?.expirationDate">
+                                            <span class="d-flex gap-2">
+                                                <span class="coi-text-light"
+                                                    id="coi-admin-dashboard-expiration-date-{{index}}">{{
+                                                    coi?.expirationDate | dateFormatterWithTimeZone }}</span>
+                                                <ng-container *ngIf="coi?.isExtended">
+                                                    <app-common-extended-badge></app-common-extended-badge>
+                                                </ng-container>
+                                            </span>
+                                        </app-no-data-label>
+                                    </span>
+                                </div>
+                            </div>
+                            <ng-container *ngIf="isShowAdminDetails">
+                                <div class="col-lg-4 col-md-6 mb-2">
+                                    <!-- Coi card Administrator -->
+                                    <div tabindex="-1" [attr.aria-label]="'Administrator' + (coi?.administrator)">
+                                        <label class="d-block coi-text-dark">Administrator</label>
+                                        <span class="coi-text-light">
+                                            <app-no-data-label [valueToShow]="coi?.administrator">
+                                                <span id="coi-admin-dashboard-administrator-{{index}}"
+                                                    class="coi-text-light">{{coi?.administrator}}</span>
+                                            </app-no-data-label>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 col-md-6 mb-2">
+                                    <!-- Coi card Admin Group -->
+                                    <div tabindex="-1" [attr.aria-label]="'Admin Group' + (coi?.adminGroupName)">
+                                        <label class="d-block coi-text-dark">Admin Group</label>
+                                        <span class="coi-text-light">
+                                            <app-no-data-label [valueToShow]="coi?.adminGroupName">
+                                                <span id="coi-admin-dashboard-admin-group-{{index}}"
+                                                    class="coi-text-light">{{coi?.adminGroupName}}</span>
+                                            </app-no-data-label>
+                                        </span>
+                                    </div>
+                                </div>
+                            </ng-container>
+                            <div class="col-md-12 col-6" tabindex="-1" [attr.aria-label]="Reviewers">
+                                <!-- Coi Reviewers -->
+                                <label class="d-block coi-text-dark">Reviewers</label>
+                                <span class="coi-text-light">
+                                    <app-no-data-label [valueToShow]="coi?.reviewerList">
+                                        <ng-container *ngFor="let reviewer of coi?.reviewerList; let isLast = last">
+                                            <span class="fileChips regularFont"
+                                                id="coi-admin-dashboard-reviewer-{{index}}">{{reviewer[0]}}
+                                                <ng-container *ngIf="reviewer[1] != 'null'">| {{reviewer[1]}}
+                                                </ng-container> |
+                                                <span
+                                                    class="reviewer-{{getReviewerStatus(reviewer[3])}}">{{reviewer[2]}}</span>
+                                            </span>
+                                        </ng-container>
+                                    </app-no-data-label>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 d-flex d-lg-block pb-3">
+                    <div class="d-flex d-lg-block col-lg-auto col-md-12 coi-box-purple p-2">
+                        <!-- Coi card Disclosure Status -->
+                        <div *ngIf="!coi?.opaDisclosureId" tabindex="-1" class="flex-grow-1 lh-sm mb-2"
+                            [attr.aria-label]="'Disclosure Status' + (coi?.conflictStatus)">
+                            <label class="d-block coi-text-lighter"><ng-container
+                                    i18n="@@COMMON_DISCLOSURE_STATUS">Disclosure Status</ng-container></label>
+                            <span class="break-point-1200">
+                                <app-no-data-label *ngIf="!coi?.travelDisclosureId" [valueToShow]="coi?.conflictStatus">
+                                    <span class="{{commonService.getDisclosureConflictBadge(coi?.conflictStatusCode)}}"
+                                        id="status">
+                                    </span>
+                                    <span class="coi-text-dark" id="coi-admin-dashboard-disclosure-status-{{index}}">
+                                        {{coi?.conflictStatus}}
+                                    </span>
+                                </app-no-data-label>
+                                <app-no-data-label *ngIf="coi?.travelDisclosureId"
+                                    [valueToShow]="coi?.travelDisclosureStatusDescription">
+                                    <span
+                                        class="{{commonService.getDisclosureConflictBadge(coi?.travelDisclosureStatusCode)}}"
+                                        id="status">
+                                    </span>
+                                    <span class="coi-text-dark"
+                                        id="coi-admin-dashboard-disclosure-status-else-{{index}}">
+                                        {{coi?.travelDisclosureStatusDescription}}
+                                    </span>
+                                </app-no-data-label>
+                            </span>
+                        </div>
+                        <!-- Coi card Review Status -->
+                        <div tabindex="-1" class="flex-grow-1 lh-sm mb-2"
+                            [attr.aria-label]="'Review Status' + (coi?.reviewStatus)">
+                            <label class="d-block coi-text-lighter"><ng-container i18n="@@COI_REVIEW_STATUS">Review
+                                    Status</ng-container></label>
+                            <span>
+                                <app-no-data-label [valueToShow]="coi?.reviewStatus">
+                                    <span class="{{commonService.getReviewStatusBadge(coi?.reviewStatusCode)}}"
+                                        id="review-status"></span>
+                                    <span class="coi-text-dark" id="coi-admin-dashboard-review-status-{{index}}">
+                                        {{coi?.reviewStatus}}
+                                    </span>
+                                </app-no-data-label>
+                            </span>
+                        </div>
+                        <!-- Coi card Disposition Status -->
+                        <div tabindex="-1" class="flex-grow-1 lh-sm mb-2"
+                            [attr.aria-label]="'Disposition Status' + (coi?.dispositionStatus)">
+                            <label class="d-block coi-text-lighter"><ng-container
+                                    i18n="@@COMMON_DISPOSITION_STATUS">Disposition Status</ng-container></label>
+                            <span class="break-point-1200">
+                                <span
+                                    class="{{commonService.getDispositionStatusBadge(coi?.dispositionStatusCode)}}"></span>
+                                <span class="coi-text-dark" id="coi-admin-dashboard-disposition-status-{{index}}">
+                                    {{coi?.dispositionStatus}}
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <ng-container *ngIf="coi?.disclosureId">
+                <div class="row">
+                    <div class="col-lg-10 mb-3 mb-lg-0 mb-md-3 px-0">
+                        <div class="row m-0">
+                            <div class="col-12 d-inline-flex mb-2 coi-card-body-notch-container align-items-end">
+                                <!-- Consulting Card badge -->
+                                <span>
+                                    <span class="d-flex" tabindex="-1"
+                                        attr.aria-label="{{ COMMON_DISCL_LOCALIZE.CONSULTING_BADGE_PREFIX }}Consulting Disclosure">
+                                        <span class="coi-card-notch-ribbon shadow-sm bg-consulting-clip">
+                                            <span>{{ COMMON_DISCL_LOCALIZE.CONSULTING_BADGE_PREFIX
+                                                }}Consulting</span>
+                                        </span>
+                                    </span>
+                                </span>
+                                <!-- Consulting Entity Name -->
+                                <h4 class="mb-0 d-flex ms-1">
+                                    <ng-container>
+                                        <span class="d-inline-flex">
+                                            <mat-icon aria-hidden="true"
+                                                class="coi-text-light me-1 flex-shrink-0">person</mat-icon>
+                                            <span class="coi-text-light text-nowrap fs-6 link-primary cursor-pointer"
+                                                tabindex="-1" (click)="openPersonDetailsModal(coi)"
+                                                id="coi-admin-dashboard-cnslt-card-personinfo-{{index}}"
+                                                [attr.aria-label]="'Disclosure person ' + coi?.fullName">
+                                                {{coi?.fullName}}</span>
+                                        </span>
+                                        <ng-container *ngIf="coi?.entityName">
+                                            <span class="coi-vertical-divider mx-1"></span>
+                                            <div class="coi-text-darker">
+                                                <span
+                                                    class="d-inline-flex link-primary cursor-pointer align-items-center"
+                                                    tabindex="0" (click)="viewEntityDetails(coi)"
+                                                    (keyup.enter)="viewEntityDetails(coi)"
+                                                    (keyup.space)="viewEntityDetails(coi)">
+                                                    <mat-icon aria-hidden="true"
+                                                        class="coi-text-light me-1 flex-shrink-0">apartment</mat-icon>
+                                                    <span class="fs-6 text-slice"
+                                                        [title]="coi?.entityName">{{coi?.entityName}}</span>
+                                                </span>
+                                            </div>
+                                        </ng-container>
+                                    </ng-container>
+                                </h4>
+                            </div>
+                        </div>
+                        <div class="row mx-0">
+                            <div class="col-lg-3 col-md-6 mb-2">
+                                <!-- Consulting card Department -->
+                                <div tabindex="-1" [attr.aria-label]="'Department' + coi?.unitDetails?.unitDetail">
+                                    <label class="d-block coi-text-dark"><ng-container
+                                            i18n="@@COMMON_DEPARTMENT">Department</ng-container></label>
+                                    <span class="coi-text-light"
+                                        id="coi-admin-dashboard-department-{{index}}">{{commonService.getPersonLeadUnitDetails(coi?.unitDetails)}}</span>
+                                </div>
+                            </div>
+                            <!-- Submission Date -->
+                            <div class="col-lg-3 col-md-6 mb-2">
+                                <div tabindex="-1"
+                                    [attr.aria-label]="'Submission Date' + (coi?.certifiedAt | dateFormatterWithTimeZone)">
+                                    <label class="d-block coi-text-dark"><ng-container
+                                            i18n="@@CONSULTING_CERTIFICATION_DATE">Certification
+                                            Date</ng-container></label>
+                                    <span class="coi-text-light">
+                                        <app-no-data-label [valueToShow]="coi?.certifiedAt">
+                                            <span class="coi-text-light"
+                                                id="coi-admin-dashboard-certification-date-{{index}}">{{coi?.certifiedAt
+                                                | dateFormatterWithTimeZone}}</span>
+                                        </app-no-data-label>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6 mb-2">
+                                <!-- Administrator -->
+                                <div tabindex="-1" [attr.aria-label]="'Administrator' + (coi?.administrator)">
+                                    <label for="id" class="d-block coi-text-dark">Administrator</label>
+                                    <span class="coi-text-light">
+                                        <app-no-data-label [valueToShow]="coi?.administrator">
+                                            <span id="coi-admin-dashboard-administrator-{{index}}"
+                                                class="coi-text-light">{{coi?.administrator}}</span>
+                                        </app-no-data-label>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6 mb-2">
+                                <!-- Admin Group -->
+                                <div tabindex="-1" [attr.aria-label]="'Admin Group' + (coi?.adminGroupName)">
+                                    <label for="coi-admin-dashboard-admin-group-span"
+                                        class="d-block coi-text-dark">Admin
+                                        Group</label>
+                                    <span class="coi-text-light">
+                                        <app-no-data-label [valueToShow]="coi?.adminGroupName">
+                                            <span id="coi-admin-dashboard-admin-group-{{index}}"
+                                                class="coi-text-light">{{coi?.adminGroupName}}</span>
+                                        </app-no-data-label>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-2 d-flex d-lg-block pb-3">
+                        <div class="d-flex d-lg-block col-lg-auto col-md-12 coi-box-purple p-2">
+                            <!-- Disposition Status For Consulting card only -->
+                            <div tabindex="-1" class="flex-grow-1 lh-sm mb-2"
+                                [attr.aria-label]="'Disposition Status' + (coi?.dispositionStatusDescription)">
+                                <label class="d-block coi-text-lighter"><ng-container
+                                        i18n="@@COMMON_DISPOSITION_STATUS">Disposition Status</ng-container></label>
+                                <span class="break-point-1200">
+                                    <span
+                                        class="{{commonService.getConsultingDispositionStatusBadge(coi?.dispositionStatusCode)}}"></span>
+                                    <span class="coi-text-dark" id="coi-admin-dashboard-disposition-status-{{index}}">
+                                        {{coi?.dispositionStatusDescription}}
+                                    </span>
+                                </span>
+                            </div>
+                            <!-- Review Status For Consulting card only -->
+                            <div tabindex="-1" class="flex-grow-1 lh-sm mb-2"
+                                [attr.aria-label]="'Review Status' + (coi?.reviewStatusDescription)">
+                                <label class="d-block coi-text-lighter"><ng-container
+                                        i18n="@@CONSULTING_REVIEW_STATUS">Review Status</ng-container></label>
+                                <span>
+                                    <app-no-data-label [valueToShow]="coi?.reviewStatusDescription">
+                                        <span
+                                            class="{{commonService.getConsultingReviewStatusBadge(coi?.reviewStatusCode)}}"
+                                            id="review-status"></span>
+                                        <span class="coi-text-dark" id="coi-admin-dashboard-review-status-{{index}}">
+                                            {{coi?.reviewStatusDescription}}
+                                        </span>
+                                    </app-no-data-label>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+
+        <!-- Footer section -->
+        <div class="card-footer">
+            <div class="row row-gap-1">
+                <ng-container *ngIf="!coi?.travelDisclosureId && !coi?.disclosureId">
+                    <div class="col-lg-8">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="d-flex align-items-center fw-semibold"
+                                    *ngIf="!coi?.opaDisclosureId && !coi?.disclosureId">
+                                    <span class="bg-light fs-18 fw-700 me-2 rounded-3 text-primary"
+                                        tabindex="{{coi?.noOfSfi > 0 ? 0 : -1}}" role="link"
+                                        [title]="coi?.noOfSfi > 0 ? 'Click here to view engagements list' : '' "
+                                        [ngClass]="coi?.noOfSfi ? 'badge cursor-pointer' : 'zero-count-padding'"
+                                        [attr.aria-label]="'Engagements count is ' + coi?.noOfSfi + (coi?.noOfSfi > 0 ? '. Click here to view engagements list' : '')"
+                                        (keyup.enter)="openCountModal(coi, coi?.noOfSfi, coiModuleCode)"
+                                        (click)="openCountModal(coi, coi?.noOfSfi, coiModuleCode)">{{coi?.noOfSfi ||
+                                        0}}</span>
+                                    <span class="fw-500" [ngClass]="coi?.noOfSfi > 0 ? 'cursor-pointer' : '' "
+                                        (click)="openCountModal(coi, coi?.noOfSfi, coiModuleCode)"
+                                        (keyup.enter)="openCountModal(coi, coi?.noOfSfi, coiModuleCode)"
+                                        [title]="coi?.noOfSfi > 0 ? 'Click here to view engagements list' : '' "
+                                        [class.link-primary]="coi?.noOfSfi > 0">Engagements</span>
+                                </div>
+                            </div>
+                            <ng-container *ngIf="coi?.fcoiTypeCode != DISCLOSURE_TYPE.PROJECT">
+                                <ng-container *ngFor="let projectCount of coi?.projectCount">
+                                    <div *ngIf="projectCount" class="col">
+                                        <div class="d-flex align-items-center fw-semibold">
+                                            <span class="bg-light fs-18 fw-700 me-2 rounded-3 text-primary"
+                                                tabindex="{{projectCount?.projectCount > 0 ? 0 : -1}}" role="link"
+                                                [attr.aria-label]="projectCount?.projectType + ' count is ' + projectCount?.projectCount + (projectCount?.projectCount > 0 ? '. Click here to view ' + projectCount?.projectType + ' list' : '')"
+                                                [title]="projectCount?.projectCount > 0 ? 'Click here to view ' + projectCount?.projectType + ' list' : ''"
+                                                (click)="openCountModal(coi, projectCount?.projectCount, projectCount?.moduleCode);"
+                                                (keyup.enter)="openCountModal(coi, projectCount?.projectCount, projectCount?.moduleCode);"
+                                                [ngClass]="projectCount?.projectCount ? 'badge cursor-pointer' : 'zero-count-padding'">{{projectCount?.projectCount}}</span>
+                                            <span class="fw-500"
+                                                [ngClass]="projectCount?.projectCount > 0 ? 'cursor-pointer' : '' "
+                                                [class.link-primary]="projectCount?.projectCount > 0"
+                                                [title]="projectCount?.projectCount > 0 ? 'Click here to view ' + projectCount?.projectType + ' list' : ''"
+                                                (click)="openCountModal(coi, projectCount?.projectCount, projectCount?.moduleCode);"
+                                                (keyup.enter)="openCountModal(coi, projectCount?.projectCount, projectCount?.moduleCode);">{{projectCount?.projectType}}</span>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                            </ng-container>
+                            <div *ngIf="!coi?.opaDisclosureId" class="col">
+                                <div class="d-flex align-items-center fw-semibold">
+                                    <span tabindex="{{coi?.opaDisclosureId ? -1 : 0}}"
+                                        class="d-flex align-items-center justify-content-center bg-light fs-18 fw-700 me-2 rounded-3 text-primary"
+                                        [title]="coi?.disclosureAttachmentCount > 0 ? 'Click here to view Attachment list' : ''"
+                                        role="link"
+                                        [ngClass]="coi?.disclosureAttachmentCount > 0 ?'badge cursor-pointer' : 'zero-count-padding'"
+                                        [attr.aria-label]="coi?.disclosureAttachmentCount > 0 ?'Click here to view Attachment list' : ''"
+                                        (click)="openCountModal(coi, coi?.disclosureAttachmentCount, coiModuleCode, 'DISCLOSURE_ATTACHMENT')"
+                                        (keyup.enter)="openCountModal(coi, coi?.disclosureAttachmentCount, coiModuleCode, 'DISCLOSURE_ATTACHMENT')"
+                                        id="coi-admin-dash-disc-attachment-{{index}}">{{
+                                        coi?.disclosureAttachmentCount }}</span>
+                                    <span class="fw-500"
+                                        [ngClass]="coi?.disclosureAttachmentCount > 0 ? 'link-primary' : 'coi-text-light'"
+                                        [title]="coi?.disclosureAttachmentCount > 0 ? 'Click here to view Attachment list' : ''"
+                                        role="link"
+                                        (keyup.enter)="openCountModal(coi, coi?.disclosureAttachmentCount, coiModuleCode, 'DISCLOSURE_ATTACHMENT')"
+                                        (click)="openCountModal(coi, coi?.disclosureAttachmentCount, coiModuleCode, 'DISCLOSURE_ATTACHMENT');">Attachments</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto" tabindex="-1">
+                        <label class="coi-text-lighter  d-inline-flex d-lg-block fs-13 fw-medium" for="id">Last
+                            Updated By</label>
+                        <span id="last-updated" class="coi-text-dark fs-13 fw-normal text-nowrap" [attr.aria-label]="coi?.updateUser + ' on ' +
+                                              (coi?.updateTimeStamp | dateFormatterWithTimeZone: 'long')">
+                            {{coi?.updateUser}}<span class="coi-text-lighter fs-13 fw-medium"> On
+                            </span>{{coi?.updateTimeStamp | dateFormatterWithTimeZone: 'long'}}</span>
+                    </div>
+                </ng-container>
+                <ng-container *ngIf="coi?.disclosureId">
+                    <div class="col-lg-10" tabindex="-1">
+                        <label class="coi-text-lighter  d-inline-flex d-lg-block fs-13 fw-medium" for="id">Last
+                            Updated By</label>
+                        <span id="last-updated" class="coi-text-dark fs-13 fw-normal text-nowrap" [attr.aria-label]="coi?.updateUserFullName + ' on ' +
+                                              (coi?.updateTimeStamp | dateFormatterWithTimeZone: 'long')">
+                            {{coi?.updateUserFullName}}<span class="coi-text-lighter fs-13 fw-medium"> On
+                            </span>{{coi?.updateTimeStamp | dateFormatterWithTimeZone: 'long'}}</span>
+                    </div>
+                </ng-container>
+                <div class="d-flex align-items-center gap-2 col-auto ms-auto">
+                    <!-- comments -->
+                    <button *ngIf="coi?.isShowCommentBtn" id="admin-dash-general-comment-btn-{{index}}"
+                        (click)="openReviewComment(coi)" title="Click here to open review comments"
+                        aria-label="Click here to open review comments"
+                        class="d-inline-flex align-items-center justify-content-center btn btn-outline-grey col fs-14 text-nowrap">
+                        <mat-icon aria-hidden="true">rate_review</mat-icon>
+                        <span class="ms-2">All Comments</span>
+                        <span *ngIf="coi?.commentCount > 0">({{ coi?.commentCount > 99 ? '99+' : coi?.commentCount
+                            }})</span>
+                    </button>
+                    <button id="coi-admin-dashboard-view-btn-{{index}}" (click)="redirectToDisclosure(coi)"
+                        [title]="coi?.opaDisclosureId ? 'Click here to view OPA Disclosure'
+                                            : coi?.disclosureId ? 'Click here to view ' + COMMON_DISCL_LOCALIZE.CONSULTING_BADGE_PREFIX + 'Consulting Disclosure'
+                                            : coi?.fcoiTypeCode === DISCLOSURE_TYPE.PROJECT ? 'Click here to view ' + (COMMON_DISCL_LOCALIZE.PROJECT_BADGE_PREFIX + coi?.projectType) + ' Disclosure'
+                                            : 'Click here to view ' + (COMMON_DISCL_LOCALIZE.ANNUAL_BADGE_PREFIX + coi?.fcoiType) + ' Disclosure'"
+                        [attr.aria-label]="coi?.opaDisclosureId ? 'Click here to view OPA Disclosure'
+                                            : coi?.disclosureId ? 'Click here to view ' + COMMON_DISCL_LOCALIZE.CONSULTING_BADGE_PREFIX + 'Consulting Disclosure'
+                                            : coi?.fcoiTypeCode === DISCLOSURE_TYPE.PROJECT ? 'Click here to view ' + (COMMON_DISCL_LOCALIZE.PROJECT_BADGE_PREFIX + coi?.projectType) + ' Disclosure'
+                                            : 'Click here to view ' + (COMMON_DISCL_LOCALIZE.ANNUAL_BADGE_PREFIX + coi?.fcoiType) + ' Disclosure'"
+                        class="d-flex align-items-center btn btn-outline-secondary fs-14">
+                        <mat-icon aria-hidden="true" class="me-1 flex-shrink-0">visibility</mat-icon>View
+                    </button>
+                    <!-- <button *ngIf="showAssignAdminButton(coi)" id="coi-admin-dashboard-assign-admin-btn-{{index}}"
+                        (click)="openAssignAdminModal(coi);"
+                        class="d-flex flex-shrink-0 align-items-center btn btn-outline-secondary fs-14"
+                        title="Click here to Assign Administrator/Admin Group"
+                        aria-label="Click here to assign administrator">
+                        <mat-icon aria-hidden="true" class="me-1 flex-shrink-0">group_add</mat-icon>
+                        Assign Admin
+                    </button> -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- <ng-container *ngIf="reviewerDashboardService.disclosureRequestObject.tabName === 'TRAVEL_DISCLOSURES'">
+        <app-coi-disclosure-dashboard-card [disclosureDetails]="coi" [isShowAssignAdminBtn]="showAssignAdminButton(coi)"
+            [isShowCommentButton]="coi?.isShowCommentBtn" (cardActions)="cardActions($event)">
+        </app-coi-disclosure-dashboard-card>
+    </ng-container> -->
+</ng-container>

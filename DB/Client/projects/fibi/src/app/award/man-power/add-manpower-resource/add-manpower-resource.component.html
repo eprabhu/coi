@@ -1,0 +1,399 @@
+<div class="modal fade show mySkinDialog modal-opacity" id="addManpowerResource" role="dialog" data-backdrop="static"
+  data-keyboard="false" aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+
+
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 *ngIf="resourceCategory?.index == null" class="modal-title" id="skippedSchedulesLongTitle">Add
+          <span *ngIf="resourceCategory?.addStaffType == 'New'">New Hire</span>
+        </h5>
+        <h5 *ngIf="resourceCategory?.index != null" class="modal-title" id="skippedSchedulesLongTitle">
+          <span *ngIf="resourceCategory?.index != null">Edit
+            <span *ngIf="resourceCategory?.addStaffType == 'New'">New Hire</span></span>
+          <!-- <span *ngIf="!resourceDetails?.fullName">Unassigned</span>
+          <span *ngIf="resourceDetails?.fullName">#<span
+              *ngIf="resourceDetails?.personId">{{resourceDetails?.personId}}</span>
+            <span *ngIf="!resourceDetails?.personId">{{resourceDetails?.rolodexId}}</span>:
+            {{resourceDetails?.fullName}}</span> -->
+        </h5>
+        <button type="button" id="add-resource-close-btn" class="close" data-dismiss="modal" aria-label="Close"
+          (click)="resourceDetails = {}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body py-1 px-3">
+        <div class="form-row my-2 p-2 border mx-0 grey-container">
+          <div class="col-lg-2 col-sm-6 col-12 no-hover-effect">
+            <label class="d-sm-block">WBS Number</label>
+            <span *ngIf="manpowerCategory?.budgetReferenceTypeCode == '1'"
+              class="content-color">{{manpowerCategory?.budgetReferenceNumber}}</span>
+            <span *ngIf="manpowerCategory?.budgetReferenceTypeCode == '2'" class="noDataExists">No WBS Generated</span>
+          </div>
+          <div class="col-lg-2 col-sm-6 col-12 no-hover-effect">
+            <label class="d-sm-block">Cost Element</label>
+            <span class="content-color">{{manpowerCategory?.costElement}}</span>
+          </div>
+          <div class="col-lg-2 col-sm-6 col-12 no-hover-effect">
+            <label class="d-sm-block">Approved Head Count
+              <span *ngIf="helpText?.manpower?.actualHeadCount?.helpTextInfo" class="d-inline-block icon-hover">
+                <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med"
+                    aria-hidden="true"></i>
+                  <div class="tooltiptext-left card card-inner p-15 text-left">
+                    <span class="font-cv">{{helpText?.manpower?.actualHeadCount?.helpTextInfo}}</span>
+                  </div>
+                </a>
+              </span>
+            </label>
+            <span class="content-color pl-5">{{manpowerCategory?.approvedHeadCount}}</span>
+
+          </div>
+          <div class="col-lg-2 col-sm-6 col-12 no-hover-effect">
+            <label class="d-sm-block">Actual Head Count
+              <span class="d-inline-block icon-hover">
+                <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med"
+                    aria-hidden="true"></i>
+                  <div class="tooltiptext-left card card-inner p-15 text-left">
+                    <span class="font-cv">Count of Distinct Person Ids where person is present and current date within
+                      the charge dates excluding Expired-Left NTU status.</span>
+                  </div>
+                </a>
+              </span>
+            </label>
+            <span class="content-color pl-5">{{manpowerCategory?.actualHeadCount}}</span>
+          </div>
+          <div class="col-lg-2 col-sm-6 col-12 no-hover-effect">
+            <label class="d-sm-block">Budget Amount</label>
+            <span class="content-color">
+              {{manpowerCategory?.budgetAmount | currency: _commonService.currencyFormat}}</span>
+          </div>
+          <div class="col-lg-2 col-sm-6 col-12 no-hover-effect  py-0">
+            <label class="d-sm-block">Uncommitted Amount</label>
+            <span class="content-color">
+              {{manpowerCategory?.unCommittedAmount | currency: _commonService.currencyFormat}}</span>
+          </div>
+        </div>
+        <div>
+          <div class="gridSkin p-2 add-resource-container">
+            <div class="d-flex justify-content-between"
+              *ngIf="map.has('personDuplication') || map.has('cutOffValidation')">
+              <div class="col p-0">
+                <div class="alert alert-danger m-0 py-2" role="alert">
+                  <i class="fa fa-exclamation-circle icon text-danger" aria-hidden="true"></i>
+                  <strong>Error: </strong>
+                  <span *ngIf="map.has('personDuplication')" @slideInOut>{{map.get('personDuplication')}}</span>
+                  <span *ngIf="map.has('cutOffValidation')" @slideInOut>{{map.get('cutOffValidation')}}</span>                  
+                </div>
+              </div>
+            </div>
+            <ng-container *ngFor="let warning of manpowerWarning">
+              <div class="p-0 mt-2" @slideInOut>
+                <div class="alert alert-warning my-0 py-1" role="alert">
+                  <i class="fa fa-exclamation-circle icon text-warning" aria-hidden="true"></i>
+                  <strong>Warning: </strong>{{warning}}
+                </div>
+              </div>
+            </ng-container>
+            <ng-container *ngFor="let reminder of manpowerReminder">
+              <div class="p-0 mt-2" @slideInOut>
+                <div class="alert alert-warning my-0 py-1" role="alert">
+                  <i class="fa fa-exclamation-circle icon text-warning" aria-hidden="true"></i>
+                  <strong>Reminder: </strong>{{reminder}}
+                </div>
+              </div>
+            </ng-container>
+            <!-- <div *ngIf="isShowManpowerInfo"
+              class="success-banner form-row px-3 my-2 mx-0 d-flex justify-content-between align-items-center">
+              <div>
+                <i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i>
+                <em>{{manpowerLookups?.manpowerInfoText}}</em>
+              </div>
+              <button class="close close-button " aria-label="Close" data-dismiss="modal" id="modal-close" type="button">
+                <span class="d-block" aria-hidden="true" (click)="isShowManpowerInfo = false">×</span>
+              </button>
+            </div> -->
+            <div class="form-row">
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12 py-2">
+                <label class="d-sm-block">
+                  <span class="mandatory">*</span>Planned Job Profile
+                  <span *ngIf="helpText?.manpower?.jobProfileAdd?.helpTextInfo" class="d-inline-block icon-hover">
+                    <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med"
+                        aria-hidden="true"></i>
+                      <div class="tooltiptext-left card card-inner p-15 text-left">
+                        <span class="font-cv">{{helpText?.manpower?.jobProfileAdd?.helpTextInfo}}</span>
+                      </div>
+                    </a>
+                  </span>
+                </label>
+                <app-endpoint-search [httpOptions]="jobProfileSearchOption" [isError]="map.has('jobProfile')"
+                  [isDisabled]="!isEditNewHire" [placeHolder]="'Search a job profile'"
+                  (onSelect)="selectedJobProfile($event)" [clearField]="clearJobProfile">
+                </app-endpoint-search>
+                <div *ngIf="(map.has('jobProfile'))" class="invalid-feedback d-block">
+                  {{map.get('jobProfile')}}
+                </div>
+              </div>
+
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12 py-2">
+                <label class="d-sm-block">
+                  <span class="mandatory">*</span>Proposed Base Salary
+                  <span *ngIf="helpText?.manpower?.plannedBaseSalary?.helpTextInfo" class="d-inline-block icon-hover">
+                    <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med"
+                        aria-hidden="true"></i>
+                      <div class="card card-inner p-15 text-left"
+                        [ngClass]="resourceCategory?.addStaffType == 'New' ? 'tooltiptext-left' : 'tooltiptext-right'">
+                        <span class="font-cv">{{helpText?.manpower?.plannedBaseSalary?.helpTextInfo}}</span>
+                      </div>
+                    </a>
+                  </span>
+                </label>
+                <input id="planned-monthly-base-salary-amount" type="text" class="form-control" autocomplete="off"
+                  [ngClass]="(map.has('plannedBaseSalary')) ? 'is-invalid d-block' : ''" appCurrencyFormat
+                  [disabled]="!isEditNewHire" allowNegative="true" [initialValue]="resourceDetails?.plannedBaseSalary"
+                  placeholder="Plan Based Salary{{_commonService.currencyFormat}})"
+                  [(ngModel)]="resourceDetails.plannedBaseSalary"
+                  (keyup)="limitAmount(resourceDetails?.plannedBaseSalary, 'plannedBaseSalary')"
+                  (ngModelChange)="detectChangeRelatedToCommittedCost()" />
+                <div *ngIf="(map.has('plannedBaseSalary'))" class="invalid-feedback d-block">
+                  {{map.get('plannedBaseSalary')}}
+                </div>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12 py-2">
+                <label class="d-sm-block">
+                  <span class="mandatory">*</span>Cost Allocation %
+                  <span *ngIf="helpText?.manpower?.costAllocation?.helpTextInfo" class="d-inline-block icon-hover">
+                    <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med"
+                        aria-hidden="true"></i>
+                      <div class="tooltiptext-left card card-inner p-15 text-left"
+                        [ngClass]="resourceCategory?.addStaffType == 'New' ? 'tooltiptext-right' : 'tooltiptext-left'">
+                        <span class="font-cv">{{helpText?.manpower?.costAllocation?.helpTextInfo}}</span>
+                      </div>
+                    </a>
+                  </span>
+                </label>
+                <input id="cost-allocation" type="text" class="form-control" autocomplete="off"
+                  [disabled]="!(isEditNewHire || (isManpowerAdminCorrection && awardData.award.awardDocumentTypeCode != 1 && isEditWhileAdminCorrection))"
+                  [ngClass]="(map.has('costAllocation')) ? 'is-invalid d-block' : ''" placeholder="Cost Allocation %"
+                  (focus)="isCostAllocationFocused = true" (focusout)="isCostAllocationFocused = false"
+                  [(ngModel)]="resourceDetails.costAllocation"
+                  (keyup)="limitKeypress(resourceDetails.costAllocation)"
+                  (ngModelChange)="detectChangeRelatedToCommittedCost()"/>
+                <div *ngIf="(map.has('costAllocation'))" class="invalid-feedback d-block">
+                  {{map.get('costAllocation')}}
+                </div>
+              </div>
+              <app-manpower-address-book *ngIf="isAddNonEmployeeModal" [isAddNonEmployeeModal]="isAddNonEmployeeModal"
+                (rolodexResult)="setRolodexPersonObject($event)"></app-manpower-address-book>
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12 py-2">
+                <span>
+                  <label class="d-sm-block" for="award-start-date">
+                    <span class="mandatory">*</span>Plan Start Date
+                    <span *ngIf="helpText?.manpower?.planStartDate?.helpTextInfo" class="d-inline-block icon-hover">
+                      <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med"
+                          aria-hidden="true"></i>
+                        <div class="card card-inner p-15 text-left"
+                          [ngClass]="resourceCategory?.addStaffType == 'New' ? 'tooltiptext-right' : 'tooltiptext-left'">
+                          <span class="font-cv">{{helpText?.manpower?.planStartDate?.helpTextInfo}}</span>
+                        </div>
+                      </a>
+                    </span>
+                  </label>
+
+                  <span class="dateField">
+                    <input matInput [matDatepicker]="planStartDate" id="plan-start-date" placeholder="From ({{datePlaceHolder}})"
+                      [disabled]="!(isEditNewHire || (isManpowerAdminCorrection && awardData.award.awardDocumentTypeCode != 1 && isEditWhileAdminCorrection))"
+                      [(ngModel)]="resourceDetails.planStartDate"
+                      (ngModelChange)="isDateChanged = true; dateValidation()" class="form-control d-inline-block"
+                      (click)="planStartDate.open()"
+                      [ngClass]="map.has('planStartDate') ? 'is-invalid d-block' : ''" autocomplete="off"
+                      (keypress)="_commonService._keyPress($event, 'date')" />
+                    <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor" title="open calendar"
+                      (click)="planStartDate.open()"></span>
+                    <mat-datepicker #planStartDate (opened)="setFocusToElement('plan-start-date')">
+                    </mat-datepicker>
+                  </span>
+                </span>
+                <div *ngIf="(map.has('chargeStartDate'))" class="invalid-feedback d-block">
+                  {{map.get('chargeStartDate')}}
+                </div>
+                <div *ngIf="(map.has('planStartDate'))" class="invalid-feedback d-block">
+                  {{map.get('planStartDate')}}
+                </div>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12 py-2">
+                <span>
+                  <label class="d-sm-block" for="award-start-date">
+                    <span class="mandatory">*</span>Plan End Date
+                    <span *ngIf="helpText?.manpower?.planEndDate?.helpTextInfo" class="d-inline-block icon-hover">
+                      <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med"
+                          aria-hidden="true"></i>
+                        <div class="tooltiptext-left card card-inner p-15 text-left">
+                          <span class="font-cv">{{helpText?.manpower?.planEndDate?.helpTextInfo}}</span>
+                        </div>
+                      </a>
+                    </span>
+                  </label>
+                  <span class="dateField">
+                    <input matInput [matDatepicker]="planEndDate" id="plan-end-date" placeholder="To ({{datePlaceHolder}})"
+                      [(ngModel)]="resourceDetails.planEndDate" (ngModelChange)="isDateChanged = true; dateValidation()"
+                      [disabled]="!isEditNewHire" class="form-control d-inline-block" (click)="planEndDate.open()"
+                      [ngClass]="map.has('planEndDate') ? 'is-invalid d-block' : ''" autocomplete="off"
+                      (keypress)="_commonService._keyPress($event, 'date')" />
+                    <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor" title="open calendar"
+                      (click)="planEndDate.open()"></span>
+                    <mat-datepicker #planEndDate (opened)="setFocusToElement('plan-end-date')">
+                    </mat-datepicker>
+                  </span>
+                </span>
+                <div *ngIf="(map.has('chargeEndDate'))" class="invalid-feedback d-block">
+                  {{map.get('chargeEndDate')}}
+                </div>
+                <div *ngIf="(map.has('planEndDate'))" class="invalid-feedback d-block">
+                  {{map.get('planEndDate')}}
+                </div>
+              </div>
+              <div class="py-2 col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-sm-block">Duration</label>
+                <span class="content-color">{{resourceDetails?.planDuration}}</span>
+              </div>
+              <div class="py-2 col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-sm-block">Multi Account?
+                  <span *ngIf="helpText?.manpower?.multiAccountAdd?.helpTextInfo" class="d-inline-block icon-hover">
+                    <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med"
+                        aria-hidden="true"></i>
+                      <div class="tooltiptext-left card card-inner p-15 text-left">
+                        <span class="font-cv">{{helpText?.manpower?.multiAccountAdd?.helpTextInfo}}</span>
+                      </div>
+                    </a>
+                  </span>
+                </label>
+                <span class="pt-1">
+                  <a class="pl-2" *ngIf="resourceDetails.isMultiAccount == true">
+                    <label class="switch">
+                      <input type="checkbox"
+                        (click)="resourceDetails.isMultiAccount = false; resourceDetails.isMainAccount = true;manageAccountWarning();"
+                        [disabled]="resourceDetails?.positionStatusCode === '3'|| (isManpowerAdminCorrection && awardData.award.awardDocumentTypeCode != 1)" checked>
+                      <span [ngClass]="{'switch-disabled': resourceDetails?.positionStatusCode === '3' || (isManpowerAdminCorrection && awardData.award.awardDocumentTypeCode != 1)}"
+                        class="slider round"><small>Yes</small></span>
+                    </label>
+                  </a>
+                  <a class="pl-2" *ngIf="resourceDetails.isMultiAccount == false;">
+                    <label class="switch">
+                      <input type="checkbox" (click)="resourceDetails.isMultiAccount = true;manageAccountWarning()"
+                        [disabled]="resourceDetails?.positionStatusCode === '3' || (isManpowerAdminCorrection && awardData.award.awardDocumentTypeCode != 1)">
+                      <span [ngClass]="{'switch-disabled': resourceDetails?.positionStatusCode === '3' || (isManpowerAdminCorrection && awardData.award.awardDocumentTypeCode != 1)}"
+                        class="slider round"><small class="deactivate-text ">No</small></span>
+                    </label>
+                  </a>
+                </span>
+              </div>
+
+              <div class="py-2 col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-sm-block">Main Account?
+                  <span *ngIf="helpText?.manpower?.mainAccount?.helpTextInfo" class="d-inline-block icon-hover">
+                    <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med"
+                        aria-hidden="true"></i>
+                      <div class="tooltiptext-right card card-inner p-15 text-left">
+                        <span class="font-cv">{{helpText?.manpower?.mainAccount?.helpTextInfo}}</span>
+                      </div>
+                    </a>
+                  </span>
+                </label>
+                <span class="pt-1">
+                  <a class="pl-2" *ngIf="resourceDetails.isMainAccount == true">
+                    <label class="switch">
+                      <input type="checkbox" (click)="resourceDetails.isMainAccount = false;manageAccountWarning()"
+                        checked
+                        [disabled]="resourceDetails.isMultiAccount == false || resourceDetails?.positionStatusCode === '3' || (isManpowerAdminCorrection && awardData.award.awardDocumentTypeCode != 1)">
+                      <span class="slider round"
+                        [ngClass]="{'switch-disabled': (resourceDetails.isMultiAccount == false || resourceDetails?.positionStatusCode === '3' || (isManpowerAdminCorrection && awardData.award.awardDocumentTypeCode != 1)) }"><small>Yes</small></span>
+                    </label>
+                  </a>
+                  <a class="pl-2" *ngIf="resourceDetails.isMainAccount == false">
+                    <label class="switch">
+                      <input type="checkbox" (click)="resourceDetails.isMainAccount = true;manageAccountWarning()"
+                        [disabled]="resourceDetails.isMultiAccount == false || resourceDetails?.positionStatusCode === '3' || (isManpowerAdminCorrection && awardData.award.awardDocumentTypeCode != 1)">
+                      <span class="slider round"
+                        [ngClass]="{'switch-disabled': (resourceDetails.isMultiAccount == false || resourceDetails?.positionStatusCode === '3' || (isManpowerAdminCorrection && awardData.award.awardDocumentTypeCode != 1))}"><small
+                          class="deactivate-text ">No</small></span>
+                    </label>
+                  </a>
+                </span>
+              </div>
+
+              <div *ngIf="isManpowerAdminCorrection && awardData.award.awardDocumentTypeCode != 1"
+                class="col-lg-3 col-md-4 col-sm-6 col-12 py-2">
+                <label class="d-sm-block">Position Id
+                  <span *ngIf="helpText?.manpower?.positionId?.helpTextInfo" class="d-inline-block icon-hover">
+                    <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med"
+                        aria-hidden="true"></i>
+                      <div class="tooltiptext-left card card-inner p-15 text-left">
+                        <span class="font-cv">{{helpText?.manpower?.positionId?.helpTextInfo}}</span>
+                      </div>
+                    </a>
+                  </span>
+                </label>
+
+                <input id="positionId" type="text" class="form-control" autocomplete="off"
+                  [disabled]="!(isEditNewHire || (isManpowerAdminCorrection && awardData.award.awardDocumentTypeCode != 1 && isEditWhileAdminCorrection))"
+                  placeholder="Position Id" [(ngModel)]="resourceDetails.positionId" (ngModelChange)='this.isPositionIdChanged = true'/>
+
+                <div *ngIf="(map.has('positionId'))" class="invalid-feedback d-block">
+                  {{map.get('positionId')}}
+                </div>
+              </div>
+
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12 py-2">
+                <label class="d-sm-block">Proposed Commitment Amount
+                  <span *ngIf="helpText?.manpower?.plannedSalaryAdd?.helpTextInfo" class="d-inline-block icon-hover">
+                    <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med"
+                        aria-hidden="true"></i>
+                      <div class="card card-inner p-15 text-left tooltiptext-left">
+                        <span class="font-cv">{{helpText?.manpower?.plannedSalaryAdd?.helpTextInfo}}</span>
+                      </div>
+                    </a>
+                  </span>
+                </label>
+                <div class="input-group">
+                  <input type="text" class="form-control" appCurrencyFormat allowNegative="false"
+                    id="initial-committed-amount" [initialValue]="resourceDetails.plannedSalary"
+                    [disabled]="!(isEditNewHire || isManpowerAdminCorrection)"
+                    [ngClass]="(map.has('plannedSalary')) ? 'is-invalid d-block' : ''"
+                    placeholder="Proposed Commitment Amount({{_commonService.currencyFormat}})"
+                    [(ngModel)]="resourceDetails.plannedSalary"
+                    (keyup)="limitAmount(resourceDetails.plannedSalary, 'plannedSalary')">
+                  <div class="input-group-append">
+                    <button class="btn btn-primary-sub border f-14" type="button" title="Calculate"
+                      (click)="calculatePlannedSalary()">
+                      Calculate
+                    </button>
+                  </div>
+                </div>
+                <div *ngIf="(map.has('plannedSalary'))" class="invalid-feedback d-block">
+                  {{map.get('plannedSalary')}}
+                </div>
+              </div>
+              <div class="no-hover-effect col-12 py-2">
+                <label class="d-sm-block">Comment<span class="invalid-feedback"> **</span></label>
+                <textarea form-rows="1" class="form-control" [(ngModel)]="resourceDetails.description"
+                  [disabled]="!isEditNewHire" appLengthValidator [isShowLimiter]='true' [limit]=400></textarea>
+              </div>
+              <div class="px-3 invalid-feedback d-block">
+                ** Cost allocation less than 100% OR multi account: Input the other WBS/cost center used for the same
+                period/contract.<br>
+                <!-- Input the following details if the request is for the following reasons:<br>
+                  Reason = staff upgrade [name of staff] | staff promotion [name of staff] | contract extension [name of staff] -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="prop-special-revw-close-btn" class="btn btn-secondary" data-dismiss="modal"
+          (click)="resourceDetails = {}">Cancel</button>
+        <button type="button" id="prop-special-revw-add-btn" class="btn btn-primary-sub"
+          (click)="addResource()">{{resourceCategory?.index == null ? 'Save' : 'Update'}}</button>
+      </div>
+    </div>
+  </div>
+</div>

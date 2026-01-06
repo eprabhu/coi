@@ -1,0 +1,98 @@
+<app-common-modal [modalConfig]="createEditModalConfig.modalConfig" (modalAction)="taskModalAction($event)">
+    <ng-container modal-header>
+        <span>{{ cmpTaskDetails?.taskId ? 'Update Task' : 'Create Task' }}</span>
+    </ng-container>
+    <ng-container modal-body>
+        <div class="row g-3">
+            <!-- Task Type -->
+            <div class="col-md-6">
+                <label for="task-type" class="form-label d-flex gap-1">
+                    <span class="mandatory">*</span><span>Task Type</span>
+                </label>
+                <app-look-up (selectedResult)="onLookupSelect($event, 'TASK_TYPE_CODE')"
+                    [options]="taskTypeStatusOption" [selectedLookUpList]="selectedLookUpList['TASK_TYPE_CODE']"
+                    [uniqueId]="'cmp-task-type'" [needResultOnEachSelection]="true">
+                </app-look-up>
+                <div *ngIf="mandatoryList.has('taskTypeCode')" class="invalid-feedback d-block">
+                    {{ mandatoryList.get('taskTypeCode') }}
+                </div>
+            </div>
+            <!-- Assignee -->
+            <div class="col-md-6">
+                <label for="assignee-person" class="form-label d-flex gap-1">
+                    <span class="mandatory">*</span><span>Assignee</span>
+                </label>
+                <app-elastic (selectedResult)="selectedPersonName($event)" [clearField]="advSearchPersonClearField"
+                    [options]="elasticPersonSearchOptions" [placeHolder]="'Search by Person'"
+                    [uniqueId]="'task-assignee-person-name'" [canEmitSearchText]="true">
+                </app-elastic>
+                <div *ngIf="mandatoryList.has('assigneePerson')" class="invalid-feedback d-block">
+                    {{ mandatoryList.get('assigneePerson') }}
+                </div>
+            </div>
+            <!-- Assigned On -->
+            <div class="col-md-6">
+                <label for="assigned-on" class="form-label d-flex gap-1">Assigned On</label>
+                <span class="dateField w-100">
+                    <input matInput [matDatepicker]="assignedOnPicker" id="assigned-on"
+                        placeholder="Assigned On ({{datePlaceHolder}})" class="form-control d-inline-block"
+                        [(ngModel)]="CmpTaskForm.assignedOn" (click)="assignedOnPicker.open()"
+                        (dateChange)="onDateChange()" (blur)="onDateChange()">
+                    <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor" title="open calendar"
+                        (click)="assignedOnPicker.open()"></span>
+                    <mat-datepicker #assignedOnPicker></mat-datepicker>
+                </span>
+            </div>
+            <!-- Due Date -->
+            <div class="col-md-6">
+                <label for="due-date" class="form-label d-flex gap-1">Due Date</label>
+                <span class="dateField w-100">
+                    <input matInput [matDatepicker]="dueDatePicker" id="due-date"
+                        placeholder="Due Date ({{datePlaceHolder}})" class="form-control d-inline-block"
+                        [(ngModel)]="CmpTaskForm.dueDate" (click)="dueDatePicker.open()" (dateChange)="onDateChange()"
+                        (blur)="onDateChange()">
+                    <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor" title="open calendar"
+                        (click)="dueDatePicker.open()"></span>
+                    <mat-datepicker #dueDatePicker></mat-datepicker>
+                </span>
+                <div *ngIf="dateValidationMap.has('endDate')" class="invalid-feedback d-block">
+                    {{ dateValidationMap.get('endDate') }}
+                </div>
+            </div>
+            <!-- Description -->
+            <div class="col-12">
+                <label for="task-desc" class="form-label d-flex gap-1">
+                    <span>Description</span>
+                </label>
+                <textarea id="task-desc" class="form-control" [(ngModel)]="CmpTaskForm.description" rows="4"
+                    aria-required="true" appLengthValidator [limit]=1000></textarea>
+                <div class="d-flex justify-content-between">
+                </div>
+            </div>
+            <!-- Questions -->
+            <div class="col-12 question-block">
+                <div class="d-flex flex-column gap-3">
+                    <div *ngFor="let question of visibleQuestions; let idx = index">
+                        <label class="form-label" [attr.for]="'task-question-' + idx">Question {{ idx + 1
+                            }}</label>
+                        <div class="position-relative">
+                            <textarea class="form-control" appLengthValidator [limit]=1000 [id]="'task-question-' + idx"
+                                [(ngModel)]="question.question" rows="3"
+                                placeholder="Type your question here"></textarea>
+                            <button class="btn-close fs-14 position-absolute mat-icon-button custom-position"
+                                aria-label="Remove question {{ idx + 1 }}" (click)="removeQuestion(question)">
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" id="cmp-task-question-add-btn"
+                    class="d-flex align-items-center gap-1 btn btn-outline-primary btn-sm" (click)="addQuestion()"
+                    [disabled]="visibleQuestions.length >= maxTaskQuestions" title="Click here to add questions"
+                    aria-label="Click here to add questions">
+                    <mat-icon class="coi-mat-icon-size flex-shrink-0" aria-hidden="true">add</mat-icon>
+                    {{visibleQuestions.length > 0 ? 'Add Another Question' : 'Add Question'}}
+                </button>
+            </div>
+        </div>
+    </ng-container>
+</app-common-modal>

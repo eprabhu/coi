@@ -1,0 +1,133 @@
+<div class="card rounded-0">
+  <div class="card-content">
+    <div class="card-header py-2">
+      <h4 class="card-title align-items-center d-flex">
+        <div class="mr-auto width-80 mt-0">Revenue Amount
+          <ng-container *ngIf="internalOrderCode?.length">of</ng-container> {{internalOrderCode}}
+        </div>
+        <span *ngIf="awardBudgetRevenueDetails !== null && awardBudgetRevenueDetails?.length !== 0"
+          class="exportButton ">
+          <span class="exportIcon-margin ">Export as :</span>
+          <a title="Export data to Excel sheet" class="exportIcon-margin  hand-cursor" id="export-award-excel-btn"
+            (click)="exportrevenue('xlsx')" tabindex="0">
+            <i aria-hidden="true" class="fa fa-file-excel-o"></i>
+          </a>
+          <a class="exportIcon-margin">|</a>
+          <a title="Export data to PDF document" class="hand-cursor" id="export-award-pdf-btn"
+            (click)="exportrevenue('pdf')" tabindex="0"><i aria-hidden="true" class="fa fa-file-pdf-o"></i></a>
+        </span>
+        <button type="button" class="btn more-btn ml-3" (click)="redirectionPath()" title="Back to revenue"><i
+            class="fa fa-reply" aria-hidden="true"></i></button>
+      </h4>
+    </div>
+    <div class="card card-inner">
+      <div class="card-content">
+        <div class="card-body">
+          <div class="fixed-header-table">
+            <div class="form-row">
+              <div class="col">
+                <label class="d-block"><ng-container i18n="@@AWARD_WBS_NUMBER_FOR_OFIN_USE">WBS Number (for OFIN use)</ng-container></label>
+                <app-look-up [options]='ioCodeOptions' [selectedLookUpList]="selectedIOCodes"
+                  (selectedResult)="onLookupSelect($event)" [externalArray]="IOCodes" [isExternalArray]="true">
+                </app-look-up>
+              </div>
+              <div class="col-auto">
+                <label class="d-block">Posting Date</label>
+                <span class="dateField d-inline-block">
+                  <input matInput [matDatepicker]="postingdatefrom" id="revenue-posting-date-from" [(ngModel)]="filterpostingdatefrom"
+                    class="form-control d-inline-block" autocomplete="off"
+                    (click)="postingdatefrom.open()" (keypress)="_commonService._keyPress($event, 'date')"
+                    placeholder="{{datePlaceHolder}}" (ngModelChange)="dateValidation()" />
+                  <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor" title="open calendar"
+                    (click)="postingdatefrom.open()"></span>
+                  <mat-datepicker #postingdatefrom (opened)="setFocusToElement('revenue-posting-date-from')">
+                  </mat-datepicker>
+                </span>
+                <label class="d-none d-sm-inline-block">-</label>
+                <span class="dateField d-inline-block">
+                  <input matInput [matDatepicker]="postingdateto" id="revenue-posting-date-to" [(ngModel)]="filterpostingdateto"
+                    class="form-control d-inline-block" autocomplete="off" (click)="postingdateto.open()"
+                    (keypress)="_commonService._keyPress($event, 'date')" placeholder="{{datePlaceHolder}}"
+                    (ngModelChange)="dateValidation()" [ngClass]="{'is-invalid d-block': !isDateValid}" />
+                  <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor" title="open calendar"
+                    (click)="postingdateto.open()"></span>
+                  <mat-datepicker #postingdateto (opened)="setFocusToElement('revenue-posting-date-to')">
+                  </mat-datepicker>
+                </span>
+              </div>
+              <span class="ml-2 mt-4 p-2">
+                <button id="revenue-search-button" title="Search" class="btn btn-primary btn-xs mb-1"
+                  (click)="filterRevenueData()">Search</button>
+              </span>
+              <div class="invalid-feedback block-display" *ngIf="!isDateValid">
+                Please select the To date after From date
+              </div>
+            </div>
+            <table class="tableStyle"
+              *ngIf="(awardBudgetRevenueDetails !== null && awardBudgetRevenueDetails?.length !== 0); else noData">
+              <caption class="sr-only">Revenue Details</caption>
+              <thead class="thead-light">
+                <tr class="th-seperation line-height">
+                  <th style="width:5%" scope="col">WBS Number (for OFIN use)</th>
+                  <th style="width:6%" scope="col">GL Account</th>
+                  <th style="width:8%" scope="col">Bank Clearing Date</th>
+                  <th style="width:8%" scope="col">Fiscal Year</th>
+                  <th style="width:8%" scope="col">Payment Doc Ref</th>
+                  <th style="width:8%" scope="col">Document Date</th>
+                  <th style="width:8%" scope="col">Source Doc Ref</th>
+                  <th style="width:8%" scope="col">Posting Date</th>
+                  <th style="width:8%" scope="col">System Doc Ref</th>
+                  <th style="width:5%" scope="col">Amount</th>
+                  <th class="text-align-left pl-3" scope="col">Customer </th>
+                  <th class="text-align-left pl-3" scope="col">Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <ng-container *ngIf="awardBudgetRevenueDetails?.length > 0 ">
+                  <tr class="th-seperation" *ngFor="let transactions of awardBudgetRevenueDetails">
+                    <td>{{transactions?.internalOrderCode}}</td>
+                    <td>{{transactions?.fiGlAccount}}</td>
+                    <td>{{transactions?.paymentDate | dateFormatter}}</td>
+                    <td>{{transactions?.paymentFiscalYear}}</td>
+                    <td>{{transactions?.paymentDocNumber}}</td>
+                    <td>{{transactions?.documentDate | dateFormatter}}</td>
+                    <td>{{transactions?.transactionReferenceNumber}}</td>
+                    <td>{{transactions?.fiPostingDate | dateFormatter}}</td>
+                    <td>{{transactions?.gmiaDocnr}}</td>
+                    <td class="text-right">{{transactions?.amountInFmaCurrency | currency}}
+                      <span class="badge badge-pill" [ngClass]="{'badge-primary ': transactions?.poPrFlag == 'PR' ,
+                                       'badge-success ': transactions?.poPrFlag == 'PO'}">{{transactions?.poPrFlag
+                        }}</span>
+                    </td>
+                    <td>{{transactions?.bpName}}</td>
+                    <td>{{transactions?.remarks}}</td>
+                  </tr>
+                </ng-container>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="8"></td>
+                  <td>Total</td>
+                  <td class="text-right">{{totalExpenses?.amountInFmaCurrency | currency}}</td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+      <ng-template #noData>
+        <div class="no-data-container">
+          <span class="no-data-icon-outer">
+            <div class="no-data-icon">
+              <i class="fa fa-file-o" aria-hidden="true"></i>
+              <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+            </div>
+          </span>
+          <h4>There is no information in this section.</h4>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

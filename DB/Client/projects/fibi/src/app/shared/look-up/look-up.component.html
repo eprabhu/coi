@@ -1,0 +1,40 @@
+<div class="overlay" #dropdownOverlay (click)="hideLookUpList()"></div>
+<div class="elastic-outer">
+  <input id="searchBox" #searchField class="app-elastic-search form-control pr-25" (focus)="showLookUpList()"
+    (keydown.arrowdown)="downArrowEvent($event);" (keydown.esc)="hideLookUpList();" [disabled]="isDisabled"
+    (keydown.arrowup)="upArrowEvent($event);" (keydown.enter)="enterKeyEvent();"
+    (keydown.space)="selectOrUnselectLookUpwithSpace()" [(ngModel)]="selection" autocomplete="off" />
+  <div class="sb-seachresults" *ngIf="isActive">
+    <ul id="searchList" class="sb-results-dropdown-menu">
+      <li *ngIf="isEnableSearch">
+        <input type="text" class="app-elastic-search form-control pr-25"
+        [(ngModel)]="searchText" placeholder="Search">
+      </li>
+      <!-- multi check drop-down -->
+      <ng-container *ngIf="isMultiple">
+        <li>
+          <input type="checkbox" id="selectAllLookup" [(ngModel)]="isSelectAll"
+            (click)="selectOrUnSelectAllLookUp($event.target.checked)" class="mb-2">
+            <label for="selectAllLookup" class="ml-2">Select All</label>
+        </li>
+        <li class="search-result-item" *ngFor="let lookup of lookUpList | lookupFilter : searchText">
+          <input type="checkbox" id="selected{{lookup.code}}" [(ngModel)]="lookup.isChecked"
+            (ngModelChange)="selectOrUnSelectLookupItem(lookup)" class="mb-2">
+          <label for="selected{{lookup.code}}" [innerHTML]="lookup.description" class="ml-2"></label>
+        </li>
+      </ng-container>
+      <!-- multi-check-ends -->
+      <!-- simple dropdown -->
+      <ng-container *ngIf="!isMultiple">
+          <li class="search-result-item" (click)="selectOrUnSelectLookupItem(null)">        
+            <label value= "null">--select--</label>
+          </li>
+        <li class="search-result-item" *ngFor="let lookup of lookUpList | lookupFilter : searchText" (click)="selectOrUnSelectLookupItem(lookup)">
+          <label  [innerHTML]="lookup.description" class="ml-2"></label>
+        </li>
+      </ng-container>
+      <!-- simple-drop-down ends -->
+    </ul>
+  </div>
+</div>
+

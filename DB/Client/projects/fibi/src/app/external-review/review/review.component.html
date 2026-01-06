@@ -1,0 +1,83 @@
+<div class="card mb-3">
+    <div class="card-header px-4">
+        <div class="align-items-center d-flex row">
+            <div class="col d-flex align-items-center">
+                <h4 class="card-title word-break" id="review_{{reviewDetails?.extReviewID}}">{{reviewDetails?.reviewNumber}} :
+                    {{reviewDetails?.description}}
+                </h4>
+            </div>
+            <span
+                class="d-block fs-13 status-badge-{{getBadgeByStatusCode()}} rounded-icon">
+                {{reviewDetails?.extReviewStatus?.description}}</span>
+            <div class="col-auto text-right">
+                <button *ngIf="isEditMode" class="btn btn-primary-sub btn-sm mr-0" (click)="emitSendForReview();">Send to
+                    ERM</button>
+                <button id="reviewExpandBtn" class="updown-arrow"
+                    (click)="collapseReview(_reviewService?.collapseReview[reviewDetails?.extReviewID])">
+                    <i [ngClass]="_reviewService?.collapseReview[reviewDetails?.extReviewID]?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                        aria-hidden="true" class="fa-large"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div *ngIf="_reviewService?.collapseReview[reviewDetails?.extReviewID]" class="card-content">
+        <div class="card-body">
+            <div class="form-row">
+                <div class="col-4">
+                    <label class="d-block fs-14">Review Type</label>
+                    <span class="content-color">{{reviewDetails?.extReviewServiceType?.description}}</span>
+                </div>
+                <div class="col-4">
+                    <label for="review-date" class="d-block fs-14">Review Deadline Date</label>
+                    <span class="content-color">{{reviewDetails?.deadlineDate | dateFormatter}}</span>
+                    <span *ngIf="!reviewDetails?.deadlineDate" class="noDataExists">No review deadline date specified</span>
+                </div>
+                <div *ngIf="reviewDetails?.extReviewID" class="col-3">
+                    <strong><label class="d-block fs-14">Created by</label></strong>
+                    <span class="content-color">{{reviewDetails?.person?.fullName}} on
+                        {{reviewDetails?.requestDate | dateFormatterWithTimeZone:'long'}}</span>
+                </div>
+                <div *ngIf="isEditMode" class="col-auto d-flex align-items-center ml-auto mr-2">
+                    <ul class="actionButtonGroup d-flex">
+                        <li>
+                            <a id="review-edit-btn" (click)="addReviewModal();">
+                                <i class="fa fa-pencil" aria-hidden="true" title="Click here to modify review"></i></a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-lg-12">
+                    <label class="d-block fs-14 mt-3" for="review-comnt">Review Title</label>
+                    <span class="content-color">{{reviewDetails?.description}}</span>
+                </div>
+            </div>
+        </div>
+        <section class="row mt-3">
+            <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                <ul class="subTabs">
+                    <li *ngIf="_reviewService?.externalSectionConfig['349']?.isActive" class="nav-item hand-cursor fs-14"
+                        [ngClass]="{active:(tabName == 'QUESTIONNAIRE')}">
+                        <a class="nav-link"  title="Questionnaire" (click)="tabName = 'QUESTIONNAIRE'">Questionnaire</a>
+                    </li>
+                    <li *ngIf="_reviewService?.externalSectionConfig['350']?.isActive && reviewDetails?.extReviewServiceType?.isScoringNeeded" class="nav-item hand-cursor fs-14"
+                        [ngClass]="{active:(tabName == 'SCORING')}">
+                        <a class="nav-link"  title="Scoring Criteria" (click)="tabName = 'SCORING'">Scoring Criteria</a>
+                    </li>
+                    <li *ngIf="_reviewService?.externalSectionConfig['351']?.isActive || _reviewService?.externalSectionConfig['352']?.isActive"
+                        class="nav-item hand-cursor fs-14" [ngClass]="{active:(tabName == 'ATTACHMENTS')}">
+                        <a class="nav-link"  title="Attachments" (click)="tabName = 'ATTACHMENTS'">Attachments</a>
+                    </li>
+                </ul>
+                <div>
+                    <app-questionnaire
+                        *ngIf="tabName =='QUESTIONNAIRE' && _reviewService?.externalSectionConfig['349']?.isActive"
+                        [extReviewID]="reviewDetails?.extReviewID" [isEditMode]="isEditMode"></app-questionnaire>
+                    <app-scoring-ext *ngIf="tabName =='SCORING' && _reviewService?.externalSectionConfig['350']?.isActive && reviewDetails?.extReviewServiceType?.isScoringNeeded"
+                        [extReviewID]="reviewDetails?.extReviewID">
+                    </app-scoring-ext>
+                    <app-attachments-ext *ngIf="tabName =='ATTACHMENTS' && (_reviewService?.externalSectionConfig['351']?.isActive || 
+                        _reviewService?.externalSectionConfig['352']?.isActive)"
+                        [extReviewID]="reviewDetails?.extReviewID" [isEditMode]="isEditMode"></app-attachments-ext>
+                </div>
+            </div>
+        </section>
+    </div>

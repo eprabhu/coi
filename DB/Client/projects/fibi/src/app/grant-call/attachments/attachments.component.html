@@ -1,0 +1,277 @@
+<ng-container *ngIf="_commonData.grandSectionConfig['1505']?.isActive">
+    <div class="card mt-3">
+        <div class="card-header px-4" [ngClass]="!_commonData.isViewMode ? 'py-2' : ''">
+            <h4 class="card-title d-flex justify-content-between align-items-center" id="grantcall-supporting-documents">
+                <div>Attachments</div>
+                <div class="mr-5">
+                    <button *ngIf="!_commonData.isViewMode" title="Add New Attachments" class="btn btn-tertiary btn-sm mt-0"
+                        id="add-attachment-btn" (click)="clearAttachmentDetails();showAddAttachmentPopUp(null);isReplaceAttachment = false;
+                    isShowAddAttachment = true" data-toggle="modal"
+                        data-target="#addGrantAttachment">
+                        <span>Add Attachments</span>
+                    </button>
+                    <button id="attachmentExpandBtn" class="updown-arrow hand-cursor"
+                        (click)="isShowAttachmentList = !isShowAttachmentList">
+                        <i aria-hidden="true"
+                            [ngClass]="isShowAttachmentList?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                            class="fa-large"></i>
+                    </button>
+                </div>
+            </h4>
+        </div>
+        <div class="card-body" *ngIf="isShowAttachmentList">
+            <div class="no-data-container"
+                *ngIf="(result?.fundingSchemeAttachment?.length == 0 && result?.grantCallAttachments?.length == 0)">
+                 <span class="no-data-icon-outer">
+                    <div class="no-data-icon">
+                        <i class="fa fa-file-o" aria-hidden="true"></i>
+                        <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                    </div>
+                </span>
+                    <h4>There is no information in this section.</h4>
+                </div>
+                <div class="table-responsive"
+                     *ngIf="(result?.fundingSchemeAttachment?.length > 0 && isShowAttachmentList) || (result?.grantCallAttachments?.length > 0  && isShowAttachmentList)">
+                    <table class="table tableSkin grid2 mb-0" aria-describedby="grantcall-supporting-documents">
+                        <thead>
+                        <tr class="header-border">
+                            <th scope="col" style="width:20%">Attachment Type</th>
+                            <th scope="col" style="width:20%">Description</th>
+                            <th scope="col">File Name</th>
+                            <th scope="col">Updated By</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr *ngFor="let fundingSchemeAttachment of result?.fundingSchemeAttachment;let i = index;">
+                            <td>{{fundingSchemeAttachment.grantCallAttachType.description}}</td>
+                            <td>{{fundingSchemeAttachment.description}}</td>
+                            <td>{{fundingSchemeAttachment.fileName}}</td>
+                            <td>{{fundingSchemeAttachment.lastUpdateUserFullName}} on
+                                {{fundingSchemeAttachment.updateTimeStamp | dateFormatterWithTimeZone: 'long'}}
+                            </td>
+                            <td>
+                                <ul class="actionButtonGroup">
+                                    <li>
+                                        <a (click)="downloadFundingSchemeAttachments(fundingSchemeAttachment)"
+                                           title="Click here to download {{(fundingSchemeAttachment?.fileName?.length > 20)?(fundingSchemeAttachment?.fileName | slice:0:20)+'...':(fundingSchemeAttachment?.fileName)}}">
+                                            <i class="fa fa-download pointer" aria-hidden="true"></i></a>
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                        </tbody>
+                        <tbody>
+                        <ng-container *ngFor="let attachment of result?.grantCallAttachments;let i = index;">
+                            <tr *ngIf="attachment?.documentStatusCode == 1">
+                                <td>{{attachment?.grantCallAttachType?.description}}</td>
+                                <td title="{{(attachment?.description?.length>60)?(attachment?.description):''}}">
+                                    {{(attachment?.description?.length > 60)?(attachment?.description | slice:0:60)+'...':(attachment?.description)}}
+                                </td>
+                                <td title="{{(attachment?.fileName?.length>50)?(attachment?.fileName):''}}">
+                                    {{(attachment?.fileName?.length > 50)?(attachment?.fileName | slice:0:50)+'...':(attachment?.fileName)}}
+                                </td>
+                                <td><span>{{attachment.lastUpdateUserFullName}} on
+                                    {{attachment.updateTimeStamp | dateFormatterWithTimeZone: 'long'}}</span></td>
+                                <td>
+                                    <ul class="actionButtonGroup">
+                                        <li *ngIf="!_commonData.isViewMode">
+                                            <a (click)="setGrantAttachmentObject(attachment)" data-toggle="modal"
+                                               data-target="#deleteGrantAttachment"
+                                               title="Click here to delete {{(attachment?.fileName?.length > 20)?(attachment?.fileName | slice:0:20)+'...':(attachment?.fileName)}}" tabindex="0">
+                                                <i aria-hidden="true" class="fa fa-trash-o pointer"></i>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a (click)="downloadAttachments(attachment)"
+                                               title="Click here to download {{(attachment?.fileName?.length > 20)?(attachment?.fileName | slice:0:20)+'...':(attachment?.fileName)}}" tabindex="0">
+                                                <i class="fa fa-download pointer" aria-hidden="true"></i></a>
+                                        </li>
+                                        <li *ngIf="!_commonData.isViewMode && result.isReplaceAttachmentEnabled">
+                                            <a id="grant-doc-replace-btn" (click)="showAddAttachmentPopUp(attachment)"
+                                               data-toggle="modal" data-target="#addGrantAttachment"
+                                               title="Click here to replace file {{(attachment?.fileName?.length > 20)?(attachment?.fileName | slice:0:20)+'...':(attachment?.fileName)}}" tabindex="0">
+                                                <i class="fa fa-retweet pointer" aria-hidden="true"></i>
+                                            </a>
+                                        </li>
+                                        <li *ngIf="result.isReplaceAttachmentEnabled">
+                                            <a id="grant-doc-version-btn"
+                                               (click)="getVersion(attachment.documentId, attachment.fileName )"
+                                               title="Click here to view file versions" data-toggle="modal"
+                                               data-target="#grant-doc-version-modal">
+                                                <img class="version-icon" src="{{deployMap}}assets/images/version-icons.png"
+                                                     alt="to get attachment version" aria-hidden="true" tabindex="0">
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </td>
+                            </tr>
+                        </ng-container>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- MODAL SECTION -->
+        <!-- ADD ATTACHMENT MODAL -->
+        <div class="modal fade mySkinDialog" id="addGrantAttachment" tabindex="-1" role="dialog" *ngIf="isShowAddAttachment"
+             aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+            <div class="modal-dialog modal-xl" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 *ngIf="!isReplaceAttachment" class="modal-title">Add Attachments</h5>
+                        <h5 *ngIf="isReplaceAttachment" class="modal-title">Replace Attachment</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                                (click)="clearAttachmentDetails();isShowAddAttachment = false">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="">
+                            <app-file-drop [multiple]="true" (filesDropEvent)="fileDrop($event)"></app-file-drop>
+                        </div>
+                        <div class="gridSkin attachment-height-container" *ngIf="uploadedFile.length > 0">
+                            <div class="card shadow mb-2" *ngFor="let item of uploadedFile; let i=index;">
+                                <div class="row mb-2">
+                                    <div class="col-lg-3 col-12">
+                                        <label class="d-block"><span class="mandatory">*</span>Document Type</label>
+                                        <span *ngIf="isReplaceAttachment == true">{{selectedAttachmentType[i]}}</span>
+                                        <select id="grant-doc-popup-type" class="form-control committeeBox dateBox"
+                                                *ngIf="isReplaceAttachment != true" [(ngModel)]="selectedAttachmentType[i]">
+                                            <option [value]=null>--Select--</option>
+                                            <option *ngFor="let attachType of result?.grantCallAttachTypes" [hidden]="attachType.isActive != true"
+                                                    [value]="attachType.grantAttachmentTypeCode">{{attachType?.description}}
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="col-lg-5 col-12">
+                                        <label for="desc">Description</label>
+                                        <textarea id="desc" cols=2 rows="1" id="grant-doc-popup-desc" autocomplete="off"
+                                                  [(ngModel)]="selectedAttachmentDescription[i]" placeholder=""
+                                                  class="form-control scheduleBoxes forTextAreaEntry text-area-height"
+                                                  appLengthValidator [isShowLimiter]='true' [limit]=2000>
+                                        </textarea>
+                                    </div>
+                                    <div class="col-lg-3 col-12">
+                                        <label class="d-block"><span class="mandatory">*</span>File Name</label>
+                                        <span>{{(item?.name?.length > 30)?(item?.name | slice:0:30)+'...':(item?.name)}}</span>
+                                    </div>
+                                    <div class="col-lg-1 col text-right">
+                                        <ul class="actionButtonGroup mt-5">
+                                            <li>
+                                                <a id="grant-doc-popup-dlt-btn" class="fa fa-trash-o hand-cursor"
+                                                   title="Remove File" (click)="deleteFromUploadedFileList(i)"></a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div *ngIf="attachmentWarningMsg != null">
+                            <span class="mandatory font">{{attachmentWarningMsg}}</span>
+                        </div>
+                    </div>
+                    <div class="modal-footer" *ngIf="uploadedFile.length > 0">
+                        <button type="button" class="btn btn-secondary" id="grant-doc-popup-close-btn" data-dismiss="modal"
+                                (click)="clearAttachmentDetails()">Close</button>
+                        <button type="button" *ngIf="!isReplaceAttachment" class="btn btn-primary-sub btn-sm"
+                                id="grant-doc-popup-add-btn" (click)="addAttachments()">Add</button>
+                        <button type="button" *ngIf="isReplaceAttachment" class="btn btn-primary-sub btn-sm"
+                                id="grant-doc-popup-add-btn" (click)="addAttachments()">Replace</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--document version modal-->
+        <div class="modal fade mySkinDialog" *ngIf="isShowAttachmentVersionModal" tabindex="-1" id="grant-doc-version-modal"
+             tabindex="-1" role="dialog" aria-labelledby="versionModalTitle" aria-hidden="true">
+            <div [ngClass]="(attachmentVersions.length == 0)?'modal-dialog':'modal-dialog modal-lg'" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 *ngIf="attachmentVersions.length > 0" class="modal-title"
+                            title="{{(fileName?.length>55)?(fileName):''}}">Versions of
+                            {{(fileName?.length > 55)?(fileName | slice:0:55)+'...':(fileName)}}</h5>
+                        <h5 *ngIf="attachmentVersions.length == 0" class="modal-title"
+                            title="{{(fileName?.length>28)?(fileName):''}}">Versions of
+                            {{(fileName?.length > 35)?(fileName | slice:0:35)+'...':(fileName)}}</h5>
+                        <button type="button" id="grant-version-close" class="close"
+                                (click)="isShowAttachmentVersionModal = false" data-dismiss="modal"
+                                id="grant-doc-version-dlt-dismiss" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" *ngIf="attachmentVersions.length > 0">
+                        <table id="doc-version-table" class="table table-responsive tableSkin"
+                               [ngClass]="(attachmentVersions?.length > 8)? 'version-table-scroll' : 'version-table-noscroll'">
+                            <caption class="sr-only">Grant Attatchments</caption>
+                            <thead *ngIf="attachmentVersions.length > 0">
+                            <tr id="versionHeaderEdit">
+                                <th scope="col" style="width:5%">Version</th>
+                                <th scope="col">File Name</th>
+                                <th scope="col">Updated By</th>
+                                <th scope="col" style="width:5%">Action</th>
+                            </tr>
+                            </thead>
+                            <tbody *ngIf="attachmentVersions.length > 0">
+                            <tr *ngFor="let version of attachmentVersions">
+                                <td style="width:5%">
+                                    <span class="text">{{version.versionNumber}}</span>
+                                </td>
+                                <td>
+                                    <span title="{{(version?.fileName?.length>30)?(version?.fileName):''}}">{{(version?.fileName?.length
+                                        > 30)?(version?.fileName | slice:0:30)+'...':(version?.fileName)}}</span>
+                                </td>
+    
+                                <td>
+                                    <span>{{version.lastUpdateUserFullName}} on
+                                        {{version.updateTimeStamp | dateFormatterWithTimeZone: 'long'}}</span>
+                                </td>
+                                <td style="width:5%">
+                                    <ul class="actionButtonGroup">
+                                        <li>
+                                            <a (click)="downloadAttachments(version)" id="grant-doc-dwnlod-btn"
+                                               title="Click here to download {{(version?.fileName?.length > 20)?(version?.fileName | slice:0:20)+'...':(version?.fileName)}}">
+                                                <i class="fa fa-download pointer" aria-hidden="true"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-body" *ngIf="attachmentVersions.length == 0">
+                        <p>There are no versions found</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="grant-doc-dlt-no-btn" class="btn btn-secondary mr-2" data-dismiss="modal"
+                                data-toggle="modal" (click)="isShowAttachmentVersionModal = false">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <!-- DELETE ATTACHMENT WARNING MODAL -->
+        <div class="modal fade mySkinDialog" tabindex="-1" id="deleteGrantAttachment" tabindex="-1" role="dialog"
+             aria-labelledby="deleteModalTitle" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete</h5>
+                        <button type="button" class="close" data-dismiss="modal" id="prop-doc-dlt-dismiss" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete this item?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="prop-doc-dlt-no-btn" class="btn btn-secondary" data-dismiss="modal"
+                                data-toggle="modal">No</button>
+                        <button type="button" id="prop-doc-dlt-yes-btn" class="btn btn-primary-sub btn-sm"
+                                (click)="deleteGrantCallAttachment()" data-dismiss="modal">Delete</button>
+                    </div>
+                </div>
+            </div>
+    </div>
+</ng-container>    

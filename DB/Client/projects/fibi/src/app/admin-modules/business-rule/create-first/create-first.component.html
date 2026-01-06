@@ -1,0 +1,151 @@
+<div *ngIf="loadCreateFirst">
+    <div class="row mt-3">
+      <div class="offset-md-3 col-lg-6 wizard-steps">
+      </div>
+    </div>
+    <div *ngIf="loadCreateFirst">
+      <div class="card mb-3 ">
+        <div class="card-header py-2">
+          <h4 class="card-title align-items-center d-flex">
+            <span class="mr-auto">Rule Definition</span>
+            <button title="Back to Rule List" class="btn more-btn mt-0" (click)="backToRuleList()"
+              data-target="#confirmGoBack" data-toggle="modal">
+              <i class="fa fa-reply" aria-hidden="true"></i>
+            </button>
+          </h4>
+        </div>
+        <div class="card-content">
+          <div class="card-body">
+            <section class="row" id="checkparam">
+              <div class="col-6 margin-bottom20 margin-top-14">
+                <span class="margin-right15 ruleUnitDescription"><span class="mandatory">*</span>Business rule at
+                </span>
+                <div class="searchBox" id="searchElastic">
+                  <app-autocompleter [completerOptions]="completerUnitListOptions" [placeHolder]="'Search department'"
+                    [isError]="(map.get('departmentName')) ? true : false" (onSelect)="onUnitSelect($event)">
+                  </app-autocompleter>
+                </div>
+              </div>
+              <div class="col-6 margin-bottom20 margin-top-14">
+                <span class="margin-right15 ruleUnitDescription"><span class="mandatory">*</span>This rule is used for
+                </span>
+                    <div class="searchBox inline-block mt-2">
+                          <app-autocompleter [completerOptions]="completerUsageOption" [placeHolder]="'Select Usage'"
+                            (onSelect)="onRuleUsedSelectionChange($event)" [isError]="(map.get('usedFor')) ? true : false">
+                          </app-autocompleter>
+                    </div>
+              </div>
+              <div class="col-12 margin-bottom20">
+                <div class="form-row">
+                  <div class="col-12">
+                    <div class="card card-inner h-100">
+                      <div class="card-header">
+                        <h6 class="card-title"><span class="mandatory">*</span>Rule applies to</h6>
+                      </div>
+                      <div class="card-content">
+                        <div class="card-body pt-3">
+                          <div class="row">
+                          <div class="col-6 p-0">
+                            <div class="form-group col">
+                              <label class="block-display"> <span class="mandatory">*</span>Module</label>
+                              <div class="searchBox inline-block">
+                                  <app-autocompleter [completerOptions]="completerModuleOptions" [placeHolder]="'Search Module'"
+                                      (onSelect)="selectModule($event)" [isError]="(map.get('moduleName')) ? true : false"></app-autocompleter>
+                              </div>
+                          </div>
+                          </div>
+                          <div class="col-6 p-0">
+                            <div class="form-group col">
+                              <label class="block-display"> <span class="mandatory"></span>Sub Module</label>
+                              <div class="searchBox inline-block">
+                                  <app-autocompleter [completerOptions]="completerSubModuleOptions" [placeHolder]="'Search Sub Module'"
+                                      (onSelect)="onRuleAppliedToSelectionChange($event)"></app-autocompleter>
+                              </div>
+                          </div>
+                          </div>
+                        </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="form-row">
+                  <div class="col-12">
+                    <label> <span class="mandatory">*</span>Description
+                    </label>
+                    <textarea (keydown)="onDescriptionChanged()" [(ngModel)]="ruleDefinition.description"
+                      class="forTextAreaEntry form-control ng-pristine ng-valid ng-touched"
+                      [ngClass]="(map.get('description')) ? 'is-invalid d-block' : ''" name="abstract"
+                      placeholder="Description" appLengthValidator [isShowLimiter]='true' [limit] = 200></textarea>
+                    <div *ngIf="(map.get('description'))" class="invalid-feedback d-block">
+                      {{map.get('description')}}
+                    </div>
+                    <div *ngIf="(map.get('descriptionlength'))" class="invalid-feedback d-block">
+                      {{map.get('descriptionlength')}}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button type="button" id="loadingButton" class="displyNone" data-toggle="modal"
+                data-target="#modal-loading"></button>
+            </section>
+            <div class="row">
+              <div class="col-12 text-right margin-top-10">
+                <button (click)="validateRuleDefinition()" class="btn btn-primary-sub btn-sm">Next</button>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal fade bd-example-modal-lg mySkinDialog" id="modal-loading">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body title-descriptions">
+              Please wait, data is loading...
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-info new" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" id="updatebutton" style="display: none" data-toggle="modal"
+      data-target="#modal-update"></button>
+    <div class="modal fade bd-example-modal-lg mySkinDialog" id="modal-update" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              Are you sure you want to leave this page?
+            </h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body title-descriptions">
+            <p> You have unsaved changes. Do you want to leave the page without saving?
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary-sub btn-sm" data-dismiss="modal">Stay on this Page</button>
+            <button type="button" class="btn btn-sm btn-secondary" (click)="navigateToRueList()" data-dismiss="modal"
+              data-toggle="modal">Leave this Page</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footerPush"></div>
+</div>
+<app-create-final [checkRuleSet]="checkRuleSet" [moduleList]="moduleList" [ruleDefinition]="ruleDefinition" (toggle)="togglePage()"
+*ngIf="loadCreateFinal"></app-create-final>
+

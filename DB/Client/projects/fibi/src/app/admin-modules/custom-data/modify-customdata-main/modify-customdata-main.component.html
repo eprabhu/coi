@@ -1,0 +1,265 @@
+<div class="push4slideMenu pageMinHeight qst-background">
+    <div class="container-fluid pushFixedHeaderFooter ">
+        <div class="headerPush"></div>
+        <section class="row mt-4">
+            <div class="col-12">
+                <div class="row mx-1">
+                    <div class="col-9 col-12">
+                        <div class="col-12 card-header align-items-center py-3 d-flex">
+                            <div class="align-items-center  d-flex mr-auto">
+                                <h4 class="card-title">Custom Data Elements</h4>
+                            </div>
+                            <a class="btn btn-primary mt-0 mr-3" (click)="createEditCustomElementModalOpen('');">
+                                Create New Custom Data
+                            </a>
+                            <a class="tooltip-helptext px-3"> <i class="fa fa-info-circle ct-icon-right hand-cursor"
+                                    aria-hidden="true" (click)="helpInfo = !helpInfo"></i>
+                            </a>
+                        </div>
+                        <div class="card customData py-1">
+                            <div *ngIf="helpInfo" class="col-12 py-3">
+                                <div class="success-banner p-2">
+                                    <i aria-hidden="true" class="fa fa-info-circle mr-1 info-icon"></i>
+                                    <em class="ng-star-inserted">The custom data allows you to create a new column label with the data type, data length, and a default value that will appear in the other information tab of each module.</em>
+                                    <button aria-label="Close" class="close close-button "
+                                        (click)="helpInfo = !helpInfo" type="button">
+                                        <span aria-hidden="true" class="d-block">×</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class=" w-100 header-outline">
+                                <div class="px-4">
+                                    <ul class="nav row">
+                                        <li class="nav-item hand-cursor" *ngFor="let module of usageModuleList">
+                                            <a class="nav-link"
+                                                [ngClass]="{'active irb-qst-active': currentTab == module?.moduleCode}"
+                                                (click)="changeCurrentTab(module?.moduleCode, module?.description)">{{module?.description}}</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <ng-container *ngIf="currentTab != ''">
+                            <app-preview-customdata [moduleCode]="currentTab" [updatedModule]="updatedModule" [moduleName] = "currentModuleName"
+                                (customElementIdChange)="customElementIdChange($event)"></app-preview-customdata>
+                        </ng-container>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <div class="footerPush"></div>
+    </div>
+</div>
+
+<!-- Create Custom Data Element Modal -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="createEditCustomElementModal" role="dialog"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Custom Data Elements </h5>
+                <button id="create-btn" type="button" class="close" (click)="createEditCustomElementModalCloseClear()"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body customDataCreateModalBody">
+                <div class="card-body table-scroll pt-0 mt-2">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="block-display"> <span class="mandatory">*</span>Column Label</label>
+                                <input id="custom-column" placeholder="" class="form-control dateBox"
+                                    [(ngModel)]="customDataElement.columnLabel" (ngModelChange)="isDataChange =true"
+                                    [ngClass]="(map.get('customcolumnlabel')) ? 'is-invalid d-block' : ''" />
+                                <div *ngIf="(map.get('customcolumnlabel'))" class="invalid-feedback d-block">
+                                    Please enter column label.
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="block-display"> <span class="mandatory">*</span>Custom Element
+                                    Name</label>
+                                <input id="custom-element-name" placeholder="" class="form-control dateBox"
+                                    [disabled]="customElementId != null && customElementId != '' " [(ngModel)]="customDataElement.customElementName"
+                                    (ngModelChange)="isDataChange =true"
+                                    [ngClass]="(map.get('customdataname')) || (map.get('customelementname')) ? 'is-invalid d-block' : ''" />
+                                <div *ngIf="(map.get('customdataname'))" class="invalid-feedback d-block">
+                                    Please enter custom element name.
+                                </div>
+                                <div *ngIf="(map.get('customelementname'))" class="invalid-feedback d-block">
+                                    Custom element name already exists.
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="">
+                                    <label class="block-display"> <span class="mandatory">*</span>Module</label>
+                                    <div class="searchBox mb-3"
+                                        [ngClass]="(map.get('custommodule')) ? 'is-invalid d-block' : ''">
+                                        <app-autocompleter [completerOptions]="moduleCompleterOptions"
+                                            [clearField]="clearModuleField" [placeHolder]="'Type here for module'"
+                                            (onSelect)="onModuleSelect($event)"></app-autocompleter>
+                                    </div>
+                                    <div *ngIf="(map.get('custommodule'))" class="invalid-feedback d-block">
+                                        Please select atleast a module.
+                                    </div>
+                                </div>
+                                <div class="fileChips mb-2" style="word-break: break-all;">
+                                    <ng-container
+                                        *ngFor="let node of customDataElement?.customDataElementUsage; let i=index">
+                                        <span *ngIf="node.acType === 'I' || node.acType === 'U'">
+                                            {{node.module?.description}}
+                                            <i aria-hidden="true" class="fa fa-close hand-cursor ng-star-inserted"
+                                                title="Remove this module"
+                                                (click)="removeModule(node.module?.moduleCode)"></i>
+                                        </span>
+                                    </ng-container>
+                                </div>
+                            </div>
+                            <div *ngIf="customDataElement.isActive" class="form-group ng-star-inserted">
+                                <label class="block-display">Active</label>
+                                <a *ngIf="customDataElement.isActive == 'Y'">
+                                    <label class="switch">
+                                        <input type="checkbox" id={{customDataElement.customElementId}} [disabled] = "!customDataElement.customElementId"
+                                            (click)="inactivateCustomData(customDataElement.isActive, customDataElement.columnName, customDataElement.customElementId)"
+                                            checked>
+                                        <span class="slider round"><small>Yes</small></span>
+                                    </label>
+                                </a>
+                                <a *ngIf="customDataElement.isActive == 'N'">
+                                    <label class="switch">
+                                        <input type="checkbox" id={{customDataElement.customElementId}} [disabled] = "!customDataElement.customElementId"
+                                            (click)="inactivateCustomData(customDataElement.isActive, customDataElement.columnName, customDataElement.customElementId)">
+                                        <span class="slider round"><small class="deactivate-text">No</small></span>
+                                    </label>
+                                </a>                           
+                            </div>
+                        </div>
+                        <div class="col-6 overflow-y">
+                            <div class="form-group">
+                                <label class="block-display"> <span class="mandatory">*</span>Data Type</label>
+                                <select id="prop-type" class="form-control  dateBox"
+                                    [(ngModel)]="customDataElement.dataType"
+                                    [disabled]="currentElementAnswered"
+                                    (ngModelChange)="changeOptions(customDataElement.dataType);isDataChange = true; customDataElement.defaultValue = '';"
+                                    [ngClass]="(map.get('customdatatype')) ? 'is-invalid d-block' : ''">
+                                    <option value="">--Select--</option>
+                                    <option *ngFor="let datatype of dataTypes?.customDataTypes"
+                                        [hidden]="datatype.isActive != true" [value]="datatype.dataTypeCode">
+                                        {{datatype.description}}</option>
+                                </select>
+                                <div *ngIf="(map.get('customdatatype'))" class="invalid-feedback d-block">
+                                    Please select datatype.
+                                </div>
+                            </div>
+                            <div class="form-group"
+                                *ngIf="customDataElement.dataType == '1' || customDataElement.dataType == '2'">
+                                <label class="block-display"> <span class="mandatory">*</span>Data Length</label>
+                                <input id="sponsor-loc" placeholder="" class="form-control  dateBox"
+                                    [disabled]="currentElementAnswered"
+                                    [(ngModel)]="customDataElement.dataLength" (ngModelChange)="isDataChange =true"
+                                    [ngClass]="(map.get('customdatalength')) ? 'is-invalid d-block' : ''"
+                                    (keypress)="inputRestriction($event)"
+                                    (keyup)="checkLengthValidation(customDataElement.defaultValue,customDataElement);" />
+                                <div *ngIf="(map.get('customdatalength'))" class="invalid-feedback d-block">
+                                    Please enter datalength.
+                                </div>
+                            </div>
+                            <div class="form-group"
+                                *ngIf="customDataElement.dataType == '6' || customDataElement.dataType == '7' || customDataElement.dataType == '8' || customDataElement.dataType == '9'">
+                                <label class="block-display"> <span class="mandatory">*</span>Lookup Type</label>
+                                <select id="prop-type" class="form-control  dateBox"
+                                    [disabled]="currentElementAnswered"
+                                    [(ngModel)]="customDataElement.lookupArgument"
+                                    [ngClass]="(map.get('customdatalookup')) ? 'is-invalid d-block' : ''"
+                                    (ngModelChange)="selectSearchValue(customDataElement.lookupArgument);isDataChange = true; customDataElement.defaultValue = ''; ">
+                                    <option value="">--Select--</option>
+                                    <option *ngFor="let lookupType of lookupData" [value]="lookupType.code">
+                                        {{lookupType.description}}</option>
+                                </select>
+                                <div *ngIf="(map.get('customdatalookup'))" class="invalid-feedback d-block">
+                                    Please select lookup type.
+                                </div>
+                            </div>
+                            <div class="form-group"
+                                *ngIf="customDataElement.dataType === '1' || customDataElement.dataType === '2' || customDataElement.dataType === '6' || customDataElement.dataType === '7'">
+                                <label class="block-display"><span class="mandatory"
+                                        *ngIf="customDataElement.dataType === '6' || customDataElement.dataType === '7'">*
+                                    </span>Default Value</label>
+                                <select *ngIf="customDataElement.dataType === '6' || customDataElement.dataType === '7'"
+                                    id="prop-type" class="form-control  dateBox"
+                                    [ngClass]="(map.get('customdatadefault')) ? 'is-invalid d-block' : ''"
+                                    [(ngModel)]="customDataElement.defaultValue"
+                                    [disabled]="currentElementAnswered">
+                                    <option value="">--Select--</option>
+                                    <option *ngFor="let defaultvalue of defaultValueOptions"
+                                        [value]="defaultvalue.value">
+                                        {{defaultvalue.key}}</option>
+                                </select>
+                                <input *ngIf="customDataElement.dataType === '1' || customDataElement.dataType === '2'"
+                                    id="custom-column" placeholder="" class="form-control dateBox" [disabled]="currentElementAnswered"
+                                    [(ngModel)]="customDataElement.defaultValue" (ngModelChange)="isDataChange =true;"
+                                    [ngClass]="(map.get('customdatadefault')) ? 'is-invalid d-block' : ''"
+                                    (keypress)="(customDataElement.dataType === '2' ) ? (inputRestriction($event)) : ''"
+                                    (keyup)="checkLengthValidation(customDataElement.defaultValue,customDataElement);" />
+                                <div *ngIf="(map.get('customdatadefault'))" class="invalid-feedback d-block">
+                                    Please select default value.
+                                </div>
+                            </div>
+                            <div class="form-group"
+                                *ngIf="customDataElement.dataType == '4' || customDataElement.dataType == '5'">
+                                <div class=" options">
+                                    <ng-container *ngFor="let option of elementOptions;let optionIndex = index">
+                                        <div class="input-group mb-3">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text" id="basic-addon1">
+                                                    <i aria-hidden="true" class="fa fa-circle"></i>
+                                                </span>
+                                            </div>
+                                            <div class="form-group col-lg-10">
+                                                <input type="text" id="option" class="form-control custom-input"
+                                                    placeholder="Options" [(ngModel)]="option.optionName"
+                                                    [disabled]="currentElementAnswered"
+                                                    (ngModelChange)="isDataChange =true" aria-label="Username"
+                                                    aria-describedby="basic-addon1">
+                                                <span class="bar"></span>
+                                            </div>
+                                            <div class="input-group-append" *ngIf="!currentElementAnswered">
+                                                <span class="input-group-text"><a
+                                                        (click)="deleteOption(option ,optionIndex)">
+                                                        <i aria-hidden="true" class="fa fa-times"></i></a>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </ng-container>
+                                </div>
+                                <div class="options" *ngIf="!currentElementAnswered" >
+                                    <div class="input-group mb-3">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text" id="basic-addon1">
+                                                <i aria-hidden="true" class="fa fa-circle"></i>
+                                            </span>
+                                        </div>
+                                        <span class="input-group-text" tabindex="2"><button class="btn-blank"
+                                                (click)="addOptions()">ADD ANOTHER OPTION</button></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="success-banner p-2">
+                            <i aria-hidden="true" class="fa fa-info-circle mr-1 info-icon"></i>
+                            <em class="ng-star-inserted">Element inactivation/reactivation will result in withdrawal/activation of element from all modules with which it is attached.</em>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="sponsor-add-no-btn" type="button" class="btnSkin btn-secondary"
+                    (click)="createEditCustomElementModalCloseClear();">Cancel</button>
+                <button *ngIf="!this.customId" class="btn btn-primary-sub mb-3 mb-sm-0 mr-sm-3 btn-sm"
+                    (click)="saveCustomData('I')">Save</button>
+                <button *ngIf=" this.customId" class="btn btn-primary-sub mb-3 mb-sm-0 mr-sm-3 btn-sm"
+                    (click)="saveCustomData('U')">Update</button>
+            </div>
+        </div>
+    </div>
+</div>

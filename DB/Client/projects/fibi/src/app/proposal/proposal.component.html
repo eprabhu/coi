@@ -1,0 +1,1200 @@
+<!-- last updated by Ramlekshmy I on 18-11-2019 -->
+<div id="scrollToTop" class="push4slideMenu pageMinHeight">
+    <div class="container-fluid pushFixedHeaderFooter">
+        <div class="headerPush"></div>
+        <section class="row">
+            <div class="col-12">
+                <div class="sticky-top-nav mb-3 header-outline" id="stickyProposalHeader">
+                    <div class="row">
+                        <div class="text-left col">
+                            <h2 *ngIf="result?.proposal?.proposalId" title="{{result?.proposal?.title}}"
+                                class="title-primary fs-20 text-justify">
+                                <ng-container i18n="@@PROPOSAL_SID">SID </ng-container>#{{result?.proposal?.proposalId}} :
+                                {{(result?.proposal?.title.length>200)?(result?.proposal?.title|slice:0:200)+'...':(result?.proposal?.title)}}
+                            </h2>
+                        </div>
+                        <div class="col-1"
+                            *ngIf="_commonService.isEnableLock && !webSocket.isLockAvailable('Proposal' + '#' + result?.proposal?.proposalId) && webSocket.isServerAvailable">
+                            <span *ngIf="result?.proposal?.proposalId" class=" blink icon-hover text-right">
+                                <a class="tooltip "><i class="fa fa-lock fs-20" aria-hidden="true"></i>
+                                    <div class="tooltiptext-right card card-inner p-15 text-left">
+                                        <span class="font-cv">Locked</span>
+                                        <span class="font-cv font-weight-bold">This document has a lock currently owned
+                                            by {{webSocket.currentLockedModule['Proposal' + '#' + result?.proposal?.proposalId]?.currentUser}} as
+                                            of
+                                            {{webSocket.currentLockedModule['Proposal' + '#' + result?.proposal?.proposalId]?.createTimeStamp |
+                                            date: 'medium'}}
+                                        </span>
+                                    </div>
+                                </a>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <!-- Proposal ID: , IP No -->
+                        <div class="col-auto pr-0"
+                            *ngIf="result?.proposal?.applicationId || result?.proposal?.ipNumber">
+                            <span class="badge-title bg-transparent px-0 fs-14-nav"
+                                *ngIf="result?.proposal?.applicationId">
+                                <i class="fa fa-file text-primary" aria-hidden="true"></i>
+                                <span class="d-none d-md-inline-block">Proposal ID:</span>
+                                {{result?.proposal?.applicationId}}</span>
+                            <span class="badge-title bg-transparent px-0 fs-14-nav" *ngIf="result?.proposal?.ipNumber">
+                                <i class="fa fa-university text-primary" aria-hidden="true"></i>
+                                <span class="d-none d-md-inline-block">Institute Proposal No : </span>
+                                {{result?.proposal?.ipNumber}}</span>
+                        </div>
+                        <div class="col-12 col-lg">
+                            <div class="float-left d-inline-block">
+                                <span class="badge-title bg-transparent px-0 mr-3 fs-14-nav"
+                                    *ngIf="result?.proposal?.proposalId">
+                                    <i class="fa fa-clock-o text-primary mr-1" aria-hidden="true"></i>
+                                    <span class="d-none d-md-inline-block">Period : </span>
+                                    {{_proposalService?.proposalStartDate | dateFormatter}} -
+                                    {{_proposalService?.proposalEndDate | dateFormatter}}
+                                </span>
+                                <span class="badge-title bg-transparent px-0 fs-14-nav"
+                                    *ngIf="result?.proposal?.proposalId && result?.proposal?.investigator?.fullName">
+                                    <i class="fa fa-user text-primary mr-1" aria-hidden="true"></i>
+                                    <span class="d-none d-md-inline-block">PI :</span>
+                                    {{result?.proposal?.investigator?.fullName}}
+                                </span>
+                                <span class="badge-title bg-transparent px-1 px-md-3 px-lg-4 fs-14-nav"
+                                    *ngIf="result?.proposal?.proposalId && result?.proposal?.homeUnitName">
+                                    <i class="fa fa-home text-primary mr-1" aria-hidden="true"></i>
+                                    <span class="d-none d-md-inline-block">Lead Unit : </span>
+                                    {{concatUnitNumberAndUnitName(result?.proposal?.homeUnitNumber,
+                                    result?.proposal?.homeUnitName)}}
+                                </span>
+                                <span *ngIf="result?.proposal?.documentStatusCode == 2"
+                                    class="badge-title bg-transparent px-0 fs-14-nav"><i
+                                        class="fa fa-pencil-square-o text-primary" aria-hidden="true"></i>
+                                    <span class="status-badge-info fs-14-nav px-0 bg-transparent">Admin Correction In
+                                        Progress
+                                    </span>
+                                </span>
+                            </div>
+                            <span
+                                class="status-badge-{{getBadgeByStatusCode(result?.proposal.proposalStatus.statusCode)}} fs-14-nav mb-2 float-right"
+                                title="{{result?.proposal?.proposalStatus?.description}}">{{result?.proposal?.proposalStatus?.description}}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <!-- nav links -->
+                        <div class="col-lg col-auto pr-0">
+                            <div class="collapse navbar-toggleable-xs mt-5 mt-lg-0 mb-1" id="navbarResponsive">
+                                <ul class="menu-responsive tabs fit-content tabs-collapsed">
+                                    <li *ngIf="result?.proposal?.proposalId && _proposalService.proposalSectionConfig['DP314']?.isActive "
+                                        title="Proposal" role="presentation" routerLinkActive="active">
+                                        <a queryParamsHandling='merge' [routerLink]="['/fibi/proposal/summary']"
+                                            id="prop-summary-tab"
+                                            (click)="setCurrentTab('PROPOSAL_REVIEW');"
+                                            tabindex="0">Proposal</a>
+                                    </li>
+                                    <li title="General" role="presentation" routerLinkActive="active"
+                                        *ngIf="_proposalService.proposalSectionConfig['DP301']?.isActive">
+                                        <a id="prop-home-tab" [routerLink]="['/fibi/proposal/overview']"
+                                            queryParamsHandling='merge'
+                                            (click)="setCurrentTab('PROPOSAL_HOME')"
+                                            tabindex="0">
+                                            General </a>
+                                    </li>
+                                    <li title="Other Information" role="presentation" routerLinkActive="active" *ngIf="result.showOtherInformation == true && result?.proposal?.proposalId
+                                        && _proposalService.proposalSectionConfig['DP302']?.isActive">
+                                        <a id="prop-other-information-tab" tabindex="0"
+                                            [routerLink]="['/fibi/proposal/other-information']"
+                                            queryParamsHandling='merge'
+                                            (click)="setCurrentTab('CUSTOMDATA')">
+                                            Other Information</a>
+                                    </li>
+                                    <li title="Budget" role="presentation" *ngIf="result?.proposal?.proposalId
+                                        && _proposalService.proposalSectionConfig['DP303']?.isActive"
+                                        routerLinkActive="active">
+                                        <a queryParamsHandling='merge' id="prop-budget-tab"
+                                            [routerLink]="['/fibi/proposal/budget']"
+                                            (click)=" setCurrentTab('BUDGET')"
+                                            tabindex="0">
+                                            Budget</a>
+                                    </li>
+                                    <li title="Questionnaire" role="presentation" *ngIf="result?.proposal?.proposalId &&
+                                        _proposalService.proposalSectionConfig['DP304']?.isActive"
+                                        routerLinkActive="active">
+                                        <a id="prop-questionnaire-tab" (click)="
+                                            setCurrentTab('QUESTIONNAIRE');" queryParamsHandling='merge'
+                                            [routerLink]="['/fibi/proposal/questionnaire']" tabindex="0">
+                                            Questionnaire</a>
+                                    </li>
+                                    <li title="Attachments" role="presentation" i18n-title="@@PROPOSAL_ATTACHMENTS_TLP" *ngIf="result?.proposal?.proposalId &&
+                                                                            _proposalService.proposalSectionConfig['DP305']?.isActive"
+                                        routerLinkActive="active">
+                                        <a id="prop-attachments-tab" (click)=" setCurrentTab('ATTACHMENTS')" tabindex="0"
+                                            [routerLink]="['/fibi/proposal/attachment']" queryParamsHandling='merge'>
+                                            <ng-container i18n="@@PROPOSAL_ATTACHMENTS">Attachments</ng-container>
+                                        </a>
+                                    </li>
+                                    <li title="Comments" role="presentation" *ngIf="result?.proposal?.proposalId &&
+                                        _proposalService.proposalSectionConfig['DP306']?.isActive"
+                                        routerLinkActive="active">
+                                        <a id="prop-comments-tab" [routerLink]="['/fibi/proposal/comments']"
+                                            queryParamsHandling='merge'
+                                            (click)="setCurrentTab('COMMENTS')"
+                                            tabindex="0">
+                                            Comments</a>
+                                    </li>
+                                    <li title="Permissions" role="presentation" i18n-title="@@PROPOSAL_PERMISSIONS_TLP"
+                                        *ngIf="result?.proposal?.proposalId" routerLinkActive="active">
+                                        <a id="prop-role-tab" [routerLink]="['/fibi/proposal/permissions']"
+                                            queryParamsHandling='merge'
+                                            (click)="setCurrentTab('ROLE')"
+                                            tabindex="0">
+                                            <ng-container i18n="@@COMMON_PERMISSIONS">Permissions</ng-container>
+                                        </a>
+                                    </li>
+                                    <li title="Current & Pending" i18n-title="@@CURRENT_PROJECTS_PENDING_PROPOSAL_TLP" *ngIf="result?.proposal?.proposalId &&
+                                                                            _proposalService.proposalSectionConfig['DP308']?.isActive" role="presentation"
+                                        routerLinkActive="active">
+                                        <a (click)=" setCurrentTab('C&P');" queryParamsHandling='merge' [routerLink]="['/fibi/proposal/current-pending']">
+                                            <ng-container i18n="@@CURRENT_PROJECTS_PENDING_PROPOSAL">Current & Pending</ng-container>
+                                        </a>
+                                    </li>
+                                    <li title="Medusa" *ngIf="(result?.proposal?.proposalId)&&(result?.proposal?.proposalStatus?.statusCode == '5' || result?.proposal?.proposalStatus?.statusCode == '6' || result?.proposal?.proposalStatus?.statusCode == '7' || result?.proposal?.proposalStatus?.statusCode == '11') &&
+                                        _proposalService.proposalSectionConfig['DP309']?.isActive" role="presentation"
+                                        routerLinkActive="active">
+                                        <a title="Medusa" id="prop-medusa-tab" [routerLink]="['/fibi/proposal/medusa']"
+                                            queryParamsHandling='merge'
+                                            (click)="setCurrentTab('MEDUSA')"
+                                            tabindex="0">
+                                            Medusa</a>
+                                    </li>
+                                    <li title="Review" *ngIf="result?.proposal?.proposalId
+                                        && _proposalService.proposalSectionConfig['DP310']?.isActive"
+                                        role="presentation" routerLinkActive="active">
+                                        <a id="prop-review-tab" [routerLink]="['/fibi/proposal/review']"
+                                            queryParamsHandling='merge'
+                                            (click)="setCurrentTab('REVIEW')"
+                                            tabindex="0">
+                                            Review</a>
+                                    </li>
+                                    <li title="Support" i18n-title="@@COMMON_SUPPORT" routerLinkActive="active"
+                                        *ngIf="result?.proposal?.proposalId && _proposalService.proposalSectionConfig['DP311']?.isActive"
+                                        role="presentation">
+                                        <a id="prop-support-tab" [routerLink]="['/fibi/proposal/support']"
+                                            queryParamsHandling='merge'
+                                            (click)="setCurrentTab('SUPPORT')"
+                                            tabindex="0">
+                                            <ng-container i18n="@@COMMON_SUPPORT">Support</ng-container>
+                                        </a>
+                                    </li>
+                                    <li title="Evaluation"
+                                        *ngIf="result?.proposal?.proposalId  && _proposalService.proposalSectionConfig['DP312']?.isActive &&
+                                        result?.grantCall?.grantCallType?.grantTypeCode &&
+                                        result?.grantCall?.grantCallType?.grantTypeCode != 1 && result?.grantCall?.grantCallType?.grantTypeCode != 2 "
+                                        role="presentation" routerLinkActive="active">
+                                        <a id="prop-support-tab" [routerLink]="['/fibi/proposal/evaluation']"
+                                            queryParamsHandling='merge'
+                                            (click)="setCurrentTab('EVALUATION')"
+                                            tabindex="0">
+                                            Evaluation</a>
+                                    </li>
+                                    <li *ngIf="result?.proposal?.proposalId  && _proposalService.proposalSectionConfig['DP315']?.isActive"
+                                        role="presentation" routerLinkActive="active" title="Certification" i18n-title="@@PROPOSAL_CERTIFICATION_TLP">
+                                        <a (click)="setCurrentTab('CERTIFICATION');" queryParamsHandling='merge' tabindex="0"
+                                            [routerLink]="['/fibi/proposal/certification']">
+                                            <ng-container i18n="@@PROPOSAL_CERTIFICATION">Certification</ng-container>
+                                        </a>
+                                    </li>
+                                    <li title="Route Log"
+                                        *ngIf="result?.proposal?.proposalId && result.workflow !== null && _proposalService.proposalSectionConfig['DP313']?.isActive"
+                                        role="presentation" routerLinkActive="active">
+                                        <a id="prop-route" [routerLink]="['/fibi/proposal/route-log']"
+                                            queryParamsHandling='merge'
+                                            (click)="setCurrentTab('ROUTE_LOG')"
+                                            tabindex="0">
+                                            Route Log</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <!-- submit,return button -->
+                        <div class="col-lg-auto col-12 my-2">
+                            <button #mainHeaders id="responsiveColapse"
+                                class="navbar-toggler hidden-sm-up px-0 d-inline-block d-lg-none float-left mt-1"
+                                type="button" data-toggle="collapse" data-target="#navbarResponsive"
+                                aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                                <i class="fa fa-bars f-14 text-muted mx-colr" aria-hidden="true"
+                                    title="Click for more pages"></i>
+                            </button>
+                            <span class="float-right">
+                                <button class="btn btn-primary-sub btn-sm" *ngIf="isShowSave"
+                                    (click)="initiateSaveInChildComponents()">Save</button>
+                                <button type="button" title="Validate Proposal" id="validation-btn"
+                                    (click)="validateProposal(); proposalMode = 'VALIDATE'"
+                                    *ngIf="dataVisibilityObj.mode != 'view' && result?.proposal?.proposalId"
+                                    class="btn btn-secondary btn-sm fs-14-nav">Validate</button>
+                                <button title="Submit Proposal" type="button" class="btn btn-primary btn-sm fs-14-nav"
+                                    id="prop-submit-btn"
+                                    *ngIf="dataVisibilityObj.mode != 'view' &&  result?.proposal?.documentStatusCode != 2 && result?.proposal?.proposalId "
+                                    (click)="checkSubmitProposalValidation(); proposalMode = 'SUBMIT'">Submit
+                                </button>
+                                <!-- The below Submit is for Admin Correction -->
+                                <button title="Submit Admin correction" type="button"
+                                    class="btn btn-primary btn-sm fs-14-nav" id="prop-submit-admcrc-btn"
+                                    (click)="checkAdminCorrectionValidation(); proposalMode = 'ADMIN_CORRECTION'"
+                                    *ngIf="dataVisibilityObj.mode != 'view' && result?.proposal?.documentStatusCode == 2 &&
+                                    departmentLevelRightsForProposal?.isCreateAdminCorrection && result?.proposal?.proposalId">
+                                    Submit Admin Correction
+                                </button>
+                                <button (click)="disapproveProposal()"
+                                        *ngIf="((result?.proposal?.statusCode === 2 || result?.proposal?.statusCode === 8)
+                                                 && (_commonService.isMapRouting || _commonService.isEvaluationAndMapRouting)
+                                                 && (result?.canApproveRouting =='1' && result?.isPersonCanScore !== true )
+                                                 && result?.proposal?.documentStatusCode != '2')"
+                                        class="btn btn-secondary btn-sm fs-14-nav"
+                                        data-target="#approveDisapproveModal" data-toggle="modal"
+                                        id="prop-disapprove-btn" title="Return"
+                                        type="button">
+                                    <ng-container i18n="@@COMMON_RETURN">Return</ng-container>
+                                </button>
+                                <button (click)="endorseProposal()"
+                                        *ngIf="((result?.proposal?.statusCode === 2 || result?.proposal?.statusCode === 8)
+                                                && (_commonService.isMapRouting || _commonService.isEvaluationAndMapRouting)
+                                                && (result?.canApproveRouting =='1' || result?.isPersonCanScore == true)
+                                                && result?.proposal?.documentStatusCode != '2')"
+                                        class="btn btn-primary btn-sm fs-14-nav"
+                                        id="prop-approve-btn" title="Approve" i18n-title="@@COMMON_APPROVE_FOR_PROPOSAL"
+                                        type="button">
+                                    <ng-container i18n="@@COMMON_APPROVE_FOR_PROPOSAL">Approve</ng-container>
+                                </button>
+                                <!-- DONT REMOVE -->
+                                <!-- || (dataVisibilityObj.mode =='view' && superUser == 'true'
+                                     && result?.proposal?.statusCode !== 11  && result?.proposal?.statusCode!= 12) -->
+                                <!-- <button title="Endorse Proposal" type="button" id="prop-approve-btn" class="btn btn-primary btn-sm"
+                                        *ngIf="((result?.proposal?.statusCode === 2 || result?.proposal?.statusCode === 8)
+                                    && (_commonService.isMapRouting || _commonService.isEvaluationAndMapRouting)
+                                    && (result?.canApproveRouting =='1'|| result?.isPersonCanScore == true))"
+                                        (click)="endorseProposal()">Endorse
+                                        Proposal</button> -->
+
+                                <!-- <button title="Click to view/add comments" *ngIf="isShowCommentsTab" type="button"
+                                        id="proposal-main-panel-comments-button" class="btn btn-primary btn-sm"
+                                        (click)="setCurrentTab('COMMENTS')">Comments</button> -->
+
+                                <button
+                                    *ngIf="result?.proposal?.proposalId && _proposalService?.proposalSectionConfig['DP311']?.isActive"
+                                    title="Support" class="btn more-btn"
+                                    i18n-title="@@COMMON_SUPPORT"
+                                    (click)="showSupportModal();">
+                                    <i class="fa fa-question" aria-hidden="true"></i>
+                                </button>
+                                <span #moreOptionsBtn class="position-relative">
+                                    <button *ngIf="result?.proposal?.proposalId" title="More Actions"
+                                        class="btn more-btn" (click)="isShowMoreOptions = !isShowMoreOptions">
+                                        <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+                                    </button>
+                                    <ul id="moreOptions-list" id="moreOptions-list" class="more-options-box"
+                                        *ngIf="isShowMoreOptions">
+                                        <li title="Request New Review"
+                                            *ngIf="(result?.proposal?.statusCode === 1 || result?.proposal?.statusCode === 3) && dataVisibilityObj.mode != 'view'">
+                                            <a class="dropdown-item" href="" id="prop-prereview-btn"
+                                                (click)="showRequestModal.isRequestNewReview =true;isShowMoreOptions = !isShowMoreOptions">
+                                                <i class="fa fa-user" aria-hidden="true"></i>Request New Review</a>
+                                        </li>
+                                        <li title="Add New Attachment"
+                                            *ngIf="departmentLevelRightsForProposal.isModifyProposalAttachments"><a
+                                                class="dropdown-item" href=""
+                                                (click)="isShowMoreOptions = !isShowMoreOptions;addAttachment.isShowAddAttachment = true;addAttachment.isReplaceAttachment = false;"
+                                                *ngIf="dataVisibilityObj.mode != 'view'"><i class="fa fa-plus"
+                                                    aria-hidden="true"></i>Add
+                                                Attachment</a></li>
+                                        <li title="Copy Proposal"
+                                            *ngIf="result?.proposal?.proposalId && isCreateProposal">
+                                            <a class="dropdown-item" href="" id="prop-copy-proposal-btn"
+                                                data-toggle="modal" data-target="#copyProposalModal"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions">
+                                                <i class="fa fa-copy" aria-hidden="true"></i>Copy Proposal
+                                            </a>
+                                        </li>
+                                        <li title="Create Admin Correction" *ngIf="result?.proposal?.proposalId && departmentLevelRightsForProposal?.isCreateAdminCorrection
+                                            && (result?.proposal?.proposalStatus?.statusCode != '1'
+                                            && result?.proposal?.proposalStatus?.statusCode != '3'
+                                            && result?.proposal?.proposalStatus?.statusCode != '9'
+                                            && result?.proposal?.proposalStatus?.statusCode != '11'
+                                            && result?.proposal?.proposalStatus?.statusCode != '12'
+                                            && result?.proposal?.proposalStatus?.statusCode != '35') &&
+                                            result?.proposal?.documentStatusCode != 2">
+                                            <a class="dropdown-item" href="" id="prop-admin-correction-btn"
+                                                data-toggle="modal" data-target="#confirmAdminCorrectionModal"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions">
+                                                <i class="fa fa-pencil" aria-hidden="true"></i>Admin Correction
+                                            </a>
+                                        </li>
+                                        <li title="Cancel Admin Correction"
+                                            *ngIf="dataVisibilityObj.mode != 'view' && result?.proposal?.documentStatusCode == 2 &&
+                                                   departmentLevelRightsForProposal?.isCreateAdminCorrection && result?.proposal?.proposalId">
+                                            <a class="dropdown-item" href="" id="prop-cancel-admin-correction-proposal-btn"
+                                                data-toggle="modal" data-target="#cancelAdminCorrection"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions;">
+                                                <i class="fa fa-close" aria-hidden="true"></i>Cancel Admin Correction
+                                            </a>
+                                        </li>
+                                        <li title="Import"
+                                            *ngIf="(result?.proposal?.statusCode === 1 || result?.proposal?.statusCode === 3) && isCreateProposal && dataVisibilityObj?.mode != 'view'">
+                                            <a class="dropdown-item" href="" id="prop-import-proposal-btn"
+                                                data-toggle="modal" data-target="#confirmImportModal"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions;importedFile = [];proposalDataBindObj.mandatoryList.delete('noFileSelected');">
+                                                <img alt="Import" aria-hidden="true" class="mr-1" width="15px"
+                                                    src="{{deployMap}}assets/images/Import-icon_fibi-4.svg">Import From
+                                                Template
+                                            </a>
+                                        </li>
+                                        <li title="Send Notification" *ngIf="hasModifyProposalRight">
+                                            <a class="dropdown-item hand-cursor" id="prop-notify-proposal-btn"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions;isShowNotificationModal=true;">
+                                                <i class="fa fa-bell-o" aria-hidden="true"></i>Send Notification
+                                            </a>
+                                        </li>
+                                        <!-- <li title="Withdraw Proposal"
+                                            *ngIf="result?.proposal?.proposalId && (result?.proposal?.statusCode === 3 || result?.proposal?.statusCode === 1) && departmentLevelRightsForProposal.isWithdrawProposal">
+                                            <a class="dropdown-item" href="" id="prop-withdraw-proposal-btn"
+                                                data-toggle="modal" data-target="#warning-modal"
+                                                (click)="dataVisibilityObj.isShowWithdrawConfirmation = true;isShowMoreOptions = !isShowMoreOptions">
+                                                <i class="fa fa-sort-amount-asc" aria-hidden="true"></i>Withdraw
+                                                Proposal</a>
+                                        </li> -->
+                                        <li title="Withdraw Proposal" i18n-title="@@PROPOSAL_WITHDRAW"
+                                                *ngIf="result?.proposal?.proposalId
+                                                && [2,8,20,22,24].includes(result?.proposal?.statusCode)
+                                                && departmentLevelRightsForProposal.isWithdrawProposal
+                                                && result?.proposal?.documentStatusCode != '2'">
+                                            <a class="dropdown-item" href="" id="recall-proposal-btn"
+                                                data-toggle="modal" data-target="#recallProposalModal"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions; recallProposalObject={}; uploadedFiles= []">
+                                                <i class="fa fa-sort-amount-asc" aria-hidden="true"></i>
+                                                <ng-container i18n="@@PROPOSAL_WITHDRAW">Withdraw Proposal
+                                                </ng-container>
+                                            </a>
+                                        </li>
+                                        <li title="Print Proposal" *ngIf="result?.proposal?.proposalId">
+                                            <a class="dropdown-item"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions; validationMap.clear(); this.getprintTemplates($event);">
+                                                <i class="fa fa-print" aria-hidden="true"></i>Print Proposal</a>
+                                        </li>
+                                        <li title="View Rates"
+                                            *ngIf="dataVisibilityObj.currentTab == 'BUDGET' && dataVisibilityObj.isBudgetHeaderFound && result?.isAutoCalculateEnabled"
+                                            (click)="openRatesModal($event)">
+                                            <a class="dropdown-item" href=""><i class="fa fa-percent"
+                                                    aria-hidden="true"></i>Rates</a>
+                                        </li>
+                                        <li title="Print Budget"
+                                            *ngIf="dataVisibilityObj.currentTab == 'BUDGET' && this.dataVisibilityObj.isBudgetHeaderFound && (this.departmentLevelRightsForProposal.isMaintainProposalBudget || this.departmentLevelRightsForProposal.isDefineApprovedBudget)">
+                                            <a class="dropdown-item"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions; generateProposalBudgetReport();">
+                                                <i class="fa fa-print" aria-hidden="true"></i>Print Budget</a>
+                                        </li>
+                                        <li title="Export Proposal" *ngIf="result?.proposal?.proposalId">
+                                            <a class="dropdown-item"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions; exportProposal()">
+                                                <i class="fa fa-file-zip-o" aria-hidden="true"></i>Export Proposal
+                                            </a>
+                                        </li>
+                                        <li title="Delete Proposal"
+                                            *ngIf="result?.proposal?.proposalId && result?.proposal?.statusCode == 1 && departmentLevelRightsForProposal.isDeleteProposal  && webSocket.isLockAvailable('Proposal' + '#' + result?.proposal?.proposalId)">
+                                            <a class="dropdown-item" href="" data-toggle="modal"
+                                                data-target="#deleteProposalModal"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions;">
+                                                <i class="fa fa-trash-o" aria-hidden="true"></i>Delete Proposal
+                                            </a>
+                                        </li>
+                                        <li title="Mark as Deactivate"
+                                            *ngIf="result?.proposal?.proposalId
+                                            && result?.proposal?.proposalStatus?.statusCode !== 35
+                                            && departmentLevelRightsForProposal.isDeactivateProposal
+                                            && result?.proposal?.documentStatusCode != '2'
+                                            && webSocket.isLockAvailable('Proposal' + '#' + result?.proposal?.proposalId)">
+                                            <a class="dropdown-item" href="" id="prop-make-inactive-btn"
+                                                data-toggle="modal" data-target="#makeActiveModal"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions;">
+                                                <i class="fa fa-times-circle-o" aria-hidden="true"></i>Deactivate
+                                                Proposal
+                                            </a>
+                                        </li>
+                                        <li *ngIf="result?.proposal?.proposalStatus?.statusCode == 41 && !result?.proposal?.ipNumber &&
+                                            departmentLevelRightsForProposal.canCreateIP" title="Create Institute Proposal">
+                                            <a class="dropdown-item" id="prop-create-IP"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions; showMergeModal()">
+                                                <i class="fa fa-university" aria-hidden="true"></i>Create Institute Proposal
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </span>
+                                <!-- <button *ngIf="result?.proposal?.proposalId" title="Request for Support" class="btn more-btn"
+                                    (click)="showRequestModal.isRequestSupport = true;" data-toggle="modal" data-target="#app-generic-support-modal">
+                                    <i class="fa fa-question" aria-hidden="true"></i>
+                                    </button>
+                                    <button *ngIf="result?.proposal?.proposalId" title="Back to Proposal List" class="btn more-btn"
+                                    (click)="openGoBackModal();">
+                                    <i class="fa fa-reply" aria-hidden="true"></i>
+                                    </button> -->
+                                <button title="Back to Proposal List" class="btn more-btn" (click)="openGoBackModal();">
+                                    <i class="fa fa-reply" aria-hidden="true"></i>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row text-center"
+                        *ngIf="(result?.proposal?.isEligibilityCriteriaMet === false)
+                           && result?.proposal?.statusCode != 11 && result?.proposal?.statusCode != 12 && result?.proposal?.statusCode != 1">
+                        <div class="mx-auto alert alert-warning">
+                            <span class="font-size"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+                                This proposal does not meet the eligibility criteria as per the Grant Call.
+                            </span>
+                        </div>
+                    </div>
+                    <div *ngIf="warningMsgObj?.mandatoryNotFilledMsg != null" class="row text-center">
+                        <div class="alert alert-danger pulse" role="alert">
+                            {{warningMsgObj?.mandatoryNotFilledMsg}}
+                        </div>
+                    </div>
+                    <div *ngIf="result?.proposal?.proposalId != null && result?.proposal?.investigator == null && dataVisibilityObj.mode != 'view'"
+                        class="row text-center">
+                        <div class="alert alert-danger pulse" role="alert">
+                            <i class="fa fa-exclamation-circle mr-2" aria-hidden="true"></i>
+                            <ng-container i18n="@@COMMON_NO_PRINCIPAL_INVESTIGATOR_ERR">Please provide a Principal
+                                Investigator in Key Personnel.</ng-container>
+                        </div>
+                    </div>
+                    <div *ngIf="isShowDateValidation" class="row text-center">
+                        <div class="alert alert-danger pulse" role="alert">
+                            <i class="fa fa-exclamation-circle mr-2" aria-hidden="true"></i>
+                            <ng-container>{{dateValidationMessage}}</ng-container>
+                        </div>
+                    </div>
+                    <div *ngIf="dataVisibilityObj.isProposalSaved == false" class="row text-center">
+                        <div class="alert alert-danger pulse" role="alert">
+                            Proposal is not created. Please add and save General Proposal Information to add other
+                            details.
+                        </div>
+                    </div>
+                    <div *ngIf="!_budgetDataService.isBudgetDatesFilled" class="row text-center">
+                        <div class="alert alert-danger pulse" role="alert">
+                            Please fill the start date and end date of all budget period(s).
+                        </div>
+                    </div>
+                    <div *ngIf="dataVisibilityObj.isPanelNotSeleceted" class="row text-cente mb-3 mt-3">
+                        <div class="alert alert-danger pulse" role="alert">
+                            Please select at least one panel and one scoring panel for start evaluation.
+                        </div>
+                    </div>
+                    <div *ngIf="dataVisibilityObj.isNoPersonSeleceted" class="row text-cente mb-3 mt-3">
+                        <div class="alert alert-danger pulse" role="alert">
+                            Please add at least one person in the panel.
+                        </div>
+                    </div>
+                </div>
+                <!-- KKI Specific Change Don't Delete -->
+                <!-- <span *ngIf="proposalDataBindObj?.dateWarningList?.has('internalDeadlineDate')" class="invalid-feedback d-block f-14 font-weight-bold text-center">
+                <i class="fa fa-exclamation-triangle" aria-hidden="true"></i> {{proposalDataBindObj?.dateWarningList?.get('internalDeadlineDate')}}
+                </span> -->
+                <!-- DON'T REMOVE THIS CODE UNTIL NEW VERSION OF FIBI IS GIVEN TO KU/NTU -ARAVIND 26/10/21
+                This line of code is not needed in fibi base since new proposal comparison screen can act as a review
+                screen .But KU and NTU code base doesn't have proposal comparison screen.Until the latest code
+                is given to them they will be using this functionality -->
+                <!-- <app-review-section *ngIf="dataVisibilityObj.currentTab == 'PROPOSAL_REVIEW' && result.proposal != null
+                    && _proposalService.proposalSectionConfig['DP314']?.isActive"
+                    [result]="result" [proposalDataBindObj]="proposalDataBindObj"></app-review-section> -->
+                <!-- <app-budget *ngIf="dataVisibilityObj.currentTab == 'BUDGET' && result.proposal != null &&
+                    _proposalService.proposalSectionConfig['DP303']?.isActive"
+                    [proposalId]="result.proposal.proposalId" [dataVisibilityObj]="dataVisibilityObj"
+                    [activityTypeCode]="result.proposal.activityTypeCode"
+                    [proposalPI]="result?.proposal?.investigator?.fullName" [grantTypeCode]="result.proposal.grantTypeCode"
+                    [proposalStatusCode]="this.result.proposal.statusCode">
+                </app-budget> -->
+                <div>
+                    <router-outlet></router-outlet>
+                </div>
+            </div>
+        </section>
+        <div class="footerPush"></div>
+    </div>
+</div>
+<!-- Modal Section -->
+<!-- print Proposal Modal -->
+<div class="modal fade show mySkinDialog " tabindex="-1" id="printProposalModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Print proposal #{{this.result.proposal.proposalId}} -
+                    {{result?.proposal?.title}}</h5>
+                <button type="button" class="close" data-dismiss="modal" (click)="closePrintModal();" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body scrollable-print-template-modal">
+                <div>
+                    <label class="mb-3 text-muted">Choose a template to print the proposal </label>
+                    <div *ngFor="let template of printTemplates; let index = index" class="mb-3">
+                        <span class="d-flex align-items-center">
+                            <input class="print-modal-radio-btn" type="checkbox" id="{{template.fileName}}" name="template-{{template.letterTemplateTypeCode}}"
+                                (ngModelChange)="selectedTemplates($event, template)" [(ngModel)]="isChecked[index]" >
+                              <label for={{template.fileName}}>
+                                <span class="fs-15">{{template.fileName.split('.')[0]}}</span>
+                                 -( <em class="text-primary">{{template.printFileType}}</em> )
+                            </label>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="mr-auto">
+                    <span class="text-danger small "
+                        *ngIf="validationMap.has('selectTemplate')">{{validationMap.get('selectTemplate')}}</span>
+                </div>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" data-toggle="modal" (click)="closePrintModal();">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="initiateDownload()">Print</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Warning modals-->
+<div class="modal fade mySkinDialog" tabindex="-1" id="warning-modal" tabindex="-1" role="dialog" data-backdrop="static"
+    data-keyboard="false" aria-labelledby="deleteModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" *ngIf="dataVisibilityObj.isShowSubmitWarningModal">{{submitModalName}}</h5>
+                <h5 class="modal-title" *ngIf="dataVisibilityObj.isShowNotifyApprover">Notify Approver</h5>
+                <h5 class="modal-title" *ngIf="dataVisibilityObj.isShowWithdrawConfirmation">
+                    <ng-container i18n="@@PROPOSAL_WITHDRAW">Withdraw Proposal</ng-container>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    id="prop-warning-dismiss-btn" (click)="closeWarningModal()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" *ngIf="dataVisibilityObj.isShowSubmitWarningModal">
+                <p *ngIf="warningMsgObj.submitWarningMsg != null">{{warningMsgObj.submitWarningMsg}}</p>
+                <p *ngIf="warningMsgObj.submitConfirmation != null">{{warningMsgObj.submitConfirmation}}</p>
+            </div>
+            <div class="modal-body" *ngIf="dataVisibilityObj.isShowNotifyApprover">
+                <p>All attached documents are completed. Do you want to notify approver?</p>
+            </div>
+            <div class="modal-body" *ngIf="dataVisibilityObj.isShowWithdrawConfirmation">
+                <p>Are you sure you want to withdraw this proposal?</p>
+            </div>
+            <div class="modal-footer" *ngIf="dataVisibilityObj.isShowSubmitWarningModal">
+                <button type="button" id="prop-submit-ok-btn" *ngIf="warningMsgObj.submitWarningMsg != null"
+                    class="btn btn-primary-sub btn-sm" data-dismiss="modal" (click)="closeWarningModal()">Ok</button>
+                <button type="button" id="prop-sumbit-no-btn" *ngIf="warningMsgObj.submitConfirmation != null"
+                    class="btn btn-secondary btn-sm" data-dismiss="modal" (click)="closeWarningModal()">Cancel</button>
+                <button type="button" id="prop-submit-yes-btn" *ngIf="warningMsgObj.submitConfirmation != null"
+                    class="btn btn-primary-sub btn-sm" (click)="submitProposal();">Continue to Submit</button>
+            </div>
+            <div class="modal-footer" *ngIf="dataVisibilityObj.isShowNotifyApprover">
+                <button type="button" id="prop-notifyApprover-cancel-btn" class="btn btn-secondary btn-sm"
+                    data-dismiss="modal" (click)="closeWarningModal()">Cancel</button>
+                <button type="button" id="prop-notifyApprover-notify-btn" class="btn btn-primary-sub btn-sm"
+                    (click)="notifyApprover();">Notify</button>
+            </div>
+            <div class="modal-footer" *ngIf="dataVisibilityObj.isShowWithdrawConfirmation">
+                <button type="button" id="prop-withdraw-cancel-btn" class="btn btn-secondary btn-sm"
+                    data-dismiss="modal" (click)="closeWarningModal()">Cancel</button>
+                <button type="button" id="prop-withdraw-notify-btn" class="btn btn-primary-sub btn-sm"
+                    data-dismiss="modal"
+                    (click)="withdrawProposal($event);dataVisibilityObj.isShowWithdrawConfirmation = false">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Save and exit modal -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="saveAndExitModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="deleteModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmation</h5>
+                <button type="button" id="prop-saveExit-dismiss-btn" class="close" data-dismiss="modal"
+                    (click)="closeWarningModal()" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>You have <span class="text-lowercase"><ng-container i18n="@@COMMON_UNSAVED_CHANGES">Unsaved changes</ng-container></span> 
+                     in <strong>{{autoSaveService.getUnsavedChanges()}}.</strong>
+                    Do you want to leave the page without saving?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="prop-saveExit-yes-btn" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                    (click)="closeWarningModal(); dataVisibilityObj.isShowSaveBeforeExitWarning = false;">Stay on Page</button>
+                <button type="button" id="prop-saveExit-no-btn" class="btn btn-primary-sub btn-sm"
+                (click)="closeSaveAndExitModal();"
+                    data-dismiss="modal">Leave Page</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- APPROVE-DISAPPROVE MODAL -->
+<div class="modal fade mySkinDialog" id="approveDisapproveModal" tabindex="-1" role="dialog"
+    aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+    <div [ngClass]="(showApproveDisapproveModal.isAttachmentIncomplete)?'modal-dialog':'modal-dialog modal-lg'"
+        role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="skippedSchedulesLongTitle"
+                    *ngIf="showApproveDisapproveModal.isReadyToApprove">
+                    {{proposalDataBindObj.modalAproveHeading}}
+                    <span>Proposal #{{result?.proposal?.proposalId}}
+                    </span>
+                </h5>
+                <h5 class="modal-title" id="skippedSchedulesLongTitle"
+                    *ngIf="showApproveDisapproveModal.isAttachmentIncomplete">
+                    <span>Warning!</span>
+                </h5>
+                <button type="button" id="prop-approve-dismiss-btn" class="close" data-dismiss="modal"
+                    aria-label="Close" (click)="closeApproveDisapproveModal();">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-inner-scroll" *ngIf="showApproveDisapproveModal.isReadyToApprove">
+                <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 viewMode resultCard">
+                    <div class="row">
+                        <!-- <div class="form-group col">
+                                    <label class="block-display">Proposal #</label>
+                                    <span>{{result?.proposal?.proposalId}}</span>
+                                </div> -->
+                        <div class="col">
+                            <label class="block-display">Principal Investigator</label>
+                            <span>{{result?.proposal?.investigator?.fullName}}</span>
+                        </div>
+                        <div class="col">
+                            <label class="block-display">Lead Unit</label>
+                            <span>{{concatUnitNumberAndUnitName(result?.proposal?.homeUnitNumber,
+                                result?.proposal?.homeUnitName)}}</span>
+                        </div>
+                        <div class="col">
+                            <label class="block-display">Status</label>
+                            <span>{{result?.proposal?.proposalStatus?.description}}</span>
+                        </div>
+                        <!-- <div class="col-12">
+                                    <label class="block-display">Title</label>
+                                    <span>{{result?.proposal?.title}}</span>
+                                </div> -->
+                    </div>
+                </div>
+                <label class="mySkinDialog ">
+                    <p class="m-0">
+                        <strong>Comments</strong>
+                    </p>
+                </label>
+                <textarea appAutoGrow id="prop-approve-comments" placeholder=""
+                    class="col-12 col-lg-12 commentBox form-control auto-grow-height"
+                    [ngClass]="isEmptyCommentArea ? 'is-invalid d-block' : ''" rows="2" cols="20" appLengthValidator
+                    [isShowLimiter]='true' [limit]=2000 [(ngModel)]="requestObject.approveComment"></textarea>
+                <span class="invalid-feedback d-block" *ngIf="isEmptyCommentArea">*Please add a
+                    comment.</span>
+                <label class="mySkinDialog">
+                    <p class="m-0">
+                        <strong>Add files</strong>
+                    </p>
+                </label>
+                <app-file-drop [multiple]="true" (filesDropEvent)="fileDrop($event)"></app-file-drop>
+                <div class="row">
+                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <div class="fileChips regularFont">
+                            <span *ngFor="let item of uploadedFile; let i=index">{{ item?.name }}
+                                <i id="prop-approve-attach-delete" aria-hidden="true" class="fa fa-close hand-cursor"
+                                    title="Remove File" (click)="deleteFromUploadedFileList(i)"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="warningMsgObj.attachmentWarningMsg != null">
+                    <span class="mandatory font">{{warningMsgObj.attachmentWarningMsg}}</span>
+                </div>
+            </div>
+            <div class="modal-body" *ngIf="showApproveDisapproveModal.isAttachmentIncomplete">
+                <p>The proposal has incomplete document(s). Please notify Principal Investigator to complete them.</p>
+            </div>
+            <div class="modal-footer" *ngIf="showApproveDisapproveModal.isReadyToApprove">
+                <button type="button" id="prop-approve-close" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                    (click)="closeApproveDisapproveModal()">Cancel</button>
+                <button type="button" *ngIf="proposalDataBindObj.modalAproveHeading == 'Return'"
+                    id="prop-approve-disapprove-btn" class="btn btn-primary-sub btn-sm"
+                    (click)="approveDisapproveProposal('R')">{{proposalDataBindObj.modalAproveHeading}}</button>
+                <button type="button" *ngIf="proposalDataBindObj.modalAproveHeading !== 'Return'"
+                    id="prop-approve-disapprove-btn" class="btn btn-primary-sub btn-sm"
+                    (click)="approveDisapproveProposal('A')"> {{proposalDataBindObj.modalAproveHeading}}</button>
+            </div>
+            <div class="modal-footer" *ngIf="showApproveDisapproveModal.isAttachmentIncomplete">
+                <button type="button" id="prop-approve-incomplete-close-btn" class="btn btn-secondary btn-sm"
+                    data-dismiss="modal" (click)="closeApproveDisapproveModal()">Close</button>
+                <button type="button" id="prop-approve-notify" class="btn btn-primary-sub btn-sm" data-dismiss="modal"
+                    data-toggle="modal" data-target="saveProposal"
+                    (click)="notifyAttachmentIncomplete()">Notify</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Copy Proposal Modal -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="copyProposalModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Copy Proposal #{{this.result.proposal.proposalId}} - {{result?.proposal?.title}}
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="success-banner px-2 my-1 mx-2 d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i>
+                    <em>All other sections of the proposal will be copied to the new proposal by default</em>
+                </div>
+            </div>
+            <div class="modal-body">
+                <label class="mb-2 text-muted">
+                    Check the boxes below to copy the corresponding sections to the new proposal </label>
+                <div class="ml-4">
+                    <div class="form-check" *ngIf="result.isBudgetVersionEnabled">
+                        <input class="form-check-input mt-2" type="checkbox" id="copyAllBudgetVersion"
+                            [(ngModel)]="copyAllBudgetVersion">
+                        <label class="form-check-label ml-2" for="copyAllBudgetVersion">
+                            Budget - All Versions
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input mt-2" type="checkbox" id="copyFinalBudgetVersion"
+                            [(ngModel)]="copyFinalBudgetVersion">
+                        <label class="form-check-label ml-2" for="copyFinalBudgetVersion">
+                            Budget - Final Only
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input mt-2" type="checkbox" id="copyQuestionnaire"
+                            [(ngModel)]="copyQuestionnaire">
+                        <label class="form-check-label ml-2" for="copyQuestionnaire">
+                            Questionnaire
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input mt-2" type="checkbox" id="copyOtherInformation"
+                            [(ngModel)]="copyOtherInformation">
+                        <label class="form-check-label ml-2" for="copyOtherInformation">
+                            Other Information
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input mt-2" type="checkbox" id="copyAttachment"
+                            [(ngModel)]="copyAttachment">
+                        <label class="form-check-label ml-2" for="copyAttachment">
+                            Attachment
+                        </label>
+
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="clearCopyFlags()" data-dismiss="modal"
+                    data-toggle="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="copyProposal($event);"
+                    data-dismiss="modal">Copy</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Validation modals -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="ValidateModal" tabindex="-1" role="dialog" data-backdrop="static"
+    data-keyboard="false" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Validation</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12 ">
+                        <div *ngIf="validationMsg?.length > 0">
+                            <ng-container *ngFor="let msg of errorList">
+                                <div class="alert alert-danger" role="alert">
+                                    <i class="fa fa-exclamation-circle icon text-danger" aria-hidden="true"></i>
+                                    <strong>Error: </strong><span [innerHTML]="msg.validationMessage"></span>
+                                </div>
+                            </ng-container>
+                            <ng-container *ngFor="let msg of warningList">
+                                <div class="alert alert-warning" role="alert">
+                                    <i class="fa fa-exclamation-triangle icon text-warning" aria-hidden="true"></i>
+                                    <strong>Warning: </strong><span [innerHTML]="msg.validationMessage"></span>
+                                </div>
+                            </ng-container>
+                        </div>
+                        <div *ngIf="validationMsg?.length == 0">
+                            <div class="alert alert-info" role="alert">
+                                <i class="fa fa-info-circle icon text-info" aria-hidden="true"></i>
+                                <strong>Success: </strong>Proposal successfully validated.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <ng-container
+                    *ngIf="(warningList.length > 0 && errorList.length > 0) || (warningList.length == 0 && errorList.length > 0)">
+                    <button class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+                </ng-container>
+                <ng-container *ngIf="['SUBMIT','ADMIN_CORRECTION'].includes(proposalMode) && (!errorList.length)">
+                    <button class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                    <button (click)="showSubmitConfirmation()" class="btn btn-primary-sub btn-sm"
+                        data-dismiss="modal">Continue to Submit</button>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</div>
+<!--Mark as InActive Modal-->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="makeActiveModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Mark as Deactivate</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to deactivate this Proposal?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" data-toggle="modal">No</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="setProposalStatusInActive();"
+                    data-dismiss="modal">Deactivate</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Delete Proposal Modal -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="deleteProposalModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Proposal</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this Proposal?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" data-toggle="modal">No</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="deleteProposal();"
+                    data-dismiss="modal">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Withdraw confirmation -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="recallProposalModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="AwardTabChange" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <ng-container i18n="@@PROPOSAL_WITHDRAW">Withdraw Proposal</ng-container>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" #closeModal aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="col-12">
+                        <label>Description</label>
+                        <textarea class="form-control" id="exampleFormControlTextarea1" rows="2"
+                            [(ngModel)]="recallProposalObject.approveComment"></textarea>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col-12">
+                        <div class="btn-margin">
+                            <app-file-drop [multiple]="true" (filesDropEvent)="recallFilesDrop($event)">
+                            </app-file-drop>
+                        </div>
+                        <div *ngIf="uploadedFiles.length > 0">
+                            <div class="gridSkin">
+                                <div class="row">
+                                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 fileChips pt-0"
+                                        style="word-break: break-all;"><br>
+                                        <span style="padding:3px 8px;"
+                                            *ngFor="let item of uploadedFiles; let i=index">{{item?.name}}
+                                            <i aria-hidden="true" class="fa fa-close pointer" title="Remove Attachment"
+                                                (click)="uploadedFiles.splice(i, 1)"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="recallProposal(result)">
+                    <ng-container i18n="@@PROPOSAL_WITHDRAW">Withdraw Proposal</ng-container>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Value Reset Warning Modal -->
+<div class="modal fade mySkinDialog" id="confirmImportModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Warning
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Importing the template will overwrite existing values in Keywords of Research, Abstract,
+                    Ethics/Safety, Key Performance Indicator and Milestone section.</p>
+                <p>Are you sure that you want to proceed with importing the template ?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm"
+                    (click)="showImportTemplateModal()">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Template Import Modal -->
+<div class="modal fade mySkinDialog" id="propImportModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Import
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <app-file-drop [multiple]="false" [fileAccept]="_commonService.claimFileType"
+                    (filesDropEvent)="addImportAttachment($event)">
+                </app-file-drop>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="filechip-cv regularFont">
+                            <span *ngFor="let item of importedFile">{{
+                                item?.name }} <i class="fa fa-close hand-cursor" title="Remove {{item?.name}}"
+                                    aria-hidden="true" (click)="importedFile = []"></i>
+                            </span>
+                        </div>
+                        <span class="mandatory" *ngIf="proposalDataBindObj.mandatoryList.has('noFileSelected')">*
+                            {{proposalDataBindObj.mandatoryList.get('noFileSelected')}}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="uploadTemplate()">Import</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Submit without save confirmation -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="proposalSubmitWithoutSaveModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="submitChange" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>You have <span class="text-lowercase"><ng-container i18n="@@COMMON_UNSAVED_CHANGES">Unsaved changes</ng-container></span> in
+                <strong>{{autoSaveService.getUnsavedChanges()}}</strong>. 
+                    Do you want to Submit this proposal without the changes?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="submitProposalOrAdminCorrection()"
+                    data-dismiss="modal">Continue to
+                    Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade show mySkinDialog" id="confirmAdminCorrectionModal" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Admin Correction</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to create an Admin Correction?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-dismiss="modal" type="button">No</button>
+                <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button"
+                    (click)="createAdminCorrectionForProposal()">Create</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade show mySkinDialog" id="AdminCorrectionSubmitConfirmModal" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmation</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to submit this Admin Correction?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-dismiss="modal" type="button">No</button>
+                <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button"
+                    (click)="completeAdminCorrectionForProposal()">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Create New IP Confirmation -->
+<div class="modal fade show mySkinDialog" id="CreateIPConfirmation" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Institute Proposal</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to create Institute Proposal?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-dismiss="modal" type="button">No</button>
+                <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button"
+                    (click)="createIP()">Create</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade show mySkinDialog" tabindex="-1" id="invalidActionModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Invalid Action</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="col-1">
+                        <i class="fa fa-2x fa-exclamation-triangle text-warning position-person-inpur-box" aria-hidden="true"></i>
+                    </div>
+                    <div class="col-11">
+                        <p>
+                            You have tried to perform an action that is not valid for the current state of this Proposal. The likely cause is that
+                            somebody has changed the Proposal recently. Please click the Refresh button to proceed further.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary-sub btn-sm" data-dismiss="modal"
+                    (click)="reload()">Refresh</button>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  
+<!--Cancel Admin Correction Confirmation-->
+<div class="modal fade show mySkinDialog " tabindex="-1" id="cancelAdminCorrection" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+               <p>Are you sure you want to cancel Admin Correction?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" data-toggle="modal">Close</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="cancelAdminCorrection()">Cancel Admin Correction</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade show mySkinDialog" id="invalidProposalActionModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Invalid Action</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button" [routerLink]="['/fibi/dashboard/proposalList']">
+                    <span aria-hidden="true" title="Close and go to proposal list">×</span>
+                </button>
+            </div>
+            <div class="flex-row-reverse form-row m-0">
+				<div class="col ml-4 mt-2">
+                    <p>{{invalidActionMessage}}</p>
+                </div>
+                <div class="col-auto ml-3">
+					<i aria-hidden="true" class="fa fa-exclamation-triangle larger-font position-person-inpur-box text-warning"></i>
+				</div>
+			</div>
+            <div class="modal-footer">
+                <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button" title="Close and go to proposal list" [routerLink]="['/fibi/dashboard/proposalList']">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<app-evaluation-approver-popup *ngIf="result.canApproveRouting == '1' && result.proposal.statusCode == 8"
+    [result]="result" (selectedResult)="setProposalDetails($event);">
+</app-evaluation-approver-popup>
+<!-- ADD ATTACHMENT -->
+<app-add-attachment *ngIf="addAttachment.isShowAddAttachment" [addAttachment]="addAttachment" [attachment]=null
+    [attachmentType]="'general'" [result]="result" [dataVisibilityObj]="dataVisibilityObj"></app-add-attachment>
+<!-- ASSIGN REVIEWER -->
+<app-add-review *ngIf="showRequestModal.isRequestNewReview" [moduleDetails]="moduleDetails"
+    [dataStoreService]="_dataStore" [showRequestModal]="showRequestModal" [preReviews]=null
+    [preReviewReq]="preReviewReq"></app-add-review>
+<!-- Request support -->
+<app-request-support *ngIf="showRequestModal.isRequestSupport" [result]="result" [showRequestModal]="showRequestModal"
+ [clarifications]="null"  [supportReq]="supportReq"></app-request-support>
+<!--Notify Modal-->
+<app-notify (isShowNotificationModal)="showProposalNotificationModal($event)" *ngIf="isShowNotificationModal"
+    [availableRights]="result.availableRights"
+    [enableCertification]="_proposalService.proposalSectionConfig['DP315'].isActive"
+    [isEditMode]="dataVisibilityObj.mode === 'edit'" [moduleCode]="3" [moduleItemKey]="result?.proposal?.proposalId"
+    [moduleName]="'Proposal'"></app-notify>
+<!-- Merge IP -->
+<app-merge-ip [result]="result" (createNewIP)="createIPConfirmation()"></app-merge-ip>
+
+<app-certification-notification-log-modal></app-certification-notification-log-modal>

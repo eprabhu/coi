@@ -1,0 +1,36 @@
+<!-- For radio buttons -->
+<span [id]="uniqueId + 'input-reader'" class="visually-hidden" aria-live="polite">
+    <ng-container *ngIf="!selectedValue?.description">No Value is selected</ng-container>
+    <ng-container *ngIf="selectedValue?.description">Current selected value is {{selectedValue?.description}}</ng-container>
+</span>
+<ng-container *ngIf="lookupList?.length <= limit; else selectDropdown">
+    <div *ngFor="let option of lookupList; let optionIndex = index" class="d-flex align-items-center gap-2 col-auto p-0" [class.form-check]="isError">
+        <input class="m-0" type="radio" [value]="option?.code"
+            [ngClass]="{ 'is-invalid form-check-input': isError}"
+            [title]="isDisabled ? '' : ('Click here to select ' + option?.description)"
+            [attr.aria-label]="(isDisabled ? '' : ('Click here to select ' + option?.description))"
+            [attr.aria-describedby]="uniqueId + 'input-reader'"
+            [id]="uniqueId + '-radio-' + optionIndex"
+            [checked]="selectedValue?.code === option?.code" [disabled]="isDisabled"
+            [name]="uniqueId + '-group'" (change)="onInputChange(option?.code)" />
+        <label [ngClass]="isDisabled ? 'coi-text-light' : 'coi-text-light cursor-pointer'"
+            [for]="uniqueId + '-radio-' + optionIndex"
+            [title]="isDisabled ? '' : ('Click here to select ' + option?.description)">
+            {{ option?.description }}
+        </label>
+    </div>
+</ng-container>
+
+<!-- Dropdown -->
+<ng-template #selectDropdown>
+    <select class="form-select form-control" [id]="uniqueId" [class.is-invalid]="isError"
+        [attr.aria-describedby]="uniqueId + 'input-reader'"
+        title="Click here to select {{label}}"
+        attr.aria-label="Click here to select {{label}}"
+        [ngModel]="selectedValue.code" (ngModelChange)="onInputChange($event)" [disabled]="isDisabled">
+        <option disabled [value]="null">--Select--</option>
+        <ng-container *ngFor="let option of lookupList">
+            <option [value]="option?.code">{{ option?.description }}</option>
+        </ng-container>
+    </select>
+</ng-template>

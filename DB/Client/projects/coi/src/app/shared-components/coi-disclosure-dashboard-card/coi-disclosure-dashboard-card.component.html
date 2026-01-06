@@ -1,0 +1,545 @@
+<article class="card coi-card-regular">
+    <div class="card-body">
+        <!-- FCOI Disclosure cards -->
+        <ng-container *ngIf="cardType === 'FCOI'">
+            <div class="row row-gap-2">
+                <!-- header -->
+                <div class="col-12 align-items-end coi-card-body-notch-container">
+                    <!-- FCOI Card badge -->
+                    <div class="d-flex">
+                        <span *ngIf="disclosureDetails?.fcoiTypeCode === DISCLOSURE_TYPE.PROJECT"
+                            [style.backgroundColor]="disclosureDetails?.projectBadgeColor"
+                            attr.aria-label="{{COMMON_DISCL_LOCALIZE.PROJECT_BADGE_PREFIX + disclosureDetails?.projectType}} Disclosure"
+                            class="coi-card-notch-ribbon shadow-sm">{{ COMMON_DISCL_LOCALIZE.PROJECT_BADGE_PREFIX + disclosureDetails?.projectType }}</span>
+                        <span *ngIf="disclosureDetails?.fcoiTypeCode != DISCLOSURE_TYPE.PROJECT"
+                            attr.aria-label="{{COMMON_DISCL_LOCALIZE.ANNUAL_BADGE_PREFIX + disclosureDetails?.fcoiType}} Disclosure"
+                            class="coi-card-notch-ribbon shadow-sm bg-fcoi-clip">{{ COMMON_DISCL_LOCALIZE.ANNUAL_BADGE_PREFIX + disclosureDetails?.fcoiType }}</span>
+                        <!-- FCOI Header -->
+                        <h4 *ngIf="!disclosureDetails?.travelDisclosureId && !disclosureDetails?.opaDisclosureId"
+                            class="d-flex align-items-center mb-0 ms-1">
+                            <span class="d-inline-flex align-items-center">
+                                <mat-icon aria-hidden="true" class="coi-text-light me-1 flex-shrink-0">person</mat-icon>
+                                <a class="coi-text-light text-nowrap fs-6 link-primary cursor-pointer"
+                                    [title]="'Click here to view details of ' + disclosureDetails?.disclosurePersonFullName"
+                                    [attr.aria-label]="'Click here to view details of ' + disclosureDetails?.disclosurePersonFullName"
+                                    id="coi-discl-person-{{disclosureId}}"
+                                    tabindex="0" (click)="openPersonDetailsModal()"
+                                    (keyup.enter)="openPersonDetailsModal()">{{disclosureDetails?.disclosurePersonFullName}}</a>
+                            </span>
+                            <span *ngIf="hasExistingDisclosures" class="d-inline-flex align-items-center coi-text-light text-nowrap fs-6">
+                                <span class="coi-vertical-divider mx-1"></span>
+                                <mat-icon aria-hidden="true" class="coi-text-light me-1 flex-shrink-0">description</mat-icon>
+                                <span class="me-1 coi-text-light fs-6">Other Disclosures:</span>
+                                <ng-container *ngFor="let existingDiscl of existingDisclosures; let last = last">
+                                    <span class="coi-text-dark fs-6">{{ existingDiscl.moduleName }}{{ !last ? ', ' : '' }}</span>
+                                </ng-container>
+                            </span>
+                            <ng-container *ngIf="disclosureDetails?.fcoiTypeCode === DISCLOSURE_TYPE.PROJECT">
+                                <span class="coi-vertical-divider mx-1"></span>
+                                <mat-icon aria-hidden="true"
+                                    class="coi-text-light flex-shrink-0">{{disclosureDetails?.projectIcon}}</mat-icon>
+                                <a tabindex="0" class="link-primary cursor-pointer fs-6 fw-600" id="coi-discl-project-{{disclosureId}}"
+                                    (click)="commonService.openProjectHierarchySlider(disclosureDetails?.coiProjectTypeCode, disclosureDetails?.projectNumber)"
+                                    (keyup.enter)="commonService.openProjectHierarchySlider(disclosureDetails?.coiProjectTypeCode, disclosureDetails?.projectNumber)"
+                                    [title]="'Click here to view details of ' + disclosureDetails?.projectHeader"
+                                    [attr.aria-label]="'Click here to view details of ' + disclosureDetails?.projectHeader">
+                                    <span class="text-slice">{{disclosureDetails?.projectHeader}}</span>
+                                </a>
+                            </ng-container>
+                        </h4>
+                    </div>
+                </div>
+                <!-- disclosure details card -->
+                <div class="col">
+                    <div class="row row-gap-2">
+                        <ng-container *ngFor="let fieldOrder of cardOrder[expandCollapseBtnType === 'COLLAPSE_CONTENT' ? 'COLLAPSE_CONTENT' : 'EXPAND_CONTENT']">
+                            <!-- Coi card Department -->
+                            <ng-container *ngIf="fieldOrder === 'DEPARTMENT'">
+                                <ng-container *ngTemplateOutlet="textFieldTemplate; context: {
+                                    cssClass: expandCollapseBtnType === 'EXPAND_CONTENT' ? 'col-12 col-md-6 col-lg-4' : 'col-12 col-md-6 col-lg-3',
+                                    label: COMMON_DISCL_LOCALIZE.COMMON_DEPARTMENT, value: unitDisplayName }"></ng-container>
+                            </ng-container>
+                            <ng-container *ngIf="fieldOrder === 'SUBMISSION_DATE'">
+                                <ng-container *ngTemplateOutlet="textFieldTemplate; context: {
+                                    cssClass: expandCollapseBtnType === 'EXPAND_CONTENT' ? 'col-12 col-md-6 col-lg-4' : 'col-12 col-md-6 col-lg-3',
+                                    label: COMMON_DISCL_LOCALIZE.COI_CERTIFICATION_DATE, value: disclosureDetails?.certifiedAt | dateFormatterWithTimeZone }"></ng-container>
+                            </ng-container>
+                            <!-- Coi card Expiration Date -->
+                            <ng-container *ngIf="fieldOrder === 'EXPIRATION_DATE'">
+                                <ng-container *ngTemplateOutlet="textFieldTemplate; context: {
+                                    cssClass: expandCollapseBtnType === 'EXPAND_CONTENT' ? 'col-12 col-md-6 col-lg-4' : 'col-12 col-md-6 col-lg-3',
+                                    label: COMMON_DISCL_LOCALIZE.COI_EXPIRATION_DATE, value: disclosureDetails?.expirationDate | dateFormatterWithTimeZone,
+                                    innerTemplate: disclosureDetails?.expirationDate && disclosureDetails?.isExtended ? extendedBadgeTemplate : undefined }">
+                                </ng-container>
+                            </ng-container>
+                            <!-- FCOI Card Disclosure status -->
+                            <ng-container *ngIf="fieldOrder === 'DISCLOSURE_STATUS'">
+                                <ng-container *ngTemplateOutlet="statusFieldTemplate; context: {
+                                    cssClass: expandCollapseBtnType === 'EXPAND_CONTENT' ? 'col-12 col-md-6 col-lg-4' : 'col-12 col-md-6 col-lg-3',
+                                    label: COMMON_DISCL_LOCALIZE.COMMON_DISCLOSURE_STATUS, value: disclosureDetails?.conflictStatus,
+                                    badgeClass: commonService.getDisclosureConflictBadge(disclosureDetails?.conflictStatusCode) }"></ng-container>
+                            </ng-container>
+                            <!-- Coi card Administrator -->
+                            <ng-container *ngIf="fieldOrder === 'ADMINISTRATOR'">
+                                <ng-container *ngTemplateOutlet="textFieldTemplate; context: {
+                                    cssClass: expandCollapseBtnType === 'EXPAND_CONTENT' ? 'col-12 col-md-6 col-lg-4' : 'col-12 col-md-6 col-lg-3',
+                                    label: 'Administrator', value: disclosureDetails?.administrator }"></ng-container>
+                            </ng-container>
+                            <!-- Coi card Admin Group -->
+                            <ng-container *ngIf="fieldOrder === 'ADMIN_GROUP'">
+                                <ng-container *ngTemplateOutlet="textFieldTemplate; context: {
+                                    cssClass: expandCollapseBtnType === 'EXPAND_CONTENT' ? 'col-12 col-md-6 col-lg-4' : 'col-12 col-md-6 col-lg-3',
+                                    label: 'Admin Group', value: disclosureDetails?.adminGroupName }"></ng-container>
+                            </ng-container>
+                            <!-- Coi Reviewers -->
+                            <div *ngIf="fieldOrder === 'REVIEWER'" class="col-12">
+                                <ng-container *ngTemplateOutlet="reviewerTemplate; context: { list: disclosureDetails?.reviewerList, label: 'Reviewers' }"></ng-container>
+                            </div>
+                        </ng-container>
+                    </div>
+                </div>
+                <!-- collapsed disclosure action buttons -->
+                <ng-container *ngTemplateOutlet="actionBtnsOnCollapse;"></ng-container>
+                <!-- status -->
+                <div *ngIf="expandCollapseBtnType !== 'COLLAPSE_CONTENT'" class="col-lg-2">
+                    <div class="d-flex flex-lg-column col-lg-auto col-md-12 coi-box-purple p-2 column-gap-5 row-gap-2">
+                        <!-- FCOI Disclosure status -->
+                        <ng-container *ngTemplateOutlet="statusFieldTemplate; context: { cssClass: 'flex-grow-1 lh-sm',
+                            label: COMMON_DISCL_LOCALIZE.COMMON_DISCLOSURE_STATUS, value: disclosureDetails?.conflictStatus,
+                            badgeClass: commonService.getDisclosureConflictBadge(disclosureDetails?.conflictStatusCode) }">
+                        </ng-container>
+                        <!-- FCOI Review Status -->
+                        <ng-container *ngTemplateOutlet="statusFieldTemplate; context: { cssClass: 'flex-grow-1 lh-sm',
+                            label: COMMON_DISCL_LOCALIZE.COI_REVIEW_STATUS, value: disclosureDetails?.reviewStatus,
+                            badgeClass: commonService.getReviewStatusBadge(disclosureDetails?.reviewStatusCode) }">
+                        </ng-container>
+                        <!-- FCOI Document Status -->
+                        <ng-container *ngTemplateOutlet="statusFieldTemplate; context: { cssClass: 'flex-grow-1 lh-sm',
+                            label: COMMON_DISCL_LOCALIZE.COMMON_DISPOSITION_STATUS, value: disclosureDetails?.dispositionStatus,
+                            badgeClass: commonService.getDispositionStatusBadge(disclosureDetails?.dispositionStatusCode) }">
+                        </ng-container>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+
+        <!-- Travel Disclosure cards -->
+        <ng-container *ngIf="cardType === 'TRAVEL'">
+            <div class="row row-gap-2">
+                <!-- header -->
+                <div class="col-12 align-items-end coi-card-body-notch-container">
+                    <!-- Travel Card badge -->
+                    <div class="d-flex">
+                        <span class="coi-card-notch-ribbon shadow-sm bg-travel-clip">{{ COMMON_DISCL_LOCALIZE.TRAVEL_BADGE_PREFIX }}Travel</span>
+                        <!-- Travel Card Entity -->
+                        <h4 class="d-flex ms-1 mt-1 mb-0">
+                            <!-- Travel Person Name -->
+                            <span class="d-inline-flex">
+                                <mat-icon aria-hidden="true" class="coi-text-light me-1">person</mat-icon>
+                                <a [title]="'Click here to view the details of ' + disclosureDetails?.travellerName"
+                                    class="coi-text-light fs-6 text-nowrap link-primary cursor-pointer" tabindex="0"
+                                    (click)="openPersonDetailsModal()" (keyup.enter)="openPersonDetailsModal()"
+                                    [attr.aria-label]="'Click here to view details of ' + disclosureDetails?.travellerName"
+                                    id="person-{{disclosureId}}">
+                                    {{ disclosureDetails?.travellerName }}
+                                </a>
+                            </span>
+                            <span *ngIf="hasExistingDisclosures" class="d-inline-flex align-items-center coi-text-light text-nowrap fs-6">
+                                <span class="coi-vertical-divider mx-1"></span>
+                                <mat-icon aria-hidden="true" class="coi-text-light me-1 flex-shrink-0">description</mat-icon>
+                                <span class="me-1 coi-text-light fs-6">Other Disclosures:</span>
+                                <ng-container *ngFor="let existingDiscl of existingDisclosures; let last = last">
+                                    <span class="coi-text-dark fs-6">{{ existingDiscl.moduleName }}{{ !last ? ', ' : '' }}</span>
+                                </ng-container>
+                            </span>
+                            <!-- Entity Name -->
+                            <ng-container *ngIf="disclosureDetails?.travelEntityName">
+                                <span class="coi-vertical-divider mx-1"></span>
+                                <div class="coi-text-darker">
+                                    <a [title]="'Click here to view the details of ' + disclosureDetails?.travelEntityName"
+                                        class="d-inline-flex link-primary cursor-pointer align-items-center"
+                                        tabindex="0" (click)="viewEntityDetails()"
+                                        [attr.aria-label]="'Click here to view details of ' + disclosureDetails?.travelEntityName"
+                                        (keyup.enter)="viewEntityDetails()">
+                                        <mat-icon aria-hidden="true" class="coi-text-light me-1">apartment</mat-icon>
+                                        <span class="fs-6 text-slice">{{disclosureDetails?.travelEntityName}}</span>
+                                    </a>
+                                </div>
+                            </ng-container>
+                        </h4>
+                    </div>
+                </div>
+                <!-- disclosure details card -->
+                <div class="col">
+                    <div class="row row-gap-2">
+                        <ng-container *ngFor="let fieldOrder of cardOrder[expandCollapseBtnType === 'COLLAPSE_CONTENT' ? 'COLLAPSE_CONTENT' : 'EXPAND_CONTENT']">
+                            <!-- Travel Card Trip Title -->
+                            <ng-container *ngIf="fieldOrder === 'TRIP_TITLE'">
+                                <ng-container *ngTemplateOutlet="textFieldTemplate; context: { cssClass: 'col-lg-4 col-md-6',
+                                    label: COMMON_DISCL_LOCALIZE.TRAVEL_TRIP_TITLE, value: disclosureDetails?.tripTitle }"></ng-container>
+                            </ng-container>
+                            <!-- Travel Card Country -->
+                            <div *ngIf="fieldOrder === 'COUNTRY'" class="col-lg-4 col-md-6"
+                                id="dash-card-travel-country-{{disclosureId}}">
+                                <span class="d-block coi-text-dark">{{ COMMON_DISCL_LOCALIZE.TRAVEL_COUNTRY }}</span>
+                                <span>
+                                    <app-no-data-label [valueToShow]="disclosureDetails?.travelDestinations">
+                                        <span class="text-slice coi-text-light"
+                                            id="coi-discl-country-{{disclosureId}}">
+                                            <span class="coi-file-chip-container"
+                                                [title]="disclosureDetails?.travelDestinations">
+                                                <ng-container
+                                                    *ngFor="let country of disclosureDetails?.travelDestinations; let i = index; let last = last">
+                                                    <ng-container *ngIf="(i < 3) || isShowCountries[disclosureId]">
+                                                        <span class="coi-file-chips rounded-pill">{{ country }}</span>
+                                                    </ng-container>
+                                                    <button
+                                                        *ngIf="last && disclosureDetails?.travelDestinations?.length > 3"
+                                                        class="coi-btn-halo rounded-pill d-inline-flex fs-12"
+                                                        title="Click here to read {{ isShowCountries[disclosureId] ? 'less' : 'more' }}"
+                                                        (click)="isShowCountries[disclosureId] = !isShowCountries[disclosureId]">
+                                                        <span>{{ isShowCountries[disclosureId] ? 'View Less' : ('+' +
+                                                            (disclosureDetails?.travelDestinations?.length - 3) + '
+                                                            More') }}</span>
+                                                    </button>
+                                                </ng-container>
+                                            </span>
+                                        </span>
+                                    </app-no-data-label>
+                                </span>
+                            </div>
+                            <!-- Travel Card Travel Date -->
+                            <ng-container *ngIf="fieldOrder === 'TRAVEL_DATE'">
+                                <ng-container *ngTemplateOutlet="textFieldTemplate; context: { cssClass: 'col-lg-4 col-md-6',
+                                    label: COMMON_DISCL_LOCALIZE.TRAVEL_DATE, value: disclosureDetails?.travelEndDate | dateFormatterWithTimeZone }"></ng-container>
+                            </ng-container>
+                            <!-- Travel Card Purpose -->
+                            <ng-container *ngIf="fieldOrder === 'PURPOSE'">
+                                <ng-container *ngTemplateOutlet="textFieldTemplate; context: { cssClass: 'col-lg-4 col-md-6',
+                                    label: COMMON_DISCL_LOCALIZE.TRAVEL_PURPOSE, value: disclosureDetails?.travelPurpose }"></ng-container>
+                            </ng-container>
+                            <!-- Travel Card Submission Date -->
+                            <ng-container *ngIf="fieldOrder === 'CERTIFICATION_DATE'">
+                                <ng-container *ngTemplateOutlet="textFieldTemplate; context: { cssClass: 'col-lg-4 col-md-6',
+                                    label: COMMON_DISCL_LOCALIZE.TRAVEL_CERTIFICATION_DATE, value: disclosureDetails?.travelSubmissionDate | dateFormatterWithTimeZone }"></ng-container>
+                            </ng-container>
+                            <!-- Travel Card Reimbursed Cost -->
+                            <ng-container *ngIf="fieldOrder === 'REIMBURSED_COST'">
+                                <ng-container *ngTemplateOutlet="textFieldTemplate; context: { cssClass: 'col-lg-4 col-md-6',
+                                    label: COMMON_DISCL_LOCALIZE.TRAVEL_REIMBURSED_COST, value: disclosureDetails?.travelAmount | customCurrency }"></ng-container>
+                            </ng-container>
+                            <!-- Travel Card Administrator-->
+                            <ng-container *ngIf="fieldOrder === 'ADMINISTRATOR'">
+                                <ng-container *ngTemplateOutlet="textFieldTemplate; context: { cssClass: 'col-lg-4 col-md-6',
+                                    label: COMMON_DISCL_LOCALIZE.TRAVEL_ADMINISTRATOR, value: disclosureDetails?.adminPersonName }"></ng-container>
+                            </ng-container>
+                            <!-- Travel Card Admin Group-->
+                            <ng-container *ngIf="fieldOrder === 'ADMIN_GROUP'">
+                                <ng-container *ngTemplateOutlet="textFieldTemplate; context: { cssClass: 'col-lg-4 col-md-6',
+                                    label: COMMON_DISCL_LOCALIZE.TRAVEL_ADMIN_GROUP, value: disclosureDetails?.adminGroupName }"></ng-container>
+                            </ng-container>
+                        </ng-container>
+                    </div>
+                </div>
+                <!-- collapsed disclosure action buttons -->
+                <ng-container *ngTemplateOutlet="actionBtnsOnCollapse;"></ng-container>
+                <!-- status -->
+                <div *ngIf="expandCollapseBtnType !== 'COLLAPSE_CONTENT'" class="col-lg-2">
+                    <div class="d-flex flex-lg-column col-lg-auto col-md-12 coi-box-purple p-2 column-gap-5 row-gap-2">
+                        <!-- Travel Card Review Status -->
+                        <ng-container *ngTemplateOutlet="statusFieldTemplate; context: { cssClass: 'flex-grow-1 lh-sm',
+                            label: COMMON_DISCL_LOCALIZE.TRAVEL_REVIEW_STATUS_LABEL, value: disclosureDetails?.reviewDescription,
+                            badgeClass: commonService.getTravelReviewStatusBadge(disclosureDetails?.reviewStatusCode) }">
+                        </ng-container>
+                        <!-- Travel Card Document Status -->
+                        <ng-container *ngTemplateOutlet="statusFieldTemplate; context: { cssClass: 'flex-grow-1 lh-sm',
+                            label: COMMON_DISCL_LOCALIZE.COMMON_DOCUMENT_STATUS, value: disclosureDetails?.documentStatusDescription,
+                            badgeClass: commonService.getDocumentStatusBadge(disclosureDetails?.documentStatusCode) }">
+                        </ng-container>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+
+        <!-- Opa Disclosure cards -->
+        <ng-container *ngIf="cardType === 'OPA'">
+            <div class="row row-gap-2">
+                <!-- header -->
+                <div class="col-12 d-inline-flex mb-2 coi-card-body-notch-container align-items-end">
+                    <!-- OPA card badge -->
+                    <span class="coi-card-notch-ribbon shadow-sm bg-opa-clip">OPA - 
+                        {{ disclosureDetails?.versionNumber === opaInitialVersion ? 'Initial' : 'Revision' }}</span>
+                    <!-- OPA card header -->
+                    <h4 class="mb-0 d-flex fs-14 ms-1">
+                        <span class="d-inline-flex align-items-center">
+                            <mat-icon class="coi-text-light fs-18 me-1">person</mat-icon>
+                            <a tabindex="0" id="coi-discl-person-{{disclosureId}}"
+                                class="link-primary coi-text-light text-nowrap d-inline-flex fs-6 cursor-pointer"
+                                (click)="openPersonDetailsModal(disclosureDetails)"
+                                (keyup.enter)="openPersonDetailsModal(disclosureDetails)"
+                                title="Click here to view details of {{disclosureDetails?.personName}}"
+                                attr.aria-label="Click here to view details of {{disclosureDetails?.personName}}">
+                                {{ disclosureDetails?.personName }}
+                            </a>
+                            <span *ngIf="hasExistingDisclosures" class="d-inline-flex align-items-center coi-text-light text-nowrap fs-6">
+                                <span class="coi-vertical-divider mx-1"></span>
+                                <mat-icon aria-hidden="true" class="coi-text-light me-1 flex-shrink-0">description</mat-icon>
+                                <span class="me-1 coi-text-light fs-6">Other Disclosures:</span>
+                                <ng-container *ngFor="let existingDiscl of existingDisclosures; let last = last">
+                                    <span class="coi-text-dark fs-6">{{ existingDiscl.moduleName }}{{ !last ? ', ' : '' }}</span>
+                                </ng-container>
+                            </span>
+                            <span *ngIf="disclosureDetails?.isFaculty != null"
+                                class="d-flex coi-text-light text-nowrap fs-6">
+                                <span class="coi-vertical-divider mx-1"></span>
+                                <span>{{ disclosureDetails?.isFaculty ? 'Faculty' : 'Staff' }}</span>
+                            </span>
+                        </span>
+                    </h4>
+                </div>
+                <!-- OPA details card -->
+                <div class="col">
+                    <div class="row row-gap-2">
+                        <ng-container *ngFor="let fieldOrder of cardOrder[expandCollapseBtnType === 'COLLAPSE_CONTENT' ? 'COLLAPSE_CONTENT' : 'EXPAND_CONTENT']">
+                            <!-- OPA card Department -->
+                            <ng-container *ngIf="fieldOrder === 'DEPARTMENT'">
+                                <ng-container *ngTemplateOutlet="textFieldTemplate; context: { cssClass: 'col-lg-4 col-md-6',
+                                    label: COMMON_DISCL_LOCALIZE.COMMON_DEPARTMENT, value: disclosureDetails?.unitDisplayName }"></ng-container>
+                            </ng-container>
+                            <!-- OPA card Submission Date -->
+                            <ng-container *ngIf="fieldOrder === 'SUBMISSION_DATE'">
+                                <ng-container *ngTemplateOutlet="textFieldTemplate; context: { cssClass: 'col-lg-4 col-md-6',
+                                    label: COMMON_DISCL_LOCALIZE.OPA_CERTIFICATION_DATE, value: disclosureDetails?.submissionTimestamp | dateFormatterWithTimeZone }"></ng-container>
+                            </ng-container>
+                            <!-- OPA card Expiration Date -->
+                            <ng-container *ngIf="fieldOrder === 'EXPIRATION_DATE'">
+                                <ng-container *ngTemplateOutlet="textFieldTemplate; context: { cssClass: 'col-lg-4 col-md-6',
+                                    label: COMMON_DISCL_LOCALIZE.OPA_EXPIRATION_DATE, value: disclosureDetails?.expirationDate | dateFormatterWithTimeZone }"></ng-container>
+                            </ng-container>
+                            <!-- OPA card Administrator -->
+                            <ng-container *ngIf="fieldOrder === 'ADMINISTRATOR'">
+                                <ng-container *ngTemplateOutlet="textFieldTemplate; context: { cssClass: 'col-lg-4 col-md-6',
+                                    label: 'Administrator', value: disclosureDetails?.adminPersonName }"></ng-container>
+                            </ng-container>
+                            <!-- OPA card Admin Group -->
+                            <ng-container *ngIf="fieldOrder === 'ADMIN_GROUP'">
+                                <ng-container *ngTemplateOutlet="textFieldTemplate; context: { cssClass: 'col-lg-4 col-md-6',
+                                    label: 'Admin Group', value: disclosureDetails?.adminGroupName }"></ng-container>
+                            </ng-container>
+                            <!-- OPA Reviewers -->
+                            <div *ngIf="fieldOrder === 'REVIEWER'" class="col-12">
+                                <ng-container *ngTemplateOutlet="reviewerTemplate; context: { list: disclosureDetails?.reviewers, label: 'Reviewers' }"></ng-container>
+                            </div>
+                        </ng-container>
+                    </div>
+                </div>
+                <!-- collapsed disclosure action buttons -->
+                <ng-container *ngTemplateOutlet="actionBtnsOnCollapse;"></ng-container>
+                <!-- status -->
+                <div *ngIf="expandCollapseBtnType !== 'COLLAPSE_CONTENT'" class="col-lg-2">
+                    <div class="d-flex flex-lg-column col-lg-auto col-md-12 coi-box-purple p-2 column-gap-5 row-gap-2">
+                        <!-- OPA Card Review Status -->
+                        <ng-container *ngTemplateOutlet="statusFieldTemplate; context: { cssClass: 'flex-grow-1 lh-sm',
+                            label: COMMON_DISCL_LOCALIZE.OPA_REVIEW_STATUS_LABEL, value: disclosureDetails?.reviewStatus,
+                            badgeClass: commonService.getReviewStatusBadge(disclosureDetails?.reviewStatusCode) }">
+                        </ng-container>
+                        <!-- OPA Card Document Status -->
+                        <ng-container *ngTemplateOutlet="statusFieldTemplate; context: { cssClass: 'flex-grow-1 lh-sm',
+                            label: COMMON_DISCL_LOCALIZE.COMMON_DISPOSITION_STATUS, value: disclosureDetails?.dispositionStatus,
+                            badgeClass: commonService.getDispositionStatusBadge(disclosureDetails?.dispositionStatusCode) }">
+                        </ng-container>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+        <!-- expand collapse button -->
+        <div *ngIf="expandCollapseBtnType !== 'HIDE_BTN'" class="col-auto d-flex justify-content-end">
+            <button (click)="toggleDisclosureCard()" id="coi-discl-toggle-btn-{{disclosureId}}"
+                class="btn toggle-btn d-flex align-items-center jusitfy-content-center p-0 shadow-sm"
+                title="Click here to collapse / expand Project overview section"
+                aria-label="Click here to collapse / expand Project overview section">
+                <mat-icon [ngClass]="expandCollapseBtnType === 'EXPAND_CONTENT' ? 'coi-rotate-180' : 'coi-rotate-0'"
+                    aria-hidden="true">expand_more</mat-icon>
+            </button>
+        </div>
+    </div>
+    <!-- Footer -->
+    <div *ngIf="expandCollapseBtnType !== 'COLLAPSE_CONTENT'" class="d-flex justify-content-between align-items-center card-footer flex-wrap gap-2">
+        <!-- Engagement and disclosure count -->
+        <ng-container *ngIf="['FCOI', 'OPA'].includes(cardType)">
+            <div class="col-lg-4" [ngClass]="{'col-lg-8': (cardType === 'FCOI' && disclosureDetails?.fcoiTypeCode != DISCLOSURE_TYPE.PROJECT) }">
+                <div class="row align-items-center">
+                    <!-- engagement -->
+                    <div class="col-auto d-flex align-items-center">
+                        <span class="bg-light fs-18 fw-700 me-2 rounded-3 text-primary"
+                            tabindex="{{disclosureDetails?.noOfSfi > 0 ? 0 : -1}}" role="link"
+                            [title]="disclosureDetails?.noOfSfi > 0 ? 'Click here to view engagements list' : '' "
+                            [ngClass]="disclosureDetails?.noOfSfi ? 'badge cursor-pointer' : 'zero-count-padding'"
+                            [attr.aria-label]="'Engagements count is ' + disclosureDetails?.noOfSfi + (disclosureDetails?.noOfSfi > 0 ? '. Click here to view engagements list' : '')"
+                            (keyup.enter)="openEngagementsModal()"
+                            (click)="openEngagementsModal()">{{ disclosureDetails?.noOfSfi || 0 }}</span>
+                            <div class="col">
+                                <span class="fw-500" [ngClass]="disclosureDetails?.noOfSfi > 0 ? 'cursor-pointer' : '' "
+                                    (click)="openEngagementsModal()"
+                                    (keyup.enter)="openEngagementsModal()"
+                                    [title]="disclosureDetails?.noOfSfi > 0 ? 'Click here to view engagements list' : '' "
+                                    [class.link-primary]="disclosureDetails?.noOfSfi > 0">
+                                    Engagements
+                                </span>
+                                <div *ngIf="disclosureDetails.coiDisclosureTypes?.length" class="col coi-relationship-pill-container">
+                                    <ng-container *ngFor="let RelationshipType of disclosureDetails.coiDisclosureTypes; let i = index">
+                                        <span class="coi-relationship-pill">
+                                            <span class="d-flex align-items-center coi-relationship-pill-text">
+                                                <mat-icon aria-hidden="true" class="flex-shrink-0 me-1 coi-mat-icon-size">{{ engagementRelTypeIcons[RelationshipType?.disclosureTypeCode] }}</mat-icon>
+                                                <span class="fs-13">{{ RelationshipType.description }}</span>
+                                            </span>
+                                        </span>
+                                    </ng-container>
+                                </div>
+                            </div>
+                    </div>
+                    <!-- projects -->
+                    <ng-container *ngIf="cardType === 'FCOI' && disclosureDetails?.fcoiTypeCode != DISCLOSURE_TYPE.PROJECT">
+                        <ng-container *ngFor="let projectCount of disclosureDetails?.projectCount">
+                            <div *ngIf="projectCount" class="col d-flex align-items-center fw-semibold">
+                                <span class="bg-light fs-18 fw-700 me-2 rounded-3 text-primary"
+                                    tabindex="{{projectCount?.projectCount > 0 ? 0 : -1}}" role="link"
+                                    [attr.aria-label]="projectCount?.projectType + ' count is ' + projectCount?.projectCount + (projectCount?.projectCount > 0 ? '. Click here to view ' + projectCount?.projectType + ' list' : '')"
+                                    [title]="projectCount?.projectCount > 0 ? 'Click here to view ' + projectCount?.projectType + ' list' : ''"
+                                    (click)="openProjectsModal(projectCount);"
+                                    (keyup.enter)="openProjectsModal(projectCount);"
+                                    [ngClass]="projectCount?.projectCount ? 'badge cursor-pointer' : 'zero-count-padding'">{{projectCount?.projectCount}}</span>
+                                <span class="fw-500" [ngClass]="projectCount?.projectCount > 0 ? 'cursor-pointer' : '' "
+                                    [class.link-primary]="projectCount?.projectCount > 0"
+                                    [title]="projectCount?.projectCount > 0 ? 'Click here to view ' + projectCount?.projectType + ' list' : ''"
+                                    (click)="openProjectsModal(projectCount);"
+                                    (keyup.enter)="openProjectsModal(projectCount);">{{ projectCount?.projectType }}</span>
+                            </div>
+                        </ng-container>
+                    </ng-container>
+                    <!-- attachment -->
+                    <div *ngIf="cardType === 'FCOI'" class="col d-flex align-items-center fw-semibold">
+                        <span class="d-flex align-items-center justify-content-center bg-light fs-18 fw-700 me-2 rounded-3 text-primary"
+                            tabindex="{{disclosureDetails?.disclosureAttachmentCount?.disclosureDetails?.disclosureAttachmentCount > 0 ? 0 : -1}}"
+                            [title]="disclosureDetails?.disclosureAttachmentCount > 0 ? 'Click here to view Attachment list' : ''"
+                            [ngClass]="disclosureDetails?.disclosureAttachmentCount > 0 ?'badge cursor-pointer' : 'zero-count-padding'"
+                            [attr.aria-label]="disclosureDetails?.disclosureAttachmentCount > 0 ?'Click here to view Attachment list' : ''"
+                            (click)="openAttachmentsModal()" (keyup.enter)="openAttachmentsModal()" role="link"
+                            id="coi-admin-dash-disc-attachment-{{index}}">{{ disclosureDetails?.disclosureAttachmentCount}}
+                        </span>
+                        <span class="fw-500"
+                            [ngClass]="disclosureDetails?.disclosureAttachmentCount > 0 ? 'link-primary' : 'coi-text-light'"
+                            [title]="disclosureDetails?.disclosureAttachmentCount > 0 ? 'Click here to view Attachment list' : ''"
+                            (keyup.enter)="openAttachmentsModal()" (click)="openAttachmentsModal();">Attachments</span>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+        <!-- Last Updated -->
+        <div class="d-flex flex-column col-auto">
+            <span class="coi-text-lighter fs-13 mb-0">Last Updated By</span>
+            <span id="coi-discl-last-updated-{{disclosureId}}" class="coi-text-dark fs-13 fw-normal">
+                <span>{{ disclosureDetails?.updateUserFullName || disclosureDetails?.updateUser }}</span>
+                <span class="coi-text-lighter"> On </span>
+                <span>{{ ( disclosureDetails?.updateTimestamp || disclosureDetails?.updateTimeStamp) | dateFormatterWithTimeZone: 'long' }}</span>
+            </span>
+        </div>
+        <!-- actions -->
+        <div class="d-flex align-items-center gap-2 col-auto ms-auto">
+            <ng-container *ngTemplateOutlet="actionBtnsTemplate;"></ng-container>
+        </div>
+    </div>
+</article>
+
+<ng-template #actionBtnsOnCollapse>
+    <div *ngIf="expandCollapseBtnType === 'COLLAPSE_CONTENT'" class="col-auto d-flex align-items-end ms-auto gap-2">
+        <ng-container *ngTemplateOutlet="actionBtnsTemplate;"></ng-container>
+    </div>
+</ng-template>
+
+<ng-template #actionBtnsTemplate>
+    <!-- comments -->
+    <ng-container *ngTemplateOutlet="allCommentsBtnTemplate;"></ng-container>
+    <!-- view -->
+    <ng-container *ngTemplateOutlet="viewBtnTemplate;"></ng-container>
+    <!-- assign admin btn -->
+    <ng-container *ngTemplateOutlet="assignAdminBtnTemplate;"></ng-container>
+</ng-template>
+
+<!-- View Btn -->
+<ng-template #viewBtnTemplate>
+    <button (click)="redirectToDisclosure()" id="coi-discl-view-btn-{{disclosureId}}"
+        class="btn btn-outline-secondary coi-btn-sm d-flex align-items-center fs-14"
+        [title]="viewDisclosureTooltip" [attr.aria-label]="viewDisclosureTooltip">
+        <mat-icon aria-hidden="true" class="me-1">visibility</mat-icon>
+        <span>View</span>
+    </button>
+</ng-template>
+
+<!-- Comments Btn -->
+<ng-template #allCommentsBtnTemplate>
+    <button *ngIf="isShowCommentButton" id="coi-discl-comment-btn-{{disclosureId}}"
+        (click)="openReviewComment()" title="Click here to open review comments"
+        aria-label="Click here to open review comments"
+        class="btn btn-outline-secondary coi-btn-sm d-flex align-items-center fs-14">
+        <mat-icon aria-hidden="true" class="flex-shrink-0">rate_review</mat-icon>
+        <span class="ms-2">All Comments</span>
+        <ng-container *ngIf="disclosureDetails?.commentCount > 0">
+            <span>({{ disclosureDetails?.commentCount > 99 ? '99+' : disclosureDetails?.commentCount }})</span>
+        </ng-container>
+    </button>
+</ng-template>
+
+<!-- Assign Admin Btn -->
+<ng-template #assignAdminBtnTemplate>
+    <button *ngIf="isShowAssignAdminBtn && canManageDisclosure"
+        id="coi-discl-assign-admin-btn-{{disclosureId}}" (click)="assignAdmin();"
+        class="btn btn-outline-secondary coi-btn-sm d-flex align-items-center fs-14"
+        title="Click here to assign administrator/admin group"
+        aria-label="Click here to assign administrator/admin group">
+        <mat-icon aria-hidden="true" class="me-1 flex-shrink-0">group_add</mat-icon>
+        <span>Assign Admin</span>
+    </button>
+</ng-template>
+
+<ng-template #reviewerTemplate let-list="list" let-label="label">
+    <span class="d-block coi-text-dark">{{ label }}</span>
+    <div class="coi-text-light">
+        <app-no-data-label [valueToShow]="list">
+            <ng-container *ngFor="let reviewer of list; let isLast = last">
+                <span class="coi-reviewer-pill-container regularFont">{{reviewer[0]}}
+                    <ng-container *ngIf="reviewer[1] != 'null'">| {{ reviewer[1] }}</ng-container> |
+                    <span class="{{REVIEWER_STATUS_MAP[reviewer[3]] || 'coi-reviewer-pill-danger'}}">{{reviewer[2]}}</span>
+                </span>
+            </ng-container>
+        </app-no-data-label>
+    </div>
+</ng-template>
+
+<ng-template #textFieldTemplate let-cssClass="cssClass"
+    let-label="label" let-value="value" let-innerTemplate="innerTemplate">
+    <div [ngClass]="cssClass" [attr.aria-label]="label + ' is ' + value">
+        <span class="d-block coi-text-dark">{{ label }}</span>
+        <span class="coi-text-light text-slice" [title]="value">
+            <app-no-data-label [valueToShow]="value"></app-no-data-label>
+            <ng-container *ngTemplateOutlet="innerTemplate"></ng-container>
+        </span>
+    </div>
+</ng-template>
+
+<ng-template #extendedBadgeTemplate>
+    <span class="d-inline-flex"><app-common-extended-badge></app-common-extended-badge></span>
+</ng-template>
+
+<ng-template #statusFieldTemplate let-cssClass="cssClass"
+    let-label="label" let-value="value" let-badgeClass="badgeClass">
+    <div [ngClass]="cssClass" [attr.aria-label]="label + ' is ' + value">
+        <span class="d-block coi-text-light">{{ label }}</span>
+        <span class="coi-text-light text-slice" [title]="value">
+            <app-no-data-label [valueToShow]="value">
+                <span class="{{badgeClass}} me-1"></span>
+                <span class="coi-text-dark">{{ value }}</span>
+            </app-no-data-label>
+        </span>
+    </div>
+</ng-template>

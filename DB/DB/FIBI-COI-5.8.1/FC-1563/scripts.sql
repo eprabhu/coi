@@ -1,0 +1,6 @@
+UPDATE `person_role_type` SET `ROLE_TYPE_CODE` = '8065' WHERE (`ROLE_TYPE_CODE` = '65');
+
+UPDATE `notification_recipient` 
+SET `ROLE_TYPE_CODE` = '8065' 
+WHERE `ROLE_TYPE_CODE` = '65' 
+AND `NOTIFICATION_TYPE_ID` IN ('8059', '8060');

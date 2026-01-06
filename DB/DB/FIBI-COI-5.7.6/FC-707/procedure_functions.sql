@@ -1,0 +1,1 @@
+\. ./FIBI-COI-5.7.6/FC-707/Procedures/GET_COI_DISCL_REVIEW_DETAILS.sql

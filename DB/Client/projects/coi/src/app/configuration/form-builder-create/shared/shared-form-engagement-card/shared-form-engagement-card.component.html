@@ -1,0 +1,164 @@
+<div class="card coi-card-regular mt-0 custom-shadow" id="fb-opa-eng-card-{{formBuilderId}}-{{engagementDetails?.entityId}}">
+    <div class="card-body" id="fb-opa-eng-card-body-{{formBuilderId}}-{{engagementDetails?.entityId}}">
+        <div class="row">
+            <div class="col-12 mb-3">
+                <div class="row row-gap-2">
+                    <!-- Entity Name -->
+                    <div class="d-flex align-items-center col-12 gap-2">
+                        <h4 class="d-flex align-items-center col coi-text-darker">
+                            <!-- icon -->
+                            <span class="coi-icon-bg me-2 fs-14 d-inline-flex"><mat-icon aria-hidden="true" class="coi-entity-icon-size coi-coloured-icons">domain</mat-icon></span>
+                            <!-- Entity Name -->
+                            <div class="d-flex align-items-center">
+                                <a class="fs-6 link-primary" tabindex="0"
+                                    id="fb-opa-eng-card-ent-id-{{formBuilderId}}-{{engagementDetails?.entityId}}"
+                                    (click)="viewEntityDetails()" (keyup.enter)="viewEntityDetails()"
+                                    [attr.aria-label]="'Click here to view details of ' + engagementDetails?.entityName"
+                                    [title]="'Click here to view details of ' + engagementDetails?.entityName">
+                                    <span class="text-slice">{{ engagementDetails?.entityName }}</span>
+                                </a>
+                                <span *ngIf="engagementDetails?.isForeign" class="flag-badge p-1" title="The entity '{{engagementDetails?.entityName}}' has foreign presence">
+                                    <mat-icon class="foreign-icon rounded-circle fs-14">flight</mat-icon>
+                                    <span class="d-flex align-items-center justify-content-center h-100">Foreign</span>
+                                </span>
+                            </div>
+                        </h4>
+
+                        <!-- InComplete -->
+                         <div *ngIf="!engagementDetails?.isFormCompleted">
+                             <span class="badge f-14 px-3 py-2 rounded-pill text-bg-warning">Incomplete</span>
+                         </div>
+
+                        <!-- Inactive -->
+                         <div *ngIf="engagementDetails?.versionStatus === engagementVersionStatus?.INACTIVE">
+                             <span class="badge f-14 px-3 py-2 rounded-pill text-bg-secondary">Inactive</span>
+                        </div>
+
+                    </div>
+                    <!-- Start Date Of Involvement -->
+                    <div class="col-lg-3 col-6">
+                        <span class="coi-text-dark d-block"><ng-container i18n="@@START_DATE_INVOLVEMENT">Start Date Of Involvement</ng-container></span>
+                        <span class="coi-text-light" [title]="engagementDetails?.involvementStartDate | dateFormatter">
+                            <app-no-data-label [valueToShow]="engagementDetails?.involvementStartDate | dateFormatter"></app-no-data-label>
+                        </span>
+                    </div>
+                    <!-- End Date Of Involvement -->
+                    <div class="col-lg-9 col-6">
+                        <span class="coi-text-dark d-block"><ng-container i18n="@@END_DATE_INVOLVEMENT">End Date Of Involvement</ng-container></span>
+                        <span class="coi-text-light" [title]="engagementDetails?.involvementEndDate | dateFormatter">
+                            <app-no-data-label [valueToShow]="engagementDetails?.involvementEndDate | dateFormatter"></app-no-data-label>
+                        </span>
+                    </div>
+                    <!-- involvements -->
+                    <div *ngIf="engagementDetails?.engQuestionnaireAnswers?.length" class="d-flex flex-wrap align-items-center gap-3 col-12">
+                        <div *ngFor="let involvement of engagementDetails?.engQuestionnaireAnswers; let isLastInvolvement = last" class="d-flex align-items-center gap-1">
+                            <span class="coi-text-dark" [title]="involvement?.label">{{ involvement?.label }}</span>
+                            <mat-icon aria-hidden="true" [ngClass]="involvement?.value === 'Yes' ? 'text-success' : 'text-danger'"
+                                class="flex-shrink-0 me-1">{{ involvement?.value === 'Yes' ? 'check_circle' : 'cancel'  }}</mat-icon>
+                            <span *ngIf="!isLastInvolvement">|</span>
+                        </div>
+                    </div>
+                    <!-- Relationship -->
+                    <div class="col-lg-9 d-flex align-items-center justify-content-between pt-1">
+                        <div class="d-flex align-items-center">
+                            <span aria-label="Relationship" class="coi-text-dark me-2">Relationship</span>
+                            <div class="coi-relationship-pill-container">
+                                <ng-container *ngFor="let relationship of engagementDetails?.relationships">
+                                    <span class="coi-relationship-pill">
+                                        <span class="d-flex align-items-center coi-relationship-pill-text">
+                                            <mat-icon aria-hidden="true" class="flex-shrink-0 me-1">{{ engagementTypeIcons[relationship] }}</mat-icon>
+                                            <span>{{ relationship }}</span>
+                                        </span>
+                                    </span>
+                                    <span *ngIf="commonService.isSfiEvaluationEnabled && engagementDetails?.isSignificantFinInterest && ENGAGEMENT_LOCALIZE.TERM_FINANCIAL_FOR_REL_PILLS === relationship"
+                                        class="coi-relationship-pill">
+                                        <span class="d-flex coi-relationship-pill-text lh-sm">
+                                            <img src="{{deployMap}}assets/images/sfi.svg" alt="{{ ENGAGEMENT_LOCALIZE.TERM_SFI_FOR_REL_PILLS }}" class="coi-sfi-icon me-2" aria-hidden="true">
+                                            <span>{{ ENGAGEMENT_LOCALIZE.TERM_SFI_FOR_REL_PILLS }}</span>
+                                        </span>
+                                    </span>
+                                </ng-container>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Action Btns -->
+                    <div class="col-auto d-flex align-items-end justify-content-end gap-2 ms-auto">
+                        <!-- View -->
+                        <button class="d-flex align-items-center btn btn-outline-grey fs-14 btn-sm"
+                            (click)="viewEngagementDetails()" aria-label="Click here to view engagement"
+                            title="Click here to view engagement" id="coi-shared-sfi-view-btn">
+                            <mat-icon class="me-1">visibility</mat-icon>
+                            <span>View</span>
+                        </button>
+                        <!-- Comments -->
+                        <button *ngIf="engagementDetails?.commentDetails?.isShowCommentBtn"
+                            id="opa_add_comments_btn" (click)="openReviewComment()"
+                            title="Click here to add/view review comments" aria-label="Click here to add/view review comments"
+                            class="d-flex align-items-center justify-content-center btn btn-outline-grey fs-14 btn-sm">
+                            <mat-icon aria-hidden="true" class="me-1">rate_review</mat-icon>
+                            <span>Comments</span>
+                            <span *ngIf="engagementDetails?.commentDetails?.commentCount > 0">({{ engagementDetails?.commentDetails?.commentCount }})</span>
+                        </button>
+                        <!-- more option -->
+                        <button *ngIf="isFormEditable" [matMenuTriggerFor]="engMoreActions" id="coi-entity-details-moreaction-btn"
+                            class="d-flex btn btn-outline-grey fs-14 align-items-center btn-sm"
+                            title="Click here for more actions" aria-label="Click here for more actions">
+                            <mat-icon aria-hidden="true">more_vert</mat-icon>
+                        </button>
+                        <mat-menu #engMoreActions="matMenu" xPosition="before">
+                            <!-- Modify  -->
+                            <button *ngIf="engagementDetails?.versionStatus === engagementVersionStatus?.ACTIVE" mat-menu-item id="coi-entity-change-status-btn" class="more-action"
+                                (click)="modifyEngagement();" title="Click here to modify engagement"
+                                aria-label="Click here to modify engagement">
+                                <mat-icon aria-hidden="true" class="coi-text-lighter flex-shrink-0 me-2">edit</mat-icon>
+                                <span class="coi-text-light fw-medium">Modify</span>
+                            </button>
+                            <!-- Activate -->
+                            <button *ngIf="engagementDetails?.versionStatus === engagementVersionStatus?.INACTIVE" mat-menu-item id="coi-entity-change-status-btn" class="more-action"
+                                (click)="activateDeactivateEngagement();" title="Click here to activate engagement"
+                                aria-label="Click here to activate engagement">
+                                <mat-icon aria-hidden="true" class="coi-text-lighter flex-shrink-0 me-2">offline_bolt</mat-icon>
+                                <span class="coi-text-light fw-medium">Activate</span>
+                            </button>
+                            <!-- Deactivate -->
+                            <button *ngIf="engagementDetails?.versionStatus === engagementVersionStatus?.ACTIVE" mat-menu-item id="coi-entity-change-status-btn" class="more-action"
+                                (click)="activateDeactivateEngagement()" title="Click here to deactivate engagement"
+                                aria-label="Click here to deactivate engagement">
+                                <mat-icon aria-hidden="true" class="coi-text-lighter flex-shrink-0 me-2">cancel</mat-icon>
+                                <span class="coi-text-light fw-medium">Deactivate</span>
+                            </button>
+                            <!-- Delete -->
+                            <button *ngIf="engagementDetails?.canDelete && commonService.canDeleteEngagement" mat-menu-item id="coi-entity-more-optn-graph-btn" class="more-action"
+                                (click)="deleteEngagement()"
+                                aria-label="Click here to delete engagement" title="Click here to delete engagement">
+                                <mat-icon aria-hidden="true" class="coi-text-lighter flex-shrink-0 me-2">delete</mat-icon>
+                                <span class="coi-text-light fw-medium">Delete</span>
+                            </button>
+                        </mat-menu>
+                    </div>
+                </div>
+            </div>
+        </div> 
+    </div>
+    <div *ngIf="sabbaticalType?.length && engagementDetails?.versionStatus === engagementVersionStatus?.ACTIVE && engagementDetails?.relationships?.includes(ENGAGEMENT_LOCALIZE.TERM_COMMITMENT_FOR_REL_PILLS)" class="custom-sabbatical-checkbox-wrapper card-footer coi-card-highlight-bg">
+        <div class="row">
+            <div class="col-md-6 col-lg-8 d-flex align-items-end justify-content-end mt-lg-0">
+                <div class="d-flex flex-wrap align-items-center col-12">
+                    <span class="coi-text-dark">Sabbatical/Leave</span>
+                    <div *ngFor="let sabbatical of sabbaticalType; let isLastSabbatical = last; let sabbaticalIndex = index" class="d-flex align-items-center gap-1">
+                        <div class="d-flex align-items-center p-2">
+                            <input type="checkbox" [disabled]="!isFormEditable" [(ngModel)]="sabbaticalTypeChecked[sabbaticalIndex]" (ngModelChange)="onSabbaticalTypeChange(sabbatical, sabbaticalTypeChecked[sabbaticalIndex])"
+                                class="cursor-pointer me-1" id="opa-sabbatical-type-checkbox-{{sabbaticalIndex}}"
+                                aria-label="Select this box to associate the sabbatical type {{sabbatical}} with this engagement."
+                                title="Select this box to associate the sabbatical type {{sabbatical}} with this engagement.">
+                            <label for="opa-sabbatical-type-checkbox-{{sabbaticalIndex}}" class="f-14 fw-600 cursor-pointer ps-1 coi-text-lighter"
+                                title="Select this box to associate the sabbatical type {{sabbatical}} with this engagement.">
+                                {{sabbatical}}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

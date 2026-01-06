@@ -1,0 +1,83 @@
+<div class="card coi-card-regular">
+    <div class="card-body">
+        <div *ngIf="hasDisclosureId && isExternal" class="mb-3">
+            <app-shared-sfi-card (viewSlider)="viewSlider($event)" [reqObject]='entityDetails'
+                [referredFrom]="'TRAVEL_DISCLOSURE'" [isShowSelectButton]="false" [uniqueId]="'travel-engagement'"></app-shared-sfi-card>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div *ngIf="travelDisclosureFlowType?.EXTERNAL && travelDisclosureFlowType?.INTERNAL" class="d-flex align-items-center col-12 mt-1 mb-2">
+                    <div>
+                        <button *ngIf="travelDisclosureFlowType?.EXTERNAL"
+                            class="btn-none d-inline-flex align-items-center fs-14 p-2 funding-type rounded-3 border  mr-2"
+                            [ngClass]="selectedFundingType === 'EXTERNAL' ? 'border-primary' : 'coi-bg-body'"
+                            (click)="toggleFundingType('EXTERNAL')" title="Travel funding type external"
+                            aria-label="Travel funding type external">
+                            <input type="radio" name="travelDisclosure-funding-type" id="travelDisclosure-external"
+                                [value]="'EXTERNAL'" class="me-2 hand-cursor" [(ngModel)]="selectedFundingType">
+                            <label for="travelDisclosure-external"
+                                class="form-check-label fs-14 fw-normal hand-cursor">External</label>
+                            <mat-icon *ngIf="selectedFundingType === 'EXTERNAL'"
+                                class="funding-type-check ms-auto">check</mat-icon>
+                        </button>
+                        <button *ngIf="travelDisclosureFlowType?.INTERNAL"
+                            class="btn-none d-inline-flex align-items-center fs-14 p-2 funding-type rounded- border"
+                            [ngClass]="selectedFundingType === 'INTERNAL' ? 'border-primary' : 'coi-bg-body'"
+                            (click)="toggleFundingType('INTERNAL')" title="Travel funding type internal"
+                            aria-label="Travel funding type internal">
+                            <input type="radio" name="travelDisclosure-funding-type" id="travelDisclosure-internal"
+                                [value]="'INTERNAL'" class="me-2 hand-cursor" [(ngModel)]="selectedFundingType">
+                            <label for="travelDisclosure-internal"
+                                class="form-check-label fs-14 fw-normal hand-cursor">Internal</label>
+                            <mat-icon *ngIf="selectedFundingType === 'INTERNAL'"
+                                class="funding-type-check ms-auto">check</mat-icon>
+                        </button>
+                    </div>
+                </div>
+                <!-- Info - Internal -->
+                <app-common-shared-info-text *ngIf="selectedFundingType === 'INTERNAL'"
+                    [elementId]="'coi-travel-eng-int-info'" [subSectionId]="2403">
+                    <!-- Proceed button -->
+                    <button id="proceed-travel" (click)="confirmTravelEngagement()"
+                        class="btn btn-primary fs-14 d-inline-flex ms-2"
+                        [disabled]="hasDisclosureId"
+                        [title]="hasDisclosureId ? '' : 'Click here to create travel disclosure'"
+                        [attr.aria-label]="hasDisclosureId ? '' : 'Click here to create travel disclosure'">
+                        Proceed
+                    </button>
+                </app-common-shared-info-text>
+                <!-- Info - External -->
+                <app-common-shared-info-text *ngIf="selectedFundingType === 'EXTERNAL'"
+                    [elementId]="'coi-travel-eng-ext-info'" [subSectionId]="2403">
+                </app-common-shared-info-text>
+            </div>
+            <div *ngIf="selectedFundingType === 'EXTERNAL'" class="col-12">
+                <router-outlet></router-outlet>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- engagement slider -->
+<ng-container *ngIf="showSlider">
+    <app-coi-slider (closeSlider)="hideSfiNavBar()" [elementId]="sliderElementId">
+        <ng-container content>
+            <app-entity-details [entityId]="entityDetails.personEntityId"></app-entity-details>
+        </ng-container>
+    </app-coi-slider>
+</ng-container>
+
+<!-- confirmation modal -->
+<app-common-modal [modalConfig]="confimrModalConfig" (modalAction)="postConfirmation($event)">
+    <!-- header -->
+    <ng-container modal-header>
+        <span>Confirmation</span>
+        <!-- <app-common-help-text [subSectionId]="" [elementId]=""></app-common-help-text> -->
+    </ng-container>
+    <!-- sticky - content -->
+    <ng-container modal-body>
+        <p
+            [innerHTML]="selectedFundingType === 'INTERNAL' ? TRAVEL_DISCLOSURE_INTERNAL_CONFIRM_TEXT : TRAVEL_DISCLOSURE_EXTERNAL_CONFIRM_TEXT">
+        </p>
+    </ng-container>
+</app-common-modal>

@@ -1,0 +1,113 @@
+<td class="align-top" width="19%" id="searchCostElement">
+    <app-endpoint-search [searchOnFocus]="lineItemData?.budgetDetailId ? false : true"
+        [httpOptions]="endpointSearchOptions"
+        [isDisabled]="_budgetDataService.isBudgetViewMode || lineItemData?.isSystemGeneratedCostElement"
+        [clearField]="clearField" [isError]="isInvalidLineItem?.costElement? true : false"
+        [placeHolder]="'Type here for Cost Element'" (onSelect)="costElementChange($event)">
+    </app-endpoint-search>
+    <span class="block-display text-left">{{lineItemData?.budgetCategory?.description}}
+        <span *ngIf="helpText?.budget && helpText?.budget[lineItemData?.budgetCategoryCode]?.helpTextInfo"
+            class="d-inline-block icon-hover">
+            <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med"
+                    aria-hidden="true"></i>
+                <div class="tooltiptext-left card card-inner p-15 text-left">
+                    <span class="font-cv">{{helpText?.budget[lineItemData?.budgetCategoryCode]?.helpTextInfo}}</span>
+                </div>
+            </a>
+        </span>
+    </span>
+    <div *ngIf="isInvalidLineItem?.costElement" class="invalid-feedback d-block text-left">
+        {{isInvalidLineItem?.costElement}}
+    </div>
+</td>
+
+<td class="align-top" width="19%">
+    <textarea appAutoGrow class="form-control"
+        id="{{lineItemData.budgetDetailId ? 'lineItemDescriptionID' + lineItemData.budgetDetailId : 'lineItemDescriptionID'}}"
+        [(ngModel)]="lineItemData.lineItemDescription" appLengthValidator [limit]=4000 (ngModelChange)="setUnsavedChanges(true);"
+        [disabled]="_budgetDataService.isBudgetViewMode || lineItemData?.isSystemGeneratedCostElement"></textarea>
+</td>
+
+<td class="align-top" width="12%">
+    <input type="text" class="form-control" [(ngModel)]="lineItemData.quantity" min="0"
+        [ngClass]="{'lineItem-mandatory': isInvalidLineItem?.quantityMsg}" appCurrencyFormat
+        [initialValue]="lineItemData.quantity" [isNumberFormatOnly]="true" (ngModelChange)="setUnsavedChanges(true);"
+        (keypress)="inputRestriction($event)"
+        [disabled]="_budgetDataService.isBudgetViewMode || lineItemData?.isSystemGeneratedCostElement" />
+    <div *ngIf="isInvalidLineItem?.quantityMsg" class="invalid-feedback d-block text-left">
+        {{isInvalidLineItem?.quantityMsg}}
+    </div>
+</td>
+
+<td class="align-top" width="12%">
+    <input type="text" appCurrencyFormat class="form-control text-right" [(ngModel)]="lineItemData.lineItemCost"
+        [initialValue]="lineItemData.lineItemCost" [ngClass]="{'lineItem-mandatory': isInvalidLineItem?.cost}"
+        (keypress)="inputRestriction($event)" (ngModelChange)="genericCalculations({}, lineItemData, currentPeriodData, budgetData);
+      inputDigitRestriction(lineItemData.lineItemCost, isInvalidLineItem); setUnsavedChanges(true);" [disabled]="_budgetDataService.isBudgetViewMode || (lineItemData?.isSystemGeneratedCostElement && budgetData?.budgetHeader?.isAutoCalc)
+      || (lineItemData?.budgetCategory?.budgetCategoryTypeCode == 'P' && ((lineItemData?.personsDetails?.length > 0 && lineItemData?.personsDetails[0].salaryRequested > 0)
+      || budgetData.isCalculationWithPredefinedSalary ))" />
+    <div *ngIf="isInvalidLineItem?.cost" class="invalid-feedback d-block text-left">
+        {{isInvalidLineItem?.cost}}
+    </div>
+</td>
+
+<td class="align-top" width="18%">
+    <div class="form-row m-0 text-center cost-sharing">
+        <div class="col-4">
+            <input class="form-control" type="number" step="any" [(ngModel)]="lineItemData.costSharingPercentage"
+                [ngClass]="{'lineItem-mandatory': isInvalidLineItem?.costShareMsg}"
+                placeholder="eg: 100, 99.99, 10.22, 25 etc" (ngModelChange)="genericCalculations({}, lineItemData, currentPeriodData, budgetData);
+          setUnsavedChanges(true);"
+                [disabled]="(lineItemData?.budgetCategory?.budgetCategoryTypeCode == 'P' && ((lineItemData?.personsDetails?.length > 0 && lineItemData?.personsDetails[0].salaryRequested > 0)
+          || budgetData.isCalculationWithPredefinedSalary )) ||
+          _budgetDataService.isBudgetViewMode || (lineItemData?.isSystemGeneratedCostElement && budgetData?.budgetHeader?.isAutoCalc)"
+                (keyup)="limitKeypress(lineItemData.costSharingPercentage, 'COSTSHARE', isInvalidLineItem)" />
+        </div>
+        <div class="col-8">
+            <input class="form-control text-right" type="text" appCurrencyFormat
+                [(ngModel)]="lineItemData.costSharingAmount" title="Auto generated"
+                [initialValue]="lineItemData.costSharingAmount" disabled />
+        </div>
+    </div>
+    <div *ngIf="isInvalidLineItem?.costShareMsg" class="invalid-feedback d-block text-left">
+        {{isInvalidLineItem?.costShareMsg}}
+    </div>
+</td>
+
+<td class="align-top" width="12%">
+    <input class="form-control text-right" type="text" appCurrencyFormat
+        [(ngModel)]="lineItemData.sponsorRequestedAmount" disabled [initialValue]="lineItemData.sponsorRequestedAmount">
+</td>
+
+<td *ngIf="lineItemData?.budgetCategory?.budgetCategoryTypeCode != 'P' && rowType == 'ADD'" class="align-top"
+    width="8%">
+    <button class="btn btn-primary-sub btn-sm" (click)="lineItemActions('SAVE')">Add</button>
+</td>
+<td *ngIf="lineItemData?.budgetCategory?.budgetCategoryTypeCode == 'P' && rowType == 'ADD'" class="align-top"
+    width="8%">
+    &nbsp;
+</td>
+
+<td *ngIf="!_budgetDataService.isBudgetViewMode && rowType == 'LIST'" class="align-top" width="8%">
+    <span>
+        <i *ngIf="!lineItemData?.isSystemGeneratedCostElement" aria-hidden="true"
+            class="fa fa-trash hand-cursor hoverColor action-icons" title="Delete line Item"
+            (click)="lineItemActions('DELETE')"></i>
+        <i *ngIf="!lineItemData?.isSystemGeneratedCostElement && lineItemData.budgetDetailId != null && budgetData?.budgetHeader?.isAutoCalc && budgetData?.isAutoCalculateEnabled"
+            class="fa fa-eye hand-cursor hoverColor action-icons" title="View line item rates"
+            (click)="lineItemActions('RATE')" aria-hidden="true">
+        </i>
+    </span>
+    <button title="Add Personnel" class="personAddBtn font hoverColor"
+        *ngIf="!lineItemData?.isSystemGeneratedCostElement && lineItemData?.personsDetails?.length == 0 && lineItemData?.budgetCategory?.budgetCategoryTypeCode == 'P'">
+        <i class="fa fa-user-plus fa-large action-icons" aria-hidden="true" (click)="addMultiplePerson()"></i>
+    </button>
+</td>
+<td *ngIf="_budgetDataService.isBudgetViewMode && rowType == 'LIST'" class="align-top" width="8%">
+    <span>
+        <i *ngIf="!lineItemData?.isSystemGeneratedCostElement && lineItemData.budgetDetailId != null && budgetData?.budgetHeader?.isAutoCalc"
+            class="fa fa-eye hand-cursor hoverColor action-icons" title="View rates calculation"
+            (click)="lineItemActions('RATE')" aria-hidden="true">
+        </i>
+    </span>
+</td>

@@ -1,0 +1,187 @@
+<ng-container *ngIf="isOpenSlider">
+    <app-coi-slider (closeSlider)="closeComparisonSlider()" [elementId]="comparisonService.sliderId" [isHeaderNeeded]="true"
+        [sliderWidth]="'w-100 w-xxl-75 w-lg-90'">
+        <!-- slider header -->
+        <ng-container header>
+            <div class="d-flex align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span id="{{comparisonService.sliderId}}-header-text">Comparing</span><!-- do not change the header id -->
+                    <ng-container *ngIf="entityVersionList?.length > 0">
+                        <!-- left comparison versions -->
+                        <div class="btn-group">
+                            <!-- version btn -->
+                            <button id="coi-entity-left-version-btn" (click)="triggerClickForId('coi-entity-left-version-dropdown-btn')"
+                                class="d-flex btn btn-outline-grey fs-14 align-items-center btn-sm gap-1"
+                                [disabled]="isLoading"
+                                title="Click here for entity versions" aria-label="Click here for entity versions">
+                                <span>Version</span>
+                                <span *ngIf="leftComparisonVersion?.versionNumber">{{ leftComparisonVersion?.versionNumber }}</span>
+                                <span *ngIf="leftComparisonVersion?.versionStatus === ENTITY_VERSION_STATUS.ACTIVE">(Active)</span>
+                                <span *ngIf="leftComparisonVersion?.versionStatus === ENTITY_VERSION_STATUS.CANCELLED">(Cancelled)</span>
+                            </button>
+                            <!-- dropdown btn -->
+                            <button [matMenuTriggerFor]="leftVersionChangeBtn" id="coi-entity-left-version-dropdown-btn"
+                                class="btn btn-outline-grey fs-14 dropdown-width dropdown-toggle dropdown-toggle-split btn-sm"
+                                [disabled]="isLoading"
+                                title="Click here for entity versions" aria-label="Click here for entity versions">
+                            </button>
+                        </div>
+                        <!-- options -->
+                        <mat-menu #leftVersionChangeBtn="matMenu" xPosition="before">
+                            <ng-container *ngFor="let version of entityVersionList">
+                                <button mat-menu-item id="btn-left-version-change-{{version?.versionNumber}}" (click)="versionChange(version, 'LEFT')"
+                                    title="Click here to select {{version?.versionStatus === ENTITY_VERSION_STATUS.ACTIVE ? 'active' : ''}} version: {{version?.versionNumber}}"
+                                    attr.aria-label="Click here to select {{version?.versionStatus === ENTITY_VERSION_STATUS.ACTIVE ? 'active' : ''}} version: {{version?.versionNumber}}">
+                                    <span class="coi-text-light fw-medium">{{ 'Version ' + version?.versionNumber }}</span>
+                                    <span *ngIf="version?.versionStatus === ENTITY_VERSION_STATUS.ACTIVE" class="coi-text-light fw-medium ms-1">(Active)</span>
+                                    <span *ngIf="version?.versionStatus === ENTITY_VERSION_STATUS.CANCELLED" class="coi-text-light fw-medium ms-1">(Cancelled)</span>
+                                </button>
+                            </ng-container>
+                        </mat-menu>
+    
+                        <!-- comparison direction icon -->
+                        <mat-icon [ngClass]="rightComparisonVersion?.versionNumber < leftComparisonVersion?.versionNumber ? 'coi-rotate-180' : 'coi-rotate-0'"
+                            aria-hidden="true" class="coi-text-light flex-shrink-0 fs-24">east</mat-icon>
+    
+                        <!-- right comparison versions -->
+                        <div class="btn-group">
+                            <!-- version btn -->
+                            <button id="coi-entity-right-version-btn" (click)="triggerClickForId('coi-entity-right-version-dropdown-btn')"
+                                class="d-flex btn btn-outline-grey fs-14 align-items-center btn-sm gap-1"
+                                [disabled]="isLoading"
+                                title="Click here for entity versions" aria-label="Click here for entity versions">
+                                <span>Version</span>
+                                <span *ngIf="rightComparisonVersion?.versionNumber">{{ rightComparisonVersion?.versionNumber }}</span>
+                                <span *ngIf="rightComparisonVersion?.versionStatus === ENTITY_VERSION_STATUS.ACTIVE">(Active)</span>
+                                <span *ngIf="rightComparisonVersion?.versionStatus === ENTITY_VERSION_STATUS.CANCELLED">(Cancelled)</span>
+                            </button>
+                            <!-- dropdown btn -->
+                            <button [matMenuTriggerFor]="rightVersionChangeBtn" id="coi-entity-right-version-dropdown-btn"
+                                class="btn btn-outline-grey fs-14 dropdown-width dropdown-toggle dropdown-toggle-split btn-sm"
+                                [disabled]="isLoading"
+                                title="Click here for entity versions" aria-label="Click here for entity versions">
+                            </button>
+                        </div>
+                        <!-- options -->
+                        <mat-menu #rightVersionChangeBtn="matMenu" xPosition="before">
+                            <ng-container *ngFor="let version of entityVersionList">
+                                <button mat-menu-item id="btn-right-version-change-{{version?.versionNumber}}" (click)="versionChange(version,  'RIGHT')"
+                                    title="Click here to select {{version?.versionStatus === ENTITY_VERSION_STATUS.ACTIVE ? 'active' : ''}} version: {{version?.versionNumber}}"
+                                    attr.aria-label="Click here to select {{version?.versionStatus === ENTITY_VERSION_STATUS.ACTIVE ? 'active' : ''}} version: {{version?.versionNumber}}">
+                                    <span class="coi-text-light fw-medium">{{ 'Version ' + version?.versionNumber }}</span>
+                                    <span *ngIf="version?.versionStatus === ENTITY_VERSION_STATUS.ACTIVE" class="coi-text-light fw-medium ms-1">(Active)</span>
+                                    <span *ngIf="version?.versionStatus === ENTITY_VERSION_STATUS.CANCELLED" class="coi-text-light fw-medium ms-1">(Cancelled)</span>
+                                </button>
+                            </ng-container>
+                        </mat-menu>
+                    </ng-container>
+                </div>
+                <app-common-help-text [subSectionId]="2646" [elementId]="'coi-entity-comp-slider'"></app-common-help-text>
+                <div class="d-flex align-items-center gap-3 ms-auto px-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="d-inline-flex rounded-2 border border-light-success coi-comparison-bg-green coi-size-20"></span>
+                        <span class="coi-text-light fw-500 fs-15">Added</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="d-inline-flex rounded-2 border border-light-danger coi-comparison-bg-red coi-size-20"></span>
+                        <span class="coi-text-light fw-500 fs-15">Deleted</span>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+
+        <!-- slider content -->
+        <ng-container content-sticky>
+
+        </ng-container>
+        <!-- slider content -->
+        <ng-container content>
+            <ng-container *ngIf="!isLoading; else showLoader">
+                <ng-container *ngIf="leftComparisonVersion?.versionNumber?.toString() !== rightComparisonVersion?.versionNumber?.toString(); else showNoChange">
+                    <div class="row">
+                        <div class="col">
+                            <nav class="position-sticky coi-negative-top z-index-3">
+                                <ul tabindex="-1" id="coi-entity-comp-slider-responsive-nav" aria-label="navigation menu"
+                                    class="d-flex align-items-center coi-entity-comparison-header-nav m-0 fs-14 p-0 scrollbar-sm">
+                                    <li>
+                                        <a tabindex="0" id="coi-entity-comp-nav-overview" class="d-inline-flex"
+                                            (click)="onClickMenuBar('OVERVIEW')" (keyup.enter)="onClickMenuBar('OVERVIEW')"
+                                            [class.cursor-pointer]="activeTab !== 'OVERVIEW'" [class.active]="activeTab === 'OVERVIEW'"
+                                            [attr.title]="activeTab === 'OVERVIEW' ? 'Overview' : 'Click here to go to Overview'"
+                                            [attr.aria-label]="activeTab === 'OVERVIEW' ? 'Overview' : 'Click here to go to Overview'">
+                                            Overview
+                                        </a>
+                                        <span *ngIf="activeTab === 'OVERVIEW'" class="active-color"></span>
+                                    </li>
+                                    <li>
+                                        <a tabindex="0" id="coi-entity-comp-nav-sponsor" class="d-inline-flex"
+                                            (click)="onClickMenuBar('SPONSOR')" (keyup.enter)="onClickMenuBar('SPONSOR')"
+                                            [class.cursor-pointer]="activeTab !== 'SPONSOR'" [class.active]="activeTab === 'SPONSOR'"
+                                            [attr.title]="activeTab === 'SPONSOR' ? 'Sponsor' : 'Click here to go to Sponsor'"
+                                            [attr.aria-label]="activeTab === 'SPONSOR' ? 'Sponsor' : 'Click here to go to Sponsor'">
+                                            Sponsor
+                                        </a>
+                                        <span *ngIf="activeTab === 'SPONSOR'" class="active-color"></span>
+                                    </li>
+                                    <li>
+                                        <a tabindex="0" id="coi-entity-comp-nav-organization" class="d-inline-flex"
+                                            (click)="onClickMenuBar('SUBAWARD')" (keyup.enter)="onClickMenuBar('SUBAWARD')"
+                                            [class.cursor-pointer]="activeTab !== 'SUBAWARD'" [class.active]="activeTab === 'SUBAWARD'"
+                                            [attr.title]="activeTab === 'SUBAWARD' ? 'Sub-award Organization' : 'Click here to go to Sub-award Organization'"
+                                            [attr.aria-label]="activeTab === 'SUBAWARD' ? 'Sub-award Organization' : 'Click here to go to Sub-award Organization'">
+                                            Sub-award Organization
+                                        </a>
+                                        <span *ngIf="activeTab === 'SUBAWARD'" class="active-color"></span>
+                                    </li>
+                                    <li>
+                                        <a tabindex="0" id="coi-entity-comp-nav-compliance" class="d-inline-flex"
+                                            (click)="onClickMenuBar('COMPLIANCE')" (keyup.enter)="onClickMenuBar('COMPLIANCE')"
+                                            [class.cursor-pointer]="activeTab !== 'COMPLIANCE'" [class.active]="activeTab === 'COMPLIANCE'"
+                                            [attr.title]="activeTab === 'COMPLIANCE' ? 'Compliance' : 'Click here to go to Compliance'"
+                                            [attr.aria-label]="activeTab === 'COMPLIANCE' ? 'Compliance' : 'Click here to go to Compliance'">
+                                            Compliance
+                                        </a>
+                                        <span *ngIf="activeTab === 'COMPLIANCE'" class="active-color"></span>
+                                    </li>
+                                </ul>
+                            </nav>
+                            <!-- Overview -->
+                            <ng-container *ngIf="activeTab === 'OVERVIEW'">
+                                <app-coi-entity-comparison-overview [leftSideEntityDetails]="leftSideEntityDetails?.entireEntityDetails" [rightSideEntityDetails]="rightSideEntityDetails?.entireEntityDetails"></app-coi-entity-comparison-overview>
+                            </ng-container>
+                
+                            <!-- Sponsor -->
+                            <ng-container *ngIf="activeTab === 'SPONSOR'">
+                                <app-coi-entity-comparison-sponsor [leftSideSponsorDetails]="leftSideEntityDetails?.entitySponsorDetails" [rightSideSponsorDetails]="rightSideEntityDetails?.entitySponsorDetails"></app-coi-entity-comparison-sponsor>
+                            </ng-container>
+                
+                            <!-- Sub-award Organization -->
+                            <ng-container *ngIf="activeTab === 'SUBAWARD'">
+                                <app-coi-entity-comparison-organization [leftSideOrganizationDetails]="leftSideEntityDetails?.entityOrganizationDetails" [rightSideOrganizationDetails]="rightSideEntityDetails?.entityOrganizationDetails"></app-coi-entity-comparison-organization>
+                            </ng-container>
+                
+                            <!-- Compliance -->
+                            <ng-container *ngIf="activeTab === 'COMPLIANCE'">
+                                <app-coi-entity-comparison-compliance [leftSideComplianceDetails]="leftSideEntityDetails?.entityComplianceDetails" [rightSideComplianceDetails]="rightSideEntityDetails?.entityComplianceDetails"></app-coi-entity-comparison-compliance>
+                            </ng-container>
+                        </div>
+                        <div class="col-auto position-sticky top-0 z-index-3 h-100 ps-0">
+                            <app-coi-entity-comparison-right-nav></app-coi-entity-comparison-right-nav>
+                        </div>
+                    </div>
+                </ng-container>
+                <ng-template #showNoChange>
+                    <app-no-information customClass="overflow-hidden rounded-3">
+                        <span>There are no changes. You have selected the same version for comparison.</span>
+                    </app-no-information>
+                </ng-template>
+            </ng-container>
+            <ng-template #showLoader>
+                <div class="position-fixed top-0 start-0 vw-100 vh-100 z-index-5 cursor-not-allowed"></div>
+                <div class="position-relative coi-min-height-500px">
+                    <div appCustomPreloader [spinnerWidth]="2" [spinnerHeight]="2"></div>
+                </div>
+            </ng-template>
+        </ng-container>
+    </app-coi-slider>
+</ng-container>

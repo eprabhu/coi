@@ -1,0 +1,100 @@
+<div class="pageMinHeight" id="scrollToTop" [@fadeInOutHeight]>
+    <div>
+        <div class="row">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-12">
+                <div class="mb-3">
+                    <div class="card-content">
+                        <div class="faq-body">
+                            <div class="row pb-4">
+                                <div class="col d-flex">
+                                    <div class="d-flex align-items-center flex-column shadow-sm rounded-3 col-2 side-scroll categories p-3">
+                                      <input [(ngModel)]="searchText" (ngModelChange)="searchQuestions(searchText)"
+                                        placeholder="Search by Questions..."
+                                        class="form-control ng-pristine ng-valid ng-touched">
+                                      <ul class="navbar-nav mr-auto sidenav w-100" id="navAccordion">
+                                          <li *ngFor="let category of categoryList" class="nav-item">
+                                            <a tabindex="0" id="faq-link-item-{{category.categoryCode}}"
+                                              title="Click here to view faq for {{category.description}}"
+                                              attr.aria-label="Click here to view faq for {{category.description}}"
+                                              (keyup.enter)="displayFAQ(category.categoryCode, '')"
+                                              (click)="displayFAQ(category.categoryCode, '')" class="nav-link d-flex justify-content-between">
+                                              <span class="cursor-pointer"><b>{{ category.description }}</b></span>
+                                              <i class="toggle-icon pt-2 pe-3" [ngClass]="!isCollapse[category?.categoryCode] ? 'fa fa-plus' : 'fa fa-minus'"></i>
+                                            </a>
+                                            <ul class="nav-second-level pe-3" [id]="'collapseSubItems' + category?.categoryCode" [hidden]="!isCollapse[category?.categoryCode]">
+                                              <li *ngFor="let questions of questionsList; let questionIndex = index" class="nav-item">
+                                                <span id="question-{{ category?.categoryCode }}">
+                                                  <a class="nav-link" (click)="pageScroll('question-title-'+questionIndex); highlightQuestion(questionIndex); playAnimation()">
+                                                    <span class="nav-link-text questionList-sidebar cursor-pointer fs-15">{{ questions.question }}</span>
+                                                  </a>
+                                                </span>
+                                              </li>
+                                            </ul>
+                                          </li>
+                                        </ul>
+                                      </div>
+                                      
+                                <!-- Middle side -->
+                                <div class="col ps-3">
+                                    <div class="row row-gap-2">
+                                        <div class="d-flex align-items-center justify-content-between flex-wrap column-gap-3 row-gap-2 col-12">
+                                            <h3 class="d-inline-block fs-20 fw-bold mb-0">Frequently Asked Questions</h3>
+                                            <button *ngIf="canModifyFAQ && questionsList?.length" id="coi-add-faq-btn"
+                                                title="Click here to add new question"
+                                                aria-label="Click here to add new question"
+                                                class="btn btn-sm btn-primary fs-14 ms-auto" (click)="addNewQuestion()">
+                                                Add New Question
+                                            </button>
+                                        </div>
+                                        <div class="col-12">
+                                            <div>
+                                                <h4 class="pb-2 fs-18 fw-bold">{{ categoryName }}</h4>
+                                            </div>
+                                            <div class="d-flex flex-column gap-3 qa-display" id="qa-tab" *ngIf="questionsList.length > 0">
+                                                <div *ngFor="let questions of tempQuestionList; let i=index" class="qa-flex rounded-3 question-border"
+                                                [ngClass]="{'questionlist-active': i === selectedQuestion, 'question-list': i !== selectedQuestion}">
+                                                    <ul class="mb-0 p-3">
+                                                        <span class="pt-2 questions-mainsection fs-15 " id="question-title-{{i}}" value="{{ questions.question }}">
+                                                            {{ questions.question }}
+                                                        </span>
+                                                        <p class="fs-14 mb-0">{{ questions.answer }}</p>
+                                                        <span *ngIf="questions.url != ''"><p class="mb-0"><a href="" (click)="redirectUrl(questions?.url);" class="fs-14">{{ questions.url }}</a></p></span>
+                                                        <div class="fileChips hand-cursor d-flex justify-content-end" style="word-break: break-all;"
+                                                            *ngFor="let question of questions.faqAttachment"
+                                                            (click)="saveAttachment(question,question.faqAttachmentId)">
+                                                            <span class="fs-14">{{question.fileName}}
+                                                                <i aria-hidden="true" class="fa fa-download" title="Click here to download {{question.fileName}}"></i>
+                                                            </span>
+                                                        </div>
+                                                    </ul>
+                                                    <!-- Edit  -->
+                                                    <div *ngIf="canModifyFAQ" class="px-3">
+                                                        <button class="btn btn-primary-icon d-flex align-items-center justify-content-center rounded-circle p-2 m-1 coi-scale-9"
+                                                            id="edit-faq-coi" title="Click to edit" type="button" (click)="editdata(questions,i)">
+                                                            <mat-icon aria-hidden="true">edit</mat-icon>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- no question message -->
+                                            <app-no-information *ngIf="!questionsList?.length"
+                                                [customClass]="'rounded-3'"
+                                                [isBorderNeeded]="false" [canShowAddButton]="canModifyFAQ"
+                                                [buttonName]="'Add New Question'" (buttonAction)="addNewQuestion()">
+                                                <span>There are no questions added.</span>
+                                                <span *ngIf="canModifyFAQ" class="ps-1">Click 'Add New Question' to add one</span>
+                                            </app-no-information>
+                                        </div>
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<app-add-faq  (updatedData)="updatedData($event)" (newdata)="updatedata($event)" (selectedResult)="resetFaqTrigger($event)" [questiondata]="allQuestionData"
+    [editIndex]="editIndex" [buttonName]="buttonName"></app-add-faq>

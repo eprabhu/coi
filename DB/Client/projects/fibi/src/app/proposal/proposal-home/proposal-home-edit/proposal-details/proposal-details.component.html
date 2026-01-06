@@ -1,0 +1,637 @@
+<!-- Last Updated By Ramlekshmy I on 16-01-2020 -->
+<!-- Last updated by Arun Raj (provided input limit for proposal title)
+     on 26/03/2020) -->
+<div class="card my-3" [id]="SECTION_ID">
+    <div class="card-header px-4">
+        <h4 class="card-title">
+            <div class="row">
+                <div class="col">
+                    General Proposal Information
+                </div>
+                <div class="col-1">
+                    <span *ngIf="result?.proposal?.proposalId" class="d-inline-block float-right icon-hover">
+                        <a class="tooltip "><i class="fa fa-info-circle fa-med hand-cursor" aria-hidden="true"></i>
+                            <div class="tooltiptext-right card card-inner p-15 text-left">
+                                <span class="font-cv">Created By</span>
+                                <span class="font-cv font-weight-bold">{{result?.proposal?.createUserFullName}}
+                                    on {{result?.proposal?.createTimeStamp | dateFormatterWithTimeZone: 'long'}} </span>
+                                <span class="font-cv">Last Updated By</span><span
+                                    class="font-cv font-weight-bold">{{result?.proposal?.lastUpdateUserFullName}}
+                                    on {{result?.proposal?.updateTimeStamp| dateFormatterWithTimeZone: 'long'}}</span>
+                                <span *ngIf="result?.proposal?.sourceProposalId" class="font-cv">Copied From <span
+                                        class="font-cv font-weight-bold">
+                                        <a class="hand-cursor anchor-link"
+                                            (click)="openProposal(result?.proposal?.sourceProposalId)">
+                                            #{{result?.proposal?.sourceProposalId}}
+                                            {{result?.proposal?.sourceProposalTitle}}</a></span>
+                                </span>
+                            </div>
+                        </a>
+                    </span>
+                </div>
+            </div>
+        </h4>
+    </div>
+    <div class="card-body">
+        <div class="form-row">
+            <!-- Title of Grant Call -->
+            <div *ngIf="_proposalService.proposalSectionConfig['353']?.isActive" class="col-md-9 col-12">
+                <div class="searchBox position-relative">
+                    <label>Title of Grant Call</label>
+                    <span>
+                        <app-endpoint-search id="prop-grant-details-search" [httpOptions]="grantHttpOptions"
+                            [isDisabled]="isDisableTitleOfGrantCall"
+                            [isError]="proposalDataBindObj.isGrantClosingDateError ? true : false"
+                            [clearField]="clearGrantField" [placeHolder]="'Search: Grant Call ID , Title of Grant Call'"
+                            (onSelect)="grantCallSelectFunction($event)"></app-endpoint-search>
+                    </span>
+                    <div *ngIf="proposalDataBindObj.isGrantClosingDateError" class="invalid-feedback d-block">Please
+                        choose another grant call since the Grant Call closed</div>
+                </div>
+                <a id="grantCall-details" title="Click here to view {{grantHttpOptions?.defaultValue}}"
+                    (click)="showGrantDetails = true;" class="anchor-link position-absolute bottom-_10 fs-14"
+                    *ngIf="result?.proposal?.grantCallId != null" tabindex="0">
+                    View Grant Call Details
+                </a>
+    
+            </div>
+            <div *ngIf="isDisableTitleOfGrantCall && _proposalService.proposalSectionConfig['353']?.isActive" class="col-lg-auto mt-5">
+                <a id="grant-edit-btn" class="mr-3">
+                    <i class="fa fa-pencil fa-action-icon pointer" aria-hidden="true"
+                        title="Click here to link / unlink grant call" data-toggle="modal"
+                        data-target="#edit-grant-details"></i>
+                </a>
+            </div>
+            <div class="col"
+                *ngIf="result?.proposal?.grantCallId != null && fundingScheme != null && fundingScheme != '' && _proposalService.proposalSectionConfig['353']?.isActive">
+                <label class="d-block">Funding Scheme</label>
+                <span>{{fundingScheme}}</span>
+            </div>
+            <!-- Link Award Controlled by parameter ENABLE_LINK_AWARD_IN_PROPOSAL-->
+            <div class="form-row col-md-9 col-12 ml-1" *ngIf="_proposalService.proposalSectionConfig['354']?.isActive">
+                <div class="searchBox position-relative mb-3">
+                    <label>
+                        <ng-container i18n="@@PROPOSAL_LINK_AWARD">Link Award</ng-container>
+                    </label>
+                    <span>
+                        <app-elastic id="prop-award-details-search" [options]="elasticSearchAwardOptions"
+                            [placeHolder]="'Search: Award #, Account#, Title, Principal Investigator, Lead Unit, Sponsor'"
+                            [clearField]="clearField" (selectedResult)="selectAward($event)">
+                        </app-elastic>
+                    </span>
+                </div>
+                <a id="award-details"
+                    title="Click here to view #{{result?.proposal?.awardNumber}} : {{result?.proposal?.awardTitle}}"
+                    class="anchor-link position-absolute bottom-_10 fs-14"
+                    *ngIf="result?.proposal?.awardNumber && !isAwardCard" target="_blank" tabindex="0"
+                    [routerLink]="['/fibi/award/overview']" [queryParams]="{awardId:result?.proposal?.awardId}"
+                    tabindex="0">
+                    <ng-container i18n="@@PROPOSAL_VIEW_AWARD">View Award Details</ng-container>
+                </a>
+            </div>
+            <div class="form-row col-12" *ngIf="isAwardCard && _proposalService.proposalSectionConfig['354']?.isActive">
+                <div class=" viewMode resultCard col-12">
+                    <div class="row shadow-medium bg-light">
+                        <!-- Title -->
+                        <div class="col-xl-6 col-lg-9 col-md-6 col-sm-12 col-9">
+                            <label>Title</label>
+                            <span>
+                                <a [routerLink]="['/fibi/award']" class="anchor-link" target="_blank"
+                                    [queryParams]={awardId:awardDetails.award_id}>
+                                    # {{awardDetails?.award_number}} : {{awardDetails?.title}}
+                                </a>
+                                <i class="fa fa-external-link-square anchor-link ml-1" aria-hidden="true"></i>
+                            </span>
+                        </div>
+                        <!-- Lead Unit -->
+                        <div class="col-xl-2 col-lg-3 col-md-6 col-sm-12 col-3">
+                            <label>Lead Unit</label>
+                            <span>
+                                {{concatUnitNumberAndUnitName(awardDetails.lead_unit_number,awardDetails.lead_unit_name)}}
+                            </span>
+                        </div>
+                        <!-- Principal Investigator -->
+                        <div class="col-xl-2 col-lg-3 col-md-6 col-sm-12 col-3">
+                            <label>Principal Investigator</label>
+                            <span>
+                                {{awardDetails.pi_name}}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row col-md-9 col-12 ml-1">
+                <label title="Master Proposal Number">
+                    <ng-container i18n="@@COMMON_MASTER_PROPOSAL">Master Proposal</ng-container> #
+                </label>
+                <div class="searchBox mb-0 memberSearchBox">
+                    <app-elastic [options]="elasticSearchProposalOptions" [clearField]="clearField"
+                        [placeHolder]="'Type here for Master Proposal#'"
+                        (selectedResult)="selectBaseProposalNumber($event)" (keyup)="emptyValidationKeyup($event)">
+                    </app-elastic>
+                </div>
+            </div>
+        </div>
+        <div class="form-row">
+            <!-- Proposal Title -->
+            <div class="col-12">
+                <label for="prop-title"><span class="mandatory">*</span>Proposal Title</label>
+                <span
+                    *ngIf="helpText?.proposalInformation && helpText?.proposalInformation['proposalTitle']?.helpTextInfo"
+                    class="d-inline-block icon-hover">
+                    <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med hand-cursor"
+                            aria-hidden="true"></i>
+                        <div class="tooltiptext-left card card-inner p-15 text-left">
+                            <span
+                                class="font-cv">{{helpText?.proposalInformation['proposalTitle']?.helpTextInfo}}</span>
+                        </div>
+                    </a>
+                </span>
+                <textarea rows="1" appAutoGrow id="prop-title" placeholder="Type here for Proposal Title" class="form-control"
+                    [ngClass]="proposalDataBindObj?.mandatoryList?.has('title') ? 'is-invalid d-block' : ''"
+                    [(ngModel)]="result.proposal.title" (ngModelChange)="setDataChangeFlag()"
+                    appLengthValidator
+                    [isShowLimiter]='true' [limit]=1000></textarea>
+                <div *ngIf="proposalDataBindObj?.mandatoryList?.has('title')" class="invalid-feedback d-block">*
+                    Please provide a title</div>
+            </div>
+            <!-- Principal Investigator -->
+            <div class="col-lg-6 col-md-7 col-12"
+                *ngIf="!result?.proposal?.proposalId && !result?.proposal?.investigator">
+                <label><span class="mandatory">*</span>Principal Investigator</label>
+                <span class="float-right">
+                    <input id="employee" type="radio" name='employee_nonemployee' [value]='true'
+                        [(ngModel)]="isEmployeeFlag" checked="true" (change)="changeMemberType()">
+                    <label for="employee" class="fs-14">
+                        Employee
+                    </label>
+                    <input id="non-employee" type="radio" name='employee_nonemployee' [value]='false'
+                        [(ngModel)]="isEmployeeFlag" (change)="changeMemberType()">
+                    <label for="non-employee" class="fs-14">
+                        Non-Employee
+                    </label>
+                </span>
+                <app-elastic [options]="piElasticSearchOptions" [isError]="proposalDataBindObj?.isPiError"
+                    [clearField]="clearPIField"
+                    [placeHolder]="isEmployeeFlag ? 'Search an employee': 'Search a non-employee' "
+                    (selectedResult)="selectedMemberName($event)"></app-elastic>
+                <div *ngIf="proposalDataBindObj?.mandatoryList?.has('piPersonId')" class="invalid-feedback d-block">
+                    * Please provide a Principal Investigator</div>
+            </div>
+            <!-- Lead Unit -->
+            <div class="col-lg-3 col-md-5 col-sm-6"
+                *ngIf="!result?.proposal?.proposalId && !result?.proposal?.investigator">
+                <label><span class="mandatory">*</span>Lead Unit</label>
+                <app-endpoint-search id="prop-LU" [isError]="proposalDataBindObj?.isUnitError"
+                    [clearField]="clearLUField" [httpOptions]="unitHttpOptions"
+                    [placeHolder]="'Type here for Lead Unit'" (onSelect)="leadUnitSelectFunction($event)"
+                    (onEmpty)="leadUnitSelectFunction($event)"></app-endpoint-search>
+                <div *ngIf="proposalDataBindObj?.mandatoryList?.has('unit')" class="invalid-feedback d-block">*
+                    Please provide a lead unit</div>
+            </div>
+            <!-- Effort -->
+            <div class="col-lg-3 col-md-5 col-sm-6" *ngIf="!result?.proposal?.proposalId">
+                <label class="p-0">% of Effort</label>
+                <span *ngIf="helpText?.keyPersons && helpText?.keyPersons['percentOfEffort']?.helpTextInfo"
+                    class="d-inline-block icon-hover hand-cursor">
+                    <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med" aria-hidden="true"></i>
+                        <div class="tooltiptext-left card card-inner p-15 text-left">
+                            <span class="font-cv">{{helpText?.keyPersons['percentOfEffort']?.helpTextInfo}}</span>
+                        </div>
+                    </a>
+                </span>
+                <input type="number" id="proposal-project-percent-effort" class="form-control"
+                    [(ngModel)]="result.percentageOfEffort" (keyup)="limitKeypress(result.percentageOfEffort);"
+                    placeholder="eg: 100, 99.99, 10.22, 25 etc">
+                <div *ngIf="(proposalDataBindObj.mandatoryList?.has('percentageOfEffort'))"><span
+                        class="mandatory font">{{proposalDataBindObj.mandatoryList?.get('percentageOfEffort')}}</span></div>
+            </div>
+            <!-- Proposal Type -->
+            <div class="col-lg-3 col-md-4 col-sm-6 col-12" id="proposal-type-section">
+                <label for="prop-type"><span class="mandatory">*</span>Proposal Type</label>
+                <select id="prop-type" class="form-control dateBox"
+                    [ngClass]="proposalDataBindObj?.mandatoryList?.has('type') ? 'is-invalid d-block' : ''"
+                    [(ngModel)]="result.proposal.typeCode"
+                    (ngModelChange)="proposalTypeChange();setDataChangeFlag()">
+                    <option [value]=null>--Select--</option>
+                    <option *ngFor="let type of result?.proposalTypes" [value]="type.typeCode"
+                        [hidden]="!type.isActive" [disabled]="!type.isActive">
+                        {{type.description}}</option>
+                </select>
+                <div *ngIf="proposalDataBindObj?.mandatoryList?.has('type')" class="invalid-feedback d-block">*
+                    Please provide a type</div>
+            </div>
+            <!-- Type of Grant -->
+            <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label for="prop-award-type"><span class="mandatory">*</span>
+                    <ng-container i18n="@@COMMON_TYPE_OF_GRANT">Type of Grant</ng-container>
+                </label>
+                <select id="prop-award-type" class="form-control dateBox"
+                    [ngClass]="proposalDataBindObj?.mandatoryList?.has('grant-type') ? 'is-invalid d-block' : ''"
+                    [disabled]="_proposalService.proposalSectionConfig['353']?.isActive && result?.proposal?.grantCallId !== null" 
+                    [(ngModel)]="result.proposal.grantTypeCode"
+                    (ngModelChange)="changeGrantType();setDataChangeFlag()">
+                    <option value=null>--Select--</option>
+                    <option *ngFor="let grantType of result?.grantCallTypes" [value]="grantType.grantTypeCode"
+                        [hidden]="grantType.isActive != true">
+                        {{grantType.description}}</option>
+                </select>
+                <div *ngIf="proposalDataBindObj?.mandatoryList?.has('grant-type')" class="invalid-feedback d-block">
+                    * Please select a type of grant</div>
+                <!-- KKI Specific Change Don't Delete. Comment above Type of Grant (exclude label) -->
+                <!-- <select id="prop-award-type" class="form-control dateBox"
+                    [ngClass]="proposalDataBindObj?.mandatoryList?.has('grant-type') ? 'is-invalid d-block' : ''"
+                    [(ngModel)]="result.proposal.grantTypeCode"
+                    (ngModelChange)="changeGrantType();setDataChangeFlag()">
+                    <option value=null>--Select--</option>
+                    <option *ngFor="let grantType of result?.grantCallTypes" [value]="grantType.grantTypeCode">
+                        {{grantType.description}}</option>
+                </select> -->
+            </div>
+            <!-- Category -->
+            <div class="col-lg-3 col-md-4 col-sm-6 col-12" id="proposal-category-section">
+                <label for="prop-category"><span class="mandatory">*</span>
+                    <ng-container i18n="@@COMMON_CATEGORY_PROPOSAL">Category</ng-container>
+                </label>
+                <select id="prop-category" class="form-control dateBox"
+                    [ngClass]="proposalDataBindObj?.mandatoryList?.has('category') ? 'is-invalid d-block' : ''"
+                    [disabled]="result?.proposal?.grantCallId && fundingSourceTypeCode === result?.rcbfFundingStatusCode"
+                    [(ngModel)]="result.proposal.activityTypeCode"
+                    (ngModelChange)="proposalCategoryChange();setDataChangeFlag()">
+                    <option [value]=null>--Select--</option>
+                    <option *ngFor="let category of result?.activityTypes" [value]="category.activityTypeCode"
+                        [hidden]="!category.isActive || (result?.enableActivityGrantCallMapping && category.grantTypeCode != result?.proposal?.grantTypeCode)">
+                        {{category.description}}
+                    </option>
+                </select>
+                <div *ngIf="proposalDataBindObj?.mandatoryList?.has('category')" class="invalid-feedback d-block">*
+                    Please select a category</div>
+            </div>
+            <!-- Anticipated Award Type -->
+            <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label for="prop-award-type">Anticipated Award Type</label>
+                <select id="prop-award-type" class="form-control dateBox"
+                    [(ngModel)]="result.proposal.awardTypeCode"
+                    (ngModelChange)="proposalAwardTypeChange();setDataChangeFlag()">
+                    <option [ngValue]=null>--Select--</option>
+                    <option *ngFor="let awardtype of result?.awardType" [value]="awardtype.awardTypeCode"
+                        [hidden]="awardtype.isActive != true">
+                        {{awardtype.description}}</option>
+                </select>
+            </div>
+            <!-- SMU Specific change-->
+            <!-- <div class="form-group col">
+                <label>Discipline Cluster</label>
+                <select id="prop-discipline-cluster" class="form-control dateBox" [(ngModel)]="result.proposal.clusterCode"
+                [disabled]="(result?.proposal?.grantCall?.grantCallType?.categoryCode === 1 || result?.proposal?.proposalType === 1) && result?.proposal?.clusterCode === 3"
+                (ngModelChange)="proposalDisciplineClusterChange(result?.proposal?.clusterCode);setDataChangeFlag()">
+                    <option [ngValue]=null>--Select--</option>
+                    <option *ngFor="let cluster of result?.disciplineClusters" [ngValue]="cluster?.id">{{cluster.description}}</option>
+                </select>
+                </div> -->
+
+            <!-- Sponsor -->
+            <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label for="prop-sponsor"><span class="mandatory">*</span>
+                    <ng-container i18n="@@COMMON_SPONSOR">Sponsor</ng-container>
+                </label>
+                <app-endpoint-search id="prop-sponsor" [isDisabled]="_proposalService.proposalSectionConfig['353']?.isActive && result?.proposal?.grantCallId"
+                    [clearField]="clearSponsorField" [isError]="proposalDataBindObj?.isSponsorError"
+                    [httpOptions]="sponsorHttpOptions" [placeHolder]="'Type here for Sponsor Name'"
+                    (onSelect)="sponsorSelectFunction($event)" (onEmpty)="sponsorSelectFunction($event)">
+                </app-endpoint-search>
+                <div *ngIf="result?.proposal?.grantCallId == null && proposalDataBindObj?.mandatoryList?.has('sponsor')"
+                    class="invalid-feedback d-block">* <ng-container i18n="@@PROPOSAL_NO_SPONSOR_ERR">Please provide a
+                        sponsor</ng-container>
+                </div>
+            </div>
+            <!-- Proposed Start Date -->
+            <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label for="prop-start-date"><span class="mandatory">*</span>Proposed Start Date</label>
+                <span class="dateField">
+                    <input matInput [matDatepicker]="startDate" placeholder="{{datePlaceHolder}}" id="prop-start-date"
+                        autocomplete="off" (click)="clearDateOnValidation('prop-start-date-icon')" style="width: 100% !important"
+                        class="d-inline-block form-control"
+                        [ngClass]="proposalDataBindObj?.mandatoryList?.has('startDate') || proposalDataBindObj?.mandatoryList?.has('startDateFormat')  ? 'is-invalid d-block' : ''"
+                        [(ngModel)]="result.proposal.startDate" (change)="startDate.close()" (ngModelChange)="dateValidation();setDataChangeFlag();checkForValidFormat($event,'startDate');isDateFieldChanged = true;
+                                        dateValidationBeforeAction(result?.proposal?.startDate, 'startDate', 'Opening date');"
+                        (keypress)="keyPress($event, 'date');setDataChangeFlag();" />
+                    <span class="fa fa-calendar fa-large insidePicker hand-cursor" title="open calendar"
+                        (click)="clearDateOnValidation('prop-start-date-icon')">
+                    </span>
+                    <i id="prop-start-date-icon" (click)="startDate.open()" aria-hidden="true"></i>
+                    <mat-datepicker #startDate (opened)="setFocusToElement('prop-start-date');isDateFieldChanged=false"
+                        (closed)="dateValidation();isDateFieldChanged">
+                    </mat-datepicker>
+                </span>
+                <div *ngIf="proposalDataBindObj?.mandatoryList?.has('startDate')" class="invalid-feedback d-block">*
+                    Please provide a start date</div>
+                <div *ngIf ="proposalDataBindObj?.mandatoryList?.has('startDateFormat')" class="invalid-feedback d-block">* Entered date format is invalid.<br>Please use {{datePlaceHolder}} format.</div>
+            </div>
+            <!-- Proposed End Date -->
+            <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label for="prop-end-date"><span class="mandatory">*</span>Proposed End Date</label>
+                <span class="dateField">
+                    <input matInput [matDatepicker]="endDate" class="d-inline-block form-control" id="prop-end-date"
+                        placeholder="{{datePlaceHolder}}" autocomplete="off" (click)="clearDateOnValidation('prop-end-date-icon');"
+                        [ngClass]="proposalDataBindObj?.mandatoryList?.has('endDate') || proposalDataBindObj?.dateWarningList?.has('endDate') || proposalDataBindObj?.mandatoryList?.has('endDateFormat') ? 'is-invalid d-block' : ''"
+                        [(ngModel)]="result.proposal.endDate" (change)="endDate.close()"
+                        (keypress)="keyPress($event, 'date');setDataChangeFlag()" (ngModelChange)="dateValidation();setDataChangeFlag();checkForValidFormat($event,'endDate');isDateFieldChanged = true;
+                                    dateValidationBeforeAction(result?.proposal?.endDate, 'endDate', 'Closing date');">
+                    <span class="fa fa-calendar fa-large insidePicker hand-cursor" title="open calendar"
+                        (click)="clearDateOnValidation('prop-end-date-icon')">
+                    </span>
+                    <i id="prop-end-date-icon" (click)="endDate.open()" aria-hidden="true"></i>
+                    <mat-datepicker #endDate (opened)="setFocusToElement('prop-end-date');isDateFieldChanged=false"
+                        (closed)="dateValidation();isDateFieldChanged">
+                    </mat-datepicker>
+                </span>
+                <div *ngIf="proposalDataBindObj?.mandatoryList?.has('endDate')" class="invalid-feedback d-block">*
+                    Please provide an end date</div>
+                <div *ngIf="proposalDataBindObj?.dateWarningList?.has('endDate')" class="invalid-feedback d-block">
+                    {{proposalDataBindObj?.dateWarningList?.get('endDate')}}</div>
+                <div *ngIf="proposalDataBindObj?.mandatoryList?.has('endDateFormat')" class="invalid-feedback d-block">* Entered
+                    date format is invalid.<br>Please use {{datePlaceHolder}} format.</div>
+            </div>
+            <!-- Duration -->
+            <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="block-display">Duration</label>
+                <span>
+                    <strong>{{result?.proposal?.duration}}</strong>
+                </span>
+            </div>
+            <!-- Prime Sponsor -->
+            <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label for="prop-prime-sponsor">Prime Sponsor</label>
+                <app-endpoint-search id="prop-prime-sponsor" [httpOptions]="primeSponsorHttpOptions"
+                    [clearField]="clearPrimeSponsorField" [placeHolder]="'Type here for Prime Sponsor Name'"
+                    (onSelect)="primeSponsorSelect($event)">
+                </app-endpoint-search>
+            </div>
+            <!-- Sponsor Proposal ID -->
+            <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label for="prop-sponsor-id">
+                    <ng-container i18n="@@COMMON_SPONSOR_PROPOSAL_ID">Sponsor Proposal ID</ng-container>
+                </label>
+                <input id="prop-sponsor-id" type="text" placeholder="" autocomplete="off" class="form-control"
+                    (ngModelChange)="setDataChangeFlag()" [(ngModel)]="result.proposal.externalFundingAgencyId" />
+            </div>
+            <!-- Sponsor Deadline Date -->
+            <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label>Sponsor Deadline Date</label><span class="dateField"> 
+                  <input matInput [matDatepicker]="subDt" placeholder="{{datePlaceHolder}}" id="prop-sub-date" style="width: 100% !important"
+                        autocomplete="off" class="d-inline-block form-control"
+                        (click)="clearDateOnValidation('prop-sub-date-icon');"
+                        [ngClass]="proposalDataBindObj?.dateWarningList?.has('subdtFormat') ? 'is-invalid d-block' : ''"
+                        [(ngModel)]="result.proposal.sponsorDeadlineDate"
+                        [disabled]="_proposalService.proposalSectionConfig['353']?.isActive && result?.proposal?.grantCallId !== null && result?.proposal?.sponsorDeadlineDate"
+                        (keypress)="keyPress($event, 'date');setDataChangeFlag()"
+                        (ngModelChange)="getInternalDeadlineDate(result?.proposal?.sponsorDeadlineDate, null);checkForValidFormat($event,'subDt');setDataChangeFlag();"/>
+                        <span class="fa fa-calendar fa-large insidePicker hand-cursor" title="open calendar"
+                        (click)="clearDateOnValidation('prop-sub-date-icon')">
+                    </span>
+                    <i id="prop-sub-date-icon" 
+                        aria-hidden="true" (click)="subDt.open()"></i>
+                    <mat-datepicker #subDt (opened)="setFocusToElement('prop-sub-date')"
+                        (closed)="getInternalDeadlineDate(result?.proposal?.sponsorDeadlineDate, null);">
+                    </mat-datepicker>
+                </span>
+                <div *ngIf="proposalDataBindObj?.dateWarningList?.has('deadlineDate')" class="invalid-feedback d-block">
+                    {{proposalDataBindObj?.dateWarningList?.get('deadlineDate')}}</div>
+                    <div *ngIf ="proposalDataBindObj?.dateWarningList?.has('subdtFormat')" class="invalid-feedback d-block">* Entered date format is invalid.<br>Please use {{datePlaceHolder}} format.</div>    
+            </div>
+            <!-- KKI Specific Change Don't Delete -->
+            <!-- <div class="col">
+                    <label><span class="mandatory">*</span>Sponsor Deadline Date</label><span class="dateField"> <input
+                            placeholder="{{datePlaceHolder}}" id="prop-sub-date" autocomplete="off" [owlDateTime]="subDt"
+                            class="d-inline-block form-control w-100"
+                            [ngClass]="proposalDataBindObj?.mandatoryList?.has('deadlineDate') ? 'is-invalid d-block' : ''"
+                            [(ngModel)]="result.proposal.sponsorDeadlineDate"
+                            [disabled]="result?.proposal?.grantCallId !== null && result?.proposal?.sponsorDeadlineDate"
+                            (keypress)="_commonService._keyPress($event, 'date');setDataChangeFlag()"
+                            (ngModelChange)="getInternalDeadlineDate(result?.proposal?.sponsorDeadlineDate, null);" [owlDateTimeTrigger]="subDt" />
+                        <i id="prop-sub-date-icon" class="fa fa-calendar fa-large insidePicker hand-cursor"
+                            [owlDateTimeTrigger]="subDt"></i>
+                        <owl-date-time #subDt [pickerType]="'calendar'"
+                            (afterPickerClosed)="getInternalDeadlineDate(result?.proposal?.sponsorDeadlineDate, null);setDataChangeFlag()">
+                        </owl-date-time>
+                    </span>
+                    <div *ngIf="proposalDataBindObj?.mandatoryList?.has('deadlineDate')"
+                        class="invalid-feedback d-block">* Please provide a Sponsor Deadline Date</div>
+                    <div *ngIf="proposalDataBindObj?.dateWarningList?.has('deadlineDate')"
+                        class="invalid-feedback d-block">
+                        {{proposalDataBindObj?.dateWarningList?.get('deadlineDate')}}</div>
+                </div> -->
+
+            <!-- Internal Deadline Date -->
+            <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label>Internal Deadline Date</label>
+                <span class="dateField"> <input matInput [matDatepicker]="internalDt" placeholder="{{datePlaceHolder}}"
+                        [disabled]="result.noOfDays && result.proposal.sponsorDeadlineDate === null"
+                        id="prop-internal-date" style="width: 100% !important" autocomplete="off"
+                        class="d-inline-block form-control"
+                        [(ngModel)]="result.proposal.internalDeadLineDate"
+                        (ngModelChange)="dateValidation();setDataChangeFlag()"
+                        (keypress)="keyPress($event, 'date');setDataChangeFlag()" (click)="internalDt.open()" />
+                    <i id="prop-internal-date-icon" class="fa fa-calendar fa-large insidePicker hand-cursor"
+                        aria-hidden="true" (click)="internalDt.open()"></i>
+                    <mat-datepicker #internalDt (opened)="setFocusToElement('prop-internal-date')"
+                        (closed)="dateValidation()"></mat-datepicker>
+                </span>
+                <div *ngIf="proposalDataBindObj?.dateWarningList?.has('internalDeadline')"
+                    class="invalid-feedback d-block">
+                    {{proposalDataBindObj?.dateWarningList?.get('internalDeadline')}}</div>
+            </div>
+            <!-- Master Proposal # -->
+            <!-- <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label title="Master Proposal Number"><ng-container i18n="@@COMMON_MASTER_PROPOSAL">Master Proposal</ng-container> #</label>
+                <div class="searchBox mb-0 memberSearchBox">
+                    <app-elastic [options]="elasticSearchProposalOptions" [clearField]="clearField"
+                        [placeHolder]="'Type here for Master Proposal#'"
+                        (selectedResult)="selectBaseProposalNumber($event)" (keyup)="emptyValidationKeyup($event)">
+                    </app-elastic>
+                </div>
+            </div> -->
+            <!-- Funding Opportunity Number -->
+            <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label for="prop-funding-opp-number">Funding Opportunity Number</label>
+                <span>
+                    <input id="prop-funding-opp-number" type="text" placeholder="" class="form-control"
+                        [(ngModel)]="result.proposal.programAnnouncementNumber" (ngModelChange)="setDataChangeFlag()" />
+                </span>
+            </div>
+            <!-- CFDA Number -->
+            <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label for="prop-cfda-number"
+                    title="CFDA (Catalogue of Federal Domestic Assistance Number) is a five-digit number assigned in the awarding document to most grants and cooperative agreements funded by the Federal government.">CFDA
+                    Number</label>
+                <span>
+                    <input id="prop-cfda-number" type="text" placeholder="" class="form-control"
+                        [(ngModel)]="result.proposal.cfdaNumber" (ngModelChange)="setDataChangeFlag()" />
+                </span>
+            </div>
+            <!-- Keywords of Research -->
+            <div class="col-12">
+                <div class="form-row">
+                    <div class="col mb-0">
+                        <label for="prop-keywords">Keywords of Research</label>
+                        <span
+                            *ngIf="helpText?.proposalInformation && helpText?.proposalInformation['keywordsOfResearch']?.helpTextInfo"
+                            class="d-inline-block icon-hover hand-cursor">
+                            <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med"
+                                    aria-hidden="true"></i>
+                                <div class="tooltiptext-left card card-inner p-15 text-left">
+                                    <span
+                                        class="font-cv">{{helpText?.proposalInformation['keywordsOfResearch']?.helpTextInfo}}</span>
+                                </div>
+                            </a>
+                        </span>
+                        <app-endpoint-search id="prop-keywords" [httpOptions]="keywordHttpOptions"
+                            [clearField]="clearKeywordField"
+                            [placeHolder]="'Type here for Keyword or add your own Keyword'"
+                            (onSelect)="keywordSelectFunction($event)" (onEmpty)="showAddKeywordFunction($event)"
+                            (searchValue)="getSearchValue($event)" [addSearchText]="true"
+                            (onNewValueSelect)="addKeywordToDatabase($event)">
+                        </app-endpoint-search>
+                        <div class="form-row col fileChips px-2" style="word-break: break-all;"
+                            *ngIf="result?.proposal?.proposalKeywords?.length > 0">
+                            <ng-container *ngFor="let keyword of result?.proposal?.proposalKeywords;let i = index">
+                                <span>{{keyword?.scienceKeyword?.description}}
+                                    <i class="fa fa-close hand-cursor" id="prop-keywrd-dlt"
+                                        (click)="deleteKeyword(keyword.keywordId,i)" aria-hidden="true"
+                                        title="Remove this keyword"></i>
+                                </span>
+                            </ng-container>
+                        </div>
+                        <span class="invalid-feedback d-block"
+                            *ngIf="proposalDataBindObj.keywordWarningText">{{proposalDataBindObj.keywordWarningText}}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <label>Abstract</label>
+                <span *ngIf="helpText?.proposalInformation && helpText?.proposalInformation['abstract']?.helpTextInfo"
+                    class="d-inline-block icon-hover">
+                    <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med hand-cursor"
+                            aria-hidden="true"></i>
+                        <div class="tooltiptext-left card card-inner p-15 text-left">
+                            <span class="font-cv">{{helpText?.proposalInformation['abstract']?.helpTextInfo}}</span>
+                        </div>
+                    </a>
+                </span>
+                <ng-container *ngIf="!_commonService.isIE">
+                    <div class="success-banner p-1 f-15 mb-2 d-flex align-items-center">
+                        <i class="fa fa-info-circle info-icon mx-2 mt-1" aria-hidden="true"></i>
+                        <em>The editor does not support images.</em>
+                    </div>
+                    <ckeditor [(ngModel)]="result.proposal.abstractDescription" (ngModelChange)="setDataChangeFlag();"
+                        [editor]="Editor" [config]="editorConfig" (ready)="onReady($event)"></ckeditor>
+                </ng-container>
+                <textarea *ngIf="_commonService.isIE" class="ngx-textarea form-control"
+                    [(ngModel)]="result.proposal.abstractDescription" (ngModelChange)="setDataChangeFlag();"
+                    rows="10"></textarea>
+                <div class="invalid-feedback d-block" *ngIf="proposalDataBindObj?.mandatoryList?.get('abstract')">
+                    {{proposalDataBindObj?.mandatoryList?.get('abstract')}}
+                </div>
+            </div>
+            <div class="col-12 d-flex flex-column flex-sm-row justify-content-md-end justify-content-center">
+                <button class="btn btn-primary-sub btn-sm rate-float" title="Proceed"
+                    *ngIf="result?.proposal?.proposalId === null" id="prop-details-proceed-btn"
+                    (click)="_autoSaveService.clearErrors(); saveProposalDetails()">Proceed</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- grant details view modal -->
+<app-grant-details-view *ngIf="showGrantDetails" (showGrantDetails)="setGrantDetailsValue($event)"
+    [grantCallId]="result?.proposal?.grantCallId"></app-grant-details-view>
+<!-- proposal end date extend warning modal -->
+<div class="modal modal-z-index fade mySkinDialog modal-opacity" tabindex="-1" id="budgetExtendWarning" tabindex="-1"
+    role="dialog" aria-labelledby="budgetExtendWarningTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Warning</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    (click)="isDateFieldChanged=false">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Changes made to the proposal date(s) may affect the budget dates. Please review and modify budget
+                    dates and periods if needed.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="bdgt-extend-warn-ok" type="button" class="btn btn-primary-sub btn-sm" data-dismiss="modal"
+                    (click)="isDateFieldChanged=false;saveProposalDetails();_proposalService.isDatesChanged = true;
+                ">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--Link/UnLink GrantCall  Modal-->
+<div class="modal fade mySkinDialog modal-opacity" tabindex="-1" id="edit-grant-details" tabindex="-1" role="dialog"
+    aria-labelledby="editGrantDetails" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Link / Unlink Grant Call</h5>
+                <button id="prop-edit-grant-close" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body ">
+                <p class="text-justify" *ngIf="!result?.enableClosedGrantCallLinkingInProposal">You are about to edit
+                    the Grant Call information for this proposal.</p>
+                <p class="text-danger text-justify" *ngIf="!result?.enableClosedGrantCallLinkingInProposal">
+                    <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+                <ng-container i18n="@@GRANT_CALL_LINK_UNLINK_WARNING"> Please note that you can only add a
+                    Grant Call that is currently ‘Open’.<br>
+                    You will not be able to add a Grant Call that is already ‘Closed’, including this current Grant Call
+                    if it has closed.
+                </ng-container>
+                </p>
+                <p>Do you want to proceed to edit the Grant Call information?</p>
+            </div>
+            <div class="modal-footer">
+                <button id="edit-grant-cancel" type="button" class="btn btn-secondary btn-sm"
+                    data-dismiss="modal">No</button>
+                <button id="edit-grant-confirm" type="button" class="btn btn-primary-sub btn-sm"
+                    (click)="isDisableTitleOfGrantCall = false;" data-dismiss="modal">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade mySkinDialog" tabindex="-1" id="EligibilityWarningProceedModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Eligibility Criteria Validation</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12 ">
+                        <div>
+                            <div class="alert"
+                                [ngClass]="result?.grantEligibilityStatus?.status ==='VE'? 'alert-danger': 'alert-warning'"
+                                role="alert">
+                                <i class="fa fa-exclamation-circle icon "
+                                    [ngClass]="result?.grantEligibilityStatus?.status ==='VE'? 'text-danger': 'text-warning'"
+                                    aria-hidden="true"></i>
+                                <strong>{{result?.grantEligibilityStatus?.status ==='VE'? 'Error:': 'Warning:'}}
+                                </strong><span>{{result?.grantEligibilityStatus?.message}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

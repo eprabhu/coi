@@ -1,0 +1,671 @@
+<div class="card mb-3">
+    <div class="card-content">
+        <div class="card-body">
+            <div class="form-row">
+                <div class="col-lg col-md-3 col-sm-3 col-12">
+                    <label class="d-block">Batch ID</label>
+                    <input type="number" class="form-control" placeholder="Batch ID"
+                        [(ngModel)]="batchDetailsSearchParam.batchId" id="batch-details-batch-id"
+                        (keyup.enter)="batchDetailsSearchParam.isAdvanceSearch = 'A';resetAllProperties();getBatchDetails();">
+                </div>
+                <div class="col-lg col-md-4 col-sm-4 col-12">
+                    <label class="d-block">From</label>
+                    <span class="dateField">
+                        <input matInput [matDatepicker]="startDate" placeholder="From" id="batch-details-start-date" 
+                            class="form-control d-inline-block" autocomplete="off" [(ngModel)]="startDateSearch"
+                            (keypress)="_commonService._keyPress($event, 'date');" (click)="startDate.open()">
+                        <span aria-hidden="true" id="start-date-icon"
+                            class="fa fa-calendar fa-large insidePicker hand-cursor" (click)="startDate.open()"></span>
+                        <mat-datepicker #startDate (opened)="setFocusToElement('batch-details-start-date')"></mat-datepicker>
+                    </span>
+                </div>
+                <label class="d-none d-sm-inline-block p-2 mt-4 pt-3">-</label>
+                <div class="col-lg col-md-4 col-sm-4 col-12">
+                    <label class="d-block">To</label>
+                    <span class="dateField">
+                        <input matInput [matDatepicker]="endDate" placeholder="To" id="batch-details-end-date" 
+                            class="form-control d-inline-block" autocomplete="off" [(ngModel)]="endDateSearch"
+                            (keypress)="_commonService._keyPress($event, 'date');" (click)="endDate.open()">
+                        <span aria-hidden="true" id="end-date-icon"
+                            class="fa fa-calendar fa-large insidePicker hand-cursor" (click)="endDate.open()"></span>
+                        <mat-datepicker #endDate (opened)="setFocusToElement('batch-details-end-date')"></mat-datepicker>
+                    </span>
+                </div>
+                <div class="col-lg col-md-3 col-sm-3 col-12">
+                    <label class="d-block">Claim Number</label>
+                    <input type="text" class="form-control" placeholder="Claim Number"
+                        [(ngModel)]="batchDetailsSearchParam.property7" id="batch-details-award-number"
+                        (keyup.enter)="batchDetailsSearchParam.isAdvanceSearch = 'A';resetAllProperties();getBatchDetails();">
+                </div>
+                <div class="col-lg col-md-3 col-sm-3 col-12">
+                    <label class="d-block">Award Number</label>
+                    <input type="text" class="form-control" placeholder="Award Number"
+                        [(ngModel)]="batchDetailsSearchParam.property8" id="batch-details-award-number"
+                        (keyup.enter)="batchDetailsSearchParam.isAdvanceSearch = 'A';resetAllProperties();getBatchDetails();">
+                </div>
+                <div class="col-lg col-md-3 col-sm-4 col-12">
+                    <label class="d-block">Account Number</label>
+                    <input type="text" class="form-control" placeholder="Account Number"
+                        [(ngModel)]="batchDetailsSearchParam.property9" id="batch-details-account-number"
+                        (keyup.enter)="batchDetailsSearchParam.isAdvanceSearch = 'A';resetAllProperties();getBatchDetails();">
+                </div>
+                <div class="col-lg col-md-3 col-sm-4 col-12">
+                    <label class="d-block">Feed Status</label>
+                    <select class="form-control" [(ngModel)]="searchFeedStatus">
+                        <option value="A">All</option>
+                        <option value="E">Error</option>
+                        <option value="R">Success</option>
+                        <option value="F">Awaiting SAP Response</option>
+                        <option value="N">Not Required to Feed</option>
+                    </select>
+                </div>
+                <div
+                    class="col-lg-auto col-md-auto col-12 align-self-end d-md-block d-sm-flex justify-content-end mt-3 mt-md-0 mt-sm-3">
+                    <button class="btn btn-secondary btn-sm btn-xs" (click)="resetAndSearch();">Clear</button>
+                    <button class="btn btn-primary btn-sm btn-xs"
+                        (click)="batchDetailsSearchParam.isAdvanceSearch = 'A';batchDetailsSearchParam.currentPage = 1;resetAllProperties();getBatchDetails();">Search</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-content">
+        <div class="card-header px-4">
+            <p class="card-title align-items-center d-flex">
+                <span class="mr-auto">Batch Details</span>
+                    <span class="float-right">
+                         <!-- <button class="btn btn-sm btn-primary-sub" (click)="actionComment = null;isCommented = true;setAction('1')"
+                            data-toggle="modal" data-target="#modal-invoice-basic-details">Update feed status</button> -->
+                        <!-- <button class="btn btn-sm btn-primary-sub"
+                            (click)="actionComment = null;isCommented = true;setAction('11')" data-toggle="modal"
+                            data-target="#modal-invoice-basic-details">Invoice Revision</button> -->
+                        <button *ngIf="isMaintainInvoiceFeed && isReInterface" class="btn btn-sm btn-primary-sub"
+                            (click)="actionComment = null;isCommented = true;setAction('3')" data-toggle="modal" data-target="#modal-invoice-basic-details">Re-interface</button>
+                        <span class="exportButton ml-4" *ngIf="batchDetails?.claimInvoiceFeedDtoList?.length">
+                            <span class="exportIcon-margin fs-14">Export as:</span>
+                                <a title="Export data to Excel sheet" class="exportIcon-margin  hand-cursor"
+                                    (click)="exportAsTypeDoc('excel')" id="export-prop-excel-btn" tabindex="0">
+                                    <i aria-hidden="true" class="fa fa-file-excel-o f-16"></i>
+                                </a>
+                            </span>
+                    </span>
+            </p>
+        </div>
+        <div class="card-body">
+            <div class="form-row mb-2" *ngIf="batchDetails?.sapClaimFeedBatch">
+                <div class="col">
+                    <label class="d-block">Batch ID</label>
+                    <div class="content-color">{{batchDetails?.sapClaimFeedBatch?.batchId}}</div>
+                </div>
+                <div class="col">
+                    <label class="d-block">Total Invoices</label>
+                    <div class="content-color">{{batchDetails?.sapClaimFeedBatch?.noOfRecords}}</div>
+                </div>
+                <div class="col">
+                    <label class="d-block">Error Invoices</label>
+                    <div class="content-color">{{batchDetails?.sapClaimFeedBatch?.errorCount === 0 ? 'No Error'
+                        : batchDetails?.sapClaimFeedBatch?.errorCount}}</div>
+                </div>
+                <div class="col-2">
+                    <label class="d-block">Batch Generated on</label>
+                    <div class="content-color">{{batchDetails?.sapClaimFeedBatch?.createTimestamp |
+                        dateFormatterWithTimeZone :'long'}}</div>
+                </div>
+                <div class="col-2">
+                    <label class="d-block">Response Processed on</label>
+                    <div class="content-color">{{batchDetails?.sapClaimFeedBatch?.responseTimestamp |
+                        dateFormatterWithTimeZone :'long'}}</div>
+                </div>
+                <!-- <div class="col align-self-center text-right">
+                    <button class="btn btn-tertiary mt-0 min-w-0" title="Download Interface Files in ZIP format."
+                        data-toggle="modal" data-target="#modal-invoice-basic-details"
+                        (click)="actionComment = null;isCommented = true;setAction('9');"><i class="fa fa-download"
+                            aria-hidden="true"></i></button>
+                    <button class="btn btn-sm btn-tertiary mt-0" data-toggle="modal"
+                        data-target="#modal-invoice-basic-details"
+                        (click)="selectedBatchId = batchDetails.sapClaimFeedBatch.batchId;setAction('4');">
+                        Re-trigger</button>
+                </div> -->
+            </div>
+            <div class="table-responsive card-inner mt-3" *ngIf="batchDetails?.claimInvoiceFeedDtoList?.length">
+                <table class="table tableSkin mb-0">
+                    <!-- <caption>Feed List</caption> -->
+                    <thead class="header-border">
+                        <tr>
+                            <th scope="col">
+                                <input title="Select All" type="checkbox" [(ngModel)]="checkAll"
+                                    (ngModelChange)="checkOrUncheckBatches()" [disabled]="!isMaintainInvoiceFeed || (!batchDetails?.claimInvoiceFeedDtoList?.length ||
+                                    (batchDetailsSearchParam.property4 && (batchDetailsSearchParam.property4[0] !== 'E')) ||  !selectableFeeds)">
+                            </th>
+                            <th scope="col"(click)="sortResult('feedId')"
+                            class="hand-cursor">Feed ID
+                            <i aria-hidden="true"
+                                [ngClass]="((batchDetailsSearchParam.sortBy == 'feedId')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' :
+                                'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i></th>
+                            <th scope="col" (click)="sortResult('batchId')" class="hand-cursor">Batch ID
+                            <i aria-hidden="true"
+                                [ngClass]="((batchDetailsSearchParam.sortBy == 'batchId')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' :
+                                'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                            </th>
+                            <th scope="col" (click)="sortResult('claimNumber')" class="hand-cursor">Claim Number
+                                <i aria-hidden="true"
+                                [ngClass]="((batchDetailsSearchParam.sortBy == 'claimNumber')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' :
+                                'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                            </th>
+                            <th scope="col" (click)="sortResult('awardNumber')" class="hand-cursor" width="11%">Award Number
+                                <i aria-hidden="true"
+                                [ngClass]="((batchDetailsSearchParam.sortBy == 'awardNumber')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' :
+                                'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                            </th>
+                            <th scope="col" (click)="sortResult('accountNumber')" class="hand-cursor" width="11%">Account Number
+                                <i aria-hidden="true"
+                                [ngClass]="((batchDetailsSearchParam.sortBy == 'accountNumber')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' :
+                                'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                            </th>
+                            <th scope="col" (click)="sortResult('feedType')" class="hand-cursor" width="5%">Type
+                                <i aria-hidden="true"
+                                [ngClass]="((batchDetailsSearchParam.sortBy == 'feedType')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' :
+                                'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                            </th>
+                            <th scope="col" (click)="sortResult('updateUser')" class="hand-cursor" width="9%">Updated By
+                                <i aria-hidden="true" [ngClass]="((batchDetailsSearchParam.sortBy == 'updateUser')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' :
+                                'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                            </th>
+                            <th scope="col" (click)="sortResult('updateTimeStamp')" class="hand-cursor" width="11%">Updated On
+                                <i aria-hidden="true" [ngClass]="((batchDetailsSearchParam.sortBy == 'updateTimeStamp')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' :
+                                'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                            </th>
+                            <th scope="col" (click)="sortResult('feedStatus')" class="hand-cursor" width="8%">Feed Status
+                                <i aria-hidden="true"
+                                [ngClass]="((batchDetailsSearchParam.sortBy == 'feedStatus')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' :
+                                'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                            </th>
+                            <th scope="col" (click)="sortResult('userAction')" class="hand-cursor" width="10%">Follow Up
+                                <i aria-hidden="true"
+                                [ngClass]="((batchDetailsSearchParam.sortBy == 'userAction')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' :
+                                'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                            </th>
+                            <th scope="col" width="5%">Actions</th>
+                            <th scope="col" width="3%"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <ng-container *ngFor="let batchDetail of batchDetails?.claimInvoiceFeedDtoList;let i = index">
+                            <tr [ngClass]="isFeedExpand && isFeedExpand[i] ? 'borderBoxHeading' : ''">
+                                <td>
+                                    <input *ngIf="isMaintainInvoiceFeed && batchDetail?.feedStatusCode === 'E'  &&  !batchDetail?.userAction"
+                                        type="checkbox" [(ngModel)]="isChecked[batchDetail?.feedId]"
+                                        (click)="isChecked[batchDetail?.feedId] = !isChecked[batchDetail?.feedId];toggleFromList(batchDetail)">
+                                </td>
+                                <td>{{batchDetail?.feedId}}</td>
+                                <td>{{batchDetail?.batchId}}</td>
+                                <td>{{batchDetail?.claimNumber}}</td>
+                                <td>{{batchDetail?.awardNumber}}</td>
+                                <td>{{batchDetail?.accountNumber}}</td>
+                                <td>{{batchDetail?.feedType}}</td>
+                                <!-- <td>{{batchDetail?.piName}}</td> -->
+                                <td>{{batchDetail?.updateUser ? batchDetail?.updateUser : 'System'}}</td>
+                                <td><ng-container *ngIf="batchDetail?.updateTimeStamp">{{batchDetail?.updateTimeStamp | dateFormatterWithTimeZone :'long'}}
+                                    </ng-container>
+                                </td>
+                                <td><i aria-hidden="true" class="fa"
+                                        [ngClass]="batchDetail?.feedStatusCode == 'R' ? 'fa-check-circle text-success' :
+                                    (batchDetail?.feedStatusCode == 'F' ? 'fa-clock-o text-warning' :
+                                    (batchDetail?.feedStatusCode == 'E' ? 'fa-times-circle text-danger' : 
+                                    (batchDetail?.feedStatusCode == 'C' ? 'fa-random text-muted fa-rotate-270' : 'fa-ban text-muted')))"></i>
+                                    {{batchDetail?.feedStatus}}</td>
+                                <td>
+                                    <span class="d-flex">
+                                        {{batchDetail?.userAction}}
+                                        <div class="dropdown ml-3"
+                                            *ngIf="batchDetail?.userActionComment && batchDetail?.userAction">
+                                            <a class="position-relative" id="dropdownMenuLink" data-toggle="dropdown"
+                                                aria-haspopup="true" aria-expanded="false">
+                                                <i class="fa fa-commenting-o hand-cursor hoverColor" aria-hidden="true"
+                                                    title="Comments"></i>
+                                                <div class="dropdown-menu details-comment-patch dropdown-menu-right fs-14"
+                                                    aria-labelledby="dropdownMenuLink">
+                                                    <div> {{batchDetail?.userActionComment}} </div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </span>
+                                </td>
+                                <td>
+                                    <ul class="actionButtonGroup d-inline">
+                                        <li><a title="View Claim #{{batchDetail?.claimNumber}}" 
+                                            id="view-batch-btn"
+                                            class="pointer" tabindex="0"
+                                            (click)="routeToClaimId(batchDetail?.claimId);">
+                                            <i aria-hidden="true" class="fa fa-eye pointer"></i>
+                                        </a>
+                                        </li>
+                                        <li>
+                                            <a title="View Feed response">
+                                                <i class="fa fa-commenting-o pointer"
+                                                    (click)="setInvoiceDetails(batchDetail, i, true)" aria-hidden="true">
+                                                </i>
+                                            </a>
+                                        </li>
+                                        <li  *ngIf="batchDetail?.feedStatusCode == 'E' &&  !batchDetail?.userAction && isMaintainInvoiceFeed">
+                                            <a title="Update Feed status of Claim #{{batchDetail?.claimNumber}}">
+                                                <i class="fa fa-pencil-square-o pointer"
+                                                    (click)="setInvoiceDetails(batchDetail, i)" aria-hidden="true">
+                                                </i>
+                                            </a>
+                                        </li>
+                                        <li  *ngIf="batchDetail?.feedStatusCode == 'E' && batchDetail?.canRevision  &&  !batchDetail?.userAction">
+                                            <a title="Invoice Revision of Claim #{{batchDetail?.claimNumber}}">
+                                                <i class="fa fa-retweet pointer"
+                                                (click)="selectedFeeds = [];addToFeeds(batchDetail); actionComment = null;isCommented = true;setAction('11')" data-toggle="modal"
+                                                data-target="#modal-invoice-basic-details" aria-hidden="true">
+                                                </i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td>
+                                    <button class="updown-arrow position-static"
+                                    (click)="expandInvoice(batchDetail?.invoiceId, batchDetail?.batchId, i);"
+                                    id="invoice-batch-details-expand-btn">
+                                    <i aria-hidden="true" class="fa-large fa"
+                                        [ngClass]="isFeedExpand && isFeedExpand[i] ? 'fa-angle-up' : 'fa-angle-down'"></i>
+                                </button>
+                                </td>
+                            </tr>
+                            <tr [ngClass]="{'text-center': !invoiceDetails[i] }" *ngIf="isFeedExpand[i]">
+                                <td colspan="12">
+                                    <ng-container
+                                        *ngIf="invoiceDetails[i] && invoiceDetails[i]?.length;">
+                                        <div class="row ml-1">
+                                            <table class="table tableSkin mb-0 card-inner mr-4">
+                                                <!-- <caption>Information</caption> -->
+                                                <thead>
+                                                    <tr class="vertical-align">
+                                                        <th scope="col">Invoice Id</th>
+                                                        <th scope="col">Invoice/Credit Memo</th>
+                                                        <th scope="col">Doc No. To SAP</th>
+                                                        <th scope="col">Doc No. From SAP</th>
+                                                        <th scope="col">Doc Header Text</th>
+                                                        <th scope="col">Fiscal Year</th>
+                                                        <th scope="col">Document Type</th>
+                                                        <th scope="col">Contact / Telephone</th>
+                                                        <th scope="col">Customer Email Address</th>
+                                                        <th scope="col">Requester Email Address</th>
+                                                        <th scope="col">Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <ng-container
+                                                    *ngFor="let invoice of invoiceDetails[i];let invoiceFirst = first; let invoiceLast = last">
+                                                    <tr>
+                                                        <td> {{invoice?.claimInvoiceLogId}}</td>
+                                                        <td>{{invoice?.claimInvoiceFeedType?.description}}</td>
+                                                        <td>{{invoice?.inputDocumentNumber}}</td>
+                                                        <td>{{invoice?.outputDocumentNumber}}</td>
+                                                        <td>{{invoice?.documentHeaderText}}</td>
+                                                        <td>{{invoice?.fiscalYear}}</td>
+                                                        <td>{{invoice?.claimInvoiceMetadata?.documentTypeCode &&
+                                                            ((invoice?.documentTypeCode ===
+                                                            invoice?.claimInvoiceMetadata?.documentTypeCode) ?
+                                                            invoice?.claimInvoiceMetadata?.documentTypeCode + ' - ' +
+                                                            invoice?.claimInvoiceMetadata?.documentTypeDesc :
+                                                            invoice?.claimInvoiceMetadata?.reversalDocumentTypeCode + '
+                                                            - ' +
+                                                            invoice?.claimInvoiceMetadata?.reversalDocumentTypeDesc)}}
+                                                        </td>
+                                                        <td>{{invoice?.contactTelephoneNo}}</td>
+                                                        <td>{{invoice?.customerEmailAddress}}</td>
+                                                        <td>{{invoice?.requesterEmailAddress}}</td>
+                                                        <td>
+                                                            <ng-container
+                                                                *ngIf="invoice?.status && invoice?.status === 'S'">
+                                                                <span class="badge badge-success">Success</span>
+                                                            </ng-container>
+                                                            <ng-container
+                                                                *ngIf="invoice?.status && invoice?.status === 'E'">
+                                                                <span class="badge badge-danger">Failed</span>
+                                                            </ng-container>
+                                                            <ng-container *ngIf="!invoice?.status">
+                                                                <span class="badge badge-warning">Pending</span>
+                                                            </ng-container>
+                                                        </td>
+                                                    </tr>
+                                                </ng-container>
+                                            </table>
+                                        </div>
+                                    </ng-container>
+                                    <ng-container *ngIf="!batchDetails?.claimInvoiceFeedDtoList?.length">
+                                        <div class="no-data-container">
+                                            <span class="no-data-icon-outer">
+                                              <div class="no-data-icon">
+                                                <i class="fa fa-file-o" aria-hidden="true"></i>
+                                                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                                              </div>
+                                            </span>
+                                            <h4>There is no information in this section.</h4>
+                                          </div>
+                                    </ng-container>
+                                </td>
+                            </tr>
+                        </ng-container>
+                        
+                    </tbody>
+                </table>
+            </div>
+            <ng-container *ngIf="!batchDetails?.claimInvoiceFeedDtoList?.length">
+                <div class="no-data-container">
+                    <span class="no-data-icon-outer">
+                      <div class="no-data-icon">
+                        <i class="fa fa-file-o" aria-hidden="true"></i>
+                        <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                      </div>
+                    </span>
+                    <h4>There is no information in this section.</h4>
+                  </div>
+            </ng-container>
+            <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 mt-4"
+                *ngIf="( batchDetails?.claimInvoiceFeedDtoList != null &&  batchDetails?.claimInvoiceFeedDtoList?.length != 0)">
+                <nav class="pagination justify-content-end">
+                    <app-pagination [totalCount]="batchDetails?.totalCount"
+                        (pageChangeEvent)="actionsOnPageChange($event)">
+                    </app-pagination>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade mySkinDialog" id="modal-invoice-basic-details">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <ng-container *ngIf="selectedFeeds?.length && selectedAction?.userActionCode === '1'">Update Feed
+                        Status
+                    </ng-container>
+                    <ng-container *ngIf="selectedFeeds?.length && selectedAction?.userActionCode === '11'">Invoice Revision
+                    </ng-container>
+                    <ng-container *ngIf="selectedFeeds?.length && selectedAction?.userActionCode === '3'">Re-Interface
+                    </ng-container>
+                    <ng-container *ngIf="selectedAction?.userActionCode === '4'">Re-Trigger</ng-container>
+                    <ng-container *ngIf="selectedAction?.userActionCode === '9'">Download Interface Files</ng-container>
+                    <ng-container
+                        *ngIf="!selectedFeeds?.length && selectedAction?.userActionCode !== '4' && selectedAction?.userActionCode !== '9'">
+                        Warning
+                    </ng-container>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div *ngIf="selectedAction?.invoiceDescription && (selectedFeeds?.length || selectedAction?.userActionCode === '4' || selectedAction?.userActionCode === '9')"
+                class="success-banner px-3 m-2 d-flex justify-content-between align-items-center">
+                <div>
+                    <i aria-hidden="true" class="fa fa-info-circle mr-1 info-icon"></i>
+                    <em> {{selectedAction?.invoiceDescription}}</em>
+                </div>
+                <button aria-label="Close" class="close close-button" type="button">
+                </button>
+            </div>
+            <div class="modal-body">
+                <ng-container
+                    *ngIf="selectedFeeds?.length && selectedAction?.userActionCode !== '4' && selectedAction?.userActionCode !== '9'">
+                    <label class="d-block"><span class="mandatory">*</span>Comments</label>
+                    <textarea class="form-control" [(ngModel)]="actionComment" placeholder="Comments"></textarea>
+                    <span class="mandatory" *ngIf="!isCommented">* Please provide comment for your action</span>
+                </ng-container>
+                <p
+                    *ngIf="!selectedFeeds?.length && selectedAction?.userActionCode !== '4' && selectedAction?.userActionCode !== '9'">
+                    Please select at least a Feed to
+                    perform the Action.</p>
+                <p *ngIf="selectedAction?.userActionCode === '4'">Are you sure that you want to Re-trigger this Batch ?
+                </p>
+                <p *ngIf="selectedAction?.userActionCode === '9'">Continue with downloading of Interface files belonging
+                    to batch {{batchDetails?.sapAwardFeedHistory?.batchId}} ?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn"
+                    [ngClass]="selectedFeeds?.length || selectedAction?.userActionCode === '4' || selectedAction?.userActionCode === '9' ? 'btn-secondary' : 'btn-primary-sub btn-sm'"
+                    data-dismiss="modal">{{selectedFeeds?.length || selectedAction?.userActionCode === '4' ||
+                    selectedAction?.userActionCode === '9' ? 'Cancel' : 'OK'}}</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="proceedAction()"
+                    *ngIf="selectedFeeds?.length || selectedAction?.userActionCode === '4' || selectedAction?.userActionCode === '9'">{{selectedAction?.userActionCode
+                    === '9' ? 'Download' : 'Proceed'}}</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade mySkinDialog" id="failedClaimsModal" tabindex="-1" role="dialog"
+    aria-labelledby="failedSapAwardsModal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Action Denied</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex" *ngIf="batchDetails?.claimNumbers?.length !== 0">
+                    <span class="text-warning mr-2 f-13"><i class="fa fa-exclamation-triangle"></i></span>
+                    <label class="mb-2 text-muted d-inline">
+                        Action cannot be performed on following claim(s). Please verify the permission on the claim(s)
+                        lead unit.
+                    </label>
+                </div>
+                <ul class="list-style-none pl-4 ml-1 mt-2">
+                    <li *ngFor="let claim of batchDetails?.claimNumbers">
+                        <span class="chevron"><i class="fa fa-chevron-right"></i><i
+                                class="fa fa-chevron-right"></i></span>
+                        <span class="ml-2 text-muted fw-600">{{claim}}</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary-sub btn-sm" data-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--Invoice Response update modal-->
+<div class="modal fade mySkinDialog" id="invoice-update" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header ct-footer-padding">
+                <h4 class="modal-title">
+                    Update Invoice Feed
+                </h4>
+                <button class="close" aria-label="Close" data-dismiss="modal" type="button">
+                    <span class="ng-tns-c3-0" aria-hidden="true" title="Close">×</span>
+                </button>
+            </div>
+            <div *ngIf="selectedAction?.invoiceDescription && selectedAction?.userActionCode === '1'"
+                class="success-banner px-3 m-2 d-flex justify-content-between align-items-center">
+                <div>
+                    <i aria-hidden="true" class="fa fa-info-circle mr-1 info-icon"></i>
+                    <em> {{selectedAction?.invoiceDescription}}</em>
+                </div>
+                <button aria-label="Close" class="close close-button" type="button">
+                </button>
+            </div>
+            <div class="modal-body ">
+                <ng-container *ngIf="selectedAction?.userActionCode === '1'">
+                    <label class="d-block"><span class="mandatory">*</span>Comments</label>
+                    <textarea class="form-control" [(ngModel)]="actionComment" placeholder="Comments"></textarea>
+                    <span class="mandatory" *ngIf="!isCommented">* Please provide comment for your action</span>
+                </ng-container>
+                <div class="row inner-scroll mt-3">
+                    <label *ngIf="selectedInvoice && selectedInvoice?.length" class="d-block ml-4 mb-2">Feed
+                        Details</label>
+                    <div class="col-lg-12">
+                        <ng-container *ngFor="let sequence of selectedInvoice;let index = index;">
+                            <div class="border card p-3">
+                                <div class="form-row mb-2">
+                                    <div class="col">
+                                        <label class="d-block">Invoice Id</label>
+                                        <span>
+                                            {{sequence?.claimInvoiceLogId}}
+                                            <ng-container *ngIf="sequence?.status && sequence?.status === 'S'">
+                                                <span class="badge badge-success ml-1">Success</span>
+                                            </ng-container>
+                                            <ng-container *ngIf="sequence?.status && sequence?.status === 'E'">
+                                                <span class="badge badge-danger ml-1">Failed</span>
+                                            </ng-container>
+                                            <ng-container *ngIf="!sequence?.status">
+                                                <span class="badge badge-warning ml-1">Pending</span>
+                                            </ng-container>
+                                        </span>
+                                    </div>
+                                    <div class="col">
+                                        <label class="d-block">Invoice/Credit Memo</label>
+                                        <span>{{sequence?.claimInvoiceFeedType?.description}}</span>
+                                        <span *ngIf="!sequence?.claimInvoiceFeedType?.description"
+                                            class="noDataExists f-12 bold-600">Not Specified</span>
+                                    </div>
+                                    <div class="col">
+                                        <label class="d-block">Doc No. To SAP</label>
+                                        <span>{{sequence?.inputDocumentNumber}}</span>
+                                        <span *ngIf="!sequence?.inputDocumentNumber"
+                                            class="noDataExists f-12 bold-600">Not Specified</span>
+                                    </div>
+                                    <div class="col">
+                                        <label class="d-block"><span *ngIf="sequence?.status && sequence?.status === 'E'" class="mandatory">*</span>Doc No. From SAP</label>
+                                        <ng-container  *ngIf="sequence?.status && sequence?.status === 'E'">
+                                        <input type="number"
+                                            [ngClass]="{'lineItem-mandatory': invoiceValidationList[index]?.outputDocumentNumber}"
+                                            class="form-control" placeholder="Doc No. From SAP"
+                                            [(ngModel)]="sequence.outputDocumentNumber">
+                                        <div class="invalid-feedback d-block text-left"
+                                            *ngIf="invoiceValidationList[index]?.outputDocumentNumber">
+                                            <span
+                                                class="mandatory">{{invoiceValidationList[index]?.outputDocumentNumber}}</span>
+                                        </div>
+                                       </ng-container>
+                                       <ng-container  *ngIf="sequence?.status !== 'E'">
+                                           <span>{{sequence?.outputDocumentNumber}}</span>
+                                           <span *ngIf="!sequence?.outputDocumentNumber"
+                                               class="noDataExists f-12 bold-600">Not Specified</span>
+                                       </ng-container>
+                                   </div>
+                                    <div class="col">
+                                        <label class="d-block"><span *ngIf="sequence?.status === 'E'" class="mandatory">*</span>Fiscal Year</label>
+                                        <ng-container  *ngIf="sequence?.status === 'E'">
+                                        <input type="number"
+                                            [ngClass]="{'lineItem-mandatory': invoiceValidationList[index]?.fiscalYear}"
+                                             class="form-control" placeholder="Fiscal Year"
+                                            [(ngModel)]="sequence.fiscalYear">
+                                        <div class="invalid-feedback d-block text-left"
+                                            *ngIf="invoiceValidationList[index]?.fiscalYear">
+                                            <span class="mandatory">{{invoiceValidationList[index]?.fiscalYear}}</span>
+                                        </div>
+                                       </ng-container>
+                                        <ng-container  *ngIf="sequence?.status !== 'E'">
+                                            <span>{{sequence?.fiscalYear}}</span>
+                                            <span *ngIf="!sequence?.fiscalYear"
+                                                class="noDataExists f-12 bold-600">Not Specified</span>
+                                        </ng-container>
+                                    </div>
+                                </div>
+                                <div *ngFor="let message of getInvoiceIdBasedMessages(sequence?.claimInvoiceLogId); let last = last"
+                                     [class.mb-3]="!last" class="border px-3 py-2 shadow-sm bg-light">
+                                    <p class="greenLabel mb-2">
+                                        <i aria-hidden="true"
+                                           class="fa fa-clock-o"></i> {{message?.updateTimeStamp | dateFormatterWithTimeZone: 'long'}}
+                                    </p>
+                                    <p class="f-14 mb-0 new-line-property">{{message?.message}}</p>
+                                </div>
+                                <ng-container *ngIf="!getInvoiceIdBasedMessages(sequence?.claimInvoiceLogId).length">
+                                    <p class="bg-color m-0 p-2 text-center">No message available.</p>
+                                </ng-container>
+                            </div>
+                        </ng-container>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer ct-footer-padding">
+                <button class="btn btn-secondary btn-sm" data-dismiss="modal" type="button">Cancel</button>
+                <button class="btn btn-primary-sub btn-sm" (click)="updateFeedStatus()" type="button">Update Feed</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--Invoice Response message modal-->
+<div class="modal fade mySkinDialog" id="invoice-view" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header ct-footer-padding">
+                <h4 class="modal-title"> Invoice Sap Response </h4>
+                <button class="close" aria-label="Close" data-dismiss="modal" type="button">
+                    <span class="ng-tns-c3-0" aria-hidden="true" title="Close">×</span>
+                </button>
+            </div>
+            <div class="modal-body ">
+                <div class="row inner-scroll">
+                    <div class="col-lg-12">
+                        <ng-container *ngFor="let sequence of selectedInvoice;let index = index;">
+                            <div class="border card p-3">
+                                <div class="form-row mb-2">
+                                    <div class="col">
+                                        <label class="d-block">Invoice Id</label>
+                                        <span>
+                                            {{sequence?.claimInvoiceLogId}}
+                                            <ng-container *ngIf="sequence?.status && sequence?.status === 'S'">
+                                                <span class="badge badge-success ml-1">Success</span>
+                                            </ng-container>
+                                            <ng-container *ngIf="sequence?.status && sequence?.status === 'E'">
+                                                <span class="badge badge-danger ml-1">Failed</span>
+                                            </ng-container>
+                                            <ng-container *ngIf="!sequence?.status">
+                                                <span class="badge badge-warning ml-1">Pending</span>
+                                            </ng-container>
+                                        </span>
+                                    </div>
+                                    <div class="col">
+                                        <label class="d-block">Invoice/Credit Memo</label>
+                                        <span>{{sequence?.claimInvoiceFeedType?.description}}</span>
+                                        <span *ngIf="!sequence?.claimInvoiceFeedType?.description"
+                                            class="noDataExists f-12 bold-600">Not Specified</span>
+                                    </div>
+                                    <div class="col">
+                                        <label class="d-block">Doc No. To SAP</label>
+                                        <span>{{sequence?.inputDocumentNumber}}</span>
+                                        <span *ngIf="!sequence?.inputDocumentNumber"
+                                            class="noDataExists f-12 bold-600">Not Specified</span>
+                                    </div>
+                                    <div class="col">
+                                        <label class="d-block">Doc No. From SAP</label>
+                                        <span>{{sequence?.outputDocumentNumber}}</span>
+                                        <span *ngIf="!sequence?.outputDocumentNumber"
+                                            class="noDataExists f-12 bold-600">Not Specified</span>
+                                    </div>
+                                    <div class="col">
+                                        <label class="d-block">Fiscal Year</label>
+                                        <span>{{sequence?.fiscalYear}}</span>
+                                        <span *ngIf="!sequence?.fiscalYear"
+                                            class="noDataExists f-12 bold-600">Not Specified</span>
+                                    </div>
+                                </div>
+                                <div *ngFor="let message of getInvoiceIdBasedMessages(sequence?.claimInvoiceLogId); let last = last"
+                                     [class.mb-3]="!last" class="border px-3 py-2 shadow-sm bg-light">
+                                    <p class="greenLabel mb-2">
+                                        <i aria-hidden="true"
+                                           class="fa fa-clock-o"></i> {{message?.updateTimeStamp | dateFormatterWithTimeZone: 'long'}}
+                                    </p>
+                                    <p class="f-14 mb-0 new-line-property">{{message?.message}}</p>
+                                </div>
+                                <ng-container *ngIf="!getInvoiceIdBasedMessages(sequence?.claimInvoiceLogId).length">
+                                    <p class="bg-color m-0 p-2 text-center">No message available.</p>
+                                </ng-container>
+                            </div>
+                        </ng-container>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer ct-footer-padding">
+                <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>

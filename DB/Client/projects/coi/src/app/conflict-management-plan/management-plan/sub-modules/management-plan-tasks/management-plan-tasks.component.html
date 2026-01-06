@@ -1,0 +1,210 @@
+<app-no-information *ngIf="!isLoading && !cmpTasks?.length" [canShowAddButton]="hasCmpMaintainRight"
+    buttonName="Create Task" (buttonAction)="openCreateTaskModal()">
+    <span>No tasks available for this management plan.</span>
+</app-no-information>
+
+<ng-container *ngIf="isLoading">
+    <div class="position-fixed top-0 start-0 vw-100 vh-100 z-index-5 cursor-not-allowed"></div>
+    <div class="position-relative coi-min-height-500px">
+        <div appCustomPreloader [spinnerWidth]="2" [spinnerHeight]="2"></div>
+    </div>
+</ng-container>
+
+<section *ngIf="cmpTasks?.length && !isLoading" class="task-list d-flex flex-column gap-3" aria-label="Task list">
+    <article *ngFor="let task of cmpTasks" class="card coi-card-regular" id="task-{{task.taskId}}">
+        <!-- Header Row -->
+        <div class="card-body">
+            <div class="d-flex col-12">
+                <div class="col">
+                    <div class="row row-gap-2">
+                        <!-- Task Type -->
+                        <div class="col-md-4 col-lg-3 col-sm-6 col-12">
+                            <span class="d-block coi-text-dark text-nowrap">Task Type</span>
+                            <app-no-data-label [valueToShow]="task?.cmpTaskType?.description">
+                                <span class="coi-text-light text-slice" [title]="task?.cmpTaskType?.description">{{
+                                    task?.cmpTaskType?.description}}</span>
+                            </app-no-data-label>
+                        </div>
+                        <!-- Assignee -->
+                        <div class="col-md-4 col-lg-3 col-sm-6 col-12">
+                            <span class="d-block coi-text-dark text-nowrap">Assignee</span>
+                            <app-no-data-label [valueToShow]="task?.assigneeFullName || task?.assigneePersonName">
+                                <span class="coi-text-light text-slice"
+                                    [title]="task?.assigneeFullName || task?.assigneePersonName">{{
+                                    task?.assigneeFullName
+                                    ||
+                                    task?.assigneePersonName
+                                    }}</span>
+                            </app-no-data-label>
+                        </div>
+                        <!-- Due Date -->
+                        <div class="col-md-4 col-lg-3 col-sm-6 col-12">
+                            <span class="d-block coi-text-dark text-nowrap">Due Date</span>
+                            <app-no-data-label [valueToShow]="task?.dueDate">
+                                <span class="coi-text-light text-slice" [title]="task?.dueDate">{{ (task?.dueDate |
+                                    dateFormatterWithTimeZone) }}</span>
+                            </app-no-data-label>
+                        </div>
+                        <!-- Assigned On -->
+                        <div class="col-md-4 col-lg-3 col-sm-6 col-12">
+                            <span class="d-block coi-text-dark text-nowrap">Assigned On</span>
+                            <app-no-data-label [valueToShow]="task?.assignedOn">
+                                <span class="coi-text-light text-slice" [title]="task?.assignedOn">{{ (task?.assignedOn
+                                    |
+                                    dateFormatterWithTimeZone) }}</span>
+                            </app-no-data-label>
+                        </div>
+                        <!-- Completion Date -->
+                        <div *ngIf="task.cmpTaskStatus.taskStatusCode === cmpTaskStatusCodes.COMPLETED"
+                            class="col-md-4 col-lg-3 col-sm-6 col-12">
+                            <span class="d-block coi-text-dark text-nowrap">Completion Date</span>
+                            <app-no-data-label [valueToShow]="task?.completionTimestamp">
+                                <span class="coi-text-light text-slice" [title]="task?.completionTimestamp">{{
+                                    task?.completionTimestamp | dateFormatterWithTimeZone }}</span>
+                            </app-no-data-label>
+                        </div>
+                        <!-- Description -->
+                        <div class="col-md-4 col-lg-3 col-sm-6 col-12">
+                            <span class="d-block coi-text-dark text-nowrap">Description</span>
+                            <app-no-data-label [valueToShow]="task?.description">
+                                <span class="coi-text-light text-slice" [title]="task?.description">{{ task?.description
+                                    }}</span>
+                            </app-no-data-label>
+                        </div>
+                        <!-- Status -->
+                        <div class="col-md-4 col-lg-3 col-sm-6 col-12">
+                            <span class="d-block coi-text-dark text-nowrap">Status</span>
+                            <app-no-data-label [valueToShow]="task?.cmpTaskStatus?.description">
+                                <span class="coi-text-light text-slice" [title]="task?.cmpTaskStatus?.description">
+                                    <span [class]="cmpTaskStatusBadge[task?.cmpTaskStatus?.taskStatusCode]"></span>
+                                    <span class="ms-2">{{ task?.cmpTaskStatus?.description }}</span>
+                                </span>
+                            </app-no-data-label>
+                        </div>
+                    </div>
+                </div>
+                <!-- Actions -->
+                <div class="col-1 d-flex justify-content-end align-items-start gap-2">
+                    <ng-container
+                        *ngIf="hasCmpMaintainRight && task.cmpTaskStatus.taskStatusCode !== cmpTaskStatusCodes.COMPLETED">
+                        <button id="cmp-task-edit-btn"
+                            class="btn btn-outline-secondary coi-btn-sm d-flex align-items-center justify-content-center p-1"
+                            (click)="openEditTask(task)" aria-label="Click here to edit task"
+                            title="Click here to edit task">
+                            <mat-icon class="flex-shrink-0">edit</mat-icon>
+                        </button>
+                        <button id="cmp-task-delete-btn"
+                            class="btn btn-outline-secondary coi-btn-sm d-flex align-items-center justify-content-center p-1"
+                            (click)="confirmDelete(task)" aria-label="Click here to delete task"
+                            title="Click here to delete task">
+                            <mat-icon class="flex-shrink-0">delete</mat-icon>
+                        </button>
+                    </ng-container>
+                    <ng-container *ngIf="task?.isAssignee">
+                        <button *ngIf="task.cmpTaskStatus.taskStatusCode === cmpTaskStatusCodes.ASSIGNED"
+                            id="cmp-task-start-btn"
+                            class="btn btn-primary coi-btn-sm d-inline-flex align-items-center fs-14 gap-2 text-nowrap"
+                            (click)="confirmStatusChange(task, 'START')" title="Click here to start task"
+                            aria-label="Click here to start task">
+                            Start Task
+                        </button>
+                        <button *ngIf="task.cmpTaskStatus.taskStatusCode === cmpTaskStatusCodes.IN_PROGRESS"
+                            id="cmp-task-complete-btn"
+                            class="btn btn-primary coi-btn-sm d-inline-flex align-items-center fs-14 gap-2 text-nowrap"
+                            (click)="confirmStatusChange(task, 'COMPLETE')" title="Click here to complete task"
+                            aria-label="Click here to complete task">
+                            Complete Task
+                        </button>
+                    </ng-container>
+                </div>
+            </div>
+            <!-- Questions Section -->
+            <div *ngIf="task?.cmpTaskQuestions?.length" class="mt-3 border rounded p-3 bg-light cursor-pointer"
+                (click)="task.isQuestionsExpanded = !task.isQuestionsExpanded">
+                <div class="d-flex justify-content-between align-items-center">
+                    <strong class="fs-14">Questions</strong>
+                    <mat-icon class="coi-action-dropdown-icon"
+                        [class.coi-rotate-180]="task.isQuestionsExpanded">expand_more</mat-icon>
+                </div>
+                <div *ngIf="task.isQuestionsExpanded" class="mt-2">
+                    <!-- Assigner's question/answer view -->
+                    <ng-container *ngIf="!task.isAssignee">
+                        <ol class="mb-0 ps-3">
+                            <li *ngFor="let question of task?.cmpTaskQuestions" class="mb-2">
+                                <div class="coi-text-dark">{{ question?.question }}</div>
+                                <!-- Show answer if it exists -->
+                                <div *ngIf="question?.cmpTaskQuestionAnswers?.[0]?.answer" class="ps-3 mt-1 text-muted">
+                                    <strong>Answer:</strong> {{ question.cmpTaskQuestionAnswers[0].answer }}
+                                </div>
+                                <!-- Show "No answer provided" if no answer exists -->
+                                <div *ngIf="!question?.cmpTaskQuestionAnswers?.[0]?.answer"
+                                    class="ps-3 mt-1 text-muted fst-italic">
+                                    (No answer provided)
+                                </div>
+                            </li>
+                        </ol>
+                    </ng-container>
+                    <!-- Assignee's question/answer view -->
+                    <ng-container *ngIf="task.isAssignee">
+                        <ol class="mb-0 ps-3">
+                            <li *ngFor="let question of task?.cmpTaskQuestions; let i = index" class="mb-2">
+                                <div class="form-div fs-14 fw-bold">{{question.question}}</div>
+                                <ng-container
+                                    *ngIf="task.cmpTaskStatus.taskStatusCode === cmpTaskStatusCodes.IN_PROGRESS">
+                                    <textarea class="form-control" rows="3" placeholder="Provide your answer here"
+                                        [(ngModel)]="question.cmpTaskQuestionAnswers[0].answer"
+                                        (ngModelChange)="handleAnswerChange(question, $event)">
+                                     </textarea>
+                                </ng-container>
+                                <ng-container
+                                    *ngIf="task.cmpTaskStatus.taskStatusCode === cmpTaskStatusCodes.COMPLETED">
+                                    <!-- Show answer if it exists -->
+                                    <div *ngIf="question?.cmpTaskQuestionAnswers?.[0]?.answer"
+                                        class="ps-3 mt-1 text-muted">
+                                        <strong>Answer:</strong> {{ question.cmpTaskQuestionAnswers[0].answer }}
+                                    </div>
+                                    <!-- Show "No answer provided" if no answer exists -->
+                                    <div *ngIf="!question?.cmpTaskQuestionAnswers?.[0]?.answer"
+                                        class="ps-3 mt-1 text-muted fst-italic">
+                                        (No answer provided)
+                                    </div>
+                                </ng-container>
+                            </li>
+                        </ol>
+                    </ng-container>
+                </div>
+            </div>
+        </div>
+    </article>
+</section>
+
+<!-- Task create Edit modal starts -->
+<app-task-create-edit-modal *ngIf="managementPlanTaskService.taskCreateEditModalConfig.isShowModal"
+    [createEditModalConfig]="managementPlanTaskService.taskCreateEditModalConfig" (saved)="handleFormSubmit($event)">
+</app-task-create-edit-modal>
+<!-- Task create Edit modal ends -->
+
+<!-- Task Delete modal starts -->
+<app-common-modal *ngIf="pendingAction?.type === 'DELETE'" [modalConfig]="deleteModalConfig"
+    (modalAction)="onDeleteModalAction($event)">
+    <ng-container modal-header>
+        <span>Delete Task</span>
+    </ng-container>
+    <ng-container modal-body>
+        <p class="fs-14">Are you sure you want to delete the Task?</p>
+    </ng-container>
+</app-common-modal>
+<!-- Task Delete modal ends -->
+
+<!-- Task status action modal starts -->
+<app-common-modal *ngIf="pendingAction?.type !== 'DELETE'" [modalConfig]="statusModalConfig"
+    (modalAction)="onStatusModalAction($event)">
+    <ng-container modal-header>
+        <span>{{ getStatusPrimaryLabel(pendingAction?.type) }} Task</span>
+    </ng-container>
+    <ng-container modal-body>
+        <p class="fs-14">Are you sure you want to {{ getStatusPrimaryLabel(pendingAction?.type).toLowerCase() }} task?
+        </p>
+    </ng-container>
+</app-common-modal>
+<!-- Task status action modal ends -->

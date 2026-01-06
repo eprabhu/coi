@@ -1,0 +1,343 @@
+<div class="push4slideMenu pageMinHeight">
+    <div class="pushFixedHeaderFooter">
+        <div class="headerPush"></div>
+        <div class="container-fluid">
+            <div class="card mt-3" id="notification-edit-card">
+                <div class="card-header d-flex pt-2 pb-2">
+                    <h4 class="card-title mt-2">Configure Notification <ng-container *ngIf="notificationId">(#{{notificationId}} -
+                            {{notificationType?.description}})
+                        </ng-container>
+                    </h4>
+                    <span class="ml-auto">
+                    </span>
+                    <button title="Back to Notification" class="btn more-btn ml-2" (click)="goBack();">
+                        <i class="fa fa-reply" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="card-body p-2">
+                    <div class="col-12">
+                        <p *ngIf="warningMsgObj.isShowWarning">
+                            <span class="mandatory">* Please fill all the mandatory fields marked</span>
+                        </p>
+                        <div class="form-row mb-3">
+                            <!-- Toggle switch -->
+                            <div class="form-group switch-rights col-lg-3 col-md-6 col-sm-6 col-12">
+                                <label class="block-display"><span class="mandatory"></span>Type</label>
+                                <div class="switch-field-radio">
+                                    <input required="" type="radio" id="user" name="user_system" value="N"
+                                        checked="true" class="hand-cursor"
+                                        [(ngModel)]="notificationType.isSystemSpecific"
+                                        (click)="notificationType.isSystemSpecific = 'N'" />
+                                    <label for="user">
+                                        <i class="fa fa-check" aria-hidden="true"></i>User
+                                    </label>
+                                    <input required="" type="radio" id="system" name="user_system" value="Y"
+                                        class="hand-cursor" [(ngModel)]="notificationType.isSystemSpecific"
+                                        (click)="notificationType.isSystemSpecific = 'Y'" />
+                                    <label for="system">
+                                        <i class="fa fa-check" aria-hidden="true"></i>System
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group col-lg-4 col-md-5 col-sm-5 col-12">
+                                <label class="block-display">
+                                    <span class="mandatory">*</span>Notification is used for </label>
+                                <input class="dateBox form-control" id="notification-usedFor"
+                                    placeholder="Type an event" type="text" [(ngModel)]="notificationType.description">
+                                <p *ngIf="warningMsgObj.isShowWarning && notificationType.description === ''">
+                                    <span class="mandatory">* Please fill 'Notification is used for' field</span>
+                                </p>
+                            </div>
+                            <div class="form-group col-lg-4 col-md-4 col-sm-6 col-12">
+                                <label class="block-display"><span class="mandatory">*</span>Notification applies
+                                    to</label>
+                                <select [(ngModel)]="ruleAppliedToForHtml" class="form-control"
+                                    (change)="onRuleAppliedToSelectionChange()" [compareWith]="compareByCode">
+                                    <ng-container *ngFor="let item of appliedListKeys; let mainIndex = index">
+                                        <option *ngFor="let subItem of appliedList[item]; let subIndex = index"
+                                            [ngValue]="subItem" [disabled]="subItem.IS_ACTIVE != 'Y'" [hidden]="subItem.IS_ACTIVE != 'Y'">
+                                            {{subItem.DESCRIPTION}}
+                                        </option>
+                                    </ng-container>
+                                </select>
+                                <p
+                                    *ngIf="warningMsgObj.isShowWarning && (notificationType.moduleCode == null || notificationType.moduleCode === '')">
+                                    <span class="mandatory">* Please select any option first</span>
+                                </p>
+                            </div>
+                            <div class="form-group col-md-1 pl-2 pr-2">
+                                <label class="block-display"><span>Active ?</span>
+                                </label>
+                                <a *ngIf="notificationType.isActive=='N'">
+                                    <label class="switch toggle-inactive">
+                                        <input type="checkbox" (click)="notificationType.isActive='Y'">
+                                        <span class="slider round"><small class="deactivate-text">No</small></span>
+                                    </label>
+                                </a>
+                                <a *ngIf="notificationType.isActive == 'Y'">
+                                    <label class="switch toggle-active">
+                                        <input type="checkbox" (click)="notificationType.isActive='N'" checked>
+                                        <span class="slider round"><small>Yes</small></span>
+                                    </label>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-inner mb-3">
+                            <div class="card-header pb-1">
+                                <h4 class="card-title">
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6 col-sm-4">
+                                            Default Recipients
+                                        </div>
+                                    </div>
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-row">
+                                    <label class="ml-2 mt-1">
+                                        Select recipient type
+                                    </label>
+                                    <div class="col-lg-3 col-md-5 col-sm-6 col-12">
+                                        <div class="switch-field-radio ml-2">
+                                            <input type="radio" id="person" name="def_recipient" value="N"
+                                                checked="true" [(ngModel)]="role" />
+                                            <label for="person">
+                                                <i class="fa fa-check" aria-hidden="true"></i>Persons
+                                            </label>
+                                            <input type="radio" id="roles" name="def_recipient" value="Y"
+                                                [(ngModel)]="role" />
+                                            <label for="roles">
+                                                <i class="fa fa-check" aria-hidden="true"></i>Roles
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-row mt-3">
+                                        <div class="col-12 mb-0">
+                                            <label class="block-display ml-1">
+                                                <span class="mandatory"></span>To
+                                            </label>
+                                            <div *ngIf="(role=='N')" class="col-6 pl-0 d-inline-block person-elastic">
+                                                <app-elastic [options]="elasticSearchOptions" [clearField]="clearField"
+                                                    (click)="send = 'TO'" [placeHolder]="'Search person'"
+                                                    (selectedResult)="selectedPOC($event)">
+                                                </app-elastic>
+                                            </div>
+                                            <div *ngIf="(role=='Y')" class="col-6 pl-0 d-inline-block">
+                                                <select id="rolet-type" class="form-control" name="roleCodeTo"
+                                                    [(ngModel)]="roleCodeTo" (click)="send = 'TO'"
+                                                    (change)="addRoleType('to')">
+                                                    <option [value]='null'>--Roles--</option>
+                                                    <option *ngFor="let roleType of mapRoles?.roleDescription"
+                                                        [value]="roleType.ROLE_TYPE_CODE">
+                                                        {{roleType.DESCRIPTION}}</option>
+                                                </select>
+                                            </div>
+                                            <a class="anchor-link ml-2" *ngIf="!isCcViewable"
+                                                (click)="isCcViewable = true; $event.stopPropagation();">
+                                                <i aria-hidden="true"></i>Add Cc
+                                            </a>
+                                            <a class="anchor-link ml-3" *ngIf="!isBccViewable"
+                                                (click)="isBccViewable = true; $event.stopPropagation();">
+                                                <i aria-hidden="true"></i>Add Bcc
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="fileChips d-inline-block mb-2 ml-15" style="word-break: break-all;">
+                                            <ng-container
+                                                *ngFor="let recipients of notificationType?.notificationRecipient">
+                                                <span *ngIf="(recipients.recipientType == 'TO')">
+                                                    <i class="faIconFileChip fa {{recipients.recipientPersonId != null ? 'fa-user-o' : 'fa-handshake-o'}}"
+                                                        aria-hidden="true"></i> {{recipients.recipientName}}
+                                                    <i *ngIf="recipients.notificationRecipientId"
+                                                        class="fa fa-close hand-cursor" id="prop-keywrd-dlt"
+                                                        data-toggle="modal" data-target="#AlertModal"
+                                                        (click)="deleteRecipient=recipients" aria-hidden="true"
+                                                        title="Remove this Recipient"></i>
+                                                    <i *ngIf="!recipients.notificationRecipientId"
+                                                        class="fa fa-close hand-cursor" id="prop-keywrd-dlt"
+                                                        (click)="removePerson(recipients)" aria-hidden="true"
+                                                        title="Remove this Recipient"></i>
+                                                </span>
+                                            </ng-container>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div *ngIf="isCcViewable" class="col-12">
+                                    <div class="form-row mt-3">
+                                        <div class="col mb-0">
+                                            <label class="block-display">
+                                                <span class="mandatory"></span>Cc </label>
+                                            <div *ngIf="(role=='N')" class="col-6 pl-0 d-inline-block">
+                                                <app-elastic [options]="elasticSearchOptions" [clearField]="clearField"
+                                                    (click)="send = 'CC'" [placeHolder]="'Search person'"
+                                                    (selectedResult)="selectedPOC($event)" data-role="tagsinput">
+                                                </app-elastic>
+                                            </div>
+                                            <div *ngIf="(role=='Y')" class="col-6 pl-0 d-inline-block">
+                                                <select id="rolet-type" class="form-control" name="roleCodeCc"
+                                                    [(ngModel)]="roleCodeCc" (click)="send = 'CC'"
+                                                    (change)="addRoleType('cc')">
+                                                    <option [value]='null'>--Roles--</option>
+                                                    <option *ngFor="let roleType of mapRoles?.roleDescription"
+                                                        [value]="roleType.ROLE_TYPE_CODE">
+                                                        {{roleType.DESCRIPTION}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="fileChips d-inline-block mb-2 ml-15" style="word-break: break-all;">
+                                            <ng-container
+                                                *ngFor="let recipients of notificationType?.notificationRecipient">
+                                                <span *ngIf="(recipients.recipientType == 'CC')">
+                                                    <i class="faIconFileChip fa {{recipients.recipientPersonId != null ? 'fa-user-o' : 'fa-handshake-o'}}"
+                                                        aria-hidden="true"></i> {{recipients.recipientName}}
+                                                    <i *ngIf="recipients.notificationRecipientId"
+                                                        class="fa fa-close hand-cursor" id="prop-keywrd-dlt"
+                                                        data-toggle="modal" data-target="#AlertModal"
+                                                        (click)="deleteRecipient=recipients" aria-hidden="true"
+                                                        title="Remove this Recipient"></i>
+                                                    <i *ngIf="!recipients.notificationRecipientId"
+                                                        class="fa fa-close hand-cursor" id="prop-keywrd-dlt"
+                                                        (click)="removePerson(recipients)" aria-hidden="true"
+                                                        title="Remove this Recipient"></i>
+                                                </span>
+                                            </ng-container>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div *ngIf="isBccViewable" class="col-12">
+                                    <div class="form-row mt-3">
+                                        <div class="col mb-0">
+                                            <label class="block-display">
+                                                <span class="mandatory"></span>Bcc </label>
+                                            <div *ngIf="(role=='N')" class="col-6 pl-0 d-inline-block">
+                                                <app-elastic [options]="elasticSearchOptions" [clearField]="clearField"
+                                                    (click)="send = 'BCC'" [placeHolder]="'Search person'"
+                                                    (selectedResult)="selectedPOC($event)" data-role="tagsinput">
+                                                </app-elastic>
+                                            </div>
+                                            <div *ngIf="(role=='Y')" class="col-6 pl-0 d-inline-block">
+                                                <select id="rolet-type" class="form-control" name="roleCodeBcc"
+                                                    [(ngModel)]="roleCodeBcc" (click)="send = 'BCC'"
+                                                    (change)="addRoleType('bcc')">
+                                                    <option [value]='null'>--Roles--</option>
+                                                    <option *ngFor="let roleType of mapRoles?.roleDescription"
+                                                        [value]="roleType.ROLE_TYPE_CODE">
+                                                        {{roleType.DESCRIPTION}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="fileChips d-inline-block ml-15" style="word-break: break-all;">
+                                            <ng-container
+                                                *ngFor="let recipients of notificationType?.notificationRecipient">
+                                                <span *ngIf="(recipients.recipientType == 'BCC')">
+                                                    <i class="faIconFileChip fa {{recipients.recipientPersonId != null ? 'fa-user-o' : 'fa-handshake-o'}}"
+                                                        aria-hidden="true"></i> {{recipients.recipientName}}
+                                                    <i *ngIf="recipients.notificationRecipientId"
+                                                        class="fa fa-close hand-cursor" id="prop-keywrd-dlt"
+                                                        data-toggle="modal" data-target="#AlertModal"
+                                                        (click)="deleteRecipient=recipients" aria-hidden="true"
+                                                        title="Remove this Recipient"></i>
+                                                    <i *ngIf="!recipients.notificationRecipientId"
+                                                        class="fa fa-close hand-cursor" id="prop-keywrd-dlt"
+                                                        (click)="removePerson(recipients)" aria-hidden="true"
+                                                        title="Remove this Recipient"></i>
+                                                </span>
+                                            </ng-container>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row mb-3">
+                            <div class="form-group col">
+                                <label class="block-display">
+                                    <span class="mandatory">*</span>Subject</label>
+                                <input type="text" class="form-control" id="subject-line"
+                                    placeholder="Please provide Subject"
+                                    [(ngModel)]="notificationType.subject">
+                                <p *ngIf="warningMsgObj.isShowWarning && notificationType?.subject === ''">
+                                    <span class="mandatory">* Please fill Subject field</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-12">
+                                <div class="card message-body">
+                                    <div class="card-body">
+                                        <span class=" mb-2 d-flex justify-content-between">
+                                            <label class="d-flex align-items-end"><span
+                                                    class="mandatory">*</span>Message
+                                                Body</label>
+                                            <a class="anchor-link ml-2" (click)="IsShowStickyNote = !IsShowStickyNote"
+                                                title="Placeholders are available only after selecting the 'Notification applies to' field.">
+                                                <i aria-hidden="true"></i>Insert Placeholders
+                                            </a>
+                                        </span>
+                                        <ng-container *ngIf="!_commonService.isIE" >
+                                            <div class="alert alert-warning p-1 f-15 mb-2 d-flex align-items-center">
+                                                <i class="fa fa-info-circle info-icon mx-2 mt-1" aria-hidden="true"></i>
+                                                <em>The editor does not support images.</em>
+                                            </div>
+                                            <ckeditor id="message-body"  [(ngModel)]="notificationType.message" [editor]="Editor"
+                                            [config]="editorConfig" (ready)="onReady($event)"></ckeditor>
+                                        </ng-container>
+                                        <textarea  *ngIf="_commonService.isIE" class="ngx-textarea form-control"  [(ngModel)]="notificationType.message" rows="10"></textarea>
+                                        <p *ngIf="warningMsgObj.isShowWarning && notificationType.message === ''">
+                                            <span class="mandatory">* Please fill Message field</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-12">
+                                <input type="checkbox" name='promptUser' (change)="promptUser($event)"
+                                    [checked]="notificationType.promptUser == 'Y' ? true : false"> Prompt User Before
+                                Sending
+                            </div>
+                        </div>
+                        <div class="form-group col-12 text-right mt-3">
+                            <button class="btn btn-secondary btn-sm" (click)="goBack()">Cancel</button>
+                            <button class="btn btn-primary-sub btn-sm" type="button" data-toggle="modal"
+                                data-target="#SuccessModal" (click)="createOrUpdateNotification()">Save</button>
+                        </div>
+                    </div>
+                </div>
+                <app-sticky-note [IsShowStickyNote]="IsShowStickyNote" (onClose)="onStickyNoteClose($event)"
+                    [StickyNoteContents]="stickyNoteContents" headerSection="Placeholders">
+                </app-sticky-note>
+            </div>
+            <div class="footerPush"></div>
+        </div>
+    </div>
+
+    <!-- // Modal for delete confirmation  -->
+    <div class="modal fade show mySkinDialog" id="AlertModal" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete Recipient</h5>
+                    <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this recipient?</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary btn-sm" data-dismiss="modal" type="button">No</button>
+                    <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button"
+                        (click)="removeRecipient(deleteRecipient)">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    

@@ -1,0 +1,118 @@
+<div *ngIf="canCreateExternalReview && reviewList.length" class="btn-position">
+    <button class="btn btn-sm btn-tertiary mt-0" data-toggle="modal" data-target="#add-reviewer-modal">Create
+      Review</button>
+</div>
+<ng-container *ngIf="reviewList.length">
+    <div *ngFor="let review of reviewList">
+        <app-review-ext [reviewDetails]="review" [reviewTypes]="reviewTypeList" (sendForReview)="sendNewReview($event)"
+            [emitChildResponse]="emitChildResponse" (createReview)="openReviewModal($event)"></app-review-ext>
+    </div>
+</ng-container>
+
+<!-- Add Reviewer Modal -->
+<div class="modal fade show mySkinDialog" data-backdrop="static" tabindex="-1" id="add-reviewer-modal" role="dialog"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" *ngIf="!isReviewEdit">Create Review</h5>
+                <h5 class="modal-title" *ngIf="isReviewEdit">Modify Review</h5>
+                <button id="add-review-btn" type="button" class="close" (click)="closeModal()" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group col-12 px-2">
+                        <label> <span class="mandatory">*</span>Review Type</label>
+                        <select class="form-control" id="external-review-type"
+                            [ngClass]="(mandatoryList?.has('type')) ? 'is-invalid d-block' : ''"
+                            [(ngModel)]="addExternalReviewObject.extReviewServiceTypeCode"
+                            (ngModelChange)="setReviewTypeObj();">
+                            <option [value]=null>--Select--</option>
+                            <option [value]="type.extReviewServiceTypeCode" *ngFor="let type of reviewTypeList"
+                                [hidden]="type.active != true">
+                                {{type.description}}</option>
+                        </select>
+                        <div *ngIf="mandatoryList?.has('type')" class="invalid-feedback d-block">
+                            {{mandatoryList?.get('type')}}
+                        </div>
+                    </div>
+                    <div class="form-group col-12 px-2">
+                        <label for="prop-sub-date">Review Deadline Date</label><span
+                            class="dateField">
+                            <input matInput [matDatepicker]="subDt" id="prop-sub-date" style="width: 100% !important" autocomplete="off"
+                                class="d-inline-block form-control" (click)="subDt.open()"
+                                [(ngModel)]="addExternalReviewObject.deadlineDate"
+                                (ngModelChange)="deadlineDateValidation()"
+                                placeholder="{{datePlaceHolder}}"/>
+                            <i id="prop-sub-date-icon" class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                aria-hidden="true" (click)="subDt.open()"></i>
+                            <mat-datepicker #subDt (opened)="setFocusToElement('prop-sub-date')">
+                            </mat-datepicker>
+                        </span>
+                        <div *ngIf="deadLineDateValidation" class="invalid-feedback d-block text-danger">
+                            {{deadLineDateValidation}}
+                        </div>
+                    </div>
+                    <div class="form-group col-12 px-2">
+                        <label for="award-special-review-comnt"><span class="mandatory">*</span>Review Title</label>
+                        <textarea appAutoGrow id="award-special-review-comnt" class="form-control auto-grow-height"
+                            appLengthValidator [isShowLimiter]='true' [limit]=200
+                            [(ngModel)]="addExternalReviewObject.description"
+                            [ngClass]="(mandatoryList?.has('description')) ? 'is-invalid d-block' : ''">
+                        </textarea>
+                        <div *ngIf="mandatoryList?.has('description')" class="invalid-feedback d-block">
+                            {{mandatoryList?.get('description')}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="sponsor-add-no-btn" type="button" class="btnSkin btn-secondary" data-dismiss="modal"
+                    (click)="closeModal()" data-toggle="modal">Cancel</button>
+                <button *ngIf="!isReviewEdit" id="add-review-btn" type="button" class="btn btn-primary-sub btn-sm"
+                    (click)="saveExternalReview();">Create</button>
+                <button *ngIf="isReviewEdit" id="add-review-btn" type="button" class="btn btn-primary-sub btn-sm"
+                    (click)="updateReview();">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SEND REVIEW MODAL -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="sendReviewModal" tabindex="-1" role="dialog"
+    aria-labelledby="ModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Send to ERM</h5>
+                <button type="button" class="close" data-dismiss="modal" id="prop-doc-dlt-dismiss" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>The review data will be shared with external review application. Click yes to confirm.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="prop-doc-dlt-no-btn" class="btn btn-secondary" data-dismiss="modal"
+                    data-toggle="modal">No</button>
+                <button type="button" id="prop-doc-dlt-yes-btn" class="btn btn-primary-sub btn-sm" data-dismiss="modal"
+                    (click)="sendReview()">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ng-container *ngIf="!reviewList.length">
+    <div class="align">
+        <span>
+            <span>No Reviews created</span>
+            <button class="btn btn-primary btn-sm d-block d-flex ml-4 mt-4" data-toggle="modal"
+                data-target="#add-reviewer-modal">
+                Create Review
+            </button>
+        </span>
+    </div>
+</ng-container>

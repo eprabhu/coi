@@ -1,0 +1,211 @@
+<app-coi-slider (closeSlider)="closeConflictSlider()" [elementId]="'disclosure-entity-risk-slider'" [isHeaderNeeded]="true" 
+    [isChangedFieldValue]="isFieldValueChanges()" [sliderWidth]="'w-50 w-md-75 w-xl-50'">
+
+    <!-- slider header -->
+    <ng-container header>
+        <span id="coi-disclosure-risk-header">Modify Disclosure Risk</span>
+        <app-common-help-text [subSectionId]="802" [elementId]="'coi-disclosure-risk-header'"></app-common-help-text>
+    </ng-container>
+    <!-- slider header card -->
+    <ng-container content-sticky>
+        <div class="card card-scroll shadow-medium coi-box-red mt-3 p-0">
+            <div class="card-header">
+                <div class="row row-gap-2">
+                    <!-- Badge and Current Risk -->
+                    <div class="coi-card-header-notch-container col-12 d-flex mb-3 align-items-start">
+                        <div class="d-flex col align-items-center">
+                            <ng-container *ngIf="disclosureDetails?.coiDisclosureFcoiType?.fcoiTypeCode == DISCLOSURE_TYPE.PROJECT">
+                                <span [attr.aria-label]="COMMON_DISCL_LOCALIZE.PROJECT_BADGE_PREFIX + disclosureDetails?.coiProjectType?.description + ' disclosure'" class="coi-card-notch-ribbon shadow-sm"
+                                    [style.backgroundColor]="disclosureDetails?.coiProjectType?.badgeColor">{{ COMMON_DISCL_LOCALIZE.PROJECT_BADGE_PREFIX }}{{ disclosureDetails?.coiProjectType?.description }}</span>
+                            </ng-container>
+                            <ng-container *ngIf="disclosureDetails?.coiDisclosureFcoiType?.fcoiTypeCode != DISCLOSURE_TYPE.PROJECT ">
+                                <span class="coi-card-notch-ribbon shadow-sm bg-fcoi-clip"
+                                    [attr.aria-label]="COMMON_DISCL_LOCALIZE.ANNUAL_BADGE_PREFIX + disclosureDetails?.coiDisclosureFcoiType?.description + ' disclosure'">{{ COMMON_DISCL_LOCALIZE.ANNUAL_BADGE_PREFIX }}{{ disclosureDetails?.coiDisclosureFcoiType?.description }}</span>
+                            </ng-container>
+                            <h4 *ngIf="disclosureDetails?.coiDisclosureFcoiType?.fcoiTypeCode == DISCLOSURE_TYPE.PROJECT && projectDetails" class="mb-0 label-text f-16 me-5 d-flex align-items-center">
+                                <mat-icon aria-hidden="true" class="coi-text-light flex-shrink-0 ms-1">{{projectDetails?.projectIcon}}</mat-icon>
+                                <a class="link-primary fs-6 text-slice"
+                                    title="Click here to view details of #{{ projectDetails?.projectNumber }} - {{ projectDetails?.title }}"
+                                    attr.aria-label="Click here to view details of #{{ projectDetails?.projectNumber }} - {{ projectDetails?.title }}"
+                                    (click)="redirectToProjectDetails()" (keyup.enter)="redirectToProjectDetails()">
+                                    #{{ projectDetails?.projectNumber }} - {{ projectDetails?.title }}
+                                </a>
+                            </h4>
+                        </div>
+                        <div class="col-auto align-items-start justify-content-end mt-1">
+                            <div class="d-inline-flex align-items-center">
+                                <label class="coi-text-light" for="coi-current-disclosure-risk">Risk: </label>
+                                <span class="ml-2 coi-text-light fw-normal">
+                                    <div class="text-color fs-14 d-flex align-items-center">
+                                        <span class="text-secondary fs-14">
+                                            <mat-icon
+                                                class="{{disclosureRiskStatusBadge[disclosureDetails?.riskCategoryCode] || 'high-risk'}} material-icons-round">warning</mat-icon>
+                                        </span>
+                                        <app-no-data-label [valueToShow]="disclosureDetails?.coiRiskCategory?.description">
+                                            <span
+                                                class="ml-2 mt-1 fw-normal" id="coi-current-disclosure-risk">{{disclosureDetails?.coiRiskCategory?.description}}</span>
+                                        </app-no-data-label>
+                                    </div>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- person -->
+                    <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6 col-12 mb-md-2 mb-lg-2 mb-xl-2">
+                        <label class="coi-text-light d-block" for="coi-disclosure-risk-person">Person
+                        </label>
+                        <app-no-data-label [valueToShow]="disclosureDetails?.person?.fullName">
+                            <span class="coi-text-light fw-normal text-slice" [title]="disclosureDetails?.person?.fullName" id="coi-disclosure-risk-person">{{disclosureDetails?.person?.fullName}}</span>
+                        </app-no-data-label>
+                    </div>
+                    <!-- title -->
+                    <div class="col-xl-3 col-lg-4 col-md-4 col-sm-6 col-12">
+                        <label class="coi-text-light d-block" for="coi-disclosure-risk-title">Title</label>
+                        <span class="coi-text-light fw-normal">
+                            <app-no-data-label [valueToShow]="disclosureDetails?.person?.primaryTitle">
+                                <span class="text-slice" id="coi-disclosure-risk-title" [title]="disclosureDetails?.person?.primaryTitle">{{disclosureDetails?.person?.primaryTitle}}</span>
+                            </app-no-data-label>
+                        </span>
+                    </div>
+                    <!-- department -->
+                    <div class="col-xl-3 col-lg-4 col-md-4 col-sm-6 col-12">
+                        <label class="coi-text-light d-block" for="coi-disclosure-risk-department">Department</label>
+                        <span class="coi-text-light fw-normal">
+                            <app-no-data-label [valueToShow]="disclosureDetails?.person?.unit?.unitDetail">
+                                <span class="text-slice" id="coi-disclosure-risk-department" [title]="commonService.getPersonLeadUnitDetails(disclosureDetails?.person?.unit)">{{commonService.getPersonLeadUnitDetails(disclosureDetails?.person?.unit)}}</span>
+                            </app-no-data-label>
+                        </span>
+                    </div>
+                    <!-- person Email -->
+                    <div class="col-xl col-lg-4 col-md-4 col-sm-6 col-12">
+                        <label class="coi-text-light d-block" for="coi-disclosure-risk-mail">Person Email</label>
+                        <span class="coi-text-light fw-normal">
+                            <app-no-data-label [valueToShow]="disclosureDetails?.person?.emailAddress">
+                                <span class="text-slice" id="coi-disclosure-risk-mail" [title]="disclosureDetails?.person?.emailAddress">{{disclosureDetails?.person?.emailAddress}}</span>
+                            </app-no-data-label>
+                        </span>
+                    </div>
+                    <!-- Disclosure Status -->
+                    <div class="col-xl-auto col-lg-auto col-md-auto col-sm-6 col-12">
+                        <label class="coi-text-light d-block" for="coi-disclosure-risk-disclosure">Disclosure Status</label>
+                        <span class="coi-text-light fw-normal">
+                            <app-no-data-label [valueToShow]="disclosureDetails?.coiConflictStatusType?.description">
+                                <span
+                                    class="{{disclosureConflictStatusBadge[disclosureDetails?.conflictStatusCode]}}"></span>
+                                <span class="badgeFont" id="coi-disclosure-risk-disclosure">{{disclosureDetails?.coiConflictStatusType?.description}}</span>
+                            </app-no-data-label>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+    <!-- modal content -->
+    <ng-container content>
+        <!-- risk edit section -->
+        <div class="card mt-2">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-lg-4 align-items-center">
+                        <label class="fs-14 fw-500" for="coi-disclosure-risk">Risk<app-common-help-text [subSectionId]="802" [elementId]="'coi-disclosure-risk'"></app-common-help-text>
+                        </label>
+                        <span>
+                            <select class="form-control form-select" [(ngModel)]="riskCategoryCode" id="coi-disclosure-risk"
+                                [ngClass]="riskValidationMap?.has('riskLevelCode') || riskValidationMap?.has('duplicateRisk')  ? 'is-invalid d-block' : ''"
+                                (ngModelChange)="clearValidationOnValueChange('LEVEL')">
+                                <option [value]=null>--Select--</option>
+                                <option *ngFor="let status of riskLookup" [value]="status.riskCategoryCode">
+                                    {{status?.description}}</option>
+                            </select>
+                            <app-common-information [elementId]="'coi-disclosure-risk'" [subSectionId]="802"></app-common-information>
+                            <div *ngIf="riskValidationMap?.has('riskLevelCode')" class="invalid-feedback d-block fs-12">
+                                {{riskValidationMap?.get('riskLevelCode')}}
+                            </div>
+                            <div *ngIf="riskValidationMap?.has('duplicateRisk')" class="d-block fs-12 invalid-feedback">
+                                {{riskValidationMap?.get('duplicateRisk')}}
+                            </div>
+                        </span>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <label class="fs-14 fw-500"  for="coi-disclosure-risk-desc">Describe the reason for Risk level change<app-common-help-text [subSectionId]="802" [elementId]="'coi-disclosure-risk-desc'"></app-common-help-text>
+                        </label>
+                        <textarea id="coi-disclosure-risk-desc" class="form-control fs-14" placeholder="Description" row="1"
+                            [(ngModel)]="riskComment" appLengthValidator [limit]="2000" [isShowLimiter]="true"
+                            [ngClass]="riskValidationMap?.has('comment') ? 'is-invalid d-block' : ''"
+                            (ngModelChange)="clearValidationOnValueChange('COMMENT'); riskComment = riskComment.trim()">
+                        </textarea>
+                            <app-common-information [elementId]="'coi-disclosure-risk-desc'" [subSectionId]="802"></app-common-information>
+                        <div *ngIf="riskValidationMap?.has('comment')" class="invalid-feedback d-block fs-12">
+                            {{riskValidationMap?.get('comment')}}
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-2 text-end">
+                    <button type="button" class="btn btn-outline-secondary fs-14 me-2"
+                        title="Click to Clear" aria-label="Click to clear the Risk level change."
+                        (click)="clearRiskChanges()">Clear</button>
+                    <button type="button" class="btn btn-primary fs-14" (click)="checkForModification()"
+                        title="Click to Save" aria-label="Click to save Risk level change.">Save</button>
+                </div>
+            </div>
+        </div>
+        <!-- risk history heading -->
+        <div class="main-title mt-3 mb-2" id="" tabindex="0">
+            <h3 class="d-flex align-items-center fs-18"><strong>Risk History</strong>
+                <span class="d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top">
+                </span>
+            </h3>
+        </div>
+        <!-- risk history log -->
+        <div class="card" id="risk-history">
+            <div class="card-content">
+                <div class="card-body">
+                    <div *ngIf="!isEmptyHistory()">
+                        <ul class="timeline">
+                            <ng-container *ngFor="let disclosure of disclosureHistoryLogs | keyvalue: sortNull">
+                                <li *ngFor="let historyEntry of disclosure.value;let index=index">
+                                    <span class="fs-14" [innerHTML]="historyEntry?.description" tabindex="0"></span>
+                                    <p class="coi-text-lighter fs-13" tabindex="0">{{disclosure.key}}
+                                        {{historyEntry?.updateTimestamp | dateFormatterWithTimeZone:'time'}}</p>
+                                    <p *ngIf="historyEntry?.description" class="coi-text-light" tabindex="0">
+                                        <span *ngIf="historyEntry?.comment" class="fs-14">
+                                            <mat-icon class="format_quote">format_quote</mat-icon>
+                                            <span
+                                                *ngIf="!isReadMore[index] && historyEntry?.comment?.length > 430; else showFullInfo"
+                                                class="fst-italic mx-2" [attr.aria-label]="historyEntry?.comment"
+                                                tabindex="0">
+                                                <span class="coi-text-light mt-2">{{(historyEntry?.comment |
+                                                    slice:0:430)}}</span>
+                                                <span (click)="isReadMore[index] = !isReadMore[index]"
+                                                    class="hand-cursor" title="Read More"><span class="fw-medium">...
+                                                        <u>Read more</u>
+                                                        <i aria-hidden="true"></i></span>
+                                                </span>
+                                            </span>
+                                            <ng-template #showFullInfo>
+                                                <span [attr.aria-label]="historyEntry?.comment"
+                                                    class="fst-italic mx-2 coi-text-light">{{historyEntry?.comment}}</span>
+                                                <span *ngIf="historyEntry?.comment?.length > 430"
+                                                    class="hand-cursor mt-2 fw-medium" title="Read Less"
+                                                    (click)="isReadMore[index] = !isReadMore[index]" aria-hidden="true">
+                                                    <span class="fw-medium"><u>Read Less</u>
+                                                        <i aria-hidden="true"></i></span>
+                                                </span>
+                                            </ng-template>
+                                        </span>
+                                    </p>
+                                </li>
+                            </ng-container>
+                        </ul>
+                    </div>
+                    <div class="noDataExists p-2" *ngIf="isEmptyHistory()">
+                        <app-no-information [isBorderNeeded]="false"> </app-no-information>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+    <ng-container confirmation-content>
+        Are you sure you want to leave the <strong>Manage Risk Status</strong> page without saving?
+    </ng-container>
+</app-coi-slider>

@@ -1,0 +1,127 @@
+<div class="card coi-card-regular mt-0 custom-top" id="coi-reviewer-dash-overview-card">
+    <!-- coi-dashboard-tab-sticky -->
+    <div class="card-body d-flex flex-column gap-2">
+        <div class="d-flex justify-content-between align-items-center">
+            <span *ngIf="personListTabType.isDelinquent" class="fs-18 d-inline-block">Individuals Who Did Not Submit OPA
+                Reports For
+                <span class="fs-18 coi-text-darker">{{ disclosureReviewStatDetails.unitDisplayName || 'All Departments'
+                    }}</span>
+            </span>
+            <span *ngIf="personListTabType.isExempt" class="fs-18  d-inline-block">Persons List For
+                <span class="fs-18 coi-text-darker">{{ disclosureReviewStatDetails.unitDisplayName || 'All Departments'
+                    }}</span>
+            </span>
+            <span *ngIf="personListTabType.isEligiblePerson" class="fs-18  d-inline-block">Persons List For
+                <span class="fs-18 coi-text-darker">{{ disclosureReviewStatDetails.unitDisplayName || 'All Departments'
+                    }}</span>
+            </span>
+            <div class="d-flex justify-content-end align-items-center col gap-2">
+                <button *ngIf="personListTabType.isExempt || personListTabType.isEligiblePerson"
+                    id="configure-modal-btn" title="Click here to modify eligibility"
+                    aria-label="Click here to modify eligibility"
+                    class="btn btn-primary d-flex align-items-center justify-content-center gap-2 fs-14"
+                    (click)="openEligibilityModal('CREATE_MODE')">
+                    <mat-icon aria-hidden="true" class="flex-shrink-0">edit</mat-icon>
+                    <span>Modify Eligibility</span>
+                </button>
+                <button id="configure-modal-btn" (click)="navigateToDashboard()"
+                    title="Click here to go back to dashboard" aria-label="Click here to go back to dashboard"
+                    class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2 fs-14">
+                    <mat-icon aria-hidden="true" class="flex-shrink-0">reply</mat-icon>
+                    <span class="text-nowrap">Back To Dashboard</span>
+                </button>
+            </div>
+        </div>
+        <!-- Filter & search section -->
+        <section class="col-lg-auto gap-2"
+            [ngClass]="{'advance-search coi-search-box' : !personListTabType.isDelinquent}">
+            <!-- Filter & Search -->
+            <div class="row m-0">
+                <!-- Filter -->
+                <div *ngIf="personListTabType.isExempt || personListTabType.isEligiblePerson" role="radiogroup"
+                    class="col-auto align-content-center fs-14 d-inline-block" [@leftSlideInOut]>
+                    <span class="text-secondary fs-14 fw-medium pe-1">Filter By Type:</span>
+                    <ng-container *ngFor="let filter of filterPills">
+                        <button [id]="filter.id" (click)="setFilter(filter.value)" class="filter-pills coi-text-light"
+                            role="radio" [attr.aria-checked]="true"
+                            [title]="'Click here to filter by type: '+ filter.label"
+                            [aria-label]="'Click here to filter by type: '+ filter.label"
+                            [ngClass]="{'active': localRequestObject.dashboardData.TAB_TYPE === filter.value }">
+                            {{ filter?.label }}
+                        </button>
+                    </ng-container>
+                </div>
+                <div class="row col-xl m-0 row-gap-2 p-2" [class.p-0]="personListTabType.isDelinquent"
+                    [class.border-start]="!personListTabType.isDelinquent"
+                    [class.custom-border-top]="!personListTabType.isDelinquent">
+                    <!-- Department Search -->
+                    <div class="col-12 col-md ps-0 pe-0 pe-md-2" title="Click here to search by Department Name"
+                        aria-label="Department search field" role="searchbox"
+                        [class.col-6]="personListTabType.isDelinquent">
+                        <app-endpoint-search (onSelect)="selectedDeptDetails($event)" [clearField]="advSearchClearField"
+                            [httpOptions]="leadUnitSearchOptions" placeHolder="Search by Department"
+                            [uniqueId]="'person-list-department-name'" [canEmitSearchText]="true">
+                        </app-endpoint-search>
+                    </div>
+                    <!-- Person Search -->
+                    <div class="col-12 col-md px-0">
+                        <app-elastic (selectedResult)="selectedPersonDetails($event)" [clearField]="advSearchClearField"
+                            [options]="elasticPersonSearchOptions" [placeHolder]="'Search by Person'"
+                            [uniqueId]="'person-list-person-name'" [canEmitSearchText]="true">
+                        </app-elastic>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- person list table section -->
+        <ng-container *ngIf="!isLoading">
+            <div *ngIf="personDetails.length > 0; else noData">
+                <app-person-list-table [personDetails]="personDetails" (onSortClick)="onSortClick($event)"
+                    [sortObject]="sortRequestObject" [personListTabType]="personListTabType"
+                    [triggeredFrom]="'PERSON_LIST'" (personTableActions)="handlePersonTableActions($event)">
+                </app-person-list-table>
+            </div>
+            <!-- No Data -->
+            <ng-template #noData>
+                <app-no-information></app-no-information>
+            </ng-template>
+        </ng-container>
+    </div>
+</div>
+<!-- Pagination -->
+<div *ngIf="totalRecordsCount > 0" [hidden]="isLoading" class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 mt-3">
+    <nav aria-label="pagination section" class="pagination justify-content-end">
+        <app-pagination (pageChangeEvent)="actionsOnPageChange($event)" [totalCount]="totalRecordsCount"
+            [pageCount]="localRequestObject.dashboardData.LIMIT"
+            [defaultCurrentPage]="localRequestObject.dashboardData.PAGED + 1"></app-pagination>
+    </nav>
+</div>
+
+<!-- person Eligibility modal starts -->
+<ng-container *ngIf="reviewerDashboardService.personEligibilityModalConfig.isOpenModal">
+    <app-person-eligibility-addition-modal
+        [personEligibilityModalConfig]="reviewerDashboardService.personEligibilityModalConfig"
+        (triggerPersonList)="triggerPersonList($event)">
+    </app-person-eligibility-addition-modal>
+</ng-container>
+<!-- person Eligibility modal ends -->
+
+<!-- person Notification Slider starts -->
+<ng-container *ngIf="reviewerDashboardService.personNotificationSliderConfig.isOpenSlider">
+    <app-person-notification
+        [notificationSliderData]="reviewerDashboardService.personNotificationSliderConfig.notificationSliderData"
+        (closePage)="closeNotificationSlider()">
+    </app-person-notification>
+</ng-container>
+<!-- person Notification Slider ends -->
+
+<!-- person History Slider starts -->
+<ng-container *ngIf="reviewerDashboardService.personHistorySliderConfig.isOpenSlider">
+    <app-person-history-slider
+        [historySliderData]="reviewerDashboardService.personHistorySliderConfig.historySliderData"
+        [personListTabType]="personListTabType" (closePage)="closeHistorySlider()">
+    </app-person-history-slider>
+</ng-container>
+<!-- person History Slider ends -->
+ 

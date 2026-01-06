@@ -1,0 +1,1 @@
+\. ./FIBI-COI-5.7.4/FC-1477/Functions/FN_UPD_QNR_ATTACHMENT.sql

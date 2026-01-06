@@ -1,0 +1,1 @@
+INSERT INTO PARAMETER (`PARAMETER_NAME`, `VALUE`, `DESCRIPTION`, `UPDATE_TIMESTAMP`, `UPDATE_USER`) VALUES ('ENABLE_KEYPERSON_DISCLOSURE_COMMENTS', 'Y', 'This parameter is used to enable or diable key person disclosure comments.', NOW(), 'admin');

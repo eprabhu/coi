@@ -1,0 +1,202 @@
+
+<div id="award-manpower" class="p-0 mt-3">
+  <div *ngIf="manpowerList" class="card">
+    <ng-container *ngIf="warningArray?.length && !isShowNoData">
+      <div *ngFor="let warning of warningArray" class="alert alert-warning" role="alert">
+        <i class="fa fa-exclamation-triangle icon text-warning" aria-hidden="true"></i>
+        <strong>Warning: </strong>{{warning}}
+      </div>
+    </ng-container>
+    <div class="budget-list-outer shadow-lg mb-3" *ngIf="_commonData.awardSectionConfig['153']?.isActive && manpowerList?.Staff && (canViewStaff || isStaffEdit)">
+      <div>
+        <div class="success-banner pl-4 py-3 d-flex justify-content-between align-items-center ">
+          <div><span class="font-bold">Manpower - Staff
+            <span class="badge badge-danger ml-2 fs-12">[CONFIDENTIAL]</span>
+          </span></div>
+          <span class="out-line mr-3">
+            <button *ngIf="!isExpandAllStaff && !checkConditionArray(isExpandedStaffView, 'Staff')" class="btn btn-tertiary mt-0 btn-small pointer" title="Expand All" (click)="isExpandAllStaff = true;
+            toggleCategories('isExpandedStaffView', isExpandAllStaff)">Expand All</button>
+            <button *ngIf="isExpandAllStaff || checkConditionArray(isExpandedStaffView, 'Staff')" class="btn btn-tertiary mt-0 btn-small pointer" title="Collapse All" (click)="isExpandAllStaff = false;
+            toggleCategories('isExpandedStaffView', isExpandAllStaff)">Collapse All</button>
+          </span>
+        </div>
+      </div>
+      <div class="m-3" *ngFor="let Staff of manpowerList?.Staff; let staffIndex = index">
+        <app-eom-category-detail [manpowerCategory]="Staff" [awardData]="awardData" [helpText]="helpText" [isShowAllDetails]="isExpandedStaffView"
+          [emitChildResponse]="emitChildResponse" [componentIndex]="'staff-'+staffIndex" [isManpowerEdit]="isStaffEdit"
+          (resourceOperations)="invokeOperation($event)">
+        </app-eom-category-detail>
+        <hr class="border-dark" *ngIf="staffIndex != manpowerList?.Staff?.length-1">
+      </div>
+    </div>
+    <div class="budget-list-outer shadow-lg mb-3 p-0" *ngIf="manpowerList?.Student && _commonData.awardSectionConfig['154']?.isActive && (canViewStudent || isStaffEdit)">
+      <div>
+        <div class="success-banner pl-4 py-3 d-flex justify-content-between align-items-center ">
+          <div><span class="font-bold">Manpower - Student
+            <span class="badge badge-danger ml-2 fs-12">[CONFIDENTIAL]</span>
+          </span></div>
+          <span class="out-line mr-3">
+            <button *ngIf="!isExpandAllStudents && !checkConditionArray(isExpandedStudentView, 'Student')" class="btn btn-tertiary mt-0 btn-small pointer" title="Expand All" (click)="isExpandAllStudents = true;
+            toggleCategories('isExpandedStudentView', isExpandAllStudents)">Expand All</button>
+            <button *ngIf="isExpandAllStudents || checkConditionArray(isExpandedStudentView, 'Student')" class="btn btn-tertiary mt-0 btn-small pointer" title="Collapse All" (click)="isExpandAllStudents = false;
+            toggleCategories('isExpandedStudentView', isExpandAllStudents)">Collapse All</button>
+          </span>
+        </div>
+      </div>
+      <div class="m-3" *ngFor="let Student of manpowerList?.Student; let studentIndex = index">
+        <app-rss-category-details [manpowerCategory]="Student" [awardData]="awardData" [isManpowerEdit]="isStudentEdit"
+         [helpText]="helpText" [isShowAllDetails]="isExpandedStudentView" [componentIndex]="'student-'+studentIndex" [emitChildResponse]="emitChildResponse"
+         (resourceOperations)="invokeOperation($event)"></app-rss-category-details>
+        <hr class="border-dark" *ngIf="studentIndex != manpowerList?.Student?.length-1">
+      </div>
+    </div>
+    <div *ngIf="manpowerList?.Others && _commonData.awardSectionConfig['132']?.isActive && (canViewOthers || isOthersEdit)" class="budget-list-outer shadow-lg p-0">
+      <div *ngFor="let Others of manpowerList?.Others; let otherIndex = index">
+        <app-other-category-details [manpowerCategory]="Others" [awardData]="awardData" [isManpowerEdit]="isOthersEdit" [emitChildResponse]="emitChildResponse"
+        [componentIndex]="'others-'+otherIndex" [helpText]="helpText" (resourceOperations)="invokeOperation($event)"></app-other-category-details>
+      </div>
+    </div>
+  </div>
+  <ng-container *ngIf="isShowNoData">
+    <div class="mt-5 no-data-container">
+      <span class="mt-5 no-data-icon-outer">
+        <div class="no-data-icon">
+          <i class="fa fa-file-o" aria-hidden="true"></i>
+          <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+        </div>
+      </span>
+      <h4>There is no information in this section.</h4>
+    </div>
+  </ng-container>
+</div>
+<!-- More details Modal -->
+<app-manpower-person-details [resourceModalDetails]="resourceModalDetails"></app-manpower-person-details>
+<!-- delete Modal -->
+<div class="modal fade show mySkinDialog" id="delete-manpower-resource" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete</h5>
+        <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this {{_manpowerService?.manpowerCategory?.manpowerType?.description == "Staff" ? "Request" : "resource"}} ?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-dismiss="modal" type="button"
+          (click)="deleteResourceObject={}">No</button>
+        <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button"
+          (click)="deleteManpowerResource()">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Payroll breakdown modal -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="manpower-resource-pay-details-modal" tabindex="-1" role="dialog"
+  data-backdrop="static" data-keyboard="false" aria-labelledby="manpowerPersonMoreDetails-" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Salary Breakdown of {{fetchPayrollDetails?.fullName}}
+          <span class="badge badge-danger">[CONFIDENTIAL]</span>
+        </h5>
+        <button id="manpower-resource-pay-details-close" type="button" class="close" data-dismiss="modal"
+          aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body modal-height-container">
+        <div *ngIf="fetchPayrollDetails?.awardManpowerPayrolls?.length" class="table-responsive">
+          <table class="table table-inner  mb-0 tableSkin grid2 breakdown-table"
+            aria-describedby="reimbursement-summary">
+            <thead>
+              <tr>
+                <th scope="col">Payroll Id</th>
+                <th scope="col">WBS</th>
+                <th scope="col">GL Account Code</th>
+                <th scope="col">Pay Element Code</th>
+                <th scope="col">Pay Element</th>
+                <th scope="col">Cost Sharing</th>
+                <th scope="col">Payroll Period</th>
+                <th scope="col">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let expense of fetchPayrollDetails?.awardManpowerPayrolls">
+                <td>{{expense?.payrollId}}</td>
+                <td>{{expense?.internalOrderCode}}</td>
+                <td>{{expense?.glAccountCode}}</td>
+                <td>{{expense?.payElementCode}}</td>
+                <td>{{expense?.payElement}}</td>
+                <td>{{expense?.costSharing}}</td>
+                <td>{{expense?.payrollPeriod}}</td>
+                <td >{{expense?.payrollAmount | currency: _commonService.currencyFormat}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <ng-container *ngIf="!fetchPayrollDetails?.awardManpowerPayrolls?.length">
+          <div class="no-data-container">
+            <span class="no-data-icon-outer">
+              <div class="no-data-icon">
+                <i class="fa fa-file-o" aria-hidden="true"></i>
+                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+              </div>
+            </span>
+            <h4>There is no information in this section.</h4>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Add or Edit Resource -->
+<app-add-manpower-resource *ngIf="addResourceDetails && addResourceDetails.categoryType =='Staff'" [manpowerCategory]="addResourceDetails?.manpowerCategory"
+  [awardData]="awardData" [resourceCategory]="addResourceDetails" [manpowerLookups]="manpowerLookups" [manpowerList]="manpowerList"
+  [helpText]="helpText" (resourceOperations)="addResourceResponse($event)"></app-add-manpower-resource>
+
+  <app-add-student-or-others  *ngIf="addResourceDetails && ['Student','Others'].includes(addResourceDetails.categoryType)" [manpowerCategory]="addResourceDetails?.manpowerCategory"
+  [awardData]="awardData" [resourceCategory]="addResourceDetails" [manpowerLookups]="manpowerLookups" [manpowerList]="manpowerList"
+  [helpText]="helpText" (resourceOperations)="addResourceResponse($event)" ></app-add-student-or-others>
+
+  <!-- Edit Committed Amount Modal -->
+<div class="modal fade show mySkinDialog" id="edit-adjusted-committed-amount" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Adjusted Committed Amount of {{editActualCommitted?.positionId}}</h5>
+        <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="col my-4">
+        <label class="d-sm-block">Adjusted Committed Amount
+          <span class="d-inline-block icon-hover">
+            <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med"
+                aria-hidden="true"></i>
+              <div class="card card-inner p-15 text-left tooltiptext-right">
+                <span class="font-cv">{{helpText?.manpower?.actualCommittedCost?.helpTextInfo}}</span>
+              </div>
+            </a>
+          </span>
+        </label>
+        <input type="text" class="form-control" appCurrencyFormat allowNegative="false"
+          [initialValue]="editActualCommitted.adjustedCommittedCost"
+          placeholder="Adjusted Committed Amount({{_commonService.currencyFormat}})"
+          [(ngModel)]="editActualCommitted.adjustedCommittedCost" (keyup)="validateAmount()">
+        <div *ngIf="(committedMap.has('committedCost'))" class="invalid-feedback d-block">
+          {{committedMap.get('committedCost')}}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-dismiss="modal" type="button"
+          >Cancel</button>
+        <button class="btn btn-primary-sub btn-sm" type="button"
+          (click)="overrideActualCommittedAmount()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>

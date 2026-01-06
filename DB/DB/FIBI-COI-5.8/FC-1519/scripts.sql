@@ -1,0 +1,31 @@
+-- Drop column IS_FACULTY if it exists
+SET @SQL := IF(
+    EXISTS (
+        SELECT 1
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'opa_disclosure'
+          AND COLUMN_NAME = 'IS_FACULTY'
+    ),
+    'ALTER TABLE opa_disclosure DROP COLUMN `IS_FACULTY`;',
+    'DO 1'
+);
+PREPARE STMT FROM @SQL;
+EXECUTE STMT;
+DEALLOCATE PREPARE STMT;
+
+-- Drop column PERSON_NAME if it exists
+SET @SQL := IF(
+    EXISTS (
+        SELECT 1
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'opa_disclosure'
+          AND COLUMN_NAME = 'PERSON_NAME'
+    ),
+    'ALTER TABLE opa_disclosure DROP COLUMN `PERSON_NAME`;',
+    'DO 1'
+);
+PREPARE STMT FROM @SQL;
+EXECUTE STMT;
+DEALLOCATE PREPARE STMT;

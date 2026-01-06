@@ -1,0 +1,198 @@
+<div [id]="'create-progress-final-modal'+uniqueId" class="modal fade bd-example-modal-lg mySkinDialog "
+     data-backdrop="static"
+     data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"> Create {{ reportLabel }}
+                    Report</h5>
+                <button (click)="clearCreateReportModalDetails()" aria-label="Close" class="close" data-dismiss="modal"
+                        type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div>
+                <div>
+                    <div class="card title-descriptions">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="form-row">
+                                    <div *ngIf="isAdhoc" class="mb-3">
+                                        <label for="award-report-class"><span class="mandatory">*</span>Report Class:
+                                        </label>
+                                        <select [(ngModel)]="createReportDetails.reportClassCode"
+                                            [ngClass]="(createModalFormMap.get('reportClass'))? 'is-invalid d-block' : ''"
+                                            class="form-control ml-2" id="award-report-class">
+                                            <option [ngValue]="null">--Select--</option>
+                                            <option *ngFor="let reportClass of lookUp?.reportClassList"
+                                                [hidden]="reportClass.isActive != true" [value]="reportClass.reportClassCode">
+                                                {{reportClass?.description}}</option>
+                                        </select>
+                                        <div *ngIf="createModalFormMap.get('reportClass')">
+                                            <span class="mandatory">{{createModalFormMap.get('reportClass')}}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div *ngIf="isAdhoc" class="form-group col-12">
+                                        <label class="d-block" for="create-report-award-no">
+                                            <ng-container i18n="@@COMMON_SEARCH_AWARD">Search Award</ng-container>
+                                        </label>
+                                        <app-endpoint-search (onSelect)="setAwardDetails($event)"
+                                                             [httpOptions]="awardSearchHttpOptions"
+                                                             [isError]="createModalFormMap.get('award')"
+                                                             [placeHolder]="'Search for ' + awardLabel "                                                      
+                                                             id="create-report-award-no"></app-endpoint-search>
+                                        <div *ngIf="(createModalFormMap.get('award'))" class="invalid-feedback d-block">
+                                            {{createModalFormMap.get('award')}}
+                                        </div>
+                                    </div>
+                                    <div *ngIf="selectedAwardDetails.awardNumber"
+                                         class="gridSkin col-12 shadow-sm section-highlight mb-3">
+                                        <div class="row">
+                                            <!-- Award Number -->
+                                            <div class="col-3">
+                                                <label><ng-container i18n="@@COMMON_AWARD_NUMBER">Award Number</ng-container></label> 
+                                                <span [ngClass]="selectedAwardDetails?.awardNumber ? '' : 'noDataExists'"
+                                                      class="d-block">
+                                                    {{selectedAwardDetails?.awardNumber ? selectedAwardDetails?.awardNumber : 'Not Available'}}</span>
+                                            </div>
+                                            <!-- Account Number -->
+                                            <div class="col-3">
+                                                <label><ng-container i18n="@@AWARD_ACCOUNT_NUMBER">Account Number</ng-container></label>
+                                                <span [ngClass]="selectedAwardDetails?.accountNumber ? '' : 'noDataExists'"
+                                                      class="d-block">
+                                                    {{selectedAwardDetails?.accountNumber ? selectedAwardDetails?.accountNumber : 'Not Available'}}</span>
+                                            </div>
+                                            <!-- Principal Investigator -->
+                                            <div class="col-6">
+                                                <label>Principal Investigator</label>
+                                                <span [ngClass]="selectedAwardDetails?.principalInvestigator ? '' : 'noDataExists'"
+                                                      class="d-block">
+                                                    {{selectedAwardDetails?.principalInvestigator ? selectedAwardDetails?.principalInvestigator : 'Not Available'}}</span>
+                                            </div>
+                                            <!-- Sponsor -->
+                                            <div class="col-6">
+                                                <label><ng-container i18n="@@COMMON_SPONSOR">Sponsor</ng-container></label> 
+                                                <span [ngClass]="selectedAwardDetails?.sponsorName ? '' : 'noDataExists'"
+                                                      class="d-block">
+                                                    {{selectedAwardDetails?.sponsorName ? selectedAwardDetails?.sponsorName : 'Not Available'}}</span>
+                                            </div>
+                                            <!-- Lead Unit -->
+                                            <div class="col-6">
+                                                <label>Lead Unit</label>
+                                                <span [ngClass]="selectedAwardDetails?.unitName ? '' : 'noDataExists'"
+                                                      class="d-block">
+                                                    {{selectedAwardDetails?.unitName ? selectedAwardDetails?.unitName : 'Not Available'}}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-2"><i class="fs-14 fw-500 text-content-color">Reporting Period:</i></div>
+                                <div class="form-row">
+                                    <div class="col-4 form-group">
+                                        <label class="block-display" for="from-date">Start Date</label>
+                                        <div>
+                                            <span class="dateField">
+                                                <input matInput [matDatepicker]="reportStartDate" (dateChange)="checkStartDateOverlapping();"
+                                                       (keypress)="_commonService._keyPress($event, 'date');"
+                                                       [(ngModel)]="createReportDetails.reportStartDate"
+                                                       [ngClass]="[(createModalFormMap.get('reportStartDate')) ? 'is-invalid d-block' : '',
+                                                                   (warningMessage.length ? 'border-warning': '')]"
+                                                       (click)="reportStartDate.open()"
+                                                       autocomplete="off" class="d-inline-block form-control"
+                                                       id="from-date"
+                                                       placeholder="{{datePlaceHolder}}">
+                                                <i (click)="reportStartDate.open()" aria-hidden="true"
+                                                   class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                                   id="from-date-icon" title="Open Calendar"></i>
+                                                <mat-datepicker #reportStartDate
+                                                               (opened)="setFocusToElement('from-date')">
+                                                </mat-datepicker>
+                                            </span>
+                                            <div *ngIf="(createModalFormMap.get('reportStartDate'))"
+                                                 class="invalid-feedback d-block">
+                                                {{createModalFormMap.get('reportStartDate')}}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4 form-group">
+                                        <label class="block-display" for="end-date">End Date</label>
+                                        <div>
+                                            <span class="dateField">
+                                                <input matInput [matDatepicker]="reportEndDate" (dateChange)="checkStartDateOverlapping();"
+                                                       (keypress)="_commonService._keyPress($event, 'date');"
+                                                       [(ngModel)]="createReportDetails.reportEndDate"
+                                                       [ngClass]="(createModalFormMap.get('reportEndDate')) ? 'is-invalid d-block' : ''"
+                                                       (click)="reportEndDate.open()"
+                                                       autocomplete="off"
+                                                       class="d-inline-block form-control"
+                                                       id="end-date"
+                                                       placeholder="{{datePlaceHolder}}">
+                                                <i (click)="reportEndDate.open()" aria-hidden="true"
+                                                   class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                                   id="end-date-icon" title="Open Calendar"></i>
+                                                <mat-datepicker #reportEndDate
+                                                               (opened)="setFocusToElement('end-date')">
+                                                </mat-datepicker>
+                                            </span>
+                                            <div *ngIf="(createModalFormMap.get('reportEndDate'))"
+                                                 class="invalid-feedback d-block">
+                                                {{createModalFormMap.get('reportEndDate')}}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4 form-group">
+                                        <label class="block-display" for="due-date1">Due Date</label>
+                                        <span class="dateField">
+                                            <ng-container *ngIf="isAdhoc">
+                                                <input matInput [matDatepicker]="dueDateEditable" [(ngModel)]="createReportDetails.dueDate"
+                                                       [ngClass]="(createModalFormMap.get('dueDate')) ? 'is-invalid d-block' : ''"
+                                                       (click)="dueDateEditable.open()" autocomplete="off"
+                                                       class="d-inline-block form-control" id="due-date1"
+                                                       placeholder="{{datePlaceHolder}}">
+                                                <i (click)="dueDateEditable.open()" aria-hidden="true"
+                                                   class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                                   id="due-date-icon1" title="Open Calendar"></i>
+                                                <mat-datepicker #dueDateEditable
+                                                               (opened)="setFocusToElement('due-date1')">
+                                                </mat-datepicker>
+                                            </ng-container>
+                                            <ng-container *ngIf="!isAdhoc">
+                                                <input  matInput [matDatepicker]="dueDateDisabled" [disabled]="!isAdhoc"
+                                                       [ngClass]="(createModalFormMap.get('dueDate')) ? 'is-invalid d-block' : ''"
+                                                       [ngModel]="createReportDetails.dueDate"
+                                                       (click)="dueDateDisabled.open()"
+                                                       class="d-inline-block form-control"
+                                                       id="due-date"
+                                                       placeholder="{{datePlaceHolder}}">
+                                                <i (click)="dueDateDisabled.open()" aria-hidden="true"
+                                                   class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                                   id="due-date-icon" title="Open Calendar"></i>
+                                                <mat-datepicker #dueDateDisabled
+                                                               (opened)="setFocusToElement('due-date')">
+                                                </mat-datepicker>
+                                            </ng-container>
+                                        </span>
+                                        <div *ngIf="(createModalFormMap.get('dueDate'))"
+                                             class="invalid-feedback d-block">
+                                            {{createModalFormMap.get('dueDate')}}
+                                        </div>
+                                    </div>
+                                    <div *ngIf="warningMessage" class="col-12 mb-0 f-14 form-group alert alert-warning">
+                                        <i aria-hidden="true" class="fa fa-exclamation-triangle"></i> {{warningMessage}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button (click)="clearCreateReportModalDetails()" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                        id="createModalClose" type="button">Close
+                </button>
+                <button (click)="createReport();" class="btn btn-primary-sub btn-sm" type="button">Create</button>
+            </div>
+        </div>
+    </div>
+</div>

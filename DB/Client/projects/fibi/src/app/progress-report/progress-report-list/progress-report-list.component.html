@@ -1,0 +1,347 @@
+<!-- last updated by Ayush on 07-01-2021 -->
+
+<div class="row">
+    <div class="col-6">
+        <ul class="subTabs mb-0">
+            <li [ngClass]="{'active': _progressReportListService.dashboardRequestObject.tabName  == 'AWARD_QUALIFIED'}" role="presentation">
+                <a (click)="setCurrentTab('AWARD_QUALIFIED')" class="subTabLink" id="all-pr-tab-3" tabindex="0"
+                   title="View awards qualified for report"  i18n-title="@@COMMON_VIEW_AWARDS_QUALIFIED_FOR_REPORT_TLP"><ng-container i18n="@@COMMON_AWARDS_QUALIFIED_FOR_REPORT"> 
+                    Awards Qualified For Report</ng-container></a>
+            </li>
+            <li [ngClass]="{'active': _progressReportListService.dashboardRequestObject.tabName  == 'PENDING_PR'}" role="presentation">
+                <a (click)="setCurrentTab('PENDING_PR')" class="subTabLink" id="all-pr-tab-1" tabindex="0"
+                   title="View pending progress reports">
+                    Pending Progress Reports</a>
+            </li>
+            <li [ngClass]="{'active': _progressReportListService.dashboardRequestObject.tabName  == 'COMPLETED_PR'}" role="presentation">
+                <a (click)="setCurrentTab('COMPLETED_PR')" class="subTabLink" id="all-pr-tab-2" tabindex="0"
+                   title="View completed progress reports">
+                    Completed Progress Reports</a>
+            </li>
+        </ul>
+    </div>
+    <div class="col-6 text-right mb-1">
+        <div>
+            <a title="Create New Progress Report" class="btn btn-primary mt-0 mr-2 hand-cursor" id="create-progress-report-btn"
+                tabindex="0" data-target="#create-progress-final-modal1" data-toggle="modal"
+                (click)="isAdhoc=true; setAwardEndPointObject()"><span class="d-none d-sm-inline-block">
+                    Create</span> Report</a>
+            <!-- <a title="Create New Final Report" class="btn btn-primary mt-0 mr-2 hand-cursor" id="create-final-report-btn"
+                tabindex="0" data-target="#create-progress-final-modal1" data-toggle="modal"
+                (click)="isAdhoc=true;setAwardEndPointObject()"><span class="d-none d-sm-inline-block">
+                    Create</span> Final Report</a> -->
+            <a (click)="clearAdvanceSearchField();" aria-controls="collapseProgressReport" aria-expanded="false"
+                class="btn btn-sm btn-tertiary mt-0" data-toggle="collapse" href="#collapseProgressReport"
+                id="show-advcance-search-progress-report" role="button" tabindex="0" title="Advanced Search">
+                <i aria-hidden="true" class="fa fa-sliders"></i> Advanced Search
+            </a>
+        </div>
+    </div>
+</div>
+<div class="card mb-3 collapse" id="collapseProgressReport">
+    <div class="card-body gridSkin">
+        <!-- advance search options -->
+        <div class="form-row">
+            <!-- advance search options -->
+            <div *ngIf="_progressReportListService.dashboardRequestObject.tabName !== 'AWARD_QUALIFIED'"
+            class="col-xl-4 col-lg-4 col-md-4 col-sm-6 col-12">
+                <label class="d-block" for="adv-search-pr-id">Progress Report #</label>
+                <input (keyup.enter)="setAdvanceSearchValuesToServiceObject();searchUsingAdvancedOptions()" [(ngModel)]="tempDashboardObject.property2"
+                       class="form-control" id="adv-search-pr-id" autocomplete="off"
+                       maxlength="60" placeholder="Progress Report #" type="text"/>
+            </div>
+            <div class="col-xl-4 col-lg-4 col-md-4 col-sm-6 col-12">
+                <label class="d-block" for="adv-search-award-no"><ng-container i18n="@@AWARD_AWARD_#">Award #</ng-container></label>
+                <input (keyup.enter)="setAdvanceSearchValuesToServiceObject();searchUsingAdvancedOptions()" [(ngModel)]="tempDashboardObject.property1"
+                       autocomplete="off" class="form-control" placeholder="Award #" id="adv-search-award-no"
+                       maxlength="60" i18n-placeholder="@@AWARD_AWARD_#_PLHDR" type="text"/> 
+            </div>
+            <div class="col-xl-4 col-lg-4 col-md-4 col-sm-6 col-12">
+                <label class="d-block"><ng-container i18n="@@VR_AWARD_TITLE">Award Title</ng-container></label>
+                  <input type="text" id="adv-search-request-projectTitle" placeholder="Award Title" maxlength="60"
+                      autocomplete="off" [(ngModel)]="tempDashboardObject.property5" (keyup.enter)="setAdvanceSearchValuesToServiceObject();searchUsingAdvancedOptions()"
+                      class="form-control" i18n-placeholder="@@AWARD_TITLE_PLHDR" />
+            </div>
+            <div class="col-xl-4 col-lg-4 col-md-4 col-sm-6 col-12" [ngClass]="_progressReportListService.dashboardRequestObject.tabName === 'AWARD_QUALIFIED' ?
+            '':'mt-3'">
+                <label [ngClass]="_progressReportListService.dashboardRequestObject.tabName === 'AWARD_QUALIFIED' ?
+                'd-block':''">Due Date</label>
+                <span class="dateField">
+                    <input matInput [matDatepicker]="advSearchDueDate" (keyup.enter)="setAdvanceSearchValuesToServiceObject();searchUsingAdvancedOptions()"
+                        [(ngModel)]="tempDashboardObject.property13" autocomplete="off" class="form-control" id="adv-search-due-date"
+                        (keypress)="_commonService._keyPress($event, 'date');"
+                        (click)="advSearchDueDate.open()" maxlength="60" [placeholder]="DEFAULT_DATE_FORMAT">
+                    <i id="award-sub-date-icon" aria-hidden="true" title="Open Calender"
+                        class="fa fa-calendar fa-large insidePicker hand-cursor" (click)="advSearchDueDate.open()"></i>
+                    <mat-datepicker #advSearchDueDate (opened)="setFocusToElement('adv-search-due-date')">
+                    </mat-datepicker>
+                </span>
+            </div>
+            <div class="col-xl-4 col-lg-4 col-md-4 col-sm-6 col-12 mt-3">
+                <label>Lead Unit</label>
+                <app-endpoint-search (keydown.enter)="setAdvanceSearchValuesToServiceObject();searchUsingAdvancedOptions()"
+                                     (onSelect)="setLeadUnitForAdvancedSearch($event)" [clearField]="clearFieldLeadUnit"
+                                     [httpOptions]="leadUnitSearchOptions"
+                                     [placeHolder]="'Lead Unit'">
+                </app-endpoint-search>
+            </div>
+            <div class="col-xl-4 col-lg-4 col-md-4 col-sm-6 col-12 mt-3">
+                <label class="d-none d-sm-inline-block">Principal Investigator</label>
+                <label class="d-sm-none">PI</label>
+                <span class="float-right">
+                      <input (change)="changeMemberType()" [(ngModel)]="isEmployeeFlag" [value]='true' checked="true"
+                             id="employee" name='employee_nonemployee' type="radio">
+                      <label class="fs-14" for="employee">
+                          Employee
+                      </label>
+                      <input (change)="changeMemberType()" [(ngModel)]="isEmployeeFlag" [value]='false'
+                             id="non-employee" name='employee_nonemployee' type="radio">
+                      <label class="fs-14" for="non-employee">
+                          Non-Employee
+                      </label>
+                  </span>
+                <app-elastic
+                        (keyup)="emptyValidationKeyup($event)"
+                        (selectedResult)="selectedFilter($event)" [clearField]="advSearchClearField"
+                        [options]="elasticPersonSearchOptions"
+                        [placeHolder]="isEmployeeFlag ? 'Search an employee': 'Search a non-employee' ">
+                </app-elastic>
+            </div>
+            <div class="col-md col-12 mt-3 d-flex flex-column flex-sm-row justify-content-md-end align-items-end justify-content-sm-center">
+                <button (click)="clearAdvanceSearchField();this.$prList.next();" class="btn btn-secondary btn-xs mr-2"
+                        id="adv-search-clear-grant"
+                        title="Clear">Clear
+                </button>
+                <button (click)="setAdvanceSearchValuesToServiceObject();searchUsingAdvancedOptions()" class="btn btn-primary btn-xs" id="adv-search-grant"
+                        title="Search">Search
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card card-table-box rounded-0">
+    <div class="card-content">
+        <div class="card-header ">
+            <h4 class="card-title align-items-center d-flex" id="variation-request-header-1">
+                <span *ngIf="_progressReportListService.dashboardRequestObject.tabName  == 'PENDING_PR'" class="mr-auto">List of pending
+                    Progress Reports</span>
+            </h4>
+            <h4 class="card-title align-items-center d-flex" id="variation-request-header-2">
+                <span *ngIf="_progressReportListService.dashboardRequestObject.tabName  == 'COMPLETED_PR'" class="mr-auto">List of completed
+                    Progress Reports</span>
+            </h4>
+            <h4 class="card-title align-items-center d-flex" id="variation-request-header-3">
+                <span *ngIf="_progressReportListService.dashboardRequestObject.tabName  == 'AWARD_QUALIFIED'" class="mr-auto">
+                    <ng-container i18n="@@COMMON_LIST_OF_AWARDS_QUALIFIED_FOR_REPORT"> 
+                        List of awards qualified for report creation</ng-container></span>
+            </h4>
+        </div>
+        <div *ngIf="(progressReportRequestList && progressReportRequestList?.length)" class="table-responsive">
+            <table aria-describedby="Claim Dashboard" class="table tableSkin mb-0">
+                <thead>
+                <th *ngIf="_progressReportListService.dashboardRequestObject.tabName != 'AWARD_QUALIFIED'"
+                    (click)="sortResult('progressReportNumber')"
+                    id="sortby-progressReportNumber" scope="col" style="width: 10%" tabindex="0" class="hand-cursor">
+                    <span title="Click to sort by Progress Report Number"> Progress Report #</span>
+                    <i *ngIf="!_progressReportListService.dashboardRequestObject.sort['progressReportNumber']"
+                       aria-hidden="true"
+                       class="fa fa-sort-numeric-asc blrcolor"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort['progressReportNumber'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"
+                       aria-hidden="true"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort['progressReportNumber'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"
+                       aria-hidden="true"></i>
+                </th>
+                <th (click)="sortResult('awardNumber')" id="sortby-award-no" scope="col" style="width: 9%;"
+                    tabindex="0" class="hand-cursor">
+                    <span class="hand-cursor" title="Click to sort by Award #">Award #</span>
+                    <i *ngIf="!_progressReportListService.dashboardRequestObject.sort['awardNumber']" aria-hidden="true"
+                       class="fa fa-sort-numeric-asc blrcolor"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort ['awardNumber'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"
+                       aria-hidden="true"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort ['awardNumber'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"
+                       aria-hidden="true"></i>
+                </th>
+                <th (click)="sortResult('title')" id="sortby-title" scope="col" style="width: 9%;"
+                tabindex="0" class="hand-cursor">
+                <span class="hand-cursor" title="Click to sort by Award Title"> Award Title</span>
+                <i *ngIf="!_progressReportListService.dashboardRequestObject.sort['title']" aria-hidden="true"
+                   class="fa fa-sort-alpha-asc blrcolor"></i>
+                <i [ngClass]="_progressReportListService.dashboardRequestObject.sort ['title'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                   aria-hidden="true"></i>
+                <i [ngClass]="_progressReportListService.dashboardRequestObject.sort ['title'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                   aria-hidden="true"></i>
+            </th>
+                <th (click)="sortResult('dueDate')" id="sortby-due-date" scope="col" style="width: 9%;"
+                    tabindex="0" class="hand-cursor">
+                    <span class="hand-cursor" title="Click to sort by Award #">Due Date</span>
+                    <i *ngIf="!_progressReportListService.dashboardRequestObject.sort['dueDate']" aria-hidden="true"
+                       class="fa fa-sort-numeric-asc blrcolor"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort ['dueDate'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"
+                       aria-hidden="true"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort ['dueDate'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"
+                       aria-hidden="true"></i>
+                </th>
+                <th
+                    (click)="sortResult('reportClassDescription')" id="sortby-reportClassCode" scope="col" style="width: 9%;"
+                    tabindex="0" class="hand-cursor">
+                    <span class="hand-cursor" title="Click to sort by Report Type">Report Class</span>
+                    <i *ngIf="!_progressReportListService.dashboardRequestObject.sort['reportClassDescription']" aria-hidden="true"
+                       class="fa fa-sort-alpha-asc blrcolor"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort ['reportClassDescription'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                       aria-hidden="true"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort ['reportClassDescription'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                       aria-hidden="true"></i>
+                </th>
+                <th *ngIf="_progressReportListService.dashboardRequestObject.tabName === 'AWARD_QUALIFIED'"
+                    (click)="sortResult('reportType')" id="sortby-reportType" scope="col" style="width: 9%;"
+                    tabindex="0" class="hand-cursor">
+                    <span class="hand-cursor" title="Click to sort by Report Type">Report Type</span>
+                    <i *ngIf="!_progressReportListService.dashboardRequestObject.sort['reportType']" aria-hidden="true"
+                       class="fa fa-sort-alpha-asc blrcolor"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort ['reportType'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                       aria-hidden="true"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort ['reportType'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                       aria-hidden="true"></i>
+                </th>
+                <th (click)="sortResult('awardPersons.fullName')" id="sortby-award-pi" scope="col"
+                    [style.width.%]="(_progressReportListService.dashboardRequestObject.tabName == 'AWARD_QUALIFIED' ? 10:15)" tabindex="0" class="hand-cursor">
+                        <span class="hand-cursor" title="Click to sort by Principal Investigator">Principal
+                            Investigator</span>
+                    <i *ngIf="!_progressReportListService.dashboardRequestObject.sort['awardPersons.fullName']"
+                       aria-hidden="true" class="fa fa-sort-alpha-asc blrcolor"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort['awardPersons.fullName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                       aria-hidden="true"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort['awardPersons.fullName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                       aria-hidden="true"></i>
+                </th>
+                <th (click)="sortResult('sponsor.sponsorName')" id="sortby-award-sponsor" scope="col"
+                    [style.width.%]="(_progressReportListService.dashboardRequestObject.tabName == 'AWARD_QUALIFIED' ? 15:10)" tabindex="0" class="hand-cursor">
+                    <span class="hand-cursor" title="Click to sort by Sponsor">Sponsor</span>
+                    <i *ngIf="!_progressReportListService.dashboardRequestObject.sort['sponsor.sponsorName']"
+                       aria-hidden="true" class="fa fa-sort-alpha-asc blrcolor"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort['sponsor.sponsorName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                       aria-hidden="true"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort['sponsor.sponsorName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                       aria-hidden="true"></i>
+                </th>
+                <th (click)="sortResult('leadUnit.unitName')" id="sortby-lead-unit" scope="col" style="width: 10%"
+                    tabindex="0" class="hand-cursor">
+                    <span class="hand-cursor" title="Click to sort by Lead Unit">Lead Unit</span>
+                    <i *ngIf="!_progressReportListService.dashboardRequestObject.sort['leadUnit.unitName']"
+                       aria-hidden="true" class="fa fa-sort-alpha-asc blrcolor"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort['leadUnit.unitName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                       aria-hidden="true"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort['leadUnit.unitName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                       aria-hidden="true"></i>
+                </th>
+                <th *ngIf="_progressReportListService.dashboardRequestObject.tabName != 'AWARD_QUALIFIED'"
+                    (click)="sortResult('createUserName')" id="sortby-prepared-by" scope="col" style="width: 10%"
+                    tabindex="0" class="hand-cursor">
+                    <span class="hand-cursor" title="Click to sort by Prepared By">Prepared By</span>
+                    <i *ngIf="!_progressReportListService.dashboardRequestObject.sort['createUserName']" aria-hidden="true"
+                       class="fa fa-sort-alpha-asc blrcolor"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort['createUserName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                       aria-hidden="true"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort['createUserName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                       aria-hidden="true"></i>
+                </th>
+                <th *ngIf="_progressReportListService.dashboardRequestObject.tabName != 'AWARD_QUALIFIED'"
+                    (click)="sortResult('updateUserName')" id="sortby-update-by" scope="col" style="width: 10%"
+                    tabindex="0" class="hand-cursor">
+                    <span class="hand-cursor" title="Click to sort by Last Updated By">Last Updated By</span>
+                    <i *ngIf="!_progressReportListService.dashboardRequestObject.sort['updateUserName']" aria-hidden="true"
+                       class="fa fa-sort-alpha-asc blrcolor"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort['updateUserName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                       aria-hidden="true"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort['updateUserName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                       aria-hidden="true"></i>
+                </th>
+                <th *ngIf="_progressReportListService.dashboardRequestObject.tabName === 'COMPLETED_PR'"
+                    (click)="sortResult('submittedDate')" id="sortby-submitted-date" scope="col" style="width: 9%"
+                    tabindex="0" class="hand-cursor">
+                    <span class="hand-cursor" title="Click to sort by Last Updated By">Submitted Date</span>
+                    <i *ngIf="!_progressReportListService.dashboardRequestObject.sort['submittedDate']" aria-hidden="true"
+                       class="fa fa-sort-numeric-asc blrcolor"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort['submittedDate'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"
+                       aria-hidden="true"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort['submittedDate'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"
+                       aria-hidden="true"></i>
+                </th>
+                <th *ngIf="_progressReportListService.dashboardRequestObject.tabName != 'AWARD_QUALIFIED'"
+                    (click)="sortResult('progressReportStatus')" id="sortby-status" scope="col" style="width: 15%"
+                    tabindex="0" class="hand-cursor">
+                    <span class="hand-cursor" title="Click to sort by Status">Status</span>
+                    <i *ngIf="!_progressReportListService.dashboardRequestObject.sort['progressReportStatus']"
+                       aria-hidden="true"
+                       class="fa fa-sort-alpha-asc blrcolor"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort['progressReportStatus'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                       aria-hidden="true"></i>
+                    <i [ngClass]="_progressReportListService.dashboardRequestObject.sort['progressReportStatus'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                       aria-hidden="true"></i>
+                </th>
+                <th class="text-center" scope="col" style="width: 5%">Actions</th>
+                </thead>
+                <tbody>
+                <tr (click)="navigateToReport(report, i)" *ngFor="let report of progressReportRequestList; let i =index"
+                    [@itemAnim] class="pull-up">
+                    <td tabindex="0" *ngIf="_progressReportListService.dashboardRequestObject.tabName != 'AWARD_QUALIFIED'">
+                        {{report?.progressReportNumber}}</td>
+                    <td tabindex="0">{{report?.awardNumber}}</td>
+                    <td tabindex="0">{{report?.title}}</td>
+                    <td tabindex="0">{{report?.dueDate | dateFormatter}}</td>
+                    <td tabindex="0">{{report?.reportClassDescription}}</td>
+                    <td tabindex="0"
+                        *ngIf="_progressReportListService.dashboardRequestObject.tabName === 'AWARD_QUALIFIED'">
+                        {{report?.reportType}}
+                    </td>
+                    <td tabindex="0">{{report?.fullName}}</td>
+                    <td tabindex="0">{{report?.sponsor}}</td>
+                    <td tabindex="0">{{concatUnitNumberAndUnitName(report?.unitNumber, report?.unitName)}}</td>
+                    <ng-container *ngIf="_progressReportListService.dashboardRequestObject.tabName != 'AWARD_QUALIFIED'">
+                        <td tabindex="0">{{report?.createUserName}}</td>
+                        <td tabindex="0">{{report?.updateUserName}}</td>
+                        <td *ngIf="_progressReportListService.dashboardRequestObject.tabName === 'COMPLETED_PR'">{{report?.submittedDate | dateFormatter}}</td>
+                        <td tabindex="0">{{report?.progressReportStatus}}</td>
+                    </ng-container>
+                    <td class="py-0 text-center">
+                        <ul *ngIf="_progressReportListService.dashboardRequestObject.tabName !== 'AWARD_QUALIFIED'" class="actionButtonGroup">
+                            <li><a id="open-award-btn" tabindex="0" title="Open">
+                                <i aria-hidden="true" class="fa fa-eye pointer"></i>
+                            </a></li>
+                        </ul>
+                        <button (click)="isAdhoc=false;setCreateModalData(report)"
+                                *ngIf="_progressReportListService.dashboardRequestObject.tabName === 'AWARD_QUALIFIED'"
+                                class="btn btn-tertiary mt-0 w-110"
+                                title="Create Progress Report">Create Report
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div *ngIf="(progressReportRequestList?.length == 0 || !progressReportRequestList)" class="no-data-container">
+            <span class="no-data-icon-outer">
+                <div class="no-data-icon">
+                    <i aria-hidden="true" class="fa fa-file-o"></i>
+                    <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                </div>
+            </span>
+            <h4>There is no information in this section.</h4>
+        </div>
+        <!--Pagination-->
+        <div *ngIf="progressReportRequestList && progressReportRequestList?.length"
+             class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <div>
+                <nav class="pagination justify-content-end">
+                    <app-pagination (pageChangeEvent)="actionsOnPageChange($event)"
+                                    [totalCount]="result.totalServiceRequest">
+                    </app-pagination>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Progress Report/Final Report Modal -->
+<app-progress-report-create-modal [isAdhoc]="isAdhoc" [createReportDetails]="createReportDetails"
+                                  [selectedAwardDetails]="selectedAwardDetails"></app-progress-report-create-modal>

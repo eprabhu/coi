@@ -1,0 +1,163 @@
+<app-coi-section-card customClass="coi-card-blue-light overflow-hidden coi-home-card-scroll" uniqueId="notification-acton-list">
+	<ng-container card-header-icon><mat-icon aria-hidden="true">list_alt</mat-icon></ng-container>
+	<ng-container card-header-content><span>Action List</span></ng-container>
+	<ng-container card-body>
+		<div *ngIf="inboxDetails?.length && !canShowLoader">
+			<div class="col-12 border-bottom border-light p-10px"
+				*ngFor="let inboxData of inboxDetails; let inboxIndex = index">
+				<div class="row gy-2 gx-3 justify-content-between">
+					<!-- Left Section -->
+					<div class="notifications col d-flex flex-column flex-md-row">
+						<div class="d-flex align-items-start align-items-md-center w-100">
+							<div
+								class="d-flex align-items-center justify-content-center me-2 flex-shrink-0 actionList-icon-wrapper">
+								<mat-icon *ngIf="!ACTION_LIST_ICON[inboxData?.moduleCode]?.svg" class="mat-icon material-icons" aria-hidden="true">
+									{{ACTION_LIST_ICON[inboxData?.moduleCode] ? ACTION_LIST_ICON[inboxData.moduleCode].icon : DEFAULT_ACTION_ICON.icon }}
+								</mat-icon>
+								<!-- svg icon -->
+								<img *ngIf="ACTION_LIST_ICON[inboxData?.moduleCode]?.svg"
+									[src]="ACTION_LIST_ICON[inboxData?.moduleCode].svg" alt="certifications icon" aria-hidden="true" class="coi-size-20 coi-svg-royal-blue">
+							</div>
+							<div class="flex-grow-1">
+								<div
+									class="d-flex flex-column flex-md-row align-items-start align-items-md-center text-break text-md-nowrap">
+									<span class="coi-text-darker" [innerHTML]="inboxData?.message?.description"></span>
+								</div>
+								<div class="small d-flex flex-wrap">
+									<ng-container *ngIf="inboxData?.moduleName.moduleCode === 8">
+										<div class="fs-14">
+											<span class="coi-text-light me-1 text-slice" title="{{inboxData?.userMessage}}">
+												{{inboxData?.userMessage}}
+											</span>
+										</div>
+									</ng-container>
+									<ng-container *ngIf="inboxData?.moduleName.moduleCode === 22">
+										<div class="fs-14">
+											OPA Disclosure by
+											<span class="coi-text-lighter text-capitalize ms-1">{{inboxData?.updateUser}}</span>
+										</div>
+									</ng-container>
+									<ng-container *ngIf="inboxData?.moduleName.moduleCode !== 8 && inboxData?.moduleName.moduleCode !== 22">
+										<div class="coi-text-light">
+											<span class="coi-text-light me-1 text-slice" title="{{inboxData?.userMessage}}">
+												{{inboxData?.userMessage}}
+											</span>
+										</div>
+									</ng-container>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- Right Section -->
+					<div class="col-auto d-flex flex-column">
+						<div class="d-flex flex-column h-100 text-right">
+							<div class="d-flex justify-content-between align-items-center">
+								<span class="arrival-time me-2 coi-text-dark f-13 fw-500">
+									<span class="fa fa-clock-o me-1" title="message-arrival-time"></span>
+									{{ getTimeInterval(inboxData.arrivalDate) }}
+								</span>
+								<div class="float-right arrival-time fs-14 text-end mt-auto"
+									[ngClass]="getModuleCodeClass(inboxData?.moduleName.moduleCode)">
+									{{ inboxData?.moduleName.description }}
+								</div>
+							</div>
+							<div class="float-right mt-1">
+								<span class="{{inboxData?.inbox?.class}}">{{ inboxData?.inbox?.name }}</span>
+							</div>
+						</div>
+						<div class="d-flex flex-column align-items-end h-100 text-right">
+							<button *ngIf="canShowFCOIView(inboxData)" (click)="goToActionPath(inboxData, 'VIEW')"
+								class="btn btn-sm btn-outline-grey d-inline-flex align-items-center ms-2"
+								[title]="'Click here to view' + (inboxData?.moduleCode === '8' ? ' disclosure' : '')"
+								[attr.aria-label]="'Click here to view' + (inboxData?.moduleCode === '8' ? ' disclosure' : '')">
+								<mat-icon aria-hidden="true" class="me-1">visibility</mat-icon>
+								<span>View</span>
+							</button>
+							<ng-container>
+					
+								<!-- FCOI CREATE BUTTON -->
+								<button
+									*ngIf="(coiCreateReviseBtnArr.includes(inboxData?.messageTypeCode) && isCreateDisclosure) || [ACTION_LIST_MSG_TYPE_CODE.FCOI_ENGAGEMENT_CREATE].includes(inboxData?.messageTypeCode) "
+									(click)="goToActionPath(inboxData, 'CREATE')"
+									class="btn btn-sm btn-outline-grey d-inline-flex align-items-center ms-2"
+									title="Click here to create disclosure" aria-label="Click here to create disclosure">
+									<mat-icon aria-hidden="true" class="me-1">add_circle</mat-icon>
+									<span>Create</span>
+								</button>
+					
+								<!-- OPA Initial -->
+								<button *ngIf="commonService.canCreateOPA && headerService.opaCreationType === 'INITIAL' && [ACTION_LIST_MSG_TYPE_CODE.OPA_ENGAGEMENT_CREATE].includes(inboxData?.messageTypeCode)"
+									(click)="goToActionPath(inboxData, 'CREATE_OPA_INITIAL')" id="home-notification-opa-create"
+									class="d-inline-flex align-items-center btn btn-sm btn-outline-grey ms-2"
+									title="Click here to create opa disclosure" aria-label="Click here to create opa disclosure">
+									<mat-icon aria-hidden="true" class="me-1">add_circle</mat-icon>
+									<span>Create</span>
+								</button>
+					
+								<!-- Travel CREATE BUTTON -->
+								<button *ngIf="[ACTION_LIST_MSG_TYPE_CODE.TRAVEL_ENGAGEMENT_CREATE].includes(inboxData?.messageTypeCode)"
+									(click)="goToActionPath(inboxData, 'CREATE_TRAVEL')"
+									class="btn btn-sm btn-outline-grey d-inline-flex align-items-center ms-2"
+									title="Click here to create disclosure" aria-label="Click here to create disclosure">
+									<mat-icon aria-hidden="true" class="me-1">add_circle</mat-icon>
+									<span>Create</span>
+								</button>
+					
+								<!-- FCOI Revise -->
+								<button *ngIf="(coiCreateReviseBtnArr.includes(inboxData?.messageTypeCode) &&  
+								               (isRevise || viewDisclosure)) || [ACTION_LIST_MSG_TYPE_CODE.FCOI_ENGAGEMENT_REVISE, ACTION_LIST_MSG_TYPE_CODE.FCOI_ENGAGEMENT_WITHDRAW].includes(inboxData?.messageTypeCode)"
+									(click)="goToActionPath(inboxData, 'REVISE')"
+									class="btn btn-sm btn-outline-grey d-inline-flex align-items-center ms-2"
+									title="Click here to revise/create disclosure" aria-label="Click here to revise/create disclosure">
+									<mat-icon aria-hidden="true" class="me-1">restart_alt</mat-icon>
+									<span>Revise</span>
+								</button>
+								<!-- OPA Revision-->
+								<button *ngIf="commonService.canCreateOPA && headerService.opaCreationType !== 'INITIAL' && [ACTION_LIST_MSG_TYPE_CODE.OPA_ENGAGEMENT_CREATE, ACTION_LIST_MSG_TYPE_CODE.OPA_RENEWAL_REQUIRED].includes(inboxData?.messageTypeCode)"
+									(click)="goToActionPath(inboxData, 'CREATE_OPA_REVISION')" id="home-notification-opa-revise"
+									class="d-inline-flex align-items-center btn btn-sm btn-outline-grey ms-2"
+									title="Click here to revise opa disclosure" aria-label="Click here to revise opa disclosure">
+									<mat-icon aria-hidden="true" class="me-1">restart_alt</mat-icon>
+									<span>Revise</span>
+								</button>
+							  	<!-- Declaration Revise -->
+								<button *ngIf="[ACTION_LIST_MSG_TYPE_CODE.REVISE_EXPIRED_DECLARATION].includes(inboxData?.messageTypeCode)"
+									(click)="goToActionPath(inboxData, 'DECLARATION_REVISE')"
+									id="declaration-revise-button-{{inboxIndex}}"
+									class="btn btn-sm btn-outline-grey d-inline-flex align-items-center ms-2"
+									title="Click here to revise {{declarationLocalize.TERM}}"
+									attr.aria-label="Click here to revise {{declarationLocalize.TERM}}">
+									<mat-icon aria-hidden="true" class="me-1">restart_alt</mat-icon>
+									<span>Revise</span>
+								</button>
+							</ng-container>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div *ngIf="actionListCount > 3" class="d-flex justify-content-center p-2 position-sticky bottom-0">
+				<button class="coi-btn-halo rounded-pill d-inline-flex fs-12 px-3" title="Click here to read more"
+					attr.aria-label="Click here to read more" (click)="redirectToActionListSlider()">
+					<span>View More</span>
+				</button>
+			</div>
+		</div>
+		<div *ngIf="inboxDetails?.length === 0 && !canShowLoader">
+			<app-no-information [isBorderNeeded]="false">
+				<span>You have no high-priority actions pending.</span>
+			</app-no-information>
+		  </div>
+		<div class="card mt-3" *ngIf="canShowLoader">
+			<div class="card-body p-3 row g-2">
+				<div class="col-12 d-flex gap-2" *ngFor="let item of [1,2,3]">
+					<div class="col-1 overflow-hidden">
+						<app-skeleton-loader [loaderType]="'RECTANGLE'"></app-skeleton-loader>
+					</div>
+					<div class="col overflow-hidden">
+						<app-skeleton-loader [loaderType]="'RECTANGLE'"></app-skeleton-loader>
+					</div>
+				</div>
+			</div>
+		</div>
+	</ng-container>
+</app-coi-section-card>

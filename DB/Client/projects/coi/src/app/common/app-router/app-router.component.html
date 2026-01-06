@@ -1,0 +1,150 @@
+<app-header></app-header>
+<div class="canvas" id="COI_SCROLL" (scroll)="scrollEvent($event)">
+    <div class="container-fluid p-3" [id]="APPLICATION_MAIN_ROUTER_ID" tabindex="-1"><router-outlet></router-outlet> </div>
+    <div id="COI_FOOTER"><app-footer></app-footer></div>
+</div>
+
+<div aria-atomic="true"
+     aria-live="assertive"
+     class="px-3 py-2 position-fixed toast align-items-center text-white border-0" id="coi-bootstrap-toast" role="alert">
+    <div class="d-flex">
+        <div class="toast-body" id="coi-bootstrap-toast-body" tabindex="-1">
+        </div>
+        <button aria-label="Alert message close" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                type="button"></button>
+    </div>
+</div>
+
+<div *ngIf="isShowLoader" [ngClass]="{'overlay':isShowLoader}">
+    <div class="grid">
+        <div class="loader">
+            <div id="ld2">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+        </div>
+        <div class="loading-text"><span>{{commonService.appLoaderContent}}</span></div>
+    </div>
+</div>
+
+<!-- auto save retry btn starts-->
+<div id="coi-retry-error-toast" class="coi-app-toast invisible alert alert-danger fs-14 px-3">
+    <div class="d-flex">
+        <span>Changes not saved in {{autoSaveService.getUnsavedChanges()}}</span>
+        <mat-icon class="mx-2" aria-hidden="true">cloud_off</mat-icon>
+        <a class="link-primary" tabindex="0" role="link" (click)="triggerAutoSave()" (keyup.enter)="triggerAutoSave()"
+            aria-label="Click here to retry" title="Click here to retry">
+            <span>Retry</span>
+        </a>
+        <span>?</span>
+    </div>
+</div>
+<!-- auto save retry btn ends-->
+
+<!--Session Expired Modal starts-->
+<app-confirmation-modal [modalName]="'sessionTimeoutModal'" [primaryBtnName]="'Continue'"
+    (primaryBtnAction)="redirectToLogoutPage()">
+    <!-- modal header -->
+    <ng-container header>
+        <span>Session Expired</span>
+    </ng-container>
+    <!-- modal content -->
+    <div content class="ms-2">
+        <p>{{errorMessage}}</p>
+    </div>
+</app-confirmation-modal>
+<!--Session Expired Modal ends -->
+
+<!-- Shared Project Details Modal Starts -->
+ <ng-container *ngIf="commonService.projectDetailsModalInfo.coiDisclosureId || commonService.projectDetailsModalInfo.projectDetails?.projectId">
+    <app-shared-project-details-modal [selectedProject]="commonService.projectDetailsModalInfo"></app-shared-project-details-modal>
+ </ng-container>
+<!-- Shared Project Details Modal Ends -->
+
+
+<!-- Shared Person Details Modal Starts -->
+<ng-container *ngIf="commonService.personModalConfig.personId">
+    <app-personal-details-modal [personModalConfig]="commonService.personModalConfig"></app-personal-details-modal>
+</ng-container>
+<!-- Shared Person Details Modal Ends -->
+
+<!-- Shared Entity Details Modal Starts -->
+<ng-container *ngIf="commonService.entityModalConfig?.isOpenModal">
+    <app-entity-details-modal [entityModalConfig]="commonService.entityModalConfig"></app-entity-details-modal>
+</ng-container>
+<!-- Shared Entity Details Modal Ends -->
+
+<!-- Entity Graph Modal Starts -->
+<ng-container *ngIf="commonService.enableGraph">
+    <app-graph [graphEnableEvent]="commonService?.graphModalConfig?.graphEvent" [graphId]="commonService?.graphModalConfig?.graphId" (emitGraphModalActions)="commonService?.closeEntityGraphModal($event)"></app-graph>
+</ng-container>
+<!-- Entity Graph modal ends -->
+
+<!-- coi-attachment modal starts -->
+ <ng-container *ngIf="commonService.coiAttachmentModalInfo?.isOpenAttachmentModal">
+    <app-shared-attachment-modal [attachmentConfig]="commonService.coiAttachmentModalInfo"></app-shared-attachment-modal>
+ </ng-container>
+<!-- coi-attachment modal ends -->
+
+<!-- Shared Project Hierarchy Slider Starts -->
+<ng-container *ngIf="commonService.projectHierarchySliderInfo?.isOpenSlider">
+    <app-project-hierarchy-slider [projectInfo]="commonService.projectHierarchySliderInfo"
+        (closeSlider)="commonService.closeProjectHierarchySlider()">
+    </app-project-hierarchy-slider>
+</ng-container>
+<!-- Shared Project Hierarchy Slider Ends -->
+
+<!-- concurrency modal starts -->
+<app-concurrency-warning-modal *ngIf="commonService.concurrentUpdateAction"
+    [sectionName]="commonService.concurrentUpdateAction">
+</app-concurrency-warning-modal>
+<!-- concurrency modal ends-->
+
+<!-- project-disclosure-create-modal starts -->
+<app-project-disclosure-create-modal *ngIf="commonService.projDisclCreateModal?.isOpenModal"
+    [projDisclCreateConfig]="commonService.projDisclCreateModal">
+</app-project-disclosure-create-modal>
+<!-- project-disclosure-create-modal ends-->
+
+<!-- new entity creation modal starts -->
+<app-shared-entity-creation-modal *ngIf="commonService.entityCreationModalConfig?.entityDetails?.entityName" 
+    [entityCreationConfig]="commonService.entityCreationModalConfig">
+</app-shared-entity-creation-modal>
+<!-- new entity creation modal ends -->
+
+<!-- action list slider -->
+<app-action-list-slider *ngIf="commonService.actionListSliderConfig?.isOpenSlider"
+    [actionListSliderConfig]="commonService.actionListSliderConfig" (closeSlider)="commonService.closeActionListSlider()">
+</app-action-list-slider>
+<!-- action list slider ends -->
+
+<!-- validation modal starts -->
+<app-coi-validation-modal *ngIf="commonService.validationModalInfo?.errorList?.length || commonService.validationModalInfo?.warningList?.length"
+    [validationModalInfo]="commonService.validationModalInfo">
+</app-coi-validation-modal>
+<!-- validation modal ends -->
+
+<!-- common leave page modal starts -->
+<app-coi-leave-page-modal *ngIf="commonService.leavePageModalInfo.triggeredFrom"
+    [leavePageModalInfo]="commonService.leavePageModalInfo">
+</app-coi-leave-page-modal>
+<!-- common leave page modal ends -->
+
+<!-- review comments slider starts -->
+<ng-container *ngIf="commonService.reviewCommentsSliderConfig?.isOpenCommentSlider">
+    <app-coi-review-comments-slider [reviewCommentsSliderConfig]="commonService.reviewCommentsSliderConfig"></app-coi-review-comments-slider>
+</ng-container>
+<!-- review comments slider ends -->
+
+<!-- cmp creation slider slider starts -->
+<ng-container *ngIf="commonService.cmpCreationSliderConfig?.isOpenSlider">
+    <app-management-plan-creation-slider [cmpCreationSliderConfig]="commonService.cmpCreationSliderConfig" 
+        (closeSlider)="commonService.closeCmpCreationSlider()">
+    </app-management-plan-creation-slider>
+</ng-container>
+<!-- cmp creation slider slider ends -->

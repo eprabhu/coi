@@ -1,0 +1,148 @@
+<section class="card coi-card-regular mt-0">
+    <div class="card-body">
+        <div class="d-flex flex-column gap-3">
+            <!-- header -->
+            <div class="row row-gap-3">
+                <div class="col-12">
+                    <h3 class="d-block fs-18 fw-bold mb-0">{{ REVIEWER_DASHBOARD_LOCALIZE.TERM_DEPT_OVERVIEW }}</h3>
+                </div>
+                <!-- Search -->
+                <div class="d-flex gap-2 flex-wrap col-12">
+                    <div class="col">
+                        <div class="position-relative">
+                            <input class="form-control pe-5" type="text" id="coi-overview-dept-search"
+                                placeholder="Search by Department" [(ngModel)]="searchText"
+                                (ngModelChange)="getDeptListForSearchWord()" autocomplete="off" />
+                            <button id="overview-dept-search-close-btn" class="btn-none searchButton"
+                                [title]="searchText ? 'Click here to clear the search' : 'Search'"
+                                [class.pe-none]="!searchText"
+                                [attr.aria-label]="searchText ? 'Click here to clear the search' : 'Search'">
+                                <i aria-hidden="true" *ngIf="!searchText" class="fa fa-search fa-med"></i>
+                                <i aria-hidden="true" *ngIf="searchText" class="fa fa-times fa-med"
+                                    (click)="resetDeptListFilter()"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <app-elastic class="w-100" (selectedResult)="selectedPersonForDeptOverview($event)"
+                            [options]="elasticPersonSearchOptions" [placeHolder]="'Search by Person'"
+                            [uniqueId]="'coi-overview-person-search'" [canEmitSearchText]="true">
+                        </app-elastic>
+                    </div>
+                </div>
+            </div>
+            <!-- skeleton loader -->
+            <div *ngIf="isLoading" class="d-flex flex-column gap-3">
+                <div *ngFor="let column of skeletonLoaderList"
+                    class="card coi-card-regular mt-0 coi-overview-dept-card">
+                    <div class="card-body">
+                        <div class="row row-gap-3">
+                            <!-- dept icon and name container -->
+                            <div class="col-lg col-12 d-flex align-items-center gap-2">
+                                <!-- icon -->
+                                <app-skeleton-loader [loaderType]="'CIRCLE'"
+                                    class="d-flex coi-skeleton-loader-header-icon"></app-skeleton-loader>
+                                <!-- dept name -->
+                                <app-skeleton-loader [loaderType]="'RECTANGLE'"
+                                    class="d-flex coi-skeleton-loader-header-text"></app-skeleton-loader>
+                            </div>
+                            <!-- count details container -->
+                            <div class="col-auto ms-auto d-flex gap-3">
+                                <ng-container *ngFor="let column of [1, 2, 3]; let isLastColumn = last">
+                                    <div class="d-flex flex-column gap-2">
+                                        <app-skeleton-loader [loaderType]="'RECTANGLE'"
+                                            class="d-flex coi-skeleton-loader-body-count"></app-skeleton-loader>
+                                        <app-skeleton-loader [loaderType]="'RECTANGLE'"
+                                            class="d-flex coi-skeleton-loader-body-text"></app-skeleton-loader>
+                                    </div>
+                                    <span *ngIf="!isLastColumn" aria-hidden="true"
+                                        class="coi-overview-dept-card-separator" role="separator"></span>
+                                </ng-container>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- no data information -->
+            <div *ngIf="!isLoading && !overviewDepartmentList?.length && !isAPIFailed" class="row">
+                <app-no-information [isBorderNeeded]="true">
+                    <span>{{ searchText ? noDataMessage.NO_SEARCHED_OVERVIEW_DEPT
+                        : selectedPersonId ? noDataMessage.NO_OVERVIEW_DEPT_PERSON : noDataMessage.NO_OVERVIEW_DEPT
+                        }}</span>
+                </app-no-information>
+            </div>
+            <!-- API failed Retry -->
+            <div *ngIf="!isLoading && !overviewDepartmentList?.length && isAPIFailed"
+                class="w-100 h-100 coi-custom-shadow rounded-3 overflow-hidden">
+                <app-skeleton-loader [viewMode]="'RETRY'"
+                    (emitRetry)="reviewerDashboardService.triggerOverviewDepartment()"></app-skeleton-loader>
+            </div>
+            <!-- dept cards -->
+            <div *ngIf="!isLoading && overviewDepartmentList?.length" class="d-flex flex-column gap-3">
+                <ul class="list-unstyled mb-0 d-flex flex-column gap-3"
+                    [@quickListAnimation]="overviewDepartmentList?.length">
+                    <li *ngFor="let department of overviewDepartmentList; let deptIndex = index">
+                        <a id="coi-overview-dept-card-{{deptIndex}}" tabindex="0"
+                            (click)="openDeptReviewDetailsModal(department)"
+                            (keyup.enter)="openDeptReviewDetailsModal(department)"
+                            class="card coi-card-regular mt-0 coi-overview-dept-card text-decoration-none"
+                            title="Click here to view overview details of {{department?.displayName}}"
+                            attr.aria-label="Click here to view overview details of {{department?.displayName}}">
+                            <div class="card-body">
+                                <div class="row row-gap-3">
+                                    <!-- dept icon and name container -->
+                                    <div class="col-lg col-12 d-flex align-items-center gap-2">
+                                        <!-- icon -->
+                                        <mat-icon
+                                            class="coi-entity-icon-bg coi-coloured-icons coi-overview-dept-card-icon flex-shrink-0"
+                                            aria-hidden="true">account_balance</mat-icon>
+                                        <!-- dept name -->
+                                        <span class="fs-16 coi-text-dark text-slice">{{ department?.displayName
+                                            }}</span>
+                                    </div>
+                                    <!-- count details container -->
+                                    <div
+                                        class="col-auto d-flex flex-lg-nowrap flex-wrap align-items-center ms-auto gap-3">
+                                        <div *ngFor="let countDetails of department?.departmentOverviewCountDetails; let deptCountIndex = index;"
+                                            class="d-flex gap-3">
+                                            <!-- separator -->
+                                            <span *ngIf="deptCountIndex !== 0" aria-hidden="true"
+                                                class="coi-overview-dept-card-separator" role="separator"></span>
+                                            <!-- count and label link -->
+                                            <a id="coi-overview-dept-card-count-{{deptCountIndex}}" tabindex="0"
+                                                class="link-primary fs-14"
+                                                (click)="viewDisclosureReviewList(countDetails, department)"
+                                                (keyup.enter)="viewDisclosureReviewList(countDetails, department)"
+                                                title="Click here to view {{countDetails?.LABEL}} in {{department?.displayName}}"
+                                                attr.aria-label="Click here to view {{countDetails?.LABEL}} in {{department?.displayName}}">
+                                                <span class="d-block text-center fs-20 fw-500">{{ countDetails?.COUNT
+                                                    }}</span>
+                                                <span class="d-block text-nowrap">{{ countDetails?.LABEL }}</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+                <!-- Pagination -->
+                <nav *ngIf="totalDepartmentCount > 0" aria-label="pagination section"
+                    class="pagination justify-content-end">
+                    <app-pagination (pageChangeEvent)="actionsOnPageChange($event)" [totalCount]="totalDepartmentCount"
+                        [pageCount]="overviewDeptFetchRO.dashboardData.LIMIT"
+                        [defaultCurrentPage]="(overviewDeptFetchRO.dashboardData.PAGED + 1)">
+                    </app-pagination>
+                </nav>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- department overview details modal starts -->
+<ng-container *ngIf="reviewerDashboardService.deptReviewDetailsModalConfig.isOpenDeptReviewModal">
+    <app-dept-overview-details-modal (closeModal)="deptReviewOverviewModalAction($event)"
+        [deptReviewDetailsModalConfig]="reviewerDashboardService.deptReviewDetailsModalConfig">
+    </app-dept-overview-details-modal>
+</ng-container>
+<!-- department overview details modal ends -->

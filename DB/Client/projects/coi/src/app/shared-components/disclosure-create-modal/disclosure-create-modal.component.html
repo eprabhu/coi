@@ -1,0 +1,441 @@
+<div class="modal fade mySkinDialog modal-xl" data-bs-backdrop="static" tabindex="-1" id="reviseOrCreateDisclosureModal" role="dialog" aria-labelledby="reviseOrCreateDisclosureModal-header">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 id="reviseOrCreateDisclosureModal-header" class="modal-title" *ngIf="!isShowExistingDisclosure">
+            <ng-container *ngIf="hasFCOI && triggeredFrom == 'FCOI_DISCLOSURE'">
+                <span>Create {{ COMMON_DISCL_LOCALIZE.TERM_COI_REVISION_DISCL }}</span>
+                <app-common-help-text [helpTextHardCoded]="'You are about to revise disclosure.'"></app-common-help-text>
+            </ng-container>
+            <ng-container *ngIf="!hasFCOI && triggeredFrom == 'FCOI_DISCLOSURE'">
+                <span>Create {{ COMMON_DISCL_LOCALIZE.TERM_COI_INITIAL_DISCL }}</span>
+                <app-common-help-text [helpTextHardCoded]="'You are about to create ' + COMMON_DISCL_LOCALIZE.TERM_COI_INITIAL_DISCL"></app-common-help-text>
+            </ng-container>
+            <ng-container *ngIf="triggeredFrom != 'FCOI_DISCLOSURE'">
+                <span>Create {{ triggeredFrom == 'PROJECT_DISCLOSURE' ? 'Project' : 'Travel' }} Disclosure</span>
+                <app-common-help-text *ngIf="triggeredFrom == 'PROJECT_DISCLOSURE'" [helpTextHardCoded]="'You are about to create project disclosure.'"></app-common-help-text>
+                <app-common-help-text *ngIf="triggeredFrom != 'PROJECT_DISCLOSURE'" [helpTextHardCoded]="'You are about to create travel disclosure.'"></app-common-help-text>
+            </ng-container>
+        </h4>
+        <h4 id="reviseOrCreateDisclosureModal-header" class="modal-title" *ngIf="isShowExistingDisclosure">
+            <span>Navigate to Disclosure</span>
+            <app-common-help-text [helpTextHardCoded]="'Navigate to existing disclosure.'"></app-common-help-text>
+        </h4>
+          <button type="button" class="btn-close" title="Click here to close"  data-bs-dismiss="modal" aria-label="Click here to close" (click)="clearModal()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <p class="fs-14 alert alert-danger" *ngIf="isShowConcurrencyWarning">
+                <ng-container *ngIf="!hasFCOI">
+                    <ng-container *ngIf="triggeredFrom == 'PROJECT_DISCLOSURE'">
+                        A new {{selectedProjectType}} disclosure has been initiated. Please review and take appropriate action.
+                    </ng-container>
+                    <ng-container *ngIf="triggeredFrom != 'PROJECT_DISCLOSURE'">
+                        A new financial conflict of interest (FCOI) disclosure has been initiated. Please review and take appropriate action.
+                    </ng-container>
+                </ng-container>
+                <ng-container *ngIf="hasFCOI">
+                    Multiple FCOI revisions have been made. Review these revisions for accuracy and take appropriate action.
+                </ng-container>
+            </p>
+          </div>
+          <!-- financial engagement created validation message -->
+          <ng-container *ngIf="isShowErrorMessage">
+            <div class="col-12 mb-3">
+                <div class="alert alert-danger fs-14 shadow-sm m-0 gap-2" role="alert" attr.aria-label="Error: {{ errorMessage }}">
+                    <div class="alert-heading d-flex align-items-start flex-column">
+                        <div class="d-flex align-items-center gap-1">
+                            <mat-icon class="fs-4 h-auto text-danger flex-shrink-0" aria-hidden="true">error</mat-icon>
+                            <span class="me-1">{{ errorMessage }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+          <ng-container *ngIf="canEditDisclosureUnit">
+              <div *ngIf="(triggeredFrom == 'FCOI_DISCLOSURE' && !isShowExistingDisclosure) || (triggeredFrom == 'PROJECT_DISCLOSURE' && !isShowExistingDisclosure) || triggeredFrom == 'TRAVEL_DISCLOSURE'"
+                class="row mb-2">
+                <div class="col">
+                    <label for="create-disclosure-home-unit-name" class="coi-text-dark"><span class="mandatory fs-14 fw-600 me-1">*</span>
+                        <span>Disclose at Unit</span>
+                        <app-common-help-text [helpTextHardCoded]="unitHelpText"></app-common-help-text>
+                    </label>
+                    <button *ngIf="isHideEndpointSearch" class="d-flex fs-14 align-items-center btn-none"
+                        aria-label="Click here to edit unit" (click)="isHideEndpointSearch = false" id="edit-home-unit">
+                        <span>{{commonService.getPersonLeadUnitDetails(commonService.currentUserDetails)}}</span>
+                        <!-- A title is provided because the icon is displayed as a button. As a feature, clicking on the unit also triggers the edit action. -->
+                        <span class="btn btn-primary-icon d-flex align-items-center justify-content-center rounded-circle p-2 m-1 coi-scale-9"
+                            id="close-edit-home-unit" title="Click here to edit unit">
+                            <mat-icon aria-hidden="true">edit</mat-icon>
+                        </span>
+                    </button>
+                    <span *ngIf="!isHideEndpointSearch" class="d-flex">
+                        <app-endpoint-search (onSelect)="selectedUnitEvent($event)" [clearField]="clearField"
+                            [httpOptions]="unitSearchOptions" placeHolder="Search by Unit"
+                            [uniqueId]="'create-disclosure-home-unit-name'" autocomplete="off"
+                            [isError]="(mandatoryList?.has('homeUnit'))? true: false" class="w-100">
+                        </app-endpoint-search>
+                        <button *ngIf="!isHideEndpointSearch" class="btn btn-primary-icon btn-sm mt-0 border fw-normal
+                            margin-left-1 px-3 d-flex justify-content-center align-items-center"
+                            (click)="resetHomeUnit()" id="reset-home-unit"
+                            title="Click here to Reset" aria-label="Click here to Reset" [class.reset-highlight]="!reviseObject.homeUnit">
+                            <span class="fa fa-rotate-left"></span>
+                            <span class="ms-2">Reset</span>
+                        </button>
+                    </span>
+                    <span *ngIf="mandatoryList?.has('homeUnit')" class="fs-13 invalid-feedback d-block">
+                        {{mandatoryList?.get('homeUnit')}}
+                    </span>
+                </div>
+              </div>
+          </ng-container>
+          <div class="row"
+          *ngIf="(triggeredFrom == 'FCOI_DISCLOSURE' && !isShowExistingDisclosure) || (triggeredFrom == 'PROJECT_DISCLOSURE' && !isShowExistingDisclosure) || triggeredFrom == 'TRAVEL_DISCLOSURE'">
+          <div class="col-12">
+              <label for="desc-award" class="coi-text-dark"
+                    *ngIf="triggeredFrom != 'PROJECT_DISCLOSURE' || (!hasFCOI && triggeredFrom == 'FCOI_DISCLOSURE') || triggeredFrom == 'TRAVEL_DISCLOSURE' || (hasFCOI && triggeredFrom == 'FCOI_DISCLOSURE')">
+                    <span *ngIf="triggeredFrom == 'FCOI_DISCLOSURE'" class="fs-14 fw-600 mandatory me-1">*</span>
+                    <span>{{triggeredFrom == 'TRAVEL_DISCLOSURE' ? 'Purpose of the Trip' : 'Description'}}</span>
+                    <ng-container *ngIf="triggeredFrom == 'TRAVEL_DISCLOSURE'">
+                        <app-common-help-text [helpTextHardCoded]="travelDescHelpText"></app-common-help-text>
+                    </ng-container>
+              </label>
+              <textarea [(ngModel)]="reviseObject.revisionComment" *ngIf="(triggeredFrom != 'PROJECT_DISCLOSURE')"
+                    (ngModelChange)="reviseObject.revisionComment = reviseObject.revisionComment.trim()" [isShowLimiter]='true' [limit]=2000
+                     appLengthValidator class="form-control" rows="5" id="desc-award"
+                    placeholder = "Please provide the {{triggeredFrom == 'TRAVEL_DISCLOSURE' ? 'purpose of the trip.' : 'description.'}}"
+                    [ngClass]="(mandatoryList?.get('reviseComment')) ? 'invalid-border':''">
+              </textarea>
+              <span *ngIf="mandatoryList?.has('reviseComment')" class="fs-13 invalid-feedback d-block">
+                  {{mandatoryList?.get('reviseComment')}}
+              </span>
+          </div>
+      </div>
+      <div *ngIf="triggeredFrom == 'FCOI_DISCLOSURE' && isShowExistingDisclosure" class="col-lg-12 col-12 mb-4 mt-4 resultCard px-0">
+        <div class="pt-2 py-2 info-card-border row fs-14 rounded-2 shadow-medium bg-light">
+            <div class="col-4 mb-2">
+                <span>
+                    <strong>#{{existingDisclosureDetails?.disclosureNumber}} - {{existingDisclosureDetails?.disclosureType}} Disclosure by {{existingDisclosureDetails?.disclosurePersonFullName}}</strong>
+                </span>
+            </div>
+            <div class="col-8 mb-2">
+                <span class="coi-text-dark d-block"><ng-container i18n="@@COMMON_DEPARTMENT">Department</ng-container></span>
+                <span class="fs-14">
+                    <app-no-data-label [valueToShow]="existingDisclosureDetails?.homeUnit" classesToApply="ms-2 coi-text-light">
+                        <span class="fs-14" [title]="existingDisclosureDetails?.homeUnitName">{{commonService.getPersonLeadUnitDetails(existingDisclosureDetails)}}</span>
+                    </app-no-data-label>
+                </span>
+            </div>
+
+            <div class="col-4 mb-2">
+                <span class="coi-text-dark d-block">Create Date</span>
+                <app-no-data-label [valueToShow]="existingDisclosureDetails?.createTimestamp" classesToApply="ms-2 coi-text-light">
+                    <span class="ml-2 fs-14">{{existingDisclosureDetails?.createTimestamp |
+                        dateFormatterWithTimezone}}</span>
+                </app-no-data-label>
+            </div>
+            <div class="col-4 mb-2">
+                <span class="coi-text-dark d-block">Expiration Date</span>
+                <app-no-data-label [valueToShow]="existingDisclosureDetails?.expirationDate" classesToApply="ms-2 coi-text-light">
+                    <span class="ml-2 fs-14">{{existingDisclosureDetails?.expirationDate |
+                        dateFormatterWithTimeZone}}</span>
+                </app-no-data-label>
+            </div>
+            <div class="col-4 mb-2">
+                <span class="coi-text-dark d-block"><ng-container i18n="@@COI_CERTIFICATION_DATE">Certification Date</ng-container></span>
+                <app-no-data-label [valueToShow]="existingDisclosureDetails?.certifiedAt" classesToApply="ms-2 coi-text-light">
+                    <span class="ml-2 fs-14">{{existingDisclosureDetails?.certifiedAt |
+                        dateFormatterWithTimeZone}}</span>
+                </app-no-data-label>
+            </div>
+
+            <div class="col-4">
+                <span class="coi-text-dark d-block"><ng-container i18n="@@COI_REVIEW_STATUS">Review Status</ng-container></span>
+                <app-no-data-label [valueToShow]="existingDisclosureDetails?.reviewStatusCode" classesToApply="ms-2 coi-text-light">
+                    <span
+                        class="badge {{reviewStatusBadge[existingDisclosureDetails?.reviewStatusCode] || 'red-badge'}}">{{existingDisclosureDetails?.reviewStatus}}</span>
+                </app-no-data-label>
+            </div>
+
+            <div class="col-4">
+                <span class="coi-text-dark d-block"><ng-container i18n="@@COMMON_DISCLOSURE_STATUS">Disclosure Status</ng-container></span>
+                <app-no-data-label classesToApply="ms-2 coi-text-light"
+                    [valueToShow]="existingDisclosureDetails?.conflictStatusCode">
+                    <span
+                        class="{{disclosureConflictBadge[existingDisclosureDetails?.conflictStatusCode] || 'green-badge'}}">{{existingDisclosureDetails?.conflictStatus}}</span>
+                </app-no-data-label>
+            </div>
+
+            <div class="col-4">
+                <span class="coi-text-dark d-block"><ng-container i18n="@@COMMON_DISPOSITION_STATUS">Disposition Status</ng-container></span>
+                <app-no-data-label classesToApply="ms-2 coi-text-light"
+                    [valueToShow]="existingDisclosureDetails?.dispositionStatusCode">
+                    <span
+                        class="{{dispositionStatusBadge[existingDisclosureDetails?.dispositionStatusCode] || 'yellow-badge'}}">{{existingDisclosureDetails?.dispositionStatus}}</span>
+                </app-no-data-label>
+            </div>
+        </div>
+    </div>
+    <div *ngIf="triggeredFrom == 'PROJECT_DISCLOSURE'" [class.mt-0]="triggeredFrom == 'PROJECT_DISCLOSURE' && isShowExistingDisclosure">
+        <span class="coi-text-dark d-block"><span class="mandatory fs-14 fw-600 me-1">*</span>
+        <span>Project Type</span>
+        <app-common-help-text [helpTextHardCoded]="projectTypeHelpText"></app-common-help-text>
+    </span>
+        <div class="mt-1">
+            <ul class="mb-0 fs-14">
+                <ng-container *ngFor="let type of projectTypes">
+                    <li *ngIf="type?.projectDisclosureNeeded" class="me-5 d-flex align-items-center">
+                        <input [(ngModel)]="selectedProjectType" (ngModelChange)="changeProjectType(type)"
+                            [value]="type.description" class="me-2 cursor-pointer" type="radio"
+                            name="{{type?.description}}" id="{{type?.description}}" [disabled]="isProjectsBtnDisabled">
+                        <label class="cursor-pointer fw-normal" for="{{type?.description}}">{{type?.description}}</label>
+                    </li>
+                </ng-container>
+            </ul>
+            <div *ngIf="projectDisclosureValidation?.has('projectSelect')" class="invalid-feedback d-block fs-13">
+                {{projectDisclosureValidation?.get('projectSelect')}}
+            </div>
+        </div>
+        <div *ngIf="selectedProjectType && !isSearchExternalProject && !isShowErrorMessage && !isValidationLoading" class="mt-3">
+            <span class="mandatory fs-14 fw-600 me-1">*</span>
+            <label for="proposal-disclosure" class="mb-2 coi-text-dark">
+                <span>{{selectedProjectType}} Search</span>
+                <app-common-help-text *ngIf="searchHelpText" [helpTextHardCoded]="searchHelpText"></app-common-help-text>
+            </label>
+            <div class="form-row justify-content-center">
+                <div class="col-12 searchBox mb-0">
+                    <app-endpoint-search id="proposal-search" [httpOptions]="projectSearchOptions"
+                        [clearField]="clearProjectField" (onSelect)="validateSelectedProject($event)"
+                        [isError]="projectDisclosureValidation?.has('proposalSearch')"
+                        [placeHolder]="'Search: '+selectedProjectType+' ID, Title, Principal Investigator, Sponsor, '+selectedProjectType+' Lead Unit'">
+                    </app-endpoint-search>
+                </div>
+            </div>
+
+            <div *ngIf="projectDisclosureValidation?.has('proposalSearch')"
+                class="invalid-feedback d-block">
+                {{projectDisclosureValidation?.get('proposalSearch')}}
+            </div>
+            <div *ngIf="isShowResultCard && !isShowExistingDisclosure"
+                class="col-lg-12 col-12 mt-3 resultCard px-0">
+                <div class="py-2 row info-card-border rounded-2 shadow-medium bg-light">
+                    <div class="col-12">
+                        <span class="d-block coi-text-dark me-2">Title</span>
+                        <span class="coi-text-light">#{{manualProjectAddDetails?.title}}</span>
+                    </div>
+                    <div class="col-6 col-lg-4 py-1">
+                        <span class="d-block coi-text-dark me-2">Principal Investigator</span>
+                        <span class="coi-text-light">{{manualProjectAddDetails?.principalInvestigator}}</span>
+                    </div>
+                    <div class="col-6 col-lg-4 py-1">
+                        <span class="d-block coi-text-dark me-2">Project Role</span>
+                        <span class="coi-text-light">{{manualProjectAddDetails?.reporterRole}}</span>
+                    </div>
+                    <div class="col-6 col-lg-4 py-1">
+                        <span class="d-block coi-text-dark me-2">Period</span>
+                        <app-no-data-label id="purpose" [valueToShow]="manualProjectAddDetails?.startDate" classesToApply="ms-2 coi-text-light">
+                            <span class="coi-text-light"
+                                *ngIf="manualProjectAddDetails?.startDate || manualProjectAddDetails?.endDate">{{manualProjectAddDetails?.startDate
+                                | dateFormatter}}
+                                <span *ngIf="manualProjectAddDetails?.startDate && manualProjectAddDetails?.endDate">-</span>
+                                {{manualProjectAddDetails?.endDate | dateFormatter}}
+                            </span>
+                        </app-no-data-label>
+                    </div>
+                    <div class="col-6 col-lg-4 py-1">
+                        <span class="d-block coi-text-dark me-2">Sponsor</span>
+                        <span class="coi-text-light">{{manualProjectAddDetails?.sponsor}}</span>
+                    </div>
+                    <div class="col-6 col-lg-4 py-1">
+                        <span class="d-block coi-text-dark me-2">Lead Unit</span>
+                        <span class="coi-text-light">{{manualProjectAddDetails?.unitName}}</span>
+                    </div>
+                    <div class="col-6 col-lg-4 py-1">
+                        <span class="d-block coi-text-dark me-2">Prime Sponsor</span>
+                        <app-no-data-label id="purpose" [valueToShow]="manualProjectAddDetails.primeSponsorName" classesToApply="ms-2 coi-text-light">
+                            <span class="coi-text-light"
+                                *ngIf="manualProjectAddDetails.primeSponsorName ">{{manualProjectAddDetails.primeSponsorName}}
+                            </span>
+                        </app-no-data-label>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- New header card design -->
+                <div class="mt-1 col-lg-12 col-12 mt-3 resultCard px-0" *ngIf="isShowResultCard && isShowExistingDisclosure">
+                    <div class="fs-14 info-card-border rounded-2 shadow-medium bg-light p-3">
+                        <div *ngIf="isShowExistingDisclosure" class="alert alert-danger fs-14 shadow-sm" role="alert">
+                            <ng-container *ngIf="triggeredFrom == 'PROJECT_DISCLOSURE'">
+                                <div class="alert-heading d-flex align-items-center mb-2">
+                                    <mat-icon class="fs-4 w-auto h-auto material-icons text-danger me-1" aria-hidden="true">error</mat-icon>
+                                    <strong>Error: Disclosure Already Exists</strong>
+                                </div>
+                                <p class="mb-0">
+                                    A disclosure has already been created for the {{selectedProjectType}} you are attempting to add. Please review the existing disclosures or select a different {{selectedProjectType}}.
+                                    To see the details,
+                                    <span *ngIf="isShowExistingDisclosure || isShowConcurrencyWarning" class="link-primary"
+                                    (click)="navigateToDisclosure(existingDisclosureDetails?.disclosureId);" id="coi-view-disclosure"
+                                    aria-label="Click here to view disclosure" title="Click here to view disclosure" role="link" tabindex="0">
+                                    View disclosure</span>
+                                </p>
+                            </ng-container>
+                            <ng-container *ngIf="triggeredFrom != 'PROJECT_DISCLOSURE'">
+                                <div class="alert-heading d-flex align-items-center mb-2">
+                                    <mat-icon class="fs-4 w-auto h-auto material-icons text-danger me-1" aria-hidden="true">error</mat-icon>
+                                    <strong>Error: Already Exists</strong>
+                                </div>
+                                <p>
+                                    You already have an existing revision version for the FCOI disclosure ,
+                                    mentioned below .You can have only one revision version at a time.
+                                    You may proceed to the disclosure by clicking on 'View Disclosure'.
+                                    <span *ngIf="isShowExistingDisclosure || isShowConcurrencyWarning" class="link-primary"
+                                        (click)="navigateToDisclosure(existingDisclosureDetails?.disclosureId);" id="coi-view-disclosure"
+                                        aria-label="Click here to view disclosure" title="Click here to view disclosure" role="link" tabindex="0">
+                                        View disclosure</span>
+                                </p>
+                            </ng-container>
+                        </div>
+
+                        <div class="row">
+                            <div class="position-relative fs-14 fw-500">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <span class="coi-text-dark d-block">{{existingDisclosureDetails?.type}} Title</span>
+                                        <span class="d-flex">
+                                            <strong>#{{projectTitle}}</strong>
+                                        </span>
+                                    </div>
+                                    <div class="col-12 mt-2">
+                                        <span class="coi-text-dark d-block"><ng-container i18n="@@COMMON_DEPARTMENT">Department</ng-container></span>
+                                        <app-no-data-label [valueToShow]="existingDisclosureDetails?.homeUnit" classesToApply="ms-2 coi-text-light">
+                                            <span [title]="existingDisclosureDetails?.homeUnitName"
+                                                class="coi-text-light">{{commonService.getPersonLeadUnitDetails(existingDisclosureDetails)}}</span>
+                                        </app-no-data-label>
+                                    </div>
+                                    <div class="col-6 col-lg-4 py-1">
+                                        <span class="coi-text-dark d-block">Create Date</span>
+                                        <app-no-data-label [valueToShow]="existingDisclosureDetails?.createTimestamp" classesToApply="ms-2 coi-text-light">
+                                            <span class="coi-text-light">{{existingDisclosureDetails?.createTimestamp | dateFormatterWithTimeZone}}</span>
+                                        </app-no-data-label>
+                                    </div>
+                                    <div class="col-6 col-lg-4 py-1">
+                                        <span class="coi-text-dark d-block"><ng-container i18n="@@COI_CERTIFICATION_DATE">Certification Date</ng-container></span>
+                                        <app-no-data-label [valueToShow]="existingDisclosureDetails?.certifiedAt" classesToApply="ms-2 coi-text-light">
+                                            <span class="coi-text-light">{{existingDisclosureDetails?.certifiedAt | dateFormatterWithTimeZone}}</span>
+                                        </app-no-data-label>
+                                    </div>
+                                    <div class="col-6 col-lg-4 py-1">
+                                        <span class="coi-text-dark d-block">Expiration Date</span>
+                                        <app-no-data-label [valueToShow]="existingDisclosureDetails?.expirationDate" classesToApply="ms-2 coi-text-light">
+                                            <span
+                                                class="coi-text-light">{{existingDisclosureDetails?.expirationDate | dateFormatterWithTimeZone}}</span>
+                                        </app-no-data-label>
+                                    </div>
+                                    <div class="col-6 col-lg-4 py-1">
+                                        <span class="coi-text-dark d-block"><ng-container i18n="@@COMMON_DISCLOSURE_STATUS">Disclosure Status</ng-container></span>
+                                        <app-no-data-label [valueToShow]="existingDisclosureDetails?.conflictStatusCode" classesToApply="ms-2 coi-text-light">
+                                            <span
+                                                class="{{disclosureConflictBadge[existingDisclosureDetails?.conflictStatusCode] || 'green-badge'}}"></span>
+                                            <span class="badgeFont">
+                                                {{existingDisclosureDetails?.conflictStatus}}
+                                            </span>
+                                        </app-no-data-label>
+                                    </div>
+                                    <div class="col-6 col-lg-4 py-1">
+                                        <span class="coi-text-dark d-block"><ng-container i18n="@@COI_REVIEW_STATUS">Review Status</ng-container></span>
+                                        <app-no-data-label [valueToShow]="existingDisclosureDetails?.reviewStatusCode" classesToApply="ms-2 coi-text-light">
+                                            <span
+                                                class="{{reviewStatusBadge[existingDisclosureDetails?.reviewStatusCode] || 'red-badge'}}"></span>
+                                            <span class="badgeFont">
+                                                {{existingDisclosureDetails?.reviewStatus}}
+                                            </span>
+                                        </app-no-data-label>
+                                    </div>
+                                    <div class="col-6 col-lg-4 py-1">
+                                        <span class="coi-text-dark d-block"><ng-container i18n="@@COMMON_DISPOSITION_STATUS">Disposition Status</ng-container></span>
+                                        <app-no-data-label [valueToShow]="existingDisclosureDetails?.dispositionStatusCode" classesToApply="ms-2 coi-text-light">
+                                            <span
+                                                class="{{dispositionStatusBadge[existingDisclosureDetails?.dispositionStatusCode] || 'yellow-badge'}}"></span>
+                                            <span class="badgeFont">
+                                                {{existingDisclosureDetails?.dispositionStatus}}
+                                            </span>
+                                        </app-no-data-label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </div>
+        <div *ngIf="isSearchExternalProject" class="row">
+            <div class="col-4">
+                <label class="f-14">{{selectedProjectType}} #</label>
+                <input type="text" id="proposal-no" placeholder="{{this.selectedProjectType}} No:"
+                    autocomplete="off" [(ngModel)]="manualProjectAddDetails.moduleItemId"
+                    class="form-control" />
+            </div>
+            <div class="col-8">
+                <label class="f-14">Title</label>
+                <input type="text" id="proposal-no" placeholder="{{this.selectedProjectType}} Title"
+                    autocomplete="off" [(ngModel)]="manualProjectAddDetails.title" class="form-control" />
+            </div>
+            <div class="col-4">
+                <label class="f-14">Principal Investigator</label>
+                <app-elastic [options]="piElasticSearchOptions" [clearField]="clearPIField"
+                    [placeHolder]="'Type here for Principal Investigator'">
+                </app-elastic>
+
+            </div>
+            <div class="col-4">
+                <label class="f-14">Lead Unit</label>
+                <app-endpoint-search id="prop-LU" [clearField]="clearLUField"
+                    [httpOptions]="unitHttpOptions" [placeHolder]="'Type here for Lead Unit'">
+                </app-endpoint-search>
+            </div>
+            <div class="col-4">
+                <label class="f-14">Prime Sponsor</label>
+                <app-endpoint-search [httpOptions]="sponsorSearchOptions" [clearField]="clearSponsorField"
+                    [placeHolder]="'Sponsor'">
+                </app-endpoint-search>
+            </div>
+        </div>
+    </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline-secondary" id="disclosure-create-cancel-btn" data-bs-dismiss="modal" type="button"
+                title="Click here to cancel" aria-label="Click here to cancel" (click)="clearModal()">Cancel</button>
+            <!-- INITIAL/REVISION -->
+            <button *ngIf="triggeredFrom == 'FCOI_DISCLOSURE' && !isShowExistingDisclosure && !isShowConcurrencyWarning" class="btn btn-primary me-0"
+                id="fcoi-revise-disclosure-create-cancel-btn" type="button" (click)="createOrReviseDisclosure()" [disabled]="isNotEligibleToCreateDisclosure"
+                [attr.title]="isNotEligibleToCreateDisclosure ? '' : (hasFCOI ? ('Click here to create ' + COMMON_DISCL_LOCALIZE.TERM_COI_REVISION_DISCL) : ('Click here to create ' + COMMON_DISCL_LOCALIZE.TERM_COI_INITIAL_DISCL))"
+                [attr.aria-label]="isNotEligibleToCreateDisclosure ? '' : (hasFCOI ? ('Click here to create ' + COMMON_DISCL_LOCALIZE.TERM_COI_REVISION_DISCL) : ('Click here to create ' + COMMON_DISCL_LOCALIZE.TERM_COI_INITIAL_DISCL))">
+                <!-- INITIAL create -->
+                <ng-container *ngIf="!hasFCOI">Create {{ COMMON_DISCL_LOCALIZE.TERM_COI_REVISION_DISCL }}</ng-container>
+                <!-- REVISION create -->
+                <ng-container *ngIf="hasFCOI">Create {{ COMMON_DISCL_LOCALIZE.TERM_COI_INITIAL_DISCL }}</ng-container>
+            </button>
+            <!-- project create -->
+            <button *ngIf="triggeredFrom == 'PROJECT_DISCLOSURE' && !isShowExistingDisclosure && !isShowConcurrencyWarning && !isShowErrorMessage" class="btn btn-primary"
+                id="project-disclosure-create-btn" type="button" title="Click here to create project disclosure"
+                aria-label="Click here to create project disclosure" (click)="createProjectDisclosureAPI();">
+                Create
+            </button>
+            <!-- for travel create -->
+            <button *ngIf="triggeredFrom == 'TRAVEL_DISCLOSURE'" class="btn btn-primary" type="button"
+                id="travel-disclosure-create-btn" title="Click here to continue with creating the travel disclosure"
+                aria-label="Click here to continue with creating the travel disclosure" (click)="navigateToTravelDisclosure();">
+                Create
+            </button>
+            <!-- view disclosure -->
+            <button *ngIf="isShowConcurrencyWarning" class="btn btn-primary" id="disclosure-create-view-disclosure" type="button"
+                title="Click here to view disclosure" aria-label="Click here to view disclosure"
+                (click)="navigateToDisclosure(existingDisclosureDetails.disclosureId);">
+                View Disclosure
+            </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<button tabindex="-1" id="open-create-or-revise-modal" data-bs-toggle="modal" data-bs-target="#reviseOrCreateDisclosureModal" [hidden]="true" aria-hidden="true"></button>

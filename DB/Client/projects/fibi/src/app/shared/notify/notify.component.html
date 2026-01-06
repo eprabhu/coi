@@ -1,0 +1,201 @@
+<!--Notification Modal-->
+<div class="modal fade mySkinDialog" id="app-generic-notify-email-modal" data-backdrop="static" data-keyboard="false"
+     role="dialog" aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Notify {{moduleName}}</h5>
+                <button type="button" class="close" id="notify-dismiss-btn" data-dismiss="modal"
+                    (click)="clearNotifyFields();emitNotificationFlag(false);">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="col f-14">
+                        <label class="inline-block"> Send to </label>
+                        <input type="radio" class="radio-inline" name='recipient' value="person" [(ngModel)]="type"
+                            (ngModelChange)="toggleRecipient()" checked> Persons &nbsp;
+                        <input type="radio" class="radio-inline" name='recipient' value="role" [(ngModel)]="type"
+                            (ngModelChange)="toggleRecipient()"> Role &nbsp;
+                        <ng-container *ngIf="enableCertification">
+                        <input  type="radio" class="radio-inline" name='recipient'
+                               value="certification" [(ngModel)]="type" (ngModelChange)="toggleRecipient()"> Certification
+                        </ng-container>
+                    </div>
+                    <ng-container *ngIf="type !== 'certification'">
+                        <div class="col-lg-12 py-1 mt-3">
+                            <div class="searchBox mb-0 memberSearchBox">
+                                <label class="block-display"><span class="mandatory">*</span>Recipients </label>
+                                <div *ngIf="type=='person'">
+                                    <app-elastic [options]="elasticSearchOptions" [clearField]="clearField"  [isError]="validationMap.get('recipients')"
+                                        [placeHolder]="'Search person'" (selectedResult)="selectedRecipient($event)">
+                                    </app-elastic>
+                                </div>
+                                <div *ngIf="type=='role'">
+                                    <select id="role-type" class="dateBox committeeBox form-control" [(ngModel)]="roleId"
+                                        (ngModelChange)="selectRoleType($event)">
+                                        <option [ngValue]="null">--Roles--</option>
+                                        <option *ngFor="let roleType of roles?.roleDescription"
+                                            [ngValue]="roleType.ROLE_TYPE_CODE">{{roleType.DESCRIPTION}}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div *ngIf="validationMap?.get('recipients')">
+                                <p class="warning-style m-0"><span class="mandatory">{{validationMap?.get('recipients')}}</span>
+                                </p>
+                            </div>
+                            <div *ngIf="validationMap?.get('duplicateRecipient')">
+                                <p class="warning-style"><span
+                                        class="mandatory">{{validationMap?.get('duplicateRecipient')}}</span></p>
+                            </div>
+                        </div>
+                        <div class="fileChips chip-style pl-2">
+                        <span *ngFor="let recipient of recipientList; let index = index">{{recipient.value}}
+                            <i aria-hidden="true" class="fa fa-close hand-cursor" id="recipient-remove"
+                                (click)="removeRecipient(recipient);recipientList.splice(index, 1)"
+                                title="Remove this Recipient"></i>
+                        </span>
+                    </div>
+                    </ng-container>
+                </div>
+                <ng-container *ngIf="type !== 'certification'">
+                    <div class="form-row py-4 pb-0">
+                        <div class="col-lg-12">
+                            <label class="block-display">
+                                <span class="mandatory">*</span>Subject</label>
+                            <input class="form-control committeeBox dateBox" [ngClass]="(validationMap.get('subject')) ? 'is-invalid d-block' : ''" [(ngModel)]="notificationObject.subject"
+                                placeholder="Please provide Subject">
+                                <div *ngIf="validationMap?.get('subject')" class="invalid-feedback d-block" >
+                                    <p class="warning-style m-0"><span class="mandatory">{{validationMap?.get('subject')}}</span>
+                                    </p>
+                                    <!-- * Please select Subject   -->
+                                </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row pt-4">
+                        <div class="col-lg-12">
+                            <label class="block-display">
+                                <span class="mandatory">*</span>Message Body</label>
+                            <ng-container *ngIf="!_commonService.isIE">
+                                <div class="alert alert-warning p-1 f-15 mb-2 d-flex align-items-center">
+                                    <i class="fa fa-info-circle info-icon mx-2 mt-1" aria-hidden="true"></i>
+                                    <em>The editor does not support images.</em>
+                                </div>
+                                <div [ngClass]="validationMap.get('body') ? 'invalid-editor' : ''">
+
+                                <ckeditor [(ngModel)]="notificationObject.body"
+                                 [config]="editorConfig" [editor]="Editor"
+                                    (ready)="onReady($event)"></ckeditor></div>
+                            </ng-container>
+                            <textarea *ngIf="_commonService.isIE" class="ngx-textarea form-control"
+                                [(ngModel)]="notificationObject.body" rows="10"></textarea>
+                        </div>
+                    </div>
+                    <div *ngIf="validationMap?.get('body')">
+                        <p class="warning-style"><span class="mandatory">{{validationMap?.get('body')}}</span>
+                        </p>
+                    </div>
+                </ng-container>
+                <ng-container *ngIf="type === 'certification'">
+                    <div class="overflow-x max-vh-80 mt-3">
+                        <table aria-describedby="Certification details of all persons"
+                               class="table tableSkin grid2 m-0 light-border">
+                            <thead>
+                            <tr>
+                                <th scope="col">Name</th>
+                                <th scope="col">Role</th>
+                                <th scope="col">Designation</th>
+                                <th scope="col">Certification</th>
+                                <th scope="col">Action</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <ng-container *ngFor="let person of proposalPersons;let i = index">
+                                <tr [class.bg-light-ash]="person?.rolodexId"
+                                    [class.table-inner-row-shown]="togglePersons[i]"
+                                    class="small-border"
+                                    title="{{person?.rolodexId ? 'Notification unavailable': ''}}">
+                                    <td >
+                                        <i [ngClass]="person?.rolodexId ? 'fa fa-user-circle text-danger':'fa fa-user-o text-dark'"
+                                           [title]="person?.rolodexId ? 'Non-Employee':'Employee'"
+                                           aria-hidden="true"
+                                           class="mr-1"></i>
+                                        {{person?.fullName}}</td>
+                                    <td >
+                                        {{person?.proposalPersonRole?.description}}</td>
+                                    <td>
+                                        {{person?.designation}}</td>
+                                    <td class="f-16">
+                                        <i [ngClass]="person?.personCertified ?
+                                           'fa-check-circle text-success':'fa-exclamation-circle text-warning'" aria-hidden="true"
+                                           class="fa"></i>
+                                        <span class="badge font-weight-normal p-0">{{person?.personCertified ? 'Completed' : 'Incomplete'}}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <button (click)="showPersonNotification(i, person)"
+                                                *ngIf="!person?.rolodexId"
+                                                [title]="togglePersons[i]?'Close notifications': 'Show notifications'"
+                                                class="btn">
+                                            <i [ngClass]="togglePersons[i] ?
+                                                            'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                                               aria-hidden="true"
+                                               class="fa-large"></i>
+                                        </button>
+                                        <i *ngIf="person?.rolodexId"
+                                           aria-hidden="true"
+                                           class="fa fa-bell-slash-o text-invisible"></i>
+                                    </td>
+                                </tr>
+                                <tr *ngIf="togglePersons[i]"
+                                    [class.table-inner-row-shown]="togglePersons[i]"
+                                    class="small-border">
+                                    <td class="border p-1" colspan="100%">
+                                        <div class="overflow-auto">
+                                            <table aria-describedby="notification details"
+                                                   class="bg-color border shadow-sm">
+                                                <thead>
+                                                <tr>
+                                                    <th scope="col">Notification Status</th>
+                                                    <th scope="col">Date Sent</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                <tr *ngFor="let notification of multiplePersonNotifications[i]">
+                                                    <td>{{notification?.mailSentFlag === 'Y' ? 'Delivered' : 'Not Delivered'}}</td>
+                                                    <td>{{notification?.sendDate | dateFormatterWithTimeZone: 'long'}}</td>
+                                                </tr>
+                                                <tr *ngIf="multiplePersonNotifications[i]?.length === 0">
+                                                    <td class="p-3 text-center" colspan="2">No
+                                                        notifications
+                                                        found
+                                                    </td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </ng-container>
+                            <tr *ngIf="proposalPersons?.length === 0">
+                                <td class="p-3 text-center" colspan="5">No key personnel found</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </ng-container>
+            </div>
+            <div class="modal-footer">
+                <div class="col-12 text-right p-0">
+                    <button id="close-notification-modal" class="btn btn-secondary"
+                        (click)="clearNotifyFields();emitNotificationFlag(false);"
+                        data-dismiss="modal">Cancel</button>
+                    <button *ngIf="type!=='certification'" class="btn btn-primary-sub" (click)="sendNotification();">Notify</button>
+                    <button *ngIf="type==='certification' && isEditMode" class="btn btn-primary-sub" (click)="notifyAgain();" [disabled]="isSaving">Notify All</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<button id="app-notify-btn" data-toggle="modal" data-target="#app-generic-notify-email-modal" [hidden]="true"></button>

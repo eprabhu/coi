@@ -1,0 +1,252 @@
+<div class="row">
+    <div class="col-8">
+        <ul class="subTabs mb-0">
+            <li role="presentation" [ngClass]="{'active': advanceSearch.tabName == 'MY_REQUEST'}"
+                (click)="clearServiceRequest();setCurrentTab('MY_REQUEST');isShowSearchList= true">
+                <a class="subTabLink" title="View my service requests" tabindex="0">My Service Requests
+                </a>
+            </li>
+            <li role="presentation" [ngClass]="{'active': advanceSearch.tabName == 'ALL_REQUEST'}"
+                (click)="clearServiceRequest();setCurrentTab('ALL_REQUEST');isShowSearchList= false">
+                <a class="subTabLink"  title="View all search service requests" tabindex="0">Service Request Search
+                </a>
+            </li>
+            <li *ngIf="canViewAllReviewTabs" role="presentation"
+                [ngClass]="{'active': advanceSearch.tabName == 'ALL_PENDING_SERVICE_REQUEST'}"
+                (click)="clearServiceRequest();setCurrentTab('ALL_PENDING_SERVICE_REQUEST');isShowSearchList= true">
+                <a class="subTabLink" title="View all pending service requests" tabindex="0">All Pending Service Requests
+                </a>
+            </li>
+            <li *ngIf="canViewAllReviewTabs" role="presentation"
+                [ngClass]="{'active': advanceSearch.tabName == 'NEW_SUBMISSIONS'}"
+                (click)="clearServiceRequest();setCurrentTab('NEW_SUBMISSIONS');isShowSearchList= true">
+                <a class="subTabLink" title="View new service requests" tabindex="0">New Service Requests
+                </a>
+            </li>
+            <li role="presentation" [ngClass]="{'active': advanceSearch.tabName == 'MY_PENDING_SERVICE_REQUEST'}"
+                (click)="clearServiceRequest();setCurrentTab('MY_PENDING_SERVICE_REQUEST');isShowSearchList= true">
+                <a class="subTabLink" title="View service requests pending review" tabindex="0">Service Requests Pending My
+                    Review
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+    <div class="col-4 text-right">
+        <div> 
+            <a id="advance-search-service-request" class="btn btn-sm btn-tertiary mt-0" data-toggle="collapse"
+                href="#collapseAdvanceSearch" role="button" aria-expanded="false" aria-controls="collapseAdvanceSearch"
+                title="Advanced Search"> <i aria-hidden="true" class="fa fa-sliders"></i>
+                Advanced Search
+            </a>
+            <span *ngIf="canCreateServiceRequest">
+                <a title="Create New Service Request" class="btn btn-primary mt-0" id="create-service-request-btn"
+                    (click)="createNewServiceRequest()" tabindex="0">
+                    Create New Service Request
+                </a>
+            </span>
+        </div>
+    </div>
+</div>
+
+<div id="collapseAdvanceSearch" class="card collapse">
+    <div class="card-body">
+        <div class="form-row">
+            <div class="col-3">
+                <label for="ID" class="d-block">Service Request #</label>
+                <input type="text" placeholder="Service Request #" class="form-control"
+                    [(ngModel)]="advanceSearch.serviceRequestId" (keyup.enter)="searchServiceRequest()">
+            </div>
+            <div class="col-3">
+                <label for="subject" class="d-block">Subject</label>
+                <input type="text" placeholder="Subject" class="form-control"
+                    [(ngModel)]="advanceSearch.serviceRequestSubject"  (keyup.enter)="searchServiceRequest()">
+            </div>
+
+            <div class="col-3">
+                <label for="type" class="d-block">Type</label>
+                <app-look-up [options]='typeOptions' [selectedLookUpList]="lookupValues['srTypeCodes']"
+                    (selectedResult)="onLookupSelect($event, 'srTypeCodes')">
+                </app-look-up>
+            </div>
+            <div class="col-3">
+                <label for="category" class="d-block">Category</label>
+                <app-look-up [options]='categoryOptions' [selectedLookUpList]="lookupValues['moduleCodes']"
+                    (selectedResult)="onLookupSelect($event, 'moduleCodes')">
+                </app-look-up>
+            </div>
+            <div class="col-3">
+                <label for="status" class="d-block">Status</label>
+                <app-look-up [options]='statusOptions' [selectedLookUpList]="lookupValues['srStatusCodes']"
+                    (selectedResult)="onLookupSelect($event, 'srStatusCodes')">
+                </app-look-up>
+            </div>
+            <div class="col-3">
+                <!-- property -->
+                <label for="department" class="d-block">Department..</label>
+                <app-endpoint-search [httpOptions]="departmentSearchOptions" [clearField]="clearFieldLeadUnit"
+                    [placeHolder]="'Department'" (onSelect)="selectDepartment($event)">
+                </app-endpoint-search>
+            </div>
+            <div class="col-3">
+                <label for="priority" class="d-block">Priority</label>
+                <app-look-up [options]='priorityOptions' [selectedLookUpList]="lookupValues['srPriorities']"
+                    (selectedResult)="onLookupSelect($event, 'srPriorities')">
+                </app-look-up>
+            </div>
+            <div class="col-3 d-flex d-flex flex-sm-row flex-column justify-content-end align-items-end">
+                <button id="adv-search-clear-request form-control" title="clear" class="btn btn-sm btn-secondary mr-2 mt-2"
+                    (click)="clearServiceRequest();$dashboardList.next()">Clear</button>
+                <button class="btn btn-primary btn-sm mt-2" title="search" id="adv-search-service-request"
+                    (click)="searchServiceRequest();">Search</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card card-table-box rounded-0" *ngIf="isShowRequestList && isShowSearchList">
+    <div class="card-content">
+        <div class="card-header px-3">
+            <p class="align-items-center card-title d-flex justify-content-between">{{getDocumentHeading()}}
+                <span *ngIf="serviceRequestDashboard?.serviceRequestList?.length" class="col-5 exportButton text-right">
+                    <span class="exportIcon-margin">Export as :</span>
+                    <a title="Export data to Excel sheet" class="exportIcon-margin  hand-cursor"
+                        id="export-service-request-excel-btn" (click)="exportServiceRequestList('excel')" tabindex="0">
+                        <i aria-hidden="true" class="fa fa-file-excel-o"></i>
+                    </a>
+                    <a class="exportIcon-margin">|</a>
+                    <a title="Export data to PDF document" class="hand-cursor" id="export-service-request-pdf-btn"
+                        (click)="exportServiceRequestList('pdf')" tabindex="0"><i aria-hidden="true"
+                            class="fa fa-file-pdf-o"></i></a>
+                </span>
+            </p>
+        </div>
+
+        <div *ngIf="serviceRequestDashboard?.serviceRequestList?.length > 0 && isShowSearchList ; else noDataContainer"
+            class="table-responsive">
+            <table class="table tableSkin mb-0">
+                <caption class="sr-only">List of Service Requests</caption>
+                <thead>
+                    <th style="width: 8%" scope="col" (click)="sortResult('serviceRequestId')" tabindex="0" class="hand-cursor">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span title="Click to sort by Service Request ID">Service Request #</span>
+                                <div class="ml-1">
+                                    <i *ngIf="!advanceSearch.sort['serviceRequestId']" class="fa fa-sort-numeric-asc blrcolor"
+                                        aria-hidden="true"></i>
+                                    <i [ngClass]="advanceSearch.sort['serviceRequestId'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"
+                                        aria-hidden="true"></i>
+                                    <i [ngClass]="advanceSearch.sort['serviceRequestId'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"
+                                        aria-hidden="true"></i>
+                                </div>
+                           </div>
+                    </th>
+                    <th style="width: 17%" scope="col" (click)="sortResult('serviceRequestType')" tabindex="0"
+                        class="hand-cursor">
+                        <span title="Click to sort by Type">Type</span>
+                        <i *ngIf="!advanceSearch.sort['serviceRequestType']" class="fa fa-sort-alpha-asc blrcolor"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="advanceSearch.sort['serviceRequestType'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="advanceSearch.sort['serviceRequestType'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                            aria-hidden="true"></i>
+                    </th>
+                    <th style="width: 12%" scope="col" (click)="sortResult('serviceRequestCategory')" tabindex="0"
+                        class="hand-cursor">
+                        <span title="Click to sort by Category">Category</span>
+                        <i *ngIf="!advanceSearch.sort['serviceRequestCategory']" class="fa fa-sort-alpha-asc blrcolor"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="advanceSearch.sort['serviceRequestCategory'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="advanceSearch.sort['serviceRequestCategory'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                            aria-hidden="true"></i>
+                    </th>
+                    <th style="width: 26%" scope="col" (click)="sortResult('subject')" tabindex="0" class="hand-cursor">
+                        <span title="Click to sort by Subject">Subject</span>
+                        <i *ngIf="!advanceSearch.sort['subject']" class="fa fa-sort-alpha-asc blrcolor"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="advanceSearch.sort['subject'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="advanceSearch.sort['subject'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                            aria-hidden="true"></i>
+                    </th>
+                    <th style="width: 14%" scope="col" (click)="sortResult('unitName')" tabindex="0"
+                        class="hand-cursor">
+                        <span title="Click to sort by Department">Department</span>
+                        <i *ngIf="!advanceSearch.sort['unitName']" class="fa fa-sort-alpha-asc blrcolor"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="advanceSearch.sort['unitName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="advanceSearch.sort['unitName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                            aria-hidden="true"></i>
+                    </th>
+                    <th style="width: 10%" scope="col" (click)="sortResult('serviceRequestStatusData')" tabindex="0"
+                        class="hand-cursor">
+                        <span title="Click to sort by Status">Status</span>
+                        <i *ngIf="!advanceSearch.sort['serviceRequestStatusData']" class="fa fa-sort-alpha-asc blrcolor"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="advanceSearch.sort['serviceRequestStatusData'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="advanceSearch.sort['serviceRequestStatusData'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                            aria-hidden="true"></i>
+                    </th>
+                    <th style="width: 10%" scope="col" (click)="sortResult('sRPriority')" tabindex="0"
+                        class="hand-cursor">
+                        <span title="Click to sort by Priority">Priority</span>
+                        <i *ngIf="!advanceSearch.sort['sRPriority']" class="fa fa-sort-alpha-asc blrcolor"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="advanceSearch.sort['sRPriority'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="advanceSearch.sort['sRPriority'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                            aria-hidden="true"></i>
+                    </th>
+                    <th scope="col">Action</th>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let serviceRequest of serviceRequestDashboard?.serviceRequestList">
+                        <td class="pointer" (click)="viewServiceRequestById(serviceRequest?.serviceRequestId)">
+                            {{serviceRequest?.serviceRequestId}}</td>
+                        <td class="pointer" (click)="viewServiceRequestById(serviceRequest?.serviceRequestId)">
+                            {{serviceRequest?.serviceRequestTypeData}}</td>
+                        <td class="pointer" (click)="viewServiceRequestById(serviceRequest?.serviceRequestId)">
+                            {{serviceRequest?.serviceRequestCategory}}</td>
+                        <td class="pointer" (click)="viewServiceRequestById(serviceRequest?.serviceRequestId)">
+                            {{serviceRequest?.subject}}</td>
+                        <td class="pointer" (click)="viewServiceRequestById(serviceRequest?.serviceRequestId)">
+                            {{concatUnitNumberAndUnitName(serviceRequest?.unitNumber, serviceRequest?.unitName)}}</td>
+                        <td class="pointer" (click)="viewServiceRequestById(serviceRequest?.serviceRequestId)">
+                            {{serviceRequest?.serviceRequestStatusData}}</td>
+                        <td class="pointer" (click)="viewServiceRequestById(serviceRequest?.serviceRequestId)">
+                            {{serviceRequest?.sRPriority}}</td>
+                        <td>
+                            <ul class="actionButtonGroup">
+                                <li (click)="viewServiceRequestById(serviceRequest?.serviceRequestId)"><a
+                                        title="Open {{serviceRequest?.serviceRequestId}}" id="open-service-request-btn"
+                                        tabindex="0"><i aria-hidden="true" class="fa fa-eye pointer"></i>
+                                    </a></li>
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12"
+                *ngIf="serviceRequestDashboard?.serviceRequestList !== null && serviceRequestDashboard?.serviceRequestList?.length !== 0">
+                <nav class="pagination justify-content-end">
+                    <app-pagination [totalCount]="serviceRequestDashboard.totalServiceRequest"
+                        (pageChangeEvent)="actionsOnPageChange($event)">
+                    </app-pagination>
+                </nav>
+            </div>
+        </div>
+        <ng-template #noDataContainer>
+            <div class="no-data-container">
+                <span class="no-data-icon-outer">
+                    <div class="no-data-icon">
+                        <i class="fa fa-file-o" aria-hidden="true"></i>
+                        <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                    </div>
+                </span>
+                <h4>There is no information in this section.</h4>
+            </div>
+        </ng-template>
+
+    </div>
+</div>

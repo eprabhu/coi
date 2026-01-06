@@ -1,0 +1,315 @@
+<app-common-modal [modalConfig]="countModalConfig" (modalAction)="coiCountModalAction($event)">
+    <!-- header -->
+    <ng-container modal-header>
+        <div class="d-flex align-items-center">
+            <span class="me-1 text-nowrap">{{ coiCountModal.moduleCode === coiModuleCode || coiCountModal.moduleCode === opaModuleCode
+                                            ? (coiCountModal.inputType === 'DISCLOSURE_ATTACHMENT' ? 'Attachments Related to' : 'Engagements Attached to') 
+                                            : 'Projects Related to' }}:</span>
+            <span class="me-1 text-nowrap">{{ coiCountModal.disclosureType }} {{coiCountModal?.fcoiTypeCode === DISCLOSURE_TYPE.REVISION ? '' : ' Disclosure'}}</span>
+            <span class="me-1 text-nowrap">By {{ coiCountModal.personFullName }}</span>
+            <span>[</span>
+            <span class="text-slice mx-1" [title]="slicedHeaderPart">{{ slicedHeaderPart }}</span>
+            <span class="me-3">]</span>
+            <!-- <app-common-help-text [helpTextHardCoded]="''"></app-common-help-text> -->
+        </div>
+    </ng-container>
+
+    <!-- body -->
+    <ng-container modal-body>
+        <!-- project nav -->
+        <ng-container *ngIf="projectCountList?.length">
+            <nav class="d-flex fw-bold border-bottom nav nav-underline mb-2">
+                <ng-container *ngFor="let projects of projectCountList">
+                    <button *ngIf="projects" class="btn-none text-secondary cursor-pointer d-flex nav-link pb-2"
+                        title="Click here to view {{projects?.projectType?.toLowerCase()}}"
+                        attr.aria-label="Click here to view {{projects?.projectType}}"
+                        [class.active]="currentActiveModuleCode == projects?.moduleCode"
+                        (click)="switchProject(projects?.moduleCode)">
+                        <span class="px-2 fw-500">{{projects?.projectType}}</span>
+                    </button>
+                </ng-container>
+            </nav>
+        </ng-container>
+
+        <!-- Projects Related To The Disclosure -->
+        <div *ngIf="filteredProjectsList?.length" class="coi-table-striped table-responsive border" id="project-count-modal-table-scroll">
+            <table class="table table-bordered table-striped align-middle fs-14 mb-0" id="coi-count-modal-listofaward-table">
+                <caption class="sr-only">List of Projects</caption>
+                <thead class="sticky-top">
+                    <tr id="coi-count-modal-listofaward-table-thead-row">
+                        <th scope="col" class="col-3">Title</th>
+                        <th scope="col">Principal Investigator</th>
+                        <th scope="col">Lead Unit</th>
+                        <th *ngIf="currentActiveModuleCode == PROJECT_TYPE['AWARD']" scope="col">Account Number</th>
+                        <th scope="col">Sponsor</th>
+                        <th scope="col">Prime Sponsor</th>
+                        <th scope="col" class="text-nowrap">Conflict Status</th>
+                        <th class="text-center" scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="row-hover" *ngFor="let project of filteredProjectsList; let projectIndex = index" id="coi-listofaward-table-row-{{projectIndex}}">
+                        <!-- Title -->
+                        <td>
+                            <div class="text-slice">
+                                <app-no-data-label [valueToShow]="project?.formattedProjectHeader">
+                                    <span [title]="project?.formattedProjectHeader">{{project?.formattedProjectHeader}}</span>
+                                </app-no-data-label>
+                            </div>
+                        </td>
+                        <!-- Principal Investigator -->
+                        <td>
+                            <div class="text-slice">
+                                <app-no-data-label [valueToShow]="project?.piName">
+                                    <span [title]="project?.piName">{{project?.piName}}</span>
+                                </app-no-data-label>
+                            </div>
+                        </td>
+                        <!-- Lead Unit -->
+                        <td>
+                            <div class="text-slice">
+                                <app-no-data-label [valueToShow]="project?.formattedLeadUnit">
+                                    <span [title]="project?.formattedLeadUnit">{{project?.formattedLeadUnit}}</span>
+                                </app-no-data-label>
+                            </div>
+                        </td>
+                        <!-- Account Number -->
+                        <td *ngIf="currentActiveModuleCode == PROJECT_TYPE['AWARD']">
+                            <div class="text-slice">
+                                <app-no-data-label [valueToShow]="project?.accountNumber">
+                                    <span [title]="project?.accountNumber">{{project?.accountNumber}}</span>
+                                </app-no-data-label>
+                            </div>
+                        </td>
+                        <!-- Sponsor -->
+                        <td>
+                            <div class="text-slice">
+                                <app-no-data-label [valueToShow]="project?.formattedSponsor">
+                                    <span [title]="project?.formattedSponsor">{{project?.formattedSponsor}}</span>
+                                </app-no-data-label>
+                            </div>
+                        </td>
+                        <!-- Prime Sponsor -->
+                        <td>
+                            <div class="text-slice">
+                                <app-no-data-label [valueToShow]="project?.formattedPrimeSponsor">
+                                    <span [title]="project?.formattedPrimeSponsor">{{project?.formattedPrimeSponsor}}</span>
+                                </app-no-data-label>
+                            </div>
+                        </td>
+                        <!-- Conflict Status -->
+                        <td>
+                            <div class="text-slice">
+                                <app-no-data-label [valueToShow]="project?.conflictStatus">
+                                    <span [title]="project?.conflictStatus">{{project?.conflictStatus}}</span>
+                                </app-no-data-label>
+                            </div>
+                        </td>
+                        <!-- Actions -->
+                        <td>
+                            <div class="d-flex justify-content-center" [class.pe-2]="!project?.projectId || !project?.moduleCode">
+                                <app-no-data-label [valueToShow]="project?.projectId && project?.moduleCode">
+                                    <button id="coi-count-modal-project-view-{{projectIndex}}"
+                                        class="d-flex justify-content-center align-items-center btn-primary-icon rounded-circle p-2 m-1"
+                                        title="Click here to view {{project?.projectType?.toLowerCase()}} details"
+                                        attr.aria-label="Click here to view {{project?.projectType?.toLowerCase()}} details"
+                                        (click)="redirectToProjectDetails(project)">
+                                        <mat-icon aria-hidden="true" class="flex-shrink-0">visibility</mat-icon>
+                                    </button>
+                                </app-no-data-label>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Engagements Attached To The Disclosure -->
+        <div *ngIf="SfiDetailsList?.length;" class="coi-table-striped table-responsive border">
+            <table class="table table-bordered table-striped fs-14 align-middle mb-0" id="coi-count-modal-list-of-sfi-table">
+                <caption class="sr-only">List of Engagements</caption>
+                <thead class="sticky-top">
+                    <tr id="coi-count-modal-table-thead-row">
+                        <th>Engagement Name</th>
+                        <th>Country</th>
+                        <th>Ownership Type</th>
+                        <th *ngIf="isShowFCOIRelationshipColumn || isShowOPARelationshipColumn">Relationship</th>
+                        <th><ng-container i18n="@@START_DATE_INVOLVEMENT">Start Date Of Involvement</ng-container></th>
+                        <th><ng-container i18n="@@END_DATE_INVOLVEMENT">End Date Of Involvement</ng-container></th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let sfiDetails of SfiDetailsList; let sfiIndex = index" id="coi-count-modal-table-tbody-row-{{sfiIndex}}">
+                        <!-- Entity Name -->
+                        <td class="col-4">
+                            <div class="text-slice">
+                                <app-no-data-label
+                                    [valueToShow]="coiCountModal.moduleCode === opaModuleCode ? sfiDetails?.entityName : sfiDetails?.coiEntity?.entityName">
+                                    <span
+                                        [title]="coiCountModal.moduleCode === opaModuleCode ? sfiDetails?.entityName : sfiDetails?.coiEntity?.entityName">
+                                        {{coiCountModal.moduleCode === opaModuleCode ? sfiDetails?.entityName : sfiDetails?.coiEntity?.entityName}}
+                                    </span>
+                                </app-no-data-label>
+                            </div>
+                        </td>
+                        <!-- Country -->
+                        <td>
+                            <div class="text-slice">
+                                <app-no-data-label
+                                    [valueToShow]="coiCountModal.moduleCode === opaModuleCode ? sfiDetails?.countryName : sfiDetails?.coiEntity?.country?.countryName">
+                                    <span [title]="coiCountModal.moduleCode === opaModuleCode ? sfiDetails?.countryName : sfiDetails?.coiEntity?.country?.countryName">
+                                        {{coiCountModal.moduleCode === opaModuleCode ? sfiDetails?.countryName :
+                                        sfiDetails?.coiEntity?.country?.countryName}}
+                                    </span>
+                                </app-no-data-label>
+                            </div>
+                        </td>
+                        <!-- Ownership Type -->
+                        <td>
+                            <div class="text-slice">
+                                <app-no-data-label
+                                    [valueToShow]="coiCountModal.moduleCode === opaModuleCode ? sfiDetails?.entityOwnershipType : sfiDetails?.coiEntity?.entityOwnershipType?.description">
+                                    <span [title]="coiCountModal.moduleCode === opaModuleCode ? sfiDetails?.entityOwnershipType : sfiDetails?.coiEntity?.entityOwnershipType?.description">
+                                        {{coiCountModal.moduleCode === opaModuleCode ? sfiDetails?.entityOwnershipType :
+                                        sfiDetails?.coiEntity?.entityOwnershipType?.description}}
+                                    </span>
+                                </app-no-data-label>
+                            </div>
+                        </td>
+                        <!-- Relationship -->
+                         <td *ngIf="isShowFCOIRelationshipColumn || isShowOPARelationshipColumn">
+                             <div *ngIf="isShowFCOIRelationshipColumn" class="col text-slice">
+                                 <app-no-data-label [valueToShow]="sfiDetails.validPersonEntityRelTypes?.length">
+                                    <ng-container *ngIf="sfiDetails.isSignificantFinInterest">
+                                        <span class="d-flex align-items-center">
+                                            <span class="fs-13">SFI</span>
+                                            <span *ngIf="sfiDetails.validPersonEntityRelTypes?.length">,</span>
+                                        </span>
+                                    </ng-container>
+                                    <ng-container *ngFor="let RelationshipType of sfiDetails.validPersonEntityRelTypes; let relationshipIndex = index, let last = last">
+                                            <span class="d-flex align-items-center">
+                                                <span class="fs-13">{{ RelationshipType?.coiDisclosureType?.description }}<ng-container *ngIf="!last">,</ng-container></span>
+                                            </span>
+                                    </ng-container>
+                                </app-no-data-label>
+                             </div>
+                             <div *ngIf="isShowOPARelationshipColumn" class="col text-slice">
+                                 <app-no-data-label [valueToShow]="sfiDetails.relationships?.length">
+                                    <ng-container *ngIf="sfiDetails.isSignificantFinInterest">
+                                        <span class="d-flex align-items-center">
+                                            <span class="fs-13">SFI</span>
+                                            <span *ngIf="sfiDetails.relationships?.length">,</span>
+                                        </span>
+                                    </ng-container>
+                                    <ng-container *ngFor="let RelationshipType of sfiDetails.relationships; let relationshipIndex = index, let last = last">
+                                            <span class="d-flex align-items-center">
+                                                <span class="fs-13">{{ RelationshipType }}<ng-container *ngIf="!last">,</ng-container></span>
+                                            </span>
+                                    </ng-container>
+                                </app-no-data-label>
+                             </div>
+                         </td>
+                        <!-- Start Date of Involvement -->
+                        <td>
+                            <div class="d-flex align-items-center text-slice">
+                                <app-no-data-label [valueToShow]="sfiDetails?.involvementStartDate">
+                                    <span [title]="sfiDetails?.involvementStartDate | dateFormatter">{{sfiDetails?.involvementStartDate | dateFormatter}}</span>
+                                </app-no-data-label>
+                            </div>
+                        </td>
+                        <!-- End Date of Involvement -->
+                        <td>
+                            <div class="d-flex align-items-center text-slice">
+                                <app-no-data-label [valueToShow]="sfiDetails?.involvementEndDate">
+                                    <span [title]="sfiDetails?.involvementEndDate | dateFormatter">{{sfiDetails?.involvementEndDate | dateFormatter}}</span>
+                                </app-no-data-label>
+                            </div>
+                        </td>
+                        <!-- Actions -->
+                        <td>
+                            <div class="d-flex justify-content-center w-100" [class.pe-2]="!sfiDetails?.personEntityId">
+                                <app-no-data-label [valueToShow]="sfiDetails?.personEntityId">
+                                    <button id="coi-count-modal-sfi-view-{{sfiIndex}}"
+                                        class="d-flex justify-content-center align-items-center btn-primary-icon rounded-circle p-2 m-1"
+                                        title="Click here to view details of '{{sfiDetails?.coiEntity?.entityName}}'"
+                                        attr.aria-label="Click here to view details of '{{sfiDetails?.coiEntity?.entityName}}'"
+                                        (click)="viewSliderEmit(true, sfiDetails?.personEntityId)">
+                                        <mat-icon aria-hidden="true" class="flex-shrink-0">visibility</mat-icon>
+                                    </button>
+                                </app-no-data-label>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Attachments Related To The Disclosure -->
+        <div *ngIf="filteredCoiAttachmentsList?.length" class="coi-table-striped table-responsive border">
+            <table class="table table-bordered table-striped align-middle fs-14 mb-0" id="coi-count-modal-attachment-table">
+                <caption class="sr-only">List of Attachments</caption>
+                <thead class="sticky-top">
+                    <tr id="coi-count-modal-attachment-table-thead-row">
+                        <th scope="col" class="col-3 text-nowrap">Attachment Type</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">File Name</th>
+                        <th class="text-center" scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="row-hover" *ngFor="let attachment of filteredCoiAttachmentsList; let attachmentIndex = index" id="coi-listof-attachment-table-row-{{attachmentIndex}}">
+                        <!-- Attachment Type -->
+                        <td>
+                            <div class="text-slice">
+                                <app-no-data-label [valueToShow]="attachment?.attachmentType">
+                                    <span [title]="attachment?.attachmentType">{{attachment?.attachmentType}}</span>
+                                </app-no-data-label>
+                            </div>
+                        </td>
+                        <!-- Description -->
+                        <td>
+                            <div class="text-slice">
+                                <app-no-data-label [valueToShow]="attachment?.description">
+                                    <span [title]="attachment?.description">{{attachment?.description}}</span>
+                                </app-no-data-label>
+                            </div>
+                        </td>
+                        <!-- File Name -->
+                        <td>
+                            <div class="text-slice">
+                                <app-no-data-label [valueToShow]="attachment?.fileName">
+                                    <span [title]="attachment?.fileName">{{attachment?.fileName}}</span>
+                                </app-no-data-label>
+                            </div>
+                        </td>
+                        <!-- Actions -->
+                        <td>
+                            <div class="d-flex justify-content-center">
+                                <button id="coi-count-modal-atta-download-{{attachmentIndex}}"
+                                    class="d-flex justify-content-center align-items-center btn-primary-icon rounded-circle p-2 m-1"
+                                    title="Click here to download attachment"
+                                    attr.aria-label="Click here to download attachment"
+                                    (click)="downloadAttachment(attachment)">
+                                    <mat-icon aria-hidden="true" class="flex-shrink-0">download</mat-icon>
+                                </button>
+                                <button id="coi-count-modal-attachment-view-{{attachmentIndex}}"
+                                    class="d-flex justify-content-center align-items-center btn-primary-icon rounded-circle p-2 m-1"
+                                    title="Click here to view attachment details"
+                                    attr.aria-label="Click here to view attachment details"
+                                    (click)="redirectToAttachmentDetails()">
+                                    <mat-icon aria-hidden="true" class="flex-shrink-0">visibility</mat-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- No Info Card -->
+        <ng-container *ngIf="!filteredProjectsList?.length && !SfiDetailsList?.length && !filteredCoiAttachmentsList?.length">
+            <app-no-information></app-no-information>
+        </ng-container>
+    </ng-container>
+</app-common-modal>

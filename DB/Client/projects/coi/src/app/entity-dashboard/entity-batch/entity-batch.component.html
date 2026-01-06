@@ -1,0 +1,132 @@
+<div class="row gap-2">
+    <div class="col-12 coi-nav-tab-sticky coi-bg-body">
+        <div class="row gap-2">
+            <div class="col-12">
+                <!-- batch card -->
+                <app-shared-entity-batch-card [uniqueId]="entityBatchDetails.batchId" [isShowBackBtn]="true"
+                    [entityBatchDetails]="entityBatchDetails" [isShowViewBtn]="false"></app-shared-entity-batch-card>
+            </div>
+            <!-- filer and search -->
+            <div class="col-12">
+                <app-entity-batch-filter-search [filterSearchData]="filterSearchData" (filterSearchDataChange)="filterSearchDataChange($event)"></app-entity-batch-filter-search>
+            </div>
+            <!-- select all -->
+            <div *ngIf="entityList.length && !isLoading && isShowSelectAll" class="col-12">
+                <section class="d-flex justify-content-between align-items-center coi-select-all-section shadow-sm py-2 px-3 border border-primary-subtle rounded">
+                    <div class="d-flex align-items-center">
+                        <input type="checkbox" id="coi-batch-entity-select-all-input" class="cursor-pointer"
+                            [(ngModel)]="isAllEntitySelected" (ngModelChange)="selectAllEntities()" [disabled]="isDisableSelectAll">
+                        <label for="coi-batch-entity-select-all-input" class="f-14 label-text ps-2" tabindex="-1" [class.cursor-pointer]="!isDisableSelectAll">
+                            <span>Select all</span>
+                        </label>
+                        <span *ngIf="selectedCount" class="fs-14 py-2 ms-1 fw-medium">({{selectedCount}} Selected)</span>
+                    </div>
+                    <div *ngIf="selectedCount" class="d-flex align-items-center gap-2" [@leftSlideInOut]>
+                        <!-- Create Entity Using D&B Batch -->
+                        <button *ngIf="selectedCount > 0 && isShowCreateWithDnB"
+                            class="d-flex align-items-center btn btn-primary fs-14 gap-1" (click)="openBatchConfirmModal('CREATION_WITH_DNB')"
+                            title="Click here to create entity using D&B match"
+                            aria-label="Click here to create entity using D&B match">
+                            <mat-icon aria-hidden="true">add</mat-icon>
+                            <span>Create Entity Using D&B Match</span>
+                        </button>
+                        <!-- Exclude from Entity Creation -->
+                        <button *ngIf="selectedCount > 0"
+                            class="d-flex align-items-center btn btn-primary fs-14 gap-1" (click)="openBatchConfirmModal('EXCLUDE_FROM_CREATION')"
+                            title="Click here to exclude from entity creation"
+                            aria-label="Click here to exclude from entity creation">
+                            <mat-icon aria-hidden="true" class="coi-scale-9">do_not_disturb_on</mat-icon>
+                            <span>Exclude from Entity Creation</span>
+                        </button>
+                        <!-- Create Entity Without D&B Match -->
+                        <button *ngIf="selectedCount > 0"
+                            class="d-flex align-items-center btn btn-primary fs-14 gap-1" (click)="openBatchConfirmModal('CREATION_WITHOUT_DNB')"
+                            title="Click here to create entity without D&B match"
+                            aria-label="Click here to create entity without D&B match">
+                            <mat-icon aria-hidden="true">add</mat-icon>
+                            <span>Create Entity Without D&B Match</span>
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+    <ng-container *ngIf="!isLoading">
+        <ng-container *ngIf="entityList.length; else showNoData">
+            <div class="d-flex gap-2 col-12 flex-column">
+                <ng-container *ngFor="let entityDetails of entityList; let entityIndex = index;">
+                    <app-shared-entity-details-card [entityCardConfig]="entityDetails"
+                        (actions)="sharedEntityCardActions($event)"></app-shared-entity-details-card>
+                </ng-container>
+            </div>
+            <!-- pagination Panel-->
+            <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 mt-3">
+                <nav aria-label="pagination section" class="pagination justify-content-end">
+                    <app-pagination [pageCount]="savedBatchEntityRO.totalCount" [defaultCurrentPage]="savedBatchEntityRO.pageNumber"
+                        (pageChangeEvent)="actionsOnPageChange($event)" [totalCount]="totalBatchCount">
+                    </app-pagination>
+                </nav>
+            </div>
+        </ng-container>
+        <!-- no data card -->
+        <ng-template #showNoData>
+            <app-no-information customClass="rounded-3 mt-0"></app-no-information>
+        </ng-template>
+
+        <!-- review slider -->
+        <ng-container *ngIf="selectedReviewEntity != null">
+            <app-entity-batch-review-slider [batchEntityDetails]="selectedReviewEntity"
+                [batchDetails]="entityBatchDetails" (closeSlider)="closeReviewSlider($event)"></app-entity-batch-review-slider>
+         </ng-container>
+    </ng-container>
+
+    <!-- Batch Confirmation Modal -->
+    <ng-container *ngIf="confirmationModal.modalHeader">
+        <app-common-modal [modalConfig]="modalConfig" (modalAction)="batchConfirmationModalActions($event)">
+            <!-- header -->
+            <ng-container modal-header>
+                <span>{{confirmationModal.modalHeader}}</span>
+                <app-common-help-text [subSectionId]="BATCH_BULK_REVIEW_SUBSECTION_CODE" [elementId]="confirmationModal.modalHelpElementId"></app-common-help-text>
+            </ng-container>
+            <!-- sticky - content -->
+            <ng-container *ngIf="confirmationModal.modalInfoText" modal-content-sticky>
+                <!-- info -->
+                <div class="d-flex alert alert-primary mt-3 mb-0 py-2">
+                    <mat-icon class="mat-icon material-icons flex-shrink-0" aria-hidden="true">info</mat-icon>
+                    <p class="fs-14 mb-0 ms-2">
+                        <span [innerHTML]="confirmationModal.modalInfoText"></span>
+                    </p>
+                </div>
+            </ng-container>
+            <!-- body -->
+            <ng-container modal-body>
+                <span class="d-block coi-text-dark">{{BATCH_ENTITY_CONFIRMATION_TEXT}}</span>
+            </ng-container>
+        </app-common-modal>
+    </ng-container>
+
+    <!-- Re Review Validation Modal -->
+    <ng-container *ngIf="isOpenValidationModal">
+        <app-common-modal [modalConfig]="validationModalConfig" (modalAction)="validationModalActions($event)">
+            <!-- header -->
+            <ng-container modal-header>
+                <span>Validation</span>
+                <app-common-help-text [subSectionId]="SUB_SECTION_CODES['BATCH_ACTION']"
+                    [elementId]="BATCH_ENTITY_REVIEW_HELP_ELEMENT_ID['BATCH_ACTION']['VALIDATION_MODAL_HEADER']"></app-common-help-text>
+            </ng-container>
+            <!-- sticky - content -->
+            <ng-container modal-body>
+                <!-- info -->
+                <div class="alert alert-danger fs-14 shadow-sm m-0 gap-2" role="alert" attr.aria-label="Error: {{BATCH_ENTITY_RE_REVIEW_VALIDATION_INFO_TEXT}}">
+                    <div class="alert-heading d-flex align-items-start gap-1">
+                        <div class="d-flex align-items-center gap-1">
+                            <mat-icon class="fs-4 h-auto text-danger flex-shrink-0" aria-hidden="true">error</mat-icon>
+                            <strong>Error:</strong>
+                        </div>
+                        <span>{{BATCH_ENTITY_RE_REVIEW_VALIDATION_INFO_TEXT}}</span>
+                    </div>
+                </div>
+            </ng-container>
+        </app-common-modal>
+    </ng-container>
+</div>

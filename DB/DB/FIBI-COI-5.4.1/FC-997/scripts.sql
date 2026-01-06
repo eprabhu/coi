@@ -1,0 +1,3 @@
+SET SQL_SAFE_UPDATES = 0;
+UPDATE `dyn_element_config` SET `SUB_SECTION_CODE` = '2607' WHERE (`UI_REFERENCE_ID` = 'coi-risk-type-2607');
+SET SQL_SAFE_UPDATES = 1;

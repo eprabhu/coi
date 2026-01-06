@@ -1,0 +1,75 @@
+<div class="modal fade mySkinDialog" id="addAgreementAttachment" tabindex="-1" role="dialog"
+    aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 *ngIf="!isReplaceAttachment" class="modal-title">Add Attachments</h5>
+                <h5 *ngIf="isReplaceAttachment" class="modal-title">Replace Attachment</h5>
+                <button type="button" class="close" data-dismiss="modal" id="agreement-doc-popup-dismiss-btn"
+                    aria-label="Close" (click)="clearAttachmentDetails();emitAttachmentDetails(null);">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <app-file-drop [multiple]="true" (filesDropEvent)="fileDrop($event)"></app-file-drop>
+                </div>
+                <div *ngIf="uploadedFile.length > 0">
+                    <div class="gridSkin">
+                        <div class="card shadow mb-2" *ngFor="let item of uploadedFile; let i=index">
+                            <div class="row mb-2">
+                                <div class="col-lg-3 col-12">
+                                    <label class="d-block"><span class="mandatory">*</span>Document Type</label>
+                                    <span *ngIf="isReplaceAttachment">
+                                        {{newAttachment[i].agreementAttachmentType.description}}
+                                    </span>
+                                    <select id="agreement-doc-popup-type" class="form-control dateBox"
+                                        *ngIf="!isReplaceAttachment" [(ngModel)]="newAttachment[i].agreementAttachmentTypeCode"
+                                        (ngModelChange)="onAttachmentTypeChange(i, newAttachment[i].agreementAttachmentTypeCode)">
+                                        <option [value]=null>--Select--</option>
+                                        <ng-container *ngFor="let attachType of result.agreementAttachmentTypes">
+                                            <option *ngIf="attachType.agreementAttachmentTypeCode != 4"
+                                                [value]="attachType.agreementAttachmentTypeCode" [disabled]="!attachType.isActive"
+                                                [hidden]="!attachType.isActive">
+                                                {{attachType?.description}}
+                                            </option>
+                                        </ng-container>
+                
+                                    </select>
+                                </div>
+                                <div class="col-lg-4 col-12">
+                                    <label>Description</label>
+                                    <textarea id="desc" cols="2" rows="1" id="agreement-doc-popup-desc"
+                                        [(ngModel)]="newAttachment[i].description" placeholder="" class="form-control dateBox">
+                                    </textarea>
+                                </div>
+                                <div class="col-lg-4 col-12">
+                                    <label><span class="mandatory">*</span>File</label>
+                                    <span class="d-block">{{(item?.name?.length > 30)?(item?.name |
+                                        slice:0:30)+'...':(item?.name)}}</span>
+                                </div>
+                                <div class="col-lg-1 col text-right">
+                                    <ul class="actionButtonGroup mt-5">
+                                        <li>
+                                            <a id="agreement-doc-popup-dlt-btn" class="fa fa-trash-o hand-cursor" title="Remove File"
+                                                (click)="deleteFromUploadedFileList(i)"></a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="attachmentWarningMsg != null">
+                    <span class="mandatory font">{{attachmentWarningMsg}}</span>
+                </div>
+            </div>
+            <div class="modal-footer float-right mt-3" *ngIf="uploadedFile.length > 0">
+                <button type="button" class="btn btn-secondary" id="agreement-doc-popup-close-btn" data-dismiss="modal"
+                (click)="clearAttachmentDetails();emitAttachmentDetails(null);">Close</button>
+                <button type="button" class="btn btn-primary-sub" id="agreement-doc-popup-add-btn"
+                (click)="addAttachments()">Add</button>
+            </div>
+        </div>
+    </div>
+</div>

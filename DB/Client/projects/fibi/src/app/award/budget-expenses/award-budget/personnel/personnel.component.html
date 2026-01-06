@@ -1,0 +1,170 @@
+    <div class="card p-15">
+        <div class="form-row" *ngIf="_budgetDataService.isBudgetEditable|| _budgetDataService.isBudgetPartiallyEditable" [ngClass]="{'personmodal': currentUrl !='personnel'}">
+          <div class="col"><label class="block-display">Person Type</label>
+              <select class="form-control wd-100" [(ngModel)]="personsDetails.personType" (change)="setElasticConfig()"
+              [ngClass]="{'lineItem-mandatory': map.get('persontype')}">
+                <option *ngFor="let type of personnelTypes" [value]="type.value">{{type.name}}</option>
+              </select>
+              <div *ngIf="(map.get('persontype'))" class="invalid-feedback d-block">
+                  Select a person type.
+              </div>
+            </div>
+            <div class="col col-2">
+            <label class="block-display">Name</label>
+              <div class="searchBox memberSearchBox position-relative dsp-blk mb-0" *ngIf="personsDetails.personType == 'E'">
+                <app-elastic [placeHolder]="'Search an employee'" [isError]="(map.get('person')) ? true : false"
+                  (selectedResult)="selectedPersonnel($event)" [options]="elasticSearchOptions"
+                  [clearField]="clearField"></app-elastic>
+              </div>
+              <div class="searchBox memberSearchBox position-relative dsp-blk mb-0" *ngIf="personsDetails.personType == 'N'">
+                <app-elastic [placeHolder]="'Search a non-employee'" [isError]="(map.get('person')) ? true : false"
+                  (selectedResult)="selectedPersonnel($event)" [options]="elasticSearchOptions"
+                  [clearField]="clearField"></app-elastic>
+              </div>
+              <div class="searchBox memberSearchBox dsp-blk mb-0" *ngIf="personsDetails.personType == 'T'">
+                <app-autocompleter [completerOptions]="completerOptions"  [placeHolder]="'Search a to be named'"
+                (onSelect)="tbnChangeFunction($event)" [isError]="(map.get('person')) ? true : false"></app-autocompleter>
+              </div>
+              <div class="budgetMembersearchBox memberSearchBox position-relative dsp-blk" *ngIf="personsDetails.personType == 'P'">
+                <select class="wd-100 form-control" [(ngModel)]="personnelSearchText"
+                  (change)="personnelNameChange()" [ngClass]="(map.get('personp') || map.get('personrepeat')) ? 'is-invalid' : ''">
+                  <option [ngValue]=null>--Select--</option>
+                  <option *ngFor="let name of personsResultData?.awardPersons" [value]="name.fullName">
+                    {{name.fullName}}</option>
+                </select>
+              </div>
+              <div *ngIf="(map.get('person'))" class="invalid-feedback d-block">
+                  Search a person.
+              </div>
+              <div *ngIf="(map.get('personp'))" class="invalid-feedback d-block">
+                  Select a person.
+              </div>
+              <div *ngIf="(map.get('personrepeat'))" class="invalid-feedback d-block">
+                  Person already added.
+              </div>
+            </div>
+          <div class="col col-2"><label class="block-display">Job Type</label>
+            <select class="form-control wd-100" [(ngModel)]="personsDetails.jobCode" (ngModelChange)="setPersonSalary()"
+            [ngClass]="{'lineItem-mandatory': map.get('jobtype')}">
+              <option value=null>--Select--</option>
+              <option [value]="job.jobCode" *ngFor="let job of personsResultData?.jobCode" [hidden]="job.isActive != true"> {{job.jobTitle}} </option>
+            </select>
+            <div *ngIf="(map.get('jobtype'))" class="invalid-feedback d-block">
+                Select a job type.
+            </div>
+          </div>
+          <div class="col"><label class="block-display">Appointment Type</label>
+            <select class="form-control" [(ngModel)]="personsDetails.appointmentTypeCode" [ngClass]="{'lineItem-mandatory': map.get('appoinmenttype')}">
+              <option value=null>--Select--</option>
+              <option [value]="appoinment.code" *ngFor="let appoinment of personsResultData?.appointmentType" [hidden]="appoinment.isActive != true"> 
+                {{appoinment.description}} </option>
+            </select>
+            <div *ngIf="(map.get('appoinmenttype'))" class="invalid-feedback d-block">
+                Select a appointment type.
+            </div>
+          </div>
+          <div class="col"><label class="block-display">Effective Date</label>
+            <span class="dateField">
+                <input matInput [matDatepicker]="effDate" placeholder="{{datePlaceHolder}}" id="personnel-effective-date" (keypress)="_commonService._keyPress($event, 'date')"
+                  class="d-inline-block form-control"  [(ngModel)]="personsDetails.effectiveDate" (click)="effDate.open()"/>
+                <i class="fa fa-calendar fa-large insidePicker hand-cursor" (click)="effDate.open()" aria-hidden="true"></i>
+                <mat-datepicker #effDate (opened)="setFocusToElement('personnel-effective-date')"></mat-datepicker>
+            </span>
+          </div>
+          <div class="col" style="width:12%"><label class="block-display">Base Salary ($)</label>
+            <input appCurrencyFormat class="form-control text-right" type="text"  [(ngModel)]="personsDetails.calculationBase" 
+            [initialValue]="personsDetails.calculationBase" (ngModelChange)="inputDigitRestriction(personsDetails.calculationBase, 'baseSalary');"
+            [ngClass]="(map.get('baseSalary')) ? 'is-invalid d-block' : ''"/>
+            <div *ngIf="(map.get('baseSalary'))" class="invalid-feedback d-block"> {{map.get('baseSalary')}}</div>
+        </div>
+          <div class="col"><label class="block-display">Anniversary Date</label>
+            <span class="dateField">
+                <input matInput [matDatepicker]="anniversaryDate" placeholder="{{datePlaceHolder}}" id="personnel-anniversary-date" (keypress)="_commonService._keyPress($event, 'date')"
+                  class="d-inline-block form-control"  [(ngModel)]="personsDetails.salaryAnniversaryDate" (click)="anniversaryDate.open()"/>
+                <i class="fa fa-calendar fa-large insidePicker hand-cursor" (click)="anniversaryDate.open()" aria-hidden="true"></i>
+                <mat-datepicker #anniversaryDate (opened)="setFocusToElement('personnel-anniversary-date')"></mat-datepicker>
+            </span>
+          </div>
+              <div class="col">
+                <label class="block-display">&nbsp;</label>
+                <div class="d-flex align-items-end justify-content-end">
+                    <button *ngIf="!personsDetails.budgetPersonId" class="btn btn-primary-sub btn-sm" (click) = "addPerson(personsDetails)">Add</button>
+                    <button *ngIf="personsDetails.budgetPersonId" class="btn btn-primary-sub btn-sm" (click) = "updatePerson()">Update</button>
+                    <button id="add-person-modal-clear" class="btn btn-secondary btn-sm ml-2" (click)="resetPersonObject()">Clear</button>
+                </div>
+              </div>
+        </div>
+        <div class="table-responsive">
+        <table class="table tableSkin grid2 mt-5" aria-describedby="proposal-budget-personnel" *ngIf="currentUrl=='personnel'">
+          <thead>
+            <tr class="header-border">
+              <th scope="col" style="width:14%">Person Type</th>
+              <th scope="col" style="width:17%">Name</th>
+              <th scope="col" style="width:25%">Job Type</th>
+              <th scope="col" style="width:15%">Appointment Type</th>
+              <th scope="col">Effective Date</th>
+              <th scope="col">Base Salary</th>
+              <th scope="col">Anniversary Date</th>
+              <th scope="col" *ngIf="_budgetDataService.isBudgetEditable">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="addPersonId" *ngIf="personsResultData?.awardBudgetPersonList?.length > 0">
+            <tr *ngFor="let person of personsResultData?.awardBudgetPersonList;let i = index" id="{{i}}">
+              <td>{{findPersonType(person.personType)}}</td>
+              <td *ngIf="person.personType == 'N' || person.personType == 'P' || person.personType == 'E'">{{person.personName}}</td>
+              <td *ngIf="person.personType == 'T'">{{person?.tbnPerson?.personName}}</td>
+              <td>{{person?.jobCodes?.jobTitle}}</td>
+              <td>{{person?.appointmentType?.description}}</td>
+              <td>{{person?.effectiveDate| dateFormatter}}</td>
+              <td>{{person?.calculationBase | currency: currencyFormatter}}</td>
+              <td>{{person?.salaryAnniversaryDate| dateFormatter}}</td>
+              <td *ngIf="_budgetDataService.isBudgetEditable">
+                <ul class="actionButtonGroup">
+                  <li><a>
+                    <i *ngIf="!isEditPerson[i]" aria-hidden="true" class="fa fa-trash-o pointer" title="remove" (click)="index=i; checkBudgetPersonAddedInBudget(person)" data-target="#awardPersondelete" data-toggle="modal"></i>
+                  </a>
+                  </li>
+                  <li><a>
+                      <i aria-hidden="true" class="fa fa-pencil pointer" title="edit" (click)="editPerson(i)"></i>
+                    </a>
+                  </li>
+                </ul>
+              </td>
+            </tr>
+          </tbody>
+          <tbody *ngIf="personsResultData?.awardBudgetPersonList?.length === 0">
+            <tr>
+              <td colspan="8"><span class="noDataExists">No Persons added.</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+  </div>
+
+<!-- Delete Person Modal -->
+<button [hidden]="true" id="award-person-delete-modal-btn" data-toggle="modal" data-target="#award-person-delete-modal"></button>
+<div class="modal fade mySkinDialog" id="award-person-delete-modal" role="dialog" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 *ngIf="isPersonAddedInLineItem == true" class="modal-title">Warning</h4>
+          <h4 *ngIf="isPersonAddedInLineItem != true" class="modal-title">Delete</h4>
+        </div>
+        <div class="modal-body ct-modal-padding">
+          <div class="row">
+            <div *ngIf="isPersonAddedInLineItem == true" class="col-lg-12">
+              <p>Cannot proceed as the selected person added in budget line item(s).</p>
+            </div>
+            <div *ngIf="isPersonAddedInLineItem != true" class="col-lg-12">
+              <p>Are you sure you want to delete this person?</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button *ngIf="isPersonAddedInLineItem != true" type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button *ngIf="isPersonAddedInLineItem != true" type="button" class="btn btn-primary-sub" data-dismiss="modal" (click)="deletePerson(index)">Delete</button>
+          <button *ngIf="isPersonAddedInLineItem == true" type="button" class="btn btn-primary-sub" data-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>

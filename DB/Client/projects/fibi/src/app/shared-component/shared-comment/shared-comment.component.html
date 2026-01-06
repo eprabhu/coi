@@ -1,0 +1,204 @@
+<section id="proposal-comments">
+	<div class="card ">
+		<div class="card-body" *ngIf="isEditMode">
+			<div class="row">
+				<div class="col-2">
+					<label for="prop-category" class="fs-14">
+						<span class="mandatory">*</span>Comment Type</label>
+					<select id="prop-category" class="form-control dateBox" (ngModelChange)="setUnsavedChanges(true)"
+						[(ngModel)]="comment.commentTypeCode"
+						[ngClass]="{'is-invalid d-block': errorMap.has('commentType')}">
+						<option [value]=null> --Select Comment Type-- </option>
+						<option *ngFor="let type of commentTypes" [value]="type.commentTypeCode"
+							[hidden]="type.isActive != true">
+							{{type.description}}
+						</option>
+					</select>
+					<div *ngIf="errorMap.has('commentType')" class="invalid-feedback">
+						{{errorMap.get('commentType')}}
+					</div>
+				</div>
+				<div class="col-8">
+					<div>
+						<label for="main-panel-comnt" class="fs-14"><span class="mandatory">*</span>Comment</label>
+						<textarea id="main-panel-comnt" placeholder="Write your comment here" row="1"
+							class="form-control comment-text-box d-block" [(ngModel)]="comment.comment"
+							[ngClass]="{'is-invalid d-block': errorMap.has('comment')}" appLengthValidator
+							[isShowLimiter]='true' [limit]=4000 (ngModelChange)="setUnsavedChanges(true)"></textarea>
+						<div *ngIf="errorMap.has('comment')" class="invalid-feedback">
+							{{errorMap.get('comment')}}
+						</div>
+					</div>
+					<!-- attachment beginning for proposal comment -->
+					<ng-container *ngIf="requestModuleCode === 3">
+						<div>
+							<span class="anchor-link fs-1" data-toggle="modal" data-target="#commentAttachmentModal"
+								(click)="newAttachments = []; warningMsg = null">
+								<a tabindex="0">
+									<i aria-hidden="true" class="fa fa-paperclip rounded-icon mr-1" tabindex="0">
+									</i>
+									Add Attachments</a>
+							</span>
+						</div>
+						<div>
+							<div *ngIf="newAttachments.length > 0">
+								<div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 fileChips pt-0"
+									style="word-break: break-all;">
+									<span style="padding:3px 8px;"
+										*ngFor="let item of newAttachments; let i=index">{{item?.fileName}}
+										<i class="fa fa-close hand-cursor" id="req-doc-dlt"
+											(click)="deleteFromCommentList(i)" title="Delete attachment"
+											aria-hidden="true"></i>
+									</span>
+								</div>
+							</div>
+						</div>
+					</ng-container>
+					<!-- attachment end for proposal comment -->
+				</div>
+				<div class="col-2 mt-5">
+					<!-- private comment beginning for proposal comment -->
+					<span class="d-flex" *ngIf=" requestModuleCode ===3 ">
+						<div class="mb-2">
+							<input class="select-all ml-3" title="Private comment" type="checkbox"
+								(ngModelChange)="setUnsavedChanges(true)" [(ngModel)]="comment.isPrivate">
+							<span class="checkmark ml-3"></span>
+						</div>
+						<span class="fs-14 ml-2 bold-600">Private Comment</span>
+					</span>
+					<!-- private comment end for proposal comment -->
+					<span>
+						<button class="btn btn-primary-sub ml-lg-3 mb-lg-4 px-5" title="Add Comment"
+							(click)="addComment(proposalId)">Add
+							Comment</button>
+					</span>
+				</div>
+			</div>
+		</div>
+		<div class="ml-3 mb-3 mr-3">
+			<div *ngIf="(commentsAndAttachmentsList.length > 0)">
+				<ul class="subTabs mb-4 mt-3">
+					<ng-container *ngFor="let commentObject of commentsAndAttachmentsList">
+						<li *ngIf="commentObject.countToDisplay > 0"
+							[ngClass]="{'active' : commentTab == commentObject.id }" class="d-flex">
+							<a class="subTabLink pr-3 pt-1" (click)="switchCommentTab(commentObject.id)"
+								tabindex="0">{{commentObject.description}}
+								<span
+									class="badge badge-pill badge-primary ml-2">{{commentObject.countToDisplay}}</span></a>
+						</li>
+					</ng-container>
+				</ul>
+			</div>
+			<div *ngFor="let commentObject of commentsAndAttachmentsList">
+				<div *ngIf="commentObject.comments.length != 0 && commentTab == commentObject.id">
+					<div *ngFor="let reviewerComment of commentObject.comments;let i = index" class="comment-message">
+						<!-- Comment Logo -->
+						<div class="comment-message-logo pr-2">
+							<i class="fa fa-user-circle fa-2x txt-big mr-1 text-secondary" aria-hidden="true"></i>
+						</div>
+						<div class="comment-message-body pt-1">
+							<div class="comment-inner-head">
+								<div class="comment-inner-head-left">
+									<!-- full name of commenter -->
+									<span
+										class="text-black font-weight-bold txt-medium">{{reviewerComment.fullName}}</span>
+									&nbsp;&nbsp;
+									<!-- Private? only for proposal-->
+									<span *ngIf="requestModuleCode === 3 && reviewerComment.isPrivate"
+										class="fw-700 text-primary txt-medium">
+										Private</span>
+									<!-- time -->
+									<p class="d-inline ml-10 txt-medium text-secondary font-weight-light">
+										{{reviewerComment.updateTimestamp | dateFormatterWithTimeZone: 'long'}}</p>
+								</div>
+							</div>
+							<div class="comment-inner-body pt-1">
+								<!-- display comment -->
+								<div>
+									<i aria-hidden="true" class="fa fa-quote-left comment-icon"></i>
+									<sub> <span class="f-13  text-content-color new-line-property"
+											[innerHTML]="reviewerComment.comment| customTagRemover: currentMethod"></span>
+									</sub>
+									<!-- attachment  for proposal comments  -->
+									<ng-container *ngIf="requestModuleCode === 3">
+										<hr *ngIf="reviewerComment?.proposalCommentAttachments?.length" class="mb-0">
+										<div *ngIf="reviewerComment?.proposalCommentAttachments?.length"
+											class="fileChips regularFont">
+											<ng-container
+												*ngFor="let attachment of reviewerComment?.proposalCommentAttachments">
+												<span class="px-2">
+													{{attachment.fileName}}
+													<i aria-hidden="true"
+														class="fa fa-download badge-icon ml-1 hand-cursor"
+														title="Download {{attachment.fileName}}"
+														(click)="downloadAttachment(attachment)"></i>
+												</span>
+											</ng-container>
+										</div>
+									</ng-container>
+								</div>
+							</div>
+							<hr *ngIf="requestModuleCode === 3 && (commentObject.comments?.length - 1) != i">
+						</div>
+					</div>
+				</div>
+				<div class="no-data-container"
+					*ngIf="commentObject.comments.length == 0 && commentTab == commentObject.id">
+					<span class="no-data-icon-outer">
+						<div class="no-data-icon">
+							<i class="fa fa-file-o" aria-hidden="true"></i>
+							<i class="fa fa-times-circle-o" aria-hidden="true"></i>
+						</div>
+					</span>
+					<h4>There is no information in this section.</h4>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+
+<!-- ADD ATTACHMENT MODAL only for proposal attachment -->
+<div class="modal fade mySkinDialog" id="commentAttachmentModal" tabindex="-1" role="dialog"
+	aria-labelledby="skippedSchedulesTitle" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Add Attachments</h5>
+				<button type="button" class="close" data-dismiss="modal" id="req-doc-popup-dismiss-btn"
+					aria-label="Close" (click)="closeAttachModal()">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class="btn-margin">
+					<app-file-drop [multiple]="true" (filesDropEvent)="fileDrop($event)"></app-file-drop>
+				</div>
+				<div *ngIf="uploadedFile.length > 0">
+					<div class="gridSkin">
+						<div class="row">
+							<div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 fileChips pt-0"
+								style="word-break: break-all;">
+								<span style="padding:3px 8px;"
+									*ngFor="let item of uploadedFile; let i=index">{{item?.name}}
+									<i class="fa fa-close hand-cursor" id="req-doc-dlt"
+										(click)="deleteFromUploadedFileList(i)" title="Delete attachment"
+										aria-hidden="true"></i>
+								</span>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div *ngIf="warningMsg != null">
+					<span class="mandatory font">{{warningMsg}}</span>
+				</div>
+			</div>
+			<div class="modal-footer" *ngIf="uploadedFile.length > 0">
+				<button type="button" class="btn btn-secondary mr-0" id="req-attachment-close-btn"
+					(click)="closeAttachModal()" data-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary-sub btn-sm" id="req-attachment-add-btn"
+					data-dismiss="modal" (click)="addAttachments()">Add</button>
+			</div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,285 @@
+<div class="col-md-12 users-list-tbl px-0"
+  *ngIf="questionnaire?.questions != undefined && questionnaire?.questions != null">
+  <div class="qst-list-padding">
+    <ng-container>
+        <ul class="qst-list fb-qst-list  m-0 p-0">
+          <ng-container *ngFor='let question of questionnaire?.questions; let indexQuestion = index;'>
+          <li *ngIf="question?.SHOW_QUESTION === true" id="FB-ques_{{component?.componentId + '-' + question?.QUESTION_ID}}" class="fb-mb-10">
+              <span class="d-flex align-items-start fb-mb-1 question-font fb-fs-16">
+                  <span *ngIf="((component?.isMandatory === 'Y' && question.IS_MANDATORY === 'Y') || isAllQuestionMandatory) && !isViewMode"
+                    class="fb-mandatory">*</span>
+                  <span>{{ question?.QUESTION }}</span>
+                  <i *ngIf="question?.DESCRIPTION || question?.HELP_LINK"
+                     (click)="helpMsg[indexQuestion] = !helpMsg[indexQuestion]" class="fa fa-info-circle fb-ml-2"
+                     aria-hidden="true">
+                  </i>
+              </span>
+                <div *ngIf="helpMsg[indexQuestion]" class="info fb-section-info" >
+                  <div [innerHTML] = "question?.DESCRIPTION"></div>
+                  <div *ngIf="question?.HELP_LINK" class="cursor-pointer clickable-content hand-cursor">For more information, you can check out the <a [href] ="question?.HELP_LINK" target="_blank">link</a></div>
+                </div>
+                <ng-container *ngIf="question.ANSWER_TYPE === 'Table'">
+                <div *ngIf="((question.is_add_row && !question.IS_NO_VISIBLE_ANSWERS && !formBuilderCreateService.isAutoSaveEnabled) || (formBuilderCreateService.isAutoSaveEnabled && question.ANSWERS['1'].length)) && !isViewMode" class="text-end mb-1">
+                  <button (click)="addNewAnswerRow(question)" class="btn-link" title="Add new row">
+                    <i aria-hidden="true" class="fa fa-plus fb-mr-2"></i>
+                    <span>Add Row</span>
+                  </button>
+                </div>
+
+                  <div class="overflow-auto">
+                    <table class="table tableSkin table-bordered table-question fb-mb-0" aria-describedby="question.QUESTION">
+                      <thead>
+                        <tr>
+                          <ng-container *ngFor=" let option of questionnaire.options">
+                            <ng-container *ngIf="question.QUESTION_ID == option.QUESTION_ID">
+                              <th class="table-min-width" scope="col">{{option.OPTION_LABEL}}</th>
+                            </ng-container>
+                          </ng-container>
+                          <th *ngIf="!question.IS_NO_VISIBLE_ANSWERS && !isViewMode" class="action-column text-center" scope="col">Action
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <ng-container *ngIf="question.ANSWERS && question.ANSWERS['1']">
+                          <tr *ngFor="let answer of question.ANSWERS['1'];let answerIndex = index;">
+                            <ng-container *ngIf="(!formBuilderCreateService.isAutoSaveEnabled && answer.AC_TYPE !== 'D') || (formBuilderCreateService.isAutoSaveEnabled && (answer.AC_TYPE !== 'D' || (hasNoColumnValues(question, answer) && answer.AC_TYPE === 'D' )))">
+                              <ng-container *ngFor=" let option of question.HEADERS; let columnHeaderIndex = index">
+                                <td (click)="gotoTextArea(question.QUESTION_ID,answerIndex, columnHeaderIndex)"
+                                  class="p-0 align-top">
+                                  <textarea *ngIf="!isViewMode"
+                                    [ngModel]="answer['COLUMN_' + (columnHeaderIndex + 1)]"
+                                    (ngModelChange)="storePreviousValueAndUpdate(answer, 'COLUMN_' + (columnHeaderIndex + 1), $event); updateTableAnswerAcType(question, answer, answerIndex, columnHeaderIndex);"                                   
+                                    (focus)="isShowLimiterInTable[answerIndex + '_' + columnHeaderIndex] = true"
+                                    [id]="'answer'+question.QUESTION_ID+answerIndex+columnHeaderIndex" appAutoGrow
+                                    class="border-0 form-control table-answers w-100" rows="1" appLengthValidator
+                                    [isShowLimiter]="isShowLimiterInTable[answerIndex + '_' + columnHeaderIndex]"
+                                    [limit]=250></textarea>
+                                  <p *ngIf="isViewMode" class="fb-mb-0 p-2 new-line-property"
+                                    [innerText]="answer['COLUMN_' + (columnHeaderIndex + 1)]">
+                                  </p>
+                                </td>
+                              </ng-container>
+                              <td *ngIf="!isViewMode" class="text-center p-0 align-middle text-nowrap action-column">
+                                <i (click)="deleteAnswer(question, answer, answerIndex)" aria-hidden="true"
+                                  class="fa fa-trash-o f-16 fb-mt-2 hand-cursor mx-2 hoverColor" title="delete row"></i>
+                              </td>
+                            </ng-container>
+                          </tr>
+                        </ng-container>
+                        <tr *ngIf="question.IS_NO_VISIBLE_ANSWERS || !(question.ANSWERS && question.ANSWERS['1']) || question.ANSWERS['1'].length === 0">
+                          <td class="text-center f-13" colspan="100%">
+                            <div class="fb-no-data-container w-100 fb-py-2 fb-mt-0">
+                              <span class="no-data-icon-outer">
+                                <div class="no-data-icon">
+                                  <mat-icon aria-hidden="true" class="no-file">folder_off</mat-icon>
+                                </div>
+                              </span>
+                              <h5 class="fb-fs-16 fb-mt-2">
+                                <ng-content></ng-content>
+                                <span *ngIf="question.is_add_row && !isViewMode; elseShowNoRecord" class="default-content">No records found. Click 'Add Row' to create one.</span>
+                                <ng-template #elseShowNoRecord><span class="default-content">No records found.</span></ng-template>
+                              </h5>
+                              <div *ngIf="question.is_add_row && !isViewMode" class="text-center">
+                                <button (click)="addNewAnswerRow(question)" class="btn-link" title="Add new row">
+                                  <i aria-hidden="true" class="fa fa-plus fb-mr-2"></i>
+                                  <span>Add Row</span>
+                                </button>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </ng-container>
+                <ng-container *ngIf="question.ANSWER_TYPE === 'Text'">
+                  <div class="answer-field p-0" *ngFor="let number of getArray(question.NO_OF_ANSWERS); let i = index">
+                    <input type="text" [disabled]="isViewMode" class="form-control" id="FB-ans_{{question.QUESTION_ID}}"
+                      [ngModel]="question.ANSWERS[i+1]" (ngModelChange)="storePreviousValueAndUpdate(question.ANSWERS, i+1, $event); showChildQuestions(question); saveQuestionnaireNewObject(question, true)" name="name"
+                      appLengthValidator [isShowLimiter]='!isViewMode' />
+                  </div>
+                </ng-container>
+                <ng-container *ngIf="question.ANSWER_TYPE === 'Radio' || question.ANSWER_TYPE == 'Y/N'|| question.ANSWER_TYPE == 'Y/N/NA'">
+                  <ng-container *ngFor=" let option of questionnaire.options">
+                  <div *ngIf="question.QUESTION_ID === option.QUESTION_ID" class="answer-options answer-field p-0 fb-ml-4 fb-mb-3">
+                    <span class="d-flex align-items-start">
+                      <input type="radio" [disabled]="isViewMode" name="{{option?.QUESTION_ID}}{{component?.componentId}}"
+                        [value]="option?.OPTION_LABEL" [(ngModel)]="question.ANSWERS[1]"
+                        (ngModelChange)="showChildQuestions(question); saveQuestionnaireNewObject(question)" /> <span class="fb-ml-2 fb-label-font-size fb-option-label">{{option?.OPTION_LABEL}}</span>
+                    </span>
+                  </div>
+                  </ng-container>
+                </ng-container>
+              <ng-container *ngIf="question?.ANSWER_TYPE === 'Checkbox'">
+                <ng-container *ngFor=" let option of questionnaire?.options; let i = index;">
+                  <div *ngIf="question.QUESTION_ID === option.QUESTION_ID" class="answer-options answer-field p-0 fb-ml-4 fb-mb-3">
+                    <span class="d-flex align-items-start">
+                      <input type="checkbox" [disabled]="isViewMode" [(ngModel)]="question.ANSWERS[option?.OPTION_LABEL]"
+                        (ngModelChange)="showChildQuestions(question);saveQuestionnaireNewObject(question)"
+                        id="FB-{{option?.OPTION_LABEL}}{{i}}" />
+                      <label class="fb-mb-0 fb-label-font-size fb-ml-2" for="FB-{{option?.OPTION_LABEL}}{{i}}"> {{ option?.OPTION_LABEL }}</label>
+                    </span>
+                  </div>
+                </ng-container>
+              </ng-container>
+                <ng-container *ngIf="question.ANSWER_TYPE === 'Attachment'">
+                  <div class="answer-field p-0 mb-3" [ngClass]="{'fb-mt-3': isViewMode, 'fb-mt-1': !isViewMode}">
+                    <a id="FB-add-attach{{questionnaireDetails?.QUESTIONNAIRE_ID}}" class="btn-link fb-mb-3 answer-field cursor-pointer"
+                      *ngIf="!isViewMode" (click)="attachmentIndex = indexQuestion" data-bs-toggle="modal"
+                      [attr.data-target]="'#FB-questionnaire-AttachmentModal' + uniqueId" (click)="showAttachmentModal()">
+                      <i aria-hidden="true" class="fa fa-paperclip fb-mr-2"></i>Add Attachment</a>
+                  </div>
+                  <span *ngIf="question.ANSWERS[1]" class="qst-attachment-label answer-field">
+                    <strong class="fs-12 fb-mr-2">{{ question.ANSWERS[1] }}</strong>
+                    <button *ngIf="!isViewMode" id="remove-file-btn-{{question.QUESTION_ID}}{{component?.componentId}}" class="qst-attachment-cls-btn fb-ml-0 fb-mr-1"
+                      title="Click here to remove attachment" aria-label="Click here to remove attachment"
+                      (click)="removeDuplicateFile(question.QUESTION_ID, indexQuestion)">
+                      <i aria-hidden="true" class="fa fa-times"></i>
+                    </button>
+                    <button *ngIf="question.ATTACHMENT_ID && question.AC_TYPE !== 'I' && !modifiedAttachmentIds.includes(question.QUESTION_ID)" id="download-file-btn-{{question.QUESTION_ID}}{{component?.componentId}}" class="qst-attachment-cls-btn fb-ml-0"
+                      title="Click here to download attachment" aria-label="Click here to download attachment"
+                      (click)="downloadAttachment(question.ATTACHMENT_ID, question.ANSWERS[1])">
+                      <i class="fa fa-download" aria-hidden="true"></i>
+                    </button>
+                  </span>
+                  <span *ngIf="!question.ANSWERS[1] && isViewMode" class="fb-ml-2">
+                    --
+                  </span>
+                </ng-container>
+                <ng-container *ngIf="question.ANSWER_TYPE === 'Textarea'">
+                  <div class="answer-field p-0 ">
+                    <textarea name="name" [disabled]="isViewMode" rows="2" appLengthValidator appAutoGrow
+                      [isShowLimiter]='!isViewMode' id="FB-ans_{{question.QUESTION_ID}}"
+                      class="scheduleBoxes dateBox qst-input-width form-control w-100" [ngModel]="question.ANSWERS[1]"
+                      (ngModelChange)="storePreviousValueAndUpdate(question.ANSWERS, 1, $event);showChildQuestions(question); saveQuestionnaireNewObject(question) "> </textarea>
+                  </div>
+                </ng-container>
+                <ng-container *ngIf="question.ANSWER_TYPE === 'Date'">
+                  <div class="answer-field p-0 ">
+                    <div class="col-12 fb-p-0 qst-date-dv">
+                      <span class="dateField">
+                        <input matInput [matDatepicker]="questionnaire_date" [disabled]="isViewMode"
+                          id="FB-ans_{{question?.QUESTION_ID}}" (click)="questionnaire_date.open()"
+                          class="form-control d-inline-block"
+                          [(ngModel)]="question.ANSWERS[1]"
+                          (ngModelChange)="onDateChange(question);showChildQuestions(question);saveQuestionnaireNewObject(question)" placeholder="{{datePlaceHolder}}">
+                        <i (click)="questionnaire_date.open()" class="fa fa-calendar fa-large insidePicker hand-cursor"></i>
+                        <mat-datepicker #questionnaire_date></mat-datepicker>
+                      </span>
+                    </div>
+                  </div>
+                </ng-container>
+                <ng-container *ngIf="question.ANSWER_TYPE === 'elastic'">
+                  <div class="answer-field p-0 ">
+                    <app-elastic [options]="searchOptions[question.QUESTION_ID + question.ANSWER_TYPE]"
+                      [clearField]="clearElasticField" [placeHolder]="question.placeHolder" [isDisabled]="isViewMode"
+                      (selectedResult)="onSearchSelectEvent($event, question);">
+                    </app-elastic>
+                  </div>
+                </ng-container>
+                <ng-container *ngIf="question.ANSWER_TYPE === 'endpoint'">
+                  <app-endpoint-search [httpOptions]="searchOptions[question.QUESTION_ID + question.ANSWER_TYPE]"
+                  [placeHolder]="question.placeHolder" [isDisabled]="isViewMode"
+                  (onSelect)="onSearchSelectEvent($event, question)">
+                </app-endpoint-search>
+                </ng-container>
+                <ng-container *ngIf="question.ANSWER_TYPE == 'SystemLookup' || question.ANSWER_TYPE == 'UserLookup'">
+                    <div class="" *ngIf="question.ANSWER_LENGTH === 1; else singleValueSelect">
+                      <ng-container *ngIf="!isViewMode">
+                        <app-look-up [options]='lookUpOptions[question.QUESTION_ID]' [isDisabled]="isViewMode"
+                          [selectedLookUpList]="lookUpValues[question.QUESTION_ID]"
+                          (selectedResult)="onSelectLookUpValue($event, question)">
+                        </app-look-up>
+                      </ng-container>
+                      <div *ngIf="question?.ANSWERS && question?.ANSWERS[0]" class="col fb-mb-0 fb-pl-0 fileChips" style="margin-left: 2px;">
+                        <ng-container *ngFor="let answer of question.ANSWERS | keyvalue">
+                          <span class="fb-pl-2 fb-mb-0">{{answer?.value?.description}}
+                          </span>
+                        </ng-container>
+                      </div>
+                    </div>
+                    <ng-template #singleValueSelect>
+                      <div class="">
+                        <app-look-up [options]='lookUpOptions[question.QUESTION_ID]' [isDisabled]="isViewMode"
+                          [selectedLookUpList]="lookUpValues[question.QUESTION_ID]"
+                          (selectedResult)="onSelectLookUpValue($event, question)"
+                          [defaultValue]="question.ANSWERS[0] ? question.ANSWERS[0].description : ''">
+                        </app-look-up>
+                      </div>
+                    </ng-template>
+                </ng-container>
+                <ng-container *ngIf="question?.ANSWER_TYPE === 'RichText'">
+                  <div class="fb-mt-1">
+                    <div *ngIf="!isViewMode" class="alert alert-warning p-1 f-15 fb-mb-2 d-flex align-items-center">
+                      <i class="fa fa-info-circle info-icon mx-2 fb-mt-1" aria-hidden="true"></i>
+                      <em>The editor does not support images.</em>
+                    </div>
+                    <ng-container *ngIf="isViewMode">
+                      <ng-container *ngIf="!question?.ANSWERS[1]">
+                        <span class="noDataExists fs-14">Not specified</span>
+                      </ng-container>
+                      <ng-container *ngIf="question?.ANSWERS[1]">
+                        <div class="ck-content fb-mt-2">
+                          <span [innerHTML]="question?.ANSWERS[1] | safe"></span>
+                        </div>
+                      </ng-container>
+                    </ng-container>
+                    <ng-container *ngIf="!isViewMode">
+                      <ckeditor id="FB-ans_{{question?.QUESTION_ID}}" [editor]="editor" [config]="editorConfig"
+                        (ready)="onReady($event)" [(ngModel)]="question.ANSWERS[1]"
+                        (ngModelChange)="showChildQuestions(question); saveQuestionnaireNewObject(question)">
+                      </ckeditor>
+                    </ng-container>
+                  </div>
+                </ng-container>
+          </li>
+        </ng-container>
+        </ul>
+    </ng-container>
+        <div *ngIf="!isViewMode && questionnaire.questions.length !== 0 && isShowSave" class="text-right fb-pr-0 fb-mt-2">
+          <button class="btn btn-primary btn-sm fs-14" (click)="saveQuestionnaire()" id="FB-questionnaire-save" [title]="saveButtonLabel"
+            [attr.aria-label]="saveButtonLabel">{{saveButtonLabel}}</button>
+        </div>
+  </div>
+</div>
+
+<!-- attachment modal -->
+<div class="modal fade mySkinDialog" id="AttachmentModal{{uniqueId}}" tabindex="-1"
+  role="dialog" aria-labelledby="AttachmentModal"  data-backdrop="static" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="AttachmentModalTitle">Add Attachment</h5>
+        <button type="button" class="btn-close close" data-bs-dismiss="modal" aria-label="Click to close" data-dismiss="modal" (click)="tempFiles = [];">
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="col-12">
+          <app-file-drop [multiple]="false" (filesDropEvent)="addFileToTempFiles($event)">
+          </app-file-drop>
+        </div>
+        <div class="upload-table">
+          <table class="table">
+            <caption class="sr-only">Attachment</caption>
+            <thead class="qst-table-head" *ngIf="tempFiles?.length != 0">
+              <th scope="col" class="f-14">Name</th>
+              <th scope="col" class="f-14">Type</th>
+            </thead>
+            <tbody class="upload-name-style">
+              <tr *ngFor="let item of tempFiles;let i = index" class="qst-atmt-list">
+                <td><span>{{ item.fileName }}</span></td>
+                <td><span>{{ item.type }}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" (click)="tempFiles = [];" class="btn btn-outline-secondary fs-14" data-bs-dismiss="modal"
+          data-dismiss="modal">Close</button>
+        <button type="button" (click)="addFileToArray();" data-bs-dismiss="modal" data-dismiss="modal"
+          class="btn btn-primary fs-14">Add</button>
+      </div>
+    </div>
+  </div>
+</div>

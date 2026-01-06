@@ -1,0 +1,634 @@
+<div class="push4slideMenu pageMinHeight" id="scrollToTop">
+    <div class="container-fluid pushFixedHeaderFooter">
+        <div class="headerPush"></div>
+        <section class="row">
+            <div id="myclaims" class="col-12">
+                <!-- header start -->
+                <div class="sticky-top-nav mb-3 header-outline" id="stickyclaimsHeader">
+                    <!-- title -->
+                    <div class="row">
+                        <div class="text-left col">
+                            <h2 title="{{result?.awardProgressReport?.progressReportNumber}}"
+                                class="title-primary fs-20 text-justify">
+                                {{ result.awardProgressReport.reportClassCode === '2' ? 'Final Report' : 'Progress Report'}} :
+                                {{result?.awardProgressReport?.progressReportNumber}} : {{ _commonData?.progressReportTitle }}
+                            </h2>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 col-lg">
+                            <div class="float-left d-inline-block">
+                                <span class="badge-title bg-transparent px-0 fs-14-nav"
+                                    *ngIf="result?.awardProgressReport?.dueDate">
+                                    <i class="fa fa-clock-o text-primary mr-1" aria-hidden="true"></i>
+                                    <span class="d-none d-md-inline-block">Due Date: </span>
+                                    {{result?.awardProgressReport?.dueDate | dateFormatter}}
+                                </span>
+                                <span class="badge-title bg-transparent px-0 fs-14-nav ml-5"
+                                    *ngIf=" result?.awardProgressReport?.reportStartDate && result?.awardProgressReport?.reportEndDate">
+                                    <i class="fa fa-clock-o text-primary mr-1" aria-hidden="true"></i>
+                                    <span class="d-none d-md-inline-block">Reporting Period : </span>
+                                    {{result?.awardProgressReport?.reportStartDate | dateFormatter}} -
+                                    {{result?.awardProgressReport?.reportEndDate | dateFormatter}}
+                                </span>
+                                <span class="badge-title bg-transparent fs-14-nav"
+                                    *ngIf="result?.awardProgressReport?.award?.principalInvestigator">
+                                    <i class="fa fa-user text-primary mr-1" aria-hidden="true"></i>
+                                    <span class="d-none d-md-inline-block">PI : </span>
+                                    {{result?.awardProgressReport?.award?.principalInvestigator}}
+                                </span>
+                                <span class="badge-title bg-transparent fs-14-nav"
+                                    *ngIf="result?.awardProgressReport?.award?.leadUnit?.unitName">
+                                    <i class="fa fa-home text-primary mr-1" aria-hidden="true"></i>
+                                    <span class="d-none d-md-inline-block">Lead Unit : </span>
+                                    {{concatUnitNumberAndUnitName(result?.awardProgressReport?.award?.leadUnit?.unitNumber, result?.awardProgressReport?.award?.leadUnit?.unitName)}}
+                                </span>
+                                <!-- <span class="badge-title bg-transparent px-0 fs-14-nav ml-5">
+                                    <i class="fa fa-user text-primary mr-1" aria-hidden="true"></i>
+                                    <span class="d-none d-md-inline-block">Created By : </span>
+                                    {{result?.awardProgressReport?.createdPersonName}}
+                                </span>
+                                <span class="badge-title bg-transparent px-0 fs-14-nav ml-5">
+                                    <i class="fa fa-clock-o text-primary mr-1" aria-hidden="true"></i>
+                                    <span class="d-none d-md-inline-block">Last Modified on : </span>
+                                    {{result?.awardProgressReport?.updateTimeStamp | dateFormatter}}
+                                </span> -->
+                            </div>
+                            <!-- STATUS DISPLAY BADGE -->
+                            <span
+                                class="status-badge-{{getProgressReportStatusBadge(result?.awardProgressReport?.progressReportStatus?.statusCode)}} fs-14-nav float-right">
+                                {{result?.awardProgressReport?.progressReportStatus?.description}}</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <!-- nav links -->
+                        <div class="col-lg col-auto pr-0">
+                            <div class="collapse navbar-toggleable-xs mt-5 mt-lg-0 mb-1" id="navbarResponsive">
+                                <ul class="menu-responsive tabs fit-content tabs-collapsed">
+                                    <li 
+                                        *ngIf="_commonData.progressReportSectionConfig['PR1601']?.isActive"
+                                        routerLinkActive="active">
+                                        <a [routerLink]="'/fibi/progress-report/overview'" queryParamsHandling='merge'>
+                                            Overview
+                                        </a>
+                                    </li>
+                                    <li 
+                                        *ngIf="_commonData.progressReportSectionConfig['PR1602']?.isActive"
+                                        routerLinkActive="active">
+                                        <a [routerLink]="'/fibi/progress-report/milestones'"
+                                            queryParamsHandling='merge'>
+                                            Milestones
+                                        </a>
+                                    </li>
+                                    <li 
+                                        *ngIf="_commonData.progressReportSectionConfig['PR1603']?.isActive"
+                                        routerLinkActive="active">
+                                        <a [routerLink]="['/fibi/progress-report/performance-indicator']"
+                                            queryParamsHandling='merge'>
+                                            Key Performance Indicators
+                                        </a>
+                                    </li>
+                                    <li 
+                                        *ngIf="_commonData.progressReportSectionConfig['PR1604']?.isActive"
+                                        routerLinkActive="active">
+                                        <a [routerLink]="['/fibi/progress-report/equipments']"
+                                            queryParamsHandling='merge'>
+                                            Questionnaire </a>
+                                    </li>
+                                    <li 
+                                        *ngIf="_commonData.progressReportSectionConfig['PR1605']?.isActive"
+                                        routerLinkActive="active">
+                                        <a [routerLink]="['/fibi/progress-report/attachments']"
+                                            queryParamsHandling='merge'>
+                                            Attachments
+                                        </a>
+                                    </li>
+                                    <li *ngIf="this.result.awardProgressReport.progressReportStatus.progressReportStatusCode !=1
+                                               && _commonData.progressReportSectionConfig['PR1606']?.isActive"
+                                        routerLinkActive="active">
+                                        <a [routerLink]="['/fibi/progress-report/route-log']"
+                                            queryParamsHandling='merge'>
+                                            Route Log
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-auto col-12 my-2">
+                            <button #mainHeaders id="responsiveColapse"
+                                class="navbar-toggler hidden-sm-up px-0 d-inline-block d-lg-none float-left mt-2"
+                                type="button" data-toggle="collapse" data-target="#navbarResponsive"
+                                aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                                <i class="fa fa-bars f-14 text-muted mx-colr" aria-hidden="true"
+                                    title="Click for more pages"></i>
+                            </button>
+
+                            <span class="float-right">
+                                <!-- <button type="button" title="Export as Excel" id="excel-btn" class="btn btn-secondary btn-sm fs-14-nav">Export as
+                                    Excel</button> -->
+                                <!--Routing Buttons start-->
+                                <button type="button" id="report-disapprove-btn"   *ngIf="(result?.awardProgressReport?.progressReportStatus?.progressReportStatusCode == '3' ||
+                                                                    result?.awardProgressReport?.progressReportStatus?.progressReportStatusCode == '5')
+                                                                    && result?.canApproveRouting == '1'"
+                                    class="btn btn-secondary btn-sm fs-14-nav"
+                                    (click)="disapproveReport()">Return</button>
+                                <button type="button" id="report-approve-btn" class="btn btn-primary btn-sm fs-14-nav"
+                                    *ngIf="(result?.awardProgressReport?.progressReportStatus?.progressReportStatusCode == '3' ||
+                                                                         result?.awardProgressReport?.progressReportStatus?.progressReportStatusCode == '5') && result?.canApproveRouting == '1'"
+                                         (click)="approveReport()"><ng-container i18n="@@COMMON_APPROVE">Approve</ng-container></button>
+                                <!--Routing Buttons end-->
+                                <!--HOLD FUNCTIONALITY START-->
+                                <!-- <button data-toggle="modal" data-target="#HOLDConfirmProgressReportModal" (click)="actionType = 'H'"
+                                    *ngIf="(result?.awardProgressReport?.progressReportStatus?.progressReportStatusCode == '3')" type="button"
+                                    class="btn btn-primary btn-sm fs-14-nav" id="claims-submit-btn">Hold for Funding agency</button> -->
+                                <!--HOLD FUNCTIONALITY END-->
+                                <!-- In view mode save button not needed verify that. -->
+                                <!--SAVE BUTTON  -->
+                                <button *ngIf="isShowSaveButton && isEditMode" type="button" title="Save" id="save-btn"
+                                    class="btn btn-secondary btn-sm fs-14-nav"
+                                    (click)="initiateProgressReportSaveOnChild()">Save</button>
+                                <button type="button" (click)="validateProgressReport(true)" *ngIf="(result?.awardProgressReport?.progressReportStatus?.progressReportStatusCode == '1'
+                                        || result?.awardProgressReport?.progressReportStatus?.progressReportStatusCode == '2')
+                                        && result?.canApproveRouting != '1'"
+                                        class="btn btn-secondary btn-sm fs-14-nav">Validate</button>
+                                <!-- Submit Report for 'pending' -> 1 and 'revision requested' -> 2 statues -->
+                                <button (click)="validateProgressReport()" *ngIf="(result?.awardProgressReport?.progressReportStatus?.progressReportStatusCode == '1'
+                                        || result?.awardProgressReport?.progressReportStatus?.progressReportStatusCode == '2')
+                                        && result?.canApproveRouting != '1' && isModifiable"
+                                       class="btn btn-primary btn-sm fs-14-nav"  id="report-submit-btn"
+                                       type="button">Submit Report
+                                </button>
+                                <span #moreOptionsBtn class="position-relative">
+                                    <button title="More Actions" class="btn more-btn"
+                                        (click)="isShowMoreOptions = !isShowMoreOptions">
+                                        <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+                                    </button>
+                                    <ul id="moreOptions-pr-list" class="more-options-box" *ngIf="isShowMoreOptions">
+                                        <li title="Hold for Funding agency" data-toggle="modal"
+                                            data-target="#HOLDConfirmProgressReportModal"
+                                            *ngIf="(result?.awardProgressReport?.progressReportStatus?.progressReportStatusCode == '3') && isHoldable">
+                                            <a class="dropdown-item hand-cursor" id="claims-submit-btn"
+                                                (click)="actionType = 'H';isShowMoreOptions = !isShowMoreOptions">
+                                                <i class="fa fa-pause-circle-o" aria-hidden="true"></i>Hold for Funding
+                                                agency</a>
+                                        </li>
+                                        <li title="Back to Approval in Progress" data-toggle="modal"
+                                            data-target="#HOLDConfirmProgressReportModal"
+                                            *ngIf="(result?.awardProgressReport?.progressReportStatus?.progressReportStatusCode == '5') && isHoldable">
+                                            <a class="dropdown-item hand-cursor" id="back-to-approval-btn"
+                                                (click)="actionType = 'C';isShowMoreOptions = !isShowMoreOptions; convertFunderDate()">
+                                                <i class="fa fa-history" aria-hidden="true"></i>Back to Approval in
+                                                Progress</a>
+                                        </li>
+                                        <li title="Export As Excel">
+                                            <a class="dropdown-item hand-cursor" id="pr-export-excel-btn"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions;downloadProgressReportAsExcel();">
+                                                <i class="fa fa-file" aria-hidden="true"></i>Export As Excel</a>
+                                        </li>
+                                        <li title="Export As Zip"><a class="dropdown-item hand-cursor"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions;downloadProgressReportAsZip();"><i
+                                                    class="fa fa-file-zip-o" aria-hidden="true"></i>Export As Zip</a>
+                                        </li>
+                                        <li title="Import from IGMS template"
+                                            *ngIf="result?.awardProgressReport?.progressReportStatus?.progressReportStatusCode == '1' ||
+                                        result?.awardProgressReport?.progressReportStatus?.progressReportStatusCode == '2'">
+                                            <a class="dropdown-item hand-cursor" data-toggle="modal"
+                                                data-target="#pr-import-modal-confirm"
+                                                (click)="importedFile = [];validationMap.delete('noFileSelected');isShowMoreOptions = !isShowMoreOptions;"><img
+                                                    src="{{deployMap}}assets/images/Import-icon_fibi-4.svg" alt="Import"
+                                                    aria-hidden="true" width="15px" class="mr-1">
+                                                Import from IGMS template</a>
+                                        </li>
+                                        <li title="Delete Progress Report"
+                                            *ngIf="result?.awardProgressReport?.progressReportStatus?.progressReportStatusCode == '1' &&
+                                            (result?.awardProgressReport?.createdPersonId === this._commonService.getCurrentUserDetail('personID')
+                                             || result?.availableRights.includes('MODIFY_PROGRESS_REPORT'))">
+                                            <a class="dropdown-item" href="" data-toggle="modal"
+                                                data-target="#deleteProgressReportModal"
+                                                (click)="isShowMoreOptions = !isShowMoreOptions;">
+                                                <i class="fa fa-trash-o" aria-hidden="true"></i>Delete Progress Report
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </span>
+                                <button type="button" class="btn more-btn" (click)="backToProgressReportListClick()"
+                                    title="Back to Progress Report List"><i class="fa fa-reply"
+                                        aria-hidden="true"></i></button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="" id="dashboardOverlay"></div>
+                <div *ngIf="_commonData.progressReportSectionConfig['PR1607']?.isActive" class="card notice-box mt-3 mb-3">
+                    <div class="card-content">
+                        <div class="gridSkin mb-0">
+                            <div class="row">
+                                <div class="col-12  no-hover-effect">
+                                    <span>
+                                        <strong><ng-container i18n="@@COMMON_NAVIGATE_TO_RELEVANT_FIELD">Click to navigate to the relevant field in award:</ng-container></strong>
+                                        <a title="Click to view Manpower" class="anchor-link hand-cursor m-15"
+                                            [routerLink]="['/fibi/award/manpower']"
+                                            [queryParams]="{awardId:this.result?.awardProgressReport?.award?.awardId}"
+                                            target="_blank">Manpower<i aria-hidden="true"
+                                                class="fa fa-external-link-square ml-1"></i></a>
+                                        <a title="Click to view Data Management Plan"
+                                            class="anchor-link hand-cursor m-15"
+                                            [routerLink]="['/fibi/award/dmp-questionnaire']"
+                                            [queryParams]="{awardId:this.result?.awardProgressReport?.award?.awardId}"
+                                            target="_blank">Data Management Plan<i aria-hidden="true"
+                                                class="fa fa-external-link-square ml-1"></i></a>
+                                        <a title="Click to view Budget Summary" class="anchor-link hand-cursor m-15"
+                                            [routerLink]="['/fibi/award/budget-expense/budget/summary']"
+                                            [queryParams]="{awardId:this.result?.awardProgressReport?.award?.awardId}"
+                                            target="_blank">Budget Summary<i aria-hidden="true"
+                                                class="fa fa-external-link-square ml-1"></i></a>
+                                        <a title="Click to view Overview(Key Personnel)"
+                                            class="anchor-link hand-cursor m-15" [routerLink]="['/fibi/award/overview']"
+                                            [queryParams]="{awardId:this.result?.awardProgressReport?.award?.awardId}"
+                                            target="_blank">Overview(Key Personnel)<i aria-hidden="true"
+                                                class="fa fa-external-link-square ml-1"></i></a>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <router-outlet></router-outlet>
+            </div>
+        </section>
+        <div class="footerPush"></div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade mySkinDialog" id="SubmitReportModal" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header ct-footer-padding">
+                <h4 class="modal-title">Confirmation</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body ct-modal-padding">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <p>Do you sure you want to Submit this {{ result.awardProgressReport.reportClassCode === '2' ? 'Final Report' : 'Progress Report'}}?</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer ct-footer-padding">
+                <button id="report-sumbit-no-btn" type="button" class="btn btn-secondary btn-sm"
+                    data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" data-dismiss="modal" (click)="submitReport()">Continue to Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- In MIDDLE OF EDIT TAB CHANGE WARNING MODAL TRIGGER-->
+<button id="tabDataChangebutton" [hidden]="true" data-toggle="modal"
+    data-target="#progressReportTabChangeConfirmModal"></button>
+<!-- In MIDDLE OF EDIT TAB CHANGE WARNING MODAL -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="progressReportTabChangeConfirmModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="AwardTabChange" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmation </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>You have unsaved changes in <strong>{{autoSaveService.getUnsavedChanges()}}.</strong>
+                    Do you want to leave the page without saving?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Stay on Page</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="navigateUsingRedirectRoute()"
+                    data-dismiss="modal">Leave Page</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- APPROVE-DISAPPROVE MODAL TRIGGER -->
+<button type="button" id="route-log-btn" [hidden]="true" data-toggle="modal"
+    data-target="#approveDisapproveReportModal"></button>
+<!-- APPROVE-DISAPPROVE MODAL -->
+<div class="modal fade mySkinDialog" id="approveDisapproveReportModal" tabindex="-1" role="dialog"
+    aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="skippedSchedulesLongTitle">
+                    {{requestObject.actionType == 'A' ? COMMON_APPROVE_LABEL : COMMON_RETURN_LABEL}} <span>Progress Report</span>
+                </h5>
+                <button type="button" id="claims-approve-dismiss-btn" class="close" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-inner-scroll">
+                <div class="row">
+                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <label for="claims-approve-comments" class="mySkinDialog ">
+                            <p class="m-0">
+                                <strong><span class="mandatory">*</span>Comments</strong>
+                            </p>
+                        </label>
+                        <textarea appAutoGrow id="claims-approve-comments" placeholder=""
+                            class="col-12 col-lg-12 commentBox auto-grow-height form-control"
+                            [ngClass]="isEmptyCommentArea ? 'is-invalid d-block' : ''" rows="3" cols="20"
+                            appLengthValidator [isShowLimiter]='true' [limit]=2000
+                            [(ngModel)]="requestObject.approveComment"></textarea>
+                        <span class="invalid-feedback d-block" *ngIf="isEmptyCommentArea">*Please add a
+                            comment.</span>
+                    </div>
+                </div>
+                <div *ngIf="overallCommentList.length" class="row">
+                    <div class="col-6">
+                        <label class="mySkinDialog d-block">
+                            <p class="m-0">
+                                <strong>Overall Comment</strong>
+                            </p>
+                        </label>
+                        <select class="form-control" [ngClass]="isOverallCommentEmpty ? 'is-invalid d-block' : ''" [(ngModel)]="feedbackType">
+                            <option value=null>--Select--</option>
+                            <option *ngFor="let comment of overallCommentList"
+                                [ngValue]="comment">
+                                {{comment?.description}}
+                            </option>
+                        </select>
+                        <span class="invalid-feedback d-block" *ngIf="isOverallCommentEmpty">*Please select an overall comment.</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <label class="mySkinDialog">
+                            <p class="m-0">
+                                <strong>Add files</strong>
+                            </p>
+                        </label>
+                        <app-file-drop [multiple]="true" (filesDropEvent)="fileDrop($event)"></app-file-drop>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <div class="fileChips regularFont">
+                            <span *ngFor="let item of uploadedFile; let index=index">{{
+                                item?.name }} <i id="claims-approve-attach-delete" class="fa fa-close hand-cursor"
+                                    aria-hidden="true" title="Remove File"
+                                    (click)="deleteFromUploadedFileList(index)"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="attachmentWarningMsg">
+                    <span class="mandatory font">{{attachmentWarningMsg}}</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="claims-approve-close" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                    (click)="closeApproveDisapproveModal()">Close</button>
+                <button type="button" id="claims-approve-disapprove-btn" class="btn btn-primary-sub btn-sm"
+                    (click)="maintainReportWorkFlow()">{{requestObject.actionType == 'A' ? COMMON_APPROVE_LABEL :
+                    COMMON_RETURN_LABEL}}</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Hold Confirmation Modal -->
+<div class="modal fade mySkinDialog " data-backdrop="static" id="HOLDConfirmProgressReportModal" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header ct-footer-padding">
+                <h4 class="modal-title">Confirmation</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelFunderApprovalDate()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body ct-modal-padding">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <p *ngIf="actionType === 'H'">Are you sure you want to hold this Report for Funding Agency
+                            Review?</p>
+                        <p *ngIf="actionType === 'C'">Enter the Funder Approval Date to move the status to Approval In Progress.</p>
+                    </div>
+                </div>
+            </div>
+            <div  *ngIf="actionType === 'C'" class="col-sm-6 form-group">
+                <label class="d-block">
+                    <span class="mandatory">*</span>Funder Approval Date
+                    <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med" aria-hidden="true"></i>
+                        <div class="tooltiptext-left card card-inner p-15 text-left">
+                            <span class="font-cv">This is the Approval Date of Funder.</span>
+                        </div>
+                    </a></label>
+                <span class="dateField d-block">
+                    <input matInput [matDatepicker]="funderApproval"
+                    [ngClass]="(map.get('funderApprovalDate')) ? 'is-invalid d-block' : ''"
+                        autocomplete="off" class="d-inline-block form-control"
+                        id="funderApproval" [(ngModel)]="result.awardProgressReport.funderApprovalDate"
+                        (ngModelChange)="validateDates()" placeholder="{{datePlaceHolder}}" (click)="funderApproval.open()">
+                    <i (click)="funderApproval.open()" aria-hidden="true"
+                        class="fa fa-calendar fa-large insidePicker hand-cursor" id="enroll-date-icon"
+                        title="Open Calendar"></i>
+                    <mat-datepicker #funderApproval (opened)="setFocusToElement('funderApproval')">
+                    </mat-datepicker>
+                    <div *ngIf="(map.get('funderApprovalDate'))" class="invalid-feedback d-block">
+                        {{map.get('funderApprovalDate')}}</div>
+                </span>
+            </div>
+            <div class="modal-footer ct-footer-padding">
+                <button id="claim-sumbit-no-btn" type="button" class="btn btn-secondary btn-sm" (click)="cancelFunderApprovalDate()"
+                    data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="savePRFundingAgencyAction(actionType)">
+                    <span *ngIf="actionType === 'H'">Hold for Funding agency</span>
+                    <span *ngIf="actionType === 'C'">Back to Approval In Progress</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Value Reset Warning Modal -->
+<div class="modal fade mySkinDialog" id="pr-import-modal-confirm">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Warning
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Importing Progress Report template will overwrite existing values in Overview, Milestone and
+                    Key Performance Indicators.</p>
+                <p>Are you sure that you want to proceed importing the template ?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm"
+                    (click)="showImportTemplateModal()">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Template Import Modal -->
+<div class="modal fade mySkinDialog" id="pr-import-modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Import
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <app-file-drop [multiple]="false" [fileAccept]="_commonService.claimFileType"
+                    (filesDropEvent)="addImportAttachment($event)">
+                </app-file-drop>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="filechip-cv regularFont">
+                            <span *ngFor="let item of importedFile">{{
+                                item?.name }} <i class="fa fa-close hand-cursor" title="Remove {{item?.name}}"
+                                    aria-hidden="true" (click)="importedFile = []"></i>
+                            </span>
+                        </div>
+                        <span class="mandatory" *ngIf="validationMap.has('noFileSelected')">*
+                            {{validationMap.get('noFileSelected')}}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="uploadTemplate()">Import</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Validation modals -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="ValidateReportModal" tabindex="-1" role="dialog"
+     data-backdrop="static" data-keyboard="false" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Validation</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12 ">
+                        <ng-container *ngFor="let msg of errorList">
+                            <div class="alert alert-danger f-13" role="alert">
+                                <i class="fa fa-exclamation-circle icon text-danger mr-3" aria-hidden="true"></i>
+                               <strong>Error: </strong>
+                               <span [innerHTML]="msg.validationMessage"></span>
+                            </div>
+                        </ng-container>
+                        <ng-container *ngFor="let msg of warningList">
+                            <div class="alert alert-warning f-13" role="alert">
+                                <i class="fa fa-exclamation-triangle icon text-warning mr-3"
+                                   aria-hidden="true"></i><strong>Warning: </strong>
+                                   <span [innerHTML]="msg.validationMessage"></span>
+                            </div>
+                        </ng-container>
+                        <div *ngIf="isValidationOnlyFlag && errorList?.length == 0 && warningList?.length == 0" class="w-outer">
+                            <div class="alert alert-info f-13" role="alert">
+                                <i class="fa fa-info-circle icon text-info mr-3" aria-hidden="true"></i>
+                                {{ result.awardProgressReport.reportClassCode === '2' ? 'Final Report' : 'Progress Report'}} has
+                                been successfully validated.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Delete Progress Report Modal -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="deleteProgressReportModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Progress Report</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this Progress Report?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" data-toggle="modal">No</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="deleteProgressReport();"
+                    data-dismiss="modal">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Concurrency Warning modal -->
+
+<div class="modal fade show mySkinDialog" id="invalidActionModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Invalid Action</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="form-row p-10">
+                <div class="col-1">
+                    <i class="fa fa-2x fa-exclamation-triangle text-warning position-person-inpur-box px-3"
+                        aria-hidden="true"></i>
+                </div>
+                <div class="col-11">
+                    <p>
+                        You have tried to perform an action that is not valid for the current state of this Progress Report. The
+                        likely cause is that
+                        somebody has changed the Progress Report recently. Please click the Refresh button to proceed further.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button"
+                    (click)="reload()">Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Unsaved changes modal to be shown while clicking Submit/Validate with an unsaved change -->
+
+<div class="modal fade mySkinDialog" tabindex="-1" id="progress-report-submit-without-save-modal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="AwardTabChange" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmation</h5>
+            </div>
+            <div class="modal-body">
+                <p>You have unsaved changes in <strong>{{autoSaveService.getUnsavedChanges()}}.</strong>
+                    Do you want to Submit this progress report without the changes?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                <button (click)="submitReport()" type="button" class="btn btn-primary-sub btn-sm"
+                    data-dismiss="modal">Continue to Submit</button>
+            </div>
+        </div>
+    </div>
+</div>

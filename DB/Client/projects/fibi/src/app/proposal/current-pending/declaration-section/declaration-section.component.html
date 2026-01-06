@@ -1,0 +1,136 @@
+<div class="modal fade mySkinDialog" id="addExternalProjectsModal" role="dialog">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          {{sponsorObject?.cpReportProjectDetailId ? 'Edit ' : 'Add ' }}External Funding Support
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body title-descriptions">
+        <div id="addFundingSupportRow" class="form-row">
+          <div class="col-md-4 col-sm-6 col-12">
+            <label class="d-block"><span class="mandatory">*</span>Funding Support Type</label>
+            <select [(ngModel)]="sponsorObject.linkedModuleCode" [disabled]="sponsorObject?.cpReportProjectDetailId"
+              [ngClass]="fundingMap?.get('external-type') ? 'is-invalid d-block' : ''" class="form-control">
+              <option [value]=null>--Select--</option>
+              <option [value]='3'>Proposal</option>
+              <option [value]='1'><ng-container i18n="@@COMMON_AWARD">Award</ng-container></option>
+            </select>
+            <div class="invalid-feedback d-block font-weight-normal" *ngIf="fundingMap?.get('external-type')">
+              {{fundingMap.get('external-type')}}</div>
+          </div>
+          <div class="col-md-8 col-sm-6 col-12">
+            <label class="d-block">Title</label>
+            <input type="text" id="prop-declaration-project-title" autocomplete="off" class="form-control"
+              [(ngModel)]="sponsorObject.title" />
+          </div>
+          <div class="col-md-8 col-sm-6 col-12">
+                <label class="d-block">Title of Grant Call</label>
+                <input type="text" id="prop-declaration-grantcall" [(ngModel)]="sponsorObject.grantCallName" autocomplete="off" class="form-control"
+                />
+              </div>
+          <div class="col-md-4 col-sm-6 col-12">
+            <label class="d-block">Role Played</label>
+            <select id="prop-project-role" class="form-control" [(ngModel)]="sponsorObject.personRoleId">
+              <option [value]=null>--Select--</option>
+              <option *ngFor="let role of personDetails.proposalPersonRoles" [value]="role.id"
+                [hidden]="role.isActive != true">{{role?.description}}</option>
+            </select>
+          </div>
+          <div class="col-md-4 col-sm-6 col-12">
+                <label class="d-block">Currency</label>
+                <select id="prop-declaration-funding-currency" [(ngModel)]="sponsorObject.currency" (ngModelChange)="setCurrencyCode()" class="form-control">
+                  <option [value]=null>--Select--</option>
+                  <option *ngFor="let type of personDetails?.currencyDetails" [ngValue]="type">{{type?.currencyCode}}</option>
+                </select>
+              </div>
+          <div class="col-md-4 col-sm-6 col-12">
+            <label class="d-block">Total Project Value</label>
+            <input type="text" autocomplete="off" [ngClass]="fundingMap?.get('amount') ? 'is-invalid d-block' : ''"
+              id="prop-declaration-amount" class="form-control" [(ngModel)]="sponsorObject.totalAwardAmount"
+              (ngModelChange)="amountValidation();" appCurrencyFormat [initialValue]="sponsorObject.totalAwardAmount"
+              [customCurrency]="sponsorObject?.currency?.currencySymbol"
+              />
+            <div class="invalid-feedback d-block font-weight-normal" *ngIf="fundingMap?.get('amount')">
+              {{fundingMap.get('amount')}}</div>
+          </div>
+          <div class="col-md-4 col-sm-6 col-12">
+            <label class="d-block">Funding Type</label>
+            <select id="prop-declaration-funding-type" [(ngModel)]="sponsorObject.sponsorTypeCode"
+              (change)="sponsorTypeChange()" class="form-control">
+              <option [value]=null>--Select--</option>
+              <option *ngFor="let type of personDetails?.sponsorTypes" [value]="type.code">{{type?.description}}</option>
+            </select>
+          </div>
+          <div class="col-md-4 col-sm-6 col-12">
+            <label class="d-block"><ng-container i18n="@@COMMON_FUNDING_AGENCY">Funding Agency</ng-container></label>
+            <!-- SMU SPECIFIC change - sponsorTypeCode == '5' ie, When funding type is 'Other', funding source will be text box instead of end point search -->
+            <app-endpoint-search *ngIf="(sponsorObject.sponsorTypeCode !== '5' ) else sponsornametextbox"
+              [httpOptions]="sponsorHttpOptions" [clearField]="clearSponsorSearchField"
+              [placeHolder]="'Type here for Funding Agency'" (onSelect)="sponsorSelect($event)"></app-endpoint-search>
+            <ng-template #sponsornametextbox>
+              <input type="text" id="prop-declaration-sponsorname-text" autocomplete="off" class="form-control"
+                [(ngModel)]="sponsorObject.sponsorName" />
+            </ng-template>
+          </div>
+          <div class="col-md-4 col-sm-6 col-12">
+            <label class="d-block">Start Date</label>
+            <span class="dateField">
+              <input matInput [matDatepicker]="startDt" placeholder="{{datePlaceHolder}}" id="prop-declaration-start-date" autocomplete="off"
+                class="form-control d-inline-block" [(ngModel)]="sponsorObject.startDate"
+                (keypress)="_commonService._keyPress($event, 'date');" (click)="startDt.open()" />
+              <i class="fa fa-calendar fa-large hand-cursor insidePicker" id="prop-declaration-start-date-icon"
+                (click)="startDt.open()" aria-hidden="true"></i>
+              <mat-datepicker #startDt (opened)="setFocusToElement('prop-declaration-start-date')"
+                (closed)="validateEndDate()"></mat-datepicker>
+            </span>
+          </div>
+          <div class="col-md-4 col-sm-6 col-12">
+            <label class="d-block">End Date</label>
+            <span class="dateField">
+              <input matInput [matDatepicker]="endDt" placeholder="{{datePlaceHolder}}" id="prop-declaration-end-date" autocomplete="off"
+                [ngClass]="fundingMap?.get('endDate') ? 'is-invalid d-block' : ''"
+                class="form-control d-inline-block" [(ngModel)]="sponsorObject.endDate"
+                (ngModelChange)="validateEndDate()" (keypress)="_commonService._keyPress($event, 'date');"
+                (click)="endDt.open()" />
+              <i class="fa fa-calendar fa-large hand-cursor insidePicker" id="prop-declaration-end-date-icon"
+                (click)="endDt.open()" aria-hidden="true"></i>
+              <mat-datepicker #endDt (opened)="setFocusToElement('prop-declaration-end-date')"
+                (closed)="validateEndDate()"></mat-datepicker>
+            </span>
+            <div class="invalid-feedback d-block font-weight-normal" *ngIf="fundingMap?.get('endDate') != null">
+              {{fundingMap?.get('endDate')}}</div>
+          </div>
+          <div class="col-md-4 col-sm-6 col-12">
+            <label class="d-block">% of Effort</label>
+            <input type="number" id="prop-declaration-effort" autocomplete="off" step="any"
+              placeholder="eg: 100, 99.99, 10.22, 25 etc"
+              [ngClass]="fundingMap?.get('percentageOfEffort') ? 'is-invalid d-block' : ''" class="form-control"
+              [(ngModel)]="sponsorObject.percentageEffort"
+              (keyup)="limitKeypress(sponsorObject.percentageEffort)" />
+            <div *ngIf="fundingMap?.get('percentageOfEffort')">
+              <span class="mandatory font">{{fundingMap?.get('percentageOfEffort')}}</span>
+            </div>
+          </div>
+          <div class="col-md-4 col-sm-6 col-12">
+                <label class="d-block">Status</label>
+                <select id="prop-declaration-funding-status" [(ngModel)]="sponsorObject.fundingStatusCode" class="form-control">
+                  <option [value]=null>--Select--</option>
+                  <option *ngFor="let type of personDetails?.proposalFundingStatus" [value]="type.fundingStatusCode">{{type?.description}}</option>
+                </select>
+              </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="d-inline-block btn btn-secondary btn-xs mr-sm-2" id="prop-decl-cancel-btn"
+          (click)="clearDeclarationDetails()">Cancel</button>
+          <button class="btn btn-primary-sub btn-xs" id="declaration-add-btn" (click)="addExternalDetails()">
+            {{sponsorObject?.cpReportProjectDetailId ? 'Update' : 'Add' }}
+          </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,677 @@
+<!-- last updated by Aravind on 14-12-2019 -->
+<!-- Award Details -->
+<div class="row">
+  <div class="col-8">
+      <ul class="subTabs mb-0">
+          <li role="presentation" [ngClass]="{'active': _awardListService.awardRequestObject.tabName == 'MY_AWARDS'}">
+              <a class="subTabLink" title="View active awards" i18n-title="@@AWARD_VIEW_MY_AWARDS_AWARDS_TLP"
+                  (click)="awardTabChange('MY_AWARDS');" tabindex="0">
+                  <ng-container i18n="@@AWARD_MY_AWARDS">My Awards</ng-container></a>
+          </li>
+          <li role="presentation" [ngClass]="{'active': _awardListService.awardRequestObject.tabName == 'ALL_AWARDS'}">
+              <a class="subTabLink" title="View all awards" i18n-title="@@AWARD_VIEW_ALL_AWARDS_AWARDS_TLP"
+                  (click)="_awardListService.awardRequestObject.advancedSearch = 'A';serviceRequestList = []; awardTabChange('ALL_AWARDS');" tabindex="0">
+                  <ng-container i18n="@@AWARD_ALL_AWARDS">All Awards</ng-container></a>
+          </li>
+          <li role="presentation" [ngClass]="{'active': _awardListService.awardRequestObject.tabName  == 'PENDING_AWARDS'}">
+              <a class="subTabLink" title="View pending awards" i18n-title="@@AWARD_PENDING_MY_ACTION_AWARDS_TLP"
+                  (click)="awardTabChange('PENDING_AWARDS');" tabindex="0">
+                  <ng-container i18n="@@AWARD_AWARDS_PENDING_MY_ACTION">Awards Pending My Action</ng-container></a>
+          </li>
+          <li role="presentation" [ngClass]="{'active': _awardListService.awardRequestObject.tabName  == 'DRAFT_AWARDS'}">
+              <a class="subTabLink" title="View draft awards" i18n-title="@@AWARD_VIEW_DRAFT_AWARDS_TLP"
+                  (click)="awardTabChange('DRAFT_AWARDS'); " tabindex="0">
+                  <ng-container i18n="@@AWARD_DRAFT_AWARDS">Draft Awards</ng-container></a>
+          </li>
+          <li *ngIf="viewHoldForFundingTab" role="presentation" [ngClass]="{'active': _awardListService.awardRequestObject.tabName  == 'HOLD_AWARDS'}">
+              <a class="subTabLink" title="View Hold For Funding Agency Review awards"
+                  (click)="awardTabChange('HOLD_AWARDS');" tabindex="0">
+                  Hold For Funding Agency Review</a>
+          </li>
+      </ul>
+  </div>
+  <div class="col-4 text-right mb-1">
+      <div>
+          <a id="show-advcance-search-award" class="btn btn-sm btn-tertiary mt-0" 
+              data-toggle="collapse" href="#collapseAward" role="button" aria-expanded="false"
+              aria-controls="collapseAward" title="Advanced Search"> <i aria-hidden="true" class="fa fa-sliders"></i>
+              Advanced Search
+          </a>
+          <span *ngIf="isCreateAward" (click)="gotoAwardCreation()">
+              <a class="btn btn-sm btn-primary hand-cursor" id="create-award-btn" title="Create New Award" i18n-title="@@COMMON_CREATE_NEW_AWARD_TLP" tabindex="0">
+                <ng-container i18n="@@COMMON_CREATE_NEW_AWARD">Create New Award</ng-container>
+              </a>
+          </span>
+        </div>
+
+    </div>
+</div>
+<!-- AWARD ELASTIC SEARCH-->
+<div id="elasticAward" class="card" *ngIf="_awardListService.awardRequestObject.tabName == 'ALL_AWARDS' && !_commonService.isExternalUser">
+  <div class="card-body gridSkin">
+      <!-- elastic search components -->
+      <div class="form-row justify-content-center">
+          <div class="col-12 searchBox mb-0">
+              <app-elastic [options]="elasticSearchOptions" [clearField]="clearAwardField"
+                  [placeHolder]="'Search: Award#, Account No, Title, Lead Unit, Sponsor, Principal Investigator, Award Status, Title of Grant Call'"
+                  (selectedResult)="selectAwardElasticResult($event)"></app-elastic>
+          </div>
+      </div>
+      <div class="form-row mb-2 mt-4" *ngIf="(isShowResultCard == true)">
+          <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 viewMode resultCard mb-0">
+              <button class="closeResultCard" id="close-elastic-result-award"
+                  (click)="isShowResultCard = false; clearElasticField()">
+                  <i class="fa fa-times" aria-hidden="true"></i>
+              </button>
+              <!-- award elastic search  results-->
+              <div class="row shadow py-3">
+                  <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 col-8">
+                      <label><ng-container i18n="@@AWARD_AWARD_#">Award</ng-container></label>
+                      <span>
+                          <a [routerLink]="['/fibi/award/overview']" class="anchor-link"
+                              [queryParams]={awardId:elasticResultObject.award_id}>#{{elasticResultObject?.award_number}} : 
+                              {{elasticResultObject?.title}}</a>
+                              <i class="fa fa-external-link-square anchor-link ml-1" aria-hidden="true"></i>
+                      </span>
+                  </div>
+                  <div class="col-xl-2 col-lg-2 col-md-2 col-sm-2 col-2">
+                      <label><ng-container i18n="@@AWARD_ACCOUNT_NUMBER">Account Number</ng-container></label>
+                      <span>
+                          <a [routerLink]="['/fibi/award/overview']"
+                              [queryParams]={awardId:elasticResultObject.award_id}>{{elasticResultObject?.account_number}}</a>
+                      </span>
+                  </div>
+                  <div class="col-xl-2 col-lg-3 col-md-3 col-sm-3 col-3">
+                      <label>Status</label>
+                      <span>
+                          <a [routerLink]="['/fibi/award/overview']"
+                              [queryParams]={awardId:elasticResultObject.award_id}>{{elasticResultObject?.status}}</a>
+                      </span>
+                  </div>
+                  <div class="col-xl-2 col-lg-3 col-md-3 col-sm-3 col-3">
+                      <label>Principal Investigator</label>
+                      <span>
+                          <a [routerLink]="['/fibi/award/overview']"
+                              [queryParams]={awardId:elasticResultObject.award_id}>{{elasticResultObject?.pi_name}}</a>
+                      </span>
+                  </div>
+                  <div class="col-xl-6 col-lg-8 col-md-8 col-sm-8 col-8">
+                      <label>Title of Grantcall</label>
+                      <span>
+                          <a [routerLink]="['/fibi/award/overview']"
+                              [queryParams]={awardId:elasticResultObject.award_id}>{{elasticResultObject?.grant_call_name}}</a>
+                      </span>
+                  </div>
+                  <div class="col-xl-2 col-lg-3 col-md-3 col-sm-3 col-3">
+                    <label>Lead Unit</label>
+                    <span>
+                        <a [routerLink]="['/fibi/award/overview']"
+                            [queryParams]={awardId:elasticResultObject.award_id}>{{elasticResultObject?.lead_unit_name}}</a>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+<div id="collapseAward" class="card mb-3 collapse">
+  <div class="card-body pb-0 ">
+      <div class="form-row mt-4">
+          <!-- Title -->
+          <div class="col-xl-4 col-lg-5 col-sm-6 col-12">
+              <label class="d-block">Title</label>
+              <input type="text" id="adv-search-award-title" placeholder="Title" maxlength="60"
+                  [(ngModel)]="tempAwardRequestObject.property7" class="form-control" (keyup.enter)="searchAward()" />
+          </div>
+          <!-- Sponsor -->
+          <div class="col-xl-4 col-lg-5 col-sm-6 col-12">
+              <label class="d-block"><ng-container i18n="@@COMMON_SPONSOR">Sponsor</ng-container></label>
+              <app-endpoint-search [httpOptions]="fundingAgencySearchOptions" [clearField]="clearFieldFundingAgency"
+                  [placeHolder]="'Sponsor'" (onSelect)="setFundingAgencyForAdvanceSearch($event)" (keydown.enter)="searchAward()">
+              </app-endpoint-search>
+          </div>
+          <!-- Award # -->
+          <div class="col-xl-2 col-lg-2 col-md-3 col-sm-6 col-12">
+              <label class="d-block"><ng-container i18n="@@AWARD_AWARD_#">Award #</ng-container></label>
+              <input type="text" id="adv-search-award-project-id" placeholder="Award #" 
+                  i18n-placeholder="@@AWARD_AWARD_#_PLHDR" maxlength="60"
+                  [(ngModel)]="tempAwardRequestObject.property6" (keypress)="inputRestriction($event)"
+                  class="form-control" (keyup.enter)="searchAward()" />
+          </div>
+          <!-- Award Status -->
+          <div class="col-xl-2 col-lg-2 col-md-3 col-sm-6 col-12">
+              <label class="d-block"><ng-container i18n="@@AWARD_AWARD_STATUS">Award Status</ng-container></label>
+              <app-look-up [options]='awardTypeOptions' [selectedLookUpList]="lookupValues['property8']"
+                  (selectedResult)="onLookupSelect($event, 'property8')" (keydown.enter)="searchAward();">
+              </app-look-up>
+          </div>
+          <!-- Role -->
+          <div class="col-xl-4 col-lg-4 col-md-3 col-sm-6 col-12">
+              <label class="">Researcher Role</label>
+              <app-look-up [options]='researchRoleOptions' [selectedLookUpList]="lookupValues['property11']"
+                  (selectedResult)="onLookupSelect($event, 'property11')" (keydown.enter)="searchAward();">
+              </app-look-up>
+          </div>
+          <!-- Researcher Name -->
+          <div class="col-xl-4 col-lg-5 col-md-6 col-12">
+              <!-- <input type="text" id="adv-search-award-PI" placeholder="PI" maxlength="60" [(ngModel)]="_awardListService.awardRequestObject.property4" class="form-control" /> -->
+              <label class="d-none d-sm-inline-block">Researcher Name</label>
+              <label class="d-sm-none">Researcher</label>
+              <span class="float-right">
+                  <input id="employee" type="radio" name='employee_nonemployee' [value]='true'
+                      [(ngModel)]="isEmployeeFlag" checked="true" (change)="changeMemberType()">
+                  <label for="employee">
+                      Employee
+                  </label>
+                  <input id="non-employee" type="radio" name='employee_nonemployee' [value]='false'
+                      [(ngModel)]="isEmployeeFlag" (change)="changeMemberType()">
+                  <label for="non-employee">
+                      Non-Employee
+                  </label>
+              </span>
+              <app-elastic [placeHolder]="isEmployeeFlag ? 'Search an employee': 'Search a non-employee' "
+                  (selectedResult)="selectedFilter($event)" [clearField]="clearPiField"
+                  (keyup)="emptyValidationKeyup($event)" [options]="elasticPersonSearchOptions">
+              </app-elastic>
+          </div>
+          <!-- Lead Unit -->
+          <div class="col-xl-4 col-lg-4 col-md-3 col-sm-6 col-12">
+            <label class="d-none d-sm-inline-block">Lead Unit</label>
+            <app-endpoint-search [httpOptions]="leadUnitSearchOptions" [clearField]="clearFieldLeadUnit"
+                [placeHolder]="'Lead Unit'" (onSelect)="setLeadUnitForAdvanceSearch($event)" (keydown.enter)="searchAward();">
+            </app-endpoint-search>
+        </div>
+          <!-- Type of Grant -->
+          <div class="col-xl-4 col-lg-4 col-md-3 col-sm-6 col-12">
+            <label class="d-none d-sm-inline-block">Type of Grant</label>
+            <app-look-up [options]='grantCallTypeOptions' [selectedLookUpList]="lookupValues['property15']"
+                (selectedResult)="onLookupSelect($event, 'property15')" (keydown.enter)="searchAward();">
+            </app-look-up>
+          </div>
+          <!-- Title of Grant Call -->
+          <div *ngIf="awardSectionConfig && awardSectionConfig['197']?.isActive" class="col-xl-4 col-lg-4 col-md-3 col-sm-6 col-12">
+              <label>Title of Grant Call</label>
+              <app-elastic [options]="grantCallElasticSearchOptions" [clearField]="clearGrantField" 
+                          [placeHolder]="'Search: Grant Call ID , Title of Grant Call'"
+                          (selectedResult)="setGrantCallForAdvanceSearch($event)" (keydown.enter)="searchAward();"></app-elastic>
+          </div>
+          <!-- Keywords of Research -->
+          <div class="col-xl-4 col-lg-4 col-md-4 col-sm-6 col-12">
+              <label class="d-sm-inline-block">Keywords of Research</label>
+              <input type="text" id="adv-search-award-keywords" placeholder="Keywords of Research" maxlength="60"
+                  [(ngModel)]="tempAwardRequestObject.property9" class="form-control" (keyup.enter)="searchAward();" />
+          </div>
+          <!-- Account No -->
+          <div class="col-xl-2 col-lg-2 col-md-3 col-sm-6 col-12">
+              <label class="d-sm-inline-block"><ng-container i18n="@@AWARD_ACCOUNT_NUMBER">Account Number</ng-container></label>
+              <input type="text" id="adv-search-award-account-no" placeholder="Account Number" maxlength="60"
+                  i18n-placeholder="@@AWARD_ACCOUNT_NUMBER" 
+                  [(ngModel)]="tempAwardRequestObject.property1" class="form-control" (keyup.enter)="searchAward();" />
+          </div>
+          <!-- Sponsor Award Number -->
+          <div class="col-xl-2 col-lg-2 col-md-3 col-sm-6 col-12">
+              <label class="d-sm-inline-block"><ng-container i18n="@@COMMON_SPONSOR_AWARD_NUMBER">Sponsor Award Number</ng-container></label>
+              <input type="text" id="adv-search-award-project-id" placeholder="Sponsor Award Number" maxlength="60"
+              [(ngModel)]="tempAwardRequestObject.property12" i18n-placeholder="@@AWARD_SPONSOR_AWARD_NUMBER_PLHDR"
+              class="form-control" (keyup.enter)="searchAward();" /> 
+          </div>
+          <!-- Version Type -->
+          <div *ngIf="_awardListService.awardRequestObject.tabName != 'MY_AWARDS'"  class="col-xl-4 col-lg-4 col-md-3 col-sm-6 col-12">
+            <label class="">Version Type</label>
+            <app-look-up [options]='variationTypeOptions' [selectedLookUpList]="lookupValues['property13']"
+                (selectedResult)="onLookupSelect($event, 'property13')" (keydown.enter)="searchAward();">
+            </app-look-up>
+        </div>
+        <!-- Account Type -->
+        <div class="col-xl-4 col-lg-4 col-md-3 col-sm-6 col-12">
+            <label class="">Account Type</label>
+            <app-look-up [options]='accountTypeOptions' [selectedLookUpList]="lookupValues['property14']"
+                (selectedResult)="onLookupSelect($event, 'property14')" (keydown.enter)="searchAward();">
+            </app-look-up>
+        </div>
+          <div class="col-md col-sm-6 col-6 flex-column flex-sm-row d-flex justify-content-end align-items-end">
+              <button id="adv-search-clear-award" class="btn btn-secondary btn-xs mr-2"
+                  (click)="clearAdvanceSearchFields();$awardList.next();">Clear</button>
+              <button id="adv-search-award" class="btn btn-primary btn-xs"
+                  (click)="searchAward()">Search</button>
+          </div>
+      </div>
+  </div>
+</div>
+<div class="card card-table-box rounded-0" *ngIf="isShowAllAwardsList">
+  <div class="card-content">
+      <div class="card-header">
+          <p class="card-title row align-items-center">
+              <span class="col-7" *ngIf="_awardListService.awardRequestObject.tabName == 'MY_AWARDS'">
+                  <ng-container i18n="@@AWARD_LIST_OF_MY_ACTIVE_AWARDS">List of My Active Awards</ng-container></span>
+              <span class="col-7" *ngIf="_awardListService.awardRequestObject.tabName == 'ALL_AWARDS'">
+                  <ng-container i18n="@@AWARD_LIST_OF_ALL_AWARDS_IN_MY_DEPARTMENT">List of all awards in my department</ng-container></span>
+              <span class="col-7" *ngIf="_awardListService.awardRequestObject.tabName == 'PENDING_AWARDS'">
+                  <ng-container i18n="@@AWARD_LIST_OF_AWARDS_THAT_ARE_PENDING_MY_REVIEW">List of Awards that are Pending my Review. This includes Awards & Variation Requests</ng-container> </span>
+              <span class="col-7" *ngIf="_awardListService.awardRequestObject.tabName == 'DRAFT_AWARDS'">
+                  <ng-container i18n="@@AWARD_LIST_OF_AWARDS_THAT_ARE_BEING_CHANGED">List of Awards that are being changed. This includes Awards & Variation requests</ng-container></span>
+              <span class="col-7" *ngIf="_awardListService.awardRequestObject.tabName == 'HOLD_AWARDS'">List of Awards that are being
+                  Hold For Funding Agency Review</span> 
+              <!-- <span class="col text-right" *ngIf="isCreateAward" (click)="gotoAwardCreation()">
+                  <a class="btn btn-sm btn-primary" id="create-award-btn" title="Create New Award">
+                      Create New Award
+                  </a>
+              </span> -->
+                <span *ngIf="serviceRequestList !== null && serviceRequestList?.length !== 0"
+                    class="col-5 exportButton text-right">
+                    <span class="exportIcon-margin">Export as :</span>
+                    <a title="Export data to Excel sheet" class="exportIcon-margin  hand-cursor"
+                        id="export-award-excel-btn" (click)="exportAsTypeDoc('excel')" tabindex="0">
+                        <i aria-hidden="true" class="fa fa-file-excel-o"></i>
+                    </a>
+                    <a class="exportIcon-margin">|</a>
+                    <a title="Export data to PDF document" class="hand-cursor" id="export-award-pdf-btn"
+                        (click)="exportAsTypeDoc('pdf')" tabindex="0"><i aria-hidden="true"
+                            class="fa fa-file-pdf-o"></i></a>
+                </span>
+            </p>
+        </div>
+
+        <div class="no-data-container" *ngIf="serviceRequestList == null || serviceRequestList?.length == 0">
+            <span class="no-data-icon-outer">
+                <div class="no-data-icon">
+                    <i class="fa fa-file-o" aria-hidden="true"></i>
+                    <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                </div>
+            </span>
+            <h4>There is no information in this section.</h4>
+        </div>
+
+      <div class="table-responsive" *ngIf="serviceRequestList !== null && serviceRequestList?.length !== 0">
+          <table class="table tableSkin mb-0">
+              <caption class="sr-only"><ng-container i18n="@@AWARD_LIST_OF_AWARDS">List of Awards</ng-container></caption>
+              <thead>
+                  <tr class="header-border">
+                      <th scope="col" style="width: 8%;" id="sortby-award-no" (click)="sortResult('awardNumber')" tabindex="0" class="hand-cursor">
+                          <span title="Click to sort by Award #" i18n-title="@@AWARD_CLICK_TO_SORT_BY_AWARD_#_TLP">
+                            <ng-container i18n="@@AWARD_AWARD_#">Award #</ng-container>
+                          </span>
+                          <i aria-hidden="true" *ngIf="!_awardListService.awardRequestObject.sort['awardNumber']"
+                              class="fa fa-sort-numeric-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['awardNumber'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['awardNumber'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"></i>
+                      </th>
+                      <!-- <th *ngIf="_awardListService.awardRequestObject.tabName == 'DRAFT_AWARDS' || _awardListService.awardRequestObject.tabName == 'PENDING_AWARDS' || _awardListService.awardRequestObject.tabName == 'HOLD_AWARDS'" 
+                      scope="col" style="width: 10%;" id="sortby-award-no" (click)="sortResult('type')">
+                          <span class="hand-cursor" title="Click to sort by Type">Type</span>
+                          <i aria-hidden="true" *ngIf="!_awardListService.awardRequestObject.sort['type']"
+                              class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['type'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['type'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                      </th> -->
+                      <th *ngIf="_awardListService.awardRequestObject.tabName != 'MY_AWARDS'" scope="col" style="width: 10%;"
+                          id="sortby-award-no" (click)="sortResult('awardVariationType')" tabindex="0" class="hand-cursor">
+                          <span title="Click to sort by Version Type">Version Type</span>
+                          <i aria-hidden="true" *ngIf="!_awardListService.awardRequestObject.sort['awardVariationType']"
+                              class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['awardVariationType'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['awardVariationType'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                      </th>
+                      <th scope="col" style="width: 10%;" id="sortby-sponsor-award-number"
+                          (click)="sortResult('sponsorAwardNumber')" tabindex="0" class="hand-cursor">
+                          <span title="Click to sort by Sponsor Award Number" i18n-title="@@COMMON_SPONSOR_AWARD_NUMBER_TLP">
+                            <ng-container i18n="@@COMMON_SPONSOR_AWARD_NUMBER">Sponsor Award Number</ng-container></span>
+                          <i aria-hidden="true" *ngIf="!_awardListService.awardRequestObject.sort ['sponsorAwardNumber']"
+                              class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['sponsorAwardNumber'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['sponsorAwardNumber'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                      </th>
+                      <th scope="col" style="width: 8%;" id="sortby-award-title" (click)="sortResult('title')" tabindex="0" class="hand-cursor">
+                          <span  title="Click to sort by Title">Title</span>
+                          <i aria-hidden="true" *ngIf="!_awardListService.awardRequestObject.sort ['title']"
+                              class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['title'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['title'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                      </th>
+                      <th scope="col" style="width: 11%;" id="sortby-award-PI"
+                          (click)="sortResult('awardPersons.fullName')" tabindex="0" class="hand-cursor">
+                          <span  title="Click to sort by Principal Investigator">Principal
+                              Investigator</span>
+                          <i aria-hidden="true" *ngIf="!_awardListService.awardRequestObject.sort ['awardPersons.fullName']"
+                              class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['awardPersons.fullName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['awardPersons.fullName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                      </th>
+                      <th scope="col" style="width: 8%;" id="sortby-award-lead-unit"
+                          (click)="sortResult('leadUnit.unitName')" tabindex="0" class="hand-cursor">
+                          <span  title="Click to sort by Lead Unit">Lead Unit</span>
+                          <i aria-hidden="true" *ngIf="!_awardListService.awardRequestObject.sort ['leadUnit.unitName']"
+                              class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['leadUnit.unitName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['leadUnit.unitName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                      </th>
+                      <th scope="col" style="width: 15%;" id="sortby-award-sponsor"
+                          (click)="sortResult('sponsor.sponsorName')" tabindex="0" class="hand-cursor">
+                          <span  title="Click to sort by Sponsor" i18n-title="@@COMMON_CLICK_TO_SORT_BY_SPONSOR_TLP">
+                            <ng-container i18n="@@COMMON_SPONSOR">Sponsor</ng-container>
+                          </span>
+                          <i aria-hidden="true" *ngIf="!_awardListService.awardRequestObject.sort ['sponsor.sponsorName']"
+                              class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['sponsor.sponsorName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['sponsor.sponsorName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                      </th>
+                      <!-- <th scope="col" style="width: 10%;" id="sortby-award-accno" (click)="sortResult('accountNumber')">
+                          <span class="hand-cursor" title="Click to sort by Account No"><ng-container i18n="@@AWARD_ACCOUNT_NUMBER">Account Number</ng-container></span>
+                          <i aria-hidden="true" *ngIf="!_awardListService.awardRequestObject.sort ['accountNumber']"
+                              class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['accountNumber'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['accountNumber'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                      </th> -->
+                      <th scope="col" style="width: 8%;" id="sortby-award-type" (click)="sortResult('awardType')" tabindex="0" class="hand-cursor">
+                          <span  title="Click to sort by award document type" i18n-title="@@AWARD_AWARD_TYPE_SORT_TLP">
+                              <ng-container i18n="@@AWARD_AWARD_TYPE">Award Type</ng-container></span>
+                          <i aria-hidden="true" *ngIf="!_awardListService.awardRequestObject.sort ['awardType']"
+                              class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['awardType'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['awardType'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                      </th>
+                      <th scope="col" style="width: 10%;" id="sortby-award-status"
+                          (click)="sortResult('awardStatus.description')" tabindex="0" class="hand-cursor">
+                          <span title="Click to sort by Status"><ng-container i18n="@@AWARD_AWARD_STATUS">Award Status</ng-container></span>
+                          <i aria-hidden="true" *ngIf="!_awardListService.awardRequestObject.sort ['awardStatus.description']"
+                              class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['awardStatus.description'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['awardStatus.description'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                      </th>
+                      <th *ngIf="_awardListService.awardRequestObject.tabName == 'ALL_AWARDS'" scope="col" style="width: 8%;"
+                          id="sortby-version-status" (click)="sortResult('awardSequenceStatus')" tabindex="0" class="hand-cursor">
+                          <span  title="Click to sort by Status">Version Status</span>
+                          <i aria-hidden="true" *ngIf="!_awardListService.awardRequestObject.sort ['awardSequenceStatus']"
+                              class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['awardSequenceStatus'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_awardListService.awardRequestObject.sort ['awardSequenceStatus'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                      </th>
+                      <!-- <th *ngIf="_awardListService.awardRequestObject.tabName != 'MY_AWARDS'" scope="col" style="width: 12%;" id="sortby-award-status" (click)="sortResult('awardWorkflowStatus')">
+                          <span class="hand-cursor" title="Click to sort by Status">Workflow Status</span>
+                          <i aria-hidden="true" *ngIf="!_awardListService.awardRequestObject.sort ['awardWorkflowStatus']" class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true" [ngClass]="_awardListService.awardRequestObject.sort ['awardWorkflowStatus'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true" [ngClass]="_awardListService.awardRequestObject.sort ['awardWorkflowStatus'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                      </th> -->
+                        <!-- <th scope="col" style="width: 15%;" id="award-grant-name">
+                          Grant Call
+                      </th> -->
+                      <th scope="col" style="width: 8%;" tabindex="0">Actions</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  <tr class="pull-up" *ngFor="let awardDetails of serviceRequestList; let index=index" [@itemAnim]>
+                      <td (click)="navigateToAward(awardDetails)" tabindex="0">
+                          {{awardDetails?.awardNumber}}
+                      </td>
+                      <td *ngIf="_awardListService.awardRequestObject.tabName != 'MY_AWARDS' "
+                          (click)="navigateToAward(awardDetails)" tabindex="0">
+                          <span class="d-block"
+                              *ngIf="awardDetails?.awardDocumentType === '1' && awardDetails?.awardSequenceStatus !== 'ACTIVE'"
+                              class="text-primary  mr-3"><ng-container i18n="@@AWARD_AWARD_SETUP">Award Setup</ng-container></span>
+                          <span class="d-block"
+                              *ngIf="awardDetails?.awardDocumentType === '2' && awardDetails?.awardSequenceStatus !== 'ACTIVE'"
+                              class="text-warning  mr-3"><ng-container i18n="@@AWARD_ADMIN_CORRECTION">Admin Correction</ng-container></span>
+                          <span class="d-block text-success"
+                              *ngIf="awardDetails?.awardDocumentType === '3' && awardDetails?.awardSequenceStatus !== 'ACTIVE'">
+                              {{awardDetails?.awardVariationType}}</span>
+                          <!-- <span class="d-block" *ngIf="awardDetails?.awardSequenceStatus === 'ACTIVE'"
+                              class="badge badge-pill badge-success mr-3">Active</span> -->
+                      </td>
+                      <td (click)="navigateToAward(awardDetails)" tabindex="0">
+                          {{awardDetails?.sponsorAwardNumber}}</td>
+                      <!-- <td *ngIf="_awardListService.awardRequestObject.tabName == 'DRAFT_AWARDS' || _awardListService.awardRequestObject.tabName == 'PENDING_AWARDS' || _awardListService.awardRequestObject.tabName == 'HOLD_AWARDS'"
+                       (click)="navigateToAward(awardDetails.awardId)">
+                          {{awardDetails?.awardVariationType}}</td> -->
+                        <td (click)="navigateToAward(awardDetails)" tabindex="0">
+                            {{awardDetails?.title}}</td>
+                        <td (click)="navigateToAward(awardDetails)" tabindex="0">
+                            {{awardDetails?.fullName}}</td>
+                        <td (click)="navigateToAward(awardDetails)" tabindex="0">
+                            {{concatUnitNumberAndUnitName(awardDetails?.unitNumber, awardDetails?.unitName)}}</td>
+                        <td (click)="navigateToAward(awardDetails)" tabindex="0">
+                            {{awardDetails?.sponsor}}</td>
+                        <!-- <td 
+                          >
+                          {{awardDetails?.accountNumber}}</td> -->
+                        <td (click)="navigateToAward(awardDetails)" tabindex="0">
+                            {{awardDetails?.awardType}}</td>
+                        <td (click)="navigateToAward(awardDetails)" tabindex="0">
+                            {{awardDetails?.status}}</td>
+                        <td (click)="navigateToAward(awardDetails)" *ngIf="_awardListService.awardRequestObject.tabName == 'ALL_AWARDS'"
+                            tabindex="0">
+                            {{awardDetails?.awardSequenceStatus}}</td>
+                        <!-- <td *ngIf="awardRequestObject.tabName != 'MY_AWARDS'" >
+
+                          {{awardDetails?.awardWorkflowStatus}}</td> -->
+                        <!-- <td  >
+                          {{awardDetails?.grantCallTitle}}</td> -->
+                        <td>
+                        <ul class="actionButtonGroup">
+                                <li (click)="navigateToAward(awardDetails)"><a title="Open {{awardDetails.awardNumber}}" 
+                                         id="open-award-btn" tabindex="0"><i aria-hidden="true" 
+                                             class="fa fa-eye pointer"></i>
+                                    </a></li>
+                                        <li *ngIf="isCreateAward" title="Copy Award {{awardDetails?.awardNumber}}"
+                                            id="copy-award-dashboard-btn" data-toggle="modal" data-target="#copyAwardModal"
+                                            (click)="awardId = awardDetails.awardId" tabindex="0">
+                                            <i class="fa fa-copy" aria-hidden="true"></i>
+                                    </li>
+                                    <li *ngIf="awardDetails?.workflowAwardStatusCode == '1' && awardDetails?.awardSequenceStatus == 'PENDING' 
+                                        && awardDetails?.awardDocumentType == '1'"
+                                        title="Delete award {{awardDetails?.awardNumber}}" id="delete-award-btn"
+                                        (click)="deleteAwardConfirmationModal(awardDetails,index);" tabindex="0">
+                                        <i class="fa fa-trash" aria-hidden="true"></i>
+                                    </li>
+                            </ul>    
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- Pagination -->
+            <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12"
+                *ngIf="serviceRequestList !== null && serviceRequestList?.length !== 0">
+                <nav class="pagination justify-content-end">
+                    <app-pagination [totalCount]="result.totalServiceRequest"
+                        (pageChangeEvent)="actionsOnPageChange($event)">
+                    </app-pagination>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Newer Version of Award Exist Modal -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="newVersionAlreadyExist" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><ng-container i18n="@@AWARD_NEWER_VERSION_TITLE_ERR">There are In Progress Variation Request(s) for this award.</ng-container></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body px-3 py-2">
+                <div class="gridSkin">
+                    <div class="row mb-3">
+                        <!-- Award Number -->
+                        <div class="col-xl-2 col-lg-9 col-md-6 col-sm-12 col-9">
+                            <label><ng-container i18n="@@COMMON_AWARD_NUMBER">Award Number</ng-container></label>
+                            <span class="d-block"
+                                [ngClass]="tempAwardDetails?.awardNumber ? '' : 'noDataExists'">
+                                {{tempAwardDetails?.awardNumber ? tempAwardDetails?.awardNumber: 'Not Available'}}</span>
+                        </div>
+                        <!-- Account Number -->
+                        <div class="col-xl-4 col-lg-3 col-md-6 col-sm-12 col-3">
+                            <label>Title</label>
+                            <span class="d-block"
+                                [ngClass]="tempAwardDetails?.title ? '' : 'noDataExists'">
+                                {{tempAwardDetails?.title ? tempAwardDetails?.title: 'Not Available'}}</span>
+                        </div>
+                        <!-- Principal Investigator -->
+                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-3">
+                            <label>Principal Investigator</label>
+                            <span class="d-block"
+                                [ngClass]="tempAwardDetails?.fullName ? '' : 'noDataExists'">
+                                {{tempAwardDetails?.fullName ? tempAwardDetails?.fullName: 'Not Available'}}</span>
+                        </div>
+                        <!-- Lead Unit -->
+                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-3">
+                            <label>Lead Unit</label>
+                            <span class="d-block"
+                                [ngClass]="tempAwardDetails?.unitName ? '' : 'noDataExists'">
+                                {{tempAwardDetails?.unitName ? concatUnitNumberAndUnitName(tempAwardDetails?.unitNumber, tempAwardDetails?.unitName): 'Not Available'}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="awardVersionObject?.activeAward">
+                    <div class="my-2 py-2 pl-3 pr-2 align-items-center d-flex border-bottom">
+                        <div class="mr-auto">
+                            <span>Open <strong>Active </strong><ng-container i18n="@@COMMON_AWARD">Award</ng-container> Version.</span>
+                        </div>
+                        <div>
+                            <a class="anchor-link mr-4"
+                                title="View Award#{{awardVersionObject?.activeAward?.awardNumber}}"
+                                i18n-title="'@@VIEW_AWARD + `# ${awardVersionObject?.activeAward?.awardNumber}`"
+                                (click)="openAwardInNewTab(awardVersionObject?.activeAward?.awardId)"> Open
+                                <i aria-hidden="true" class="fa fa-external-link-square mr-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="my-2 py-2 pl-3 pr-2 ">
+                        <span><ng-container i18n="@@AWARD_INPROGRESS_VARIATION_REQUEST">In Progress variation request(s) for this award</ng-container></span>                    
+                    </div>
+                    <div class="inner-scroll">
+                        <div *ngFor="let award of awardVersionObject?.pendingAwards; let index=index">
+                            <div class="p-2 pl-4 mb-2">
+                                <span class="fw-600">{{index + 1}}.
+                                    <span *ngIf="award?.awardVariationName">{{award?.awardVariationName}}</span>
+                                    <span *ngIf="!award?.awardVariationName">Award Setup</span>
+                                </span>
+                                <span class="float-right mr-4">
+                                    <a class="anchor-link ml-2" title="View Award#{{award?.awardNumber}}"
+                                        i18n-title="'@@VIEW_AWARD + `# ${award?.awardNumber}`"
+                                        (click)="openAwardInNewTab(award?.awardId)"> Open
+                                        <i aria-hidden="true" class="fa fa-external-link-square mr-1"></i>
+                                    </a>
+                                </span>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary mr-2" data-dismiss="modal">Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- COPY AWARD MODAL -->
+<div class="modal fade show mySkinDialog" id="copyAwardModal" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <ng-container i18n="@@AWARD_COPY_AWARD">Copy Award</ng-container>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"  (click)="clearModalFlags()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="success-banner px-2 my-1 mx-2 d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i>
+                    <em>All other sections of the award will be copied to the new award by default
+                    </em>
+                </div>
+            </div>
+            <div class="modal-body">
+                    <label class="mb-2 text-muted">
+                        Check the boxes below to copy the corresponding sections to the new award.
+                    </label>
+                    <div class="ml-4">
+                        <div class="form-check">
+                            <input class="form-check-input mt-2" type="checkbox" id="copyQuestionnaire"
+                                [(ngModel)]="copyQuestionnaire">
+                            <label class="form-check-label ml-2" for="copyQuestionnaire">
+                                Questionnaire
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input mt-2" type="checkbox" id="copyOtherInformation"
+                                [(ngModel)]="copyOtherInformation">
+                            <label class="form-check-label ml-2" for="copyOtherInformation">
+                                Other Information
+                            </label>
+                        </div>
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" data-toggle="modal"  (click)="clearModalFlags()">No</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="copyAward()"
+                    data-dismiss="modal">Copy</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AWARD DELETE MODAL -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="deleteAwardPermissionCheckingModal" tabindex="-1" role="dialog"
+    aria-labelledby="deleteModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" *ngIf="canDeleteAward">Delete award #{{deleteAwardNumber}}</h5>
+                <h5 class="modal-title" *ngIf="!canDeleteAward">Unable to delete award #{{deleteAwardNumber}}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="clearWarningMessages();">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ul class="list pl-0" *ngIf="deleteWarningMessages.length > 0 && !canDeleteAward">
+                    <li *ngFor="let message of deleteWarningMessages">
+                        <div class="alert alert-danger fs-12">
+                            <i aria-hidden="true" class="fa fa-exclamation-circle icon text-danger mr-3"></i>
+                            {{message}} 
+                        </div>
+                    </li>
+                </ul>
+                <p *ngIf="canDeleteAward">{{deleteWarningMessages[0]}}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" *ngIf="canDeleteAward" data-dismiss="modal"
+                    data-toggle="modal" (click)="clearWarningMessages();">No</button>
+                <button type="button" *ngIf="canDeleteAward" class="btn btn-primary-sub btn-sm"
+                    (click)="deleteAward();">Delete</button>
+                <button type="button" *ngIf="!canDeleteAward" class="btn btn-primary-sub btn-sm mr-2"
+                    data-dismiss="modal" data-toggle="modal" (click)="clearWarningMessages();">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>

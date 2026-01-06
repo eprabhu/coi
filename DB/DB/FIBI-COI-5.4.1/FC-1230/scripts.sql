@@ -1,0 +1,1 @@
+UPDATE DYN_ELEMENT_CONFIG SET HELP = 'Describe the relationship between this project and this organization, include any involvement with students, staff and MIT resources. If there is no relationship between the work you are performing for this organization and this project, explain how they are different.' WHERE (UI_REFERENCE_ID = 'coi-conflict-status-change');

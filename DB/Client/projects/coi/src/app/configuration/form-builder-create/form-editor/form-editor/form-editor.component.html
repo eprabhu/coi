@@ -1,0 +1,192 @@
+<div class="main card fb-mt-2">
+    <div class="main-component" cdkDropListGroup>
+        <div class="fb-left-div">
+            <div class="element-box">
+                <div class="text-center">
+                    <h4 class="components py-2 d-flex align-items-center">Form Elements</h4>
+                    <div cdkDropList #originList="cdkDropList" [cdkDropListData]="lookUpTree"
+                        class="form-list-height field-list p-3">
+                        <div class="field-box-element-tree d-flex justify-content-between" *ngFor="let item of lookUpTree; trackBy: trackBy" cdkDrag>
+                            <span class="component-icon-container d-flex align-items-center">
+                                <img class="fb-ml-3" src="{{deployMap}}assets/images/fb-image/{{formTreeIconMap.get(item.componentTypeCode)}}">
+                            <label class="py-2 fb-pl-10">{{item?.description}}</label>
+                            </span>
+                            <span
+                                class="move-icon-container px-2">
+                                <img src='{{deployMap}}assets/images/fb-image/FB-drag-dots.svg'>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div [id]="FB_FORM_EDITOR_ID" class="fb-right-div">
+            <div class="drop-Element">
+                <div id="FB-edit-Container" class="scroll-container" #scrollContainer (scroll)="componentContainerScroll($event)">
+                    <ng-container  *ngFor="let section of sectionArray let sectionArrayIndex = index">
+                        <div id="FB-section-card-{{section.sectionId}}" class="card fb-mt-5 section-border">
+                            <div class="d-flex card-header justify-content-between align-items-center px-3">
+                                <span *ngIf="!section?.sectionName" class="d-flex align-items-center">
+                                     <img class="FB-element-editor-icon fb-mr-2"
+                                          src="{{deployMap}}assets/images/fb-image/{{formTreeIconMap.get('INFO')}}">
+                                     <span class="fb-mr-5">Unconfigured Section</span>
+                                </span>
+                                <h5 *ngIf="section?.sectionName" appEllipsisTooltip class="fb-mb-0 fb-fs-16 col-10 px-0 text-truncate">{{section?.sectionName}}</h5>
+                                <span>
+                                    <button id="FB-emit-Section-{{section.sectionId}}" title="Click here to edit {{section?.sectionName || 'section'}}"
+                                    aria-label="Click here to edit {{section?.sectionName || 'section'}}" class="btns edit-section cursor-pointer"
+                                        (click)="emitSectionData(section);"><i aria-hidden="true"
+                                            class="fa fa-pencil"></i></button>
+                                    <button *ngIf="sectionArray.length>1" class="btns delete-section cursor-pointer ms-2"
+                                        (click)="deleteSectionConfirmation(section,sectionArrayIndex)" title="Click here to delete {{section?.sectionName || 'section'}}" aria-label="Click here to delete {{section?.sectionName || 'section'}}"><i
+                                            class="fa fa-trash cursor-pointer" aria-hidden="true"></i></button>
+                                </span>
+                            </div>
+                            <div id="{{section.sectionId}}" cdkDropList #destinationList="cdkDropList"
+                                [cdkDropListData]="section.sectionComponent" class="field-list dropContainer"
+                                (cdkDropListDropped)="drop($event)">
+                                <div id="FB-field-box-{{(item.componentId)?item.componentId:item.tempId}}" tabindex="0" [ngClass]="{'FB-disabled-component':(['HL','BR'].includes(item.componentType))}"
+                                    class="drag-box field-box fb-pl-3"
+                                    *ngFor="let item of section.sectionComponent let index = index" (cdkDragMoved)="onDragMoved($event)" cdkDrag
+                                    (click)="emitComponentData(item,section.sectionComponent)" (keydown.enter)="emitComponentData(item,section.sectionComponent)">
+                                    <span class="d-flex align-items-center justify-content-between fb-form-element-width">
+                                      <span class="d-flex align-items-center fb-width-50">
+                                            <img class="fb-ml-3 FB-element-editor-icon fb-mr-2"
+                                                 src="{{deployMap}}assets/images/fb-image/{{formTreeIconMap.get(item.componentType || item.componentTypeCode)}}">
+                                         <span *ngIf="item?.label" appEllipsisTooltip class="fw-500 text-truncate w-100">{{ item?.label }}</span>
+                                        <span *ngIf="!item.label" class="fw-500">
+                                            {{ item?.description }}</span>
+                                      </span>
+                                    <span class="d-flex align-items-center fb-width-50 justify-content-end">
+                                        <img class="fb-ml-3 FB-element-editor-icon fb-mr-2"
+                                             src="{{deployMap}}assets/images/fb-image/{{formTreeIconMap.get('INFO')}}">
+                                        <span *ngIf="['HL','BR'].includes(item.componentType)" class="fb-mr-5" >Non configurable element</span>
+                                        <span *ngIf="!['HL','BR'].includes(item.componentType) && !item?.label" class="fb-mr-5" >Click here to configure this element</span>
+                                        <span *ngIf="!['HL','BR'].includes(item.componentType) && item?.label" class="fb-mr-5" >Click here to edit the configuration</span>
+                                    <i tabindex="0" (click)="confirmComponentDelete(index,section,$event)"
+                                       (keydown.enter)="confirmComponentDelete(index,section,$event)"
+                                       class="fa fa-trash cursor-pointer component-delete" title="Click here to delete" aria-label="Click here to delete"></i>
+                                    </span>
+                                    </span>
+                                    <div class="Fb-Form-Editor-Icon-Right d-flex">
+                                        <span class="move-icon-container-right px-2">
+                                <img src='{{deployMap}}assets/images/fb-image/FB-drag-dots.svg'>
+                            </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </ng-container>
+                    <div *ngIf="sectionArray?.length" class="floating-btn d-flex justify-content-center fb-mt-2">
+                        <div class="fb-form-editor-actions-btn d-flex align-items-center justify-content-between shadow-lg">
+                            <button class="btn btn-sm btn-tertiary d-flex p-3 justify-content-center align-items-center" id="FB-float-add-section-btn"
+                                (click)="createNewSection();" aria-label="Click here to add sections" title="Click here to add sections">
+                                <span>
+                                    <img class ="fb-ml-2" src="{{deployMap}}assets/images/fb-image/FB-plus.svg">Add Section
+                                </span>
+                            </button>
+                            <button class="btn btn-sm btn-tertiary d-flex p-3 justify-content-center align-items-center" id="FB-float-sort-btn" (click)="sectionSort();" aria-label="Click here to rearrange sections" title="Click here to rearrange sections">
+                                <span>
+                                    <img class ="fb-ml-2 fb-mr-1" src="{{deployMap}}assets/images/fb-image/FB-up-down.svg">Rearrange Section
+                                </span>
+                            </button>
+                            <button *ngIf="showScrollButton" class="btn btn-sm btn-tertiary d-flex p-3 justify-content-center align-items-center" id="FB-float-scroll-to-top-btn" (click)="scrollUp();"  aria-label="Click here to scroll to top" title="Click here to scroll to top">
+                                <span>
+                                    <img class ="fb-ml-2 fb-mr-1" src="{{deployMap}}assets/images/fb-image/FB-up-arrow.svg">Scroll To Top
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="addition-info overflow-x-hidden" [id]="FB_ADDITIONAL_INFO_ID">
+            <app-form-addtional-information [additionInfoComponentEvent]="additionInfoComponentEvent"
+                [additionalInfoSectionEvent]="additionalInfoSectionEvent"
+                (additionalInformation)="sectionUpdate($event)"
+                (additionalInformationComponent)="componentUpdate($event)"
+                (additionalInformationInitialComponentSave)="initialComponentSave($event)">
+            </app-form-addtional-information>
+        </div>
+    </div>
+</div>
+<!-- Sort Modal -->
+
+<div class="modal fb-modal-sort fade mySkinDialog" data-bs-backdrop="static" data-backdrop="static" id="FB-rearrange-section-modal" role="dialog">
+    <div class="modal-dialog modal-xl" appModalDrag>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Rearrange Section </h4>
+                <button id="FB-dismiss-rearrange-modal-btn" type="button" class="close" title="Click here to close" aria-label="Click here to close" (click)="closeBtn('#FB-rearrange-section-modal')">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                    <div cdkDropList class="sort-list modal-boundary fb-width" (cdkDropListDropped)="dropForSort($event)">
+                        <div *ngFor="let section of sectionSortArray" class="field-box-element-tree p-12" cdkDragBoundary=".modal-boundary" cdkDrag>
+                                <span *ngIf="!section?.sectionName" class="d-flex align-items-center">
+                                     <img class="FB-element-editor-icon fb-mr-2"
+                                          src="{{deployMap}}assets/images/fb-image/{{formTreeIconMap.get('INFO')}}">
+                                     <span class="fb-mr-5">Unconfigured Section</span>
+                                </span>
+                            <h5 *ngIf="section?.sectionName" appEllipsisTooltip class="fb-mb-0 fb-fs-16 text-truncate">{{section?.sectionName}}</h5>
+                        </div>
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm fb-mr-2"
+                aria-label="Click here to cancel" id="FB-cancel-rearrange-section-modal-btn" title="Click here to cancel"
+                    type="button" (click)="cancelSectionSort();closeBtn('#FB-rearrange-section-modal')">Cancel
+                </button>
+                <button data-dismiss="modal" class="btn btn-primary-sub btn-sm" type="button"
+                aria-label="Click here to rearrange"   id="FB-rearrange-section-modal-btn" title="Click here to rearrange" (click)="sectionSortService();closeBtn('#FB-rearrange-section-modal');">Rearrange</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- delete component -->
+<div class="modal fade mySkinDialog" tabindex="-1" data-bs-backdrop="static" data-backdrop="static" id="FB-delete-Confirmation-Modal" role="dialog">
+    <div class="modal-dialog" role="document" appModalDrag>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 appEllipsisTooltip class="modal-title text-truncate">Delete {{sectionDelete ?
+                    deleteObject?.sectionName:deleteObject?.sectionComponent[deleteIndex]?.label}} </h4>
+                    <button id="FB-dismiss-delete-modal-btn" type="button" class="close" title="Click here to close" aria-label="Click here to close" (click)="closeBtn('#FB-delete-Confirmation-Modal')">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+            </div>
+            <div class="modal-body">
+                <span class="fs-14">Are you sure you want to delete this {{sectionDelete?"section":"form element"}}? </span>
+              </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm fb-mr-2" aria-label="Click here to cancel"
+                    id="FB-cancel-delete-Modal" title="Click here to cancel" (click)="closeBtn('#FB-delete-Confirmation-Modal')"  type="button">Cancel
+                </button>
+                <button *ngIf="!sectionDelete" id="FB-confirm-delete-component"
+                    aria-label="Click here to delete component" (click)="deleteComponent();closeBtn('#FB-delete-Confirmation-Modal')"
+                    class="btn btn-primary-sub btn-sm" title="Click here to delete component" type="button">Yes</button>
+                <button *ngIf="sectionDelete" id="FB-confirm-delete-section"
+                    aria-label="Click here to delete section" (click)="deleteSection();closeBtn('#FB-delete-Confirmation-Modal')" class="btn btn-primary-sub btn-sm"
+                    title="Click here to delete section" type="button">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade mySkinDialog" data-bs-backdrop="static" data-backdrop="static" id="FB-additional-info-modal" role="dialog">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-body d-flex justify-content-center p-0 overflow-hidden">
+                <app-form-addtional-information [id] ="FB_ADDITIONAL_INFO_MODAL_ID" [additionInfoComponentEvent]="additionInfoComponentEvent"
+                                                [additionalInfoSectionEvent]="additionalInfoSectionEvent"
+                                                (additionalInformation)="sectionUpdate($event)"
+                                                (additionalInformationComponent)="componentUpdate($event)"
+                                                (additionalInformationInitialComponentSave)="initialComponentSave($event)"
+                                                [isModalView] = true>
+                </app-form-addtional-information>
+            </div>
+        </div>
+    </div>
+</div>

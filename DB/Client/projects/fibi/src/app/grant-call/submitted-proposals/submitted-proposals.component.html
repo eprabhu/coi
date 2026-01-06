@@ -1,0 +1,537 @@
+<ng-container *ngIf="_commonData.grandSectionConfig['1508']?.isActive"> 
+
+<ng-container *ngIf="mainPanelObject?.submittedProposals.length > 0">
+    <div class="card mt-3" *ngIf="mainPanelObject != null">
+        <div class="card-header p-2">
+            <div class="row">
+                <div class="col-12">
+                    <h4 class="card-title d-flex align-items-center" id="main-panel-submitted-proposal">
+                        <span class="p-3 mr-auto">List of Submitted Proposals</span>
+                        <span *ngIf="mainPanelObject?.submittedProposals?.length > 0">
+                        <button *ngIf="result?.grantCall?.grantCallStatus?.grantStatusCode != 1 "
+                                data-target="#Save-all-proposals" data-toggle="modal" type="button"
+                                title="Save All Proposal" id="Save-all-proposal" class="btn btn-secondary btn-sm">Save All
+                        </button>
+                        <ng-container *ngIf="checkProposalSelection()">
+                            <button *ngIf="result?.grantCall?.grantCallStatus?.grantStatusCode != 1" type="button"
+                                    title="Reject Proposal" id="reject-proposal" class="btn btn-outline-danger btn-sm"
+                                    (click)="rejectProposals()">Reject
+                            </button>
+                            <button *ngIf="result?.grantCall?.grantCallStatus?.grantStatusCode != 1" type="button"
+                                    title="Shortlist Proposal" id="short-list-proposal" class="btn btn-primary-sub btn-sm"
+                                    (click)="shortListProposal()">Shortlist
+                            </button>
+                            <button *ngIf="result?.grantCall?.grantCallStatus?.grantStatusCode != 1" type="button"
+                                    title="Award Proposal" id="award-proposal" class="btn btn-primary btn-sm"
+                                    (click)="awardProposal()">Award
+                            </button>
+                        </ng-container>
+                    </span>
+                    <span *ngIf="mainPanelObject?.submittedProposals?.length > 0">
+                        <span class="inline-block ml-2">
+                            <select id="status" class="form-control" [(ngModel)]="proposalCompleteStatus"
+                                    (ngModelChange)="resetProposalSelection()">
+                                <option [ngValue]="null">--Filter by Status--</option>
+                                <option *ngFor="let status of mainPanelObject.proposalStatuses"
+                                        [ngValue]="status.statusCode">
+                                    {{status.description}}</option>
+                            </select>
+                        </span>
+                    </span>
+                    <span class="ml-2 " *ngIf="mainPanelObject?.submittedProposals?.length > 0 && isShowFilterByPanel">
+                        <span class="inline-block">
+                            <select id="evaluation-panel" class="form-control" [(ngModel)]="searchText"
+                                    (ngModelChange)="resetProposalSelection()">
+                                <option [ngValue]="null">--Filter by Panel--</option>
+                                <option *ngFor="let panel of evaluationPanelFliterList" [ngValue]="panel.mapId">
+                                    {{panel.workflowMap.mapName}}</option>
+                            </select>
+                        </span>
+                    </span>
+                    </h4>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="noDataOnChart noDataExists p-5"
+                 *ngIf="mainPanelObject?.submittedProposals?.length == 0 || mainPanelObject?.submittedProposals == null ">
+                No Proposals are Completed
+            </div>
+            <div class="card-content">
+                <table class="table tableSkin grid2" *ngIf="mainPanelObject?.submittedProposals?.length > 0"
+                       aria-describedby="main-panel-submitted-proposal">
+                    <thead class="thead-light">
+                    <th scope="col" width="4%">
+                        <label class="checkbox-container">
+                            <input class="select-all" title="Select All" type="checkbox" [(ngModel)]="checkAll"
+                                   (ngModelChange)="checkOrUncheckPropoals()">
+                            <span class="checkmark"></span>
+                        </label>
+                    </th>
+                    <th scope="col" [ngStyle]="{'width':isNoEvaluation ? '10' : '' }" (click)="sortBy('title')">
+                        <span class="hand-cursor" title="Click to sort by title of proposal">Title Of Proposal</span>
+                        <i aria-hidden="true"
+                           [ngClass]="((column == 'title')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                    </th>
+                    <th scope="col" [ngStyle]="{'width':isNoEvaluation ? '10' : '' }" (click)="sortBy('homeUnitName')">
+                        <span class="hand-cursor" title="Click to sort by lead unit">Lead Unit</span>
+                        <i aria-hidden="true"
+                           [ngClass]="((column == 'homeUnitName') ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                    </th>
+                    <th scope="col" style="width: 10%" (click)="sortBy('investigator')">
+                        <span class="hand-cursor" title="Click to sort by Principal Investigator">Principal
+                            Investigator</span>
+                        <i aria-hidden="true"
+                           [ngClass]="((column == 'investigator') ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                    </th>
+                    <th scope="col" style="width: 7%" (click)="sortBy('totalCost')">
+                        <span class="hand-cursor" title="Click to sort by budget Of proposal">Budget</span>
+                        <i aria-hidden="true"
+                           [ngClass]="((column == 'totalCost') ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                    </th>
+                    <th scope="col" style="width: 7%" (click)="sortBy('proposalStatus')">
+                        <span class="hand-cursor" title="Click to sort by status">Status</span>
+                        <i aria-hidden="true"
+                           [ngClass]="((column == 'proposalStatus') ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                    </th>
+                    <th scope="col" style="width: 9%" *ngIf="!isNoEvaluation" (click)="sortBy('total')">
+                        <span class="hand-cursor" title="Click to sort by total score">Total Score</span>
+                        <i aria-hidden="true"
+                           [ngClass]="((column == 'total')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                    </th>
+                    <th scope="col" style="width: 10%" *ngIf="!isNoEvaluation" (click)="sortBy('score')">
+                        <span class="hand-cursor" title="Click to sort by average score">Overall Average Score</span>
+                        <i aria-hidden="true"
+                           [ngClass]="((column == 'score')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                    </th>
+                    <th scope="col" style="width: 7%" *ngIf="!isNoEvaluation" (click)="sortBy('adjustedScore')">
+                        <span class="hand-cursor" title="Click to sort by adjusted score">Adjusted Score</span>
+                        <i aria-hidden="true"
+                           [ngClass]="((column == 'adjustedScore')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                    </th>
+                    <th scope="col" style="width: 6%" *ngIf="!isNoEvaluation" (click)="sortBy('proposalRank')">
+                        <span class="hand-cursor" title="Click to sort by rank">Rank</span>
+                        <i aria-hidden="true"
+                           [ngClass]="((column == 'proposalRank')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                    </th>
+                    <th scope="col" style="width: 10%">Actions</th>
+                    </thead>
+                    <tbody class="tb-0"
+                           *ngFor="let proposal of mainPanelObject.submittedProposals  | filter: {pannel: searchText ,status: proposalCompleteStatus} | orderBy: {property: column, direction: direction}; let index=index;">
+                    <tr>
+                        <td>
+                            <!-- 40 - shortlisted ,38 - completed- -->
+                            <label class="checkbox-container" *ngIf="proposal?.proposalStatus?.statusCode == 40 || proposal?.proposalStatus?.statusCode == 38">
+                                <input class="select-all" title="Select All" type="checkbox"
+                                       [(ngModel)]="isChecked[proposal.proposalId]">
+                                <span class="checkmark"></span>
+                            </label>
+                        </td>
+                        <td>{{ proposal?.title }}</td>
+                        <td>{{ concatUnitNumberAndUnitName(proposal?.homeUnitNumber, proposal?.homeUnitName) }}</td>
+                        <td>{{ proposal?.investigator?.fullName }}</td>
+                        <td>{{ proposal?.totalCost }}</td>
+                        <td>{{ proposal?.proposalStatus?.description }}</td>
+                        <td *ngIf="!isNoEvaluation">{{ proposal?.total }}</td>
+                        <td *ngIf="!isNoEvaluation">{{ proposal?.score}}</td>
+                        <td  [ngClass]="{'text-center' : !proposal?.proposalEvaluationScore?.adjustedScore}" *ngIf="!isNoEvaluation">
+                             <!-- 40 - shortlisted ,38 - completed- -->
+                            <ng-container *ngIf="proposal?.proposalStatus?.statusCode == 40 || proposal?.proposalStatus?.statusCode == 38">
+                                <input type="number" name="adjustedScore" class="form-control"
+                                    [ngClass]="{'is-invalid d-block' : proposal?.isScoreInvalid}"
+                                    [(ngModel)]="proposal.proposalEvaluationScore.adjustedScore"
+                                    (ngModelChange)="adjustedScoreChange = true;validateAdjustedScore(proposal);"
+                                    (keypress)="inputRestriction($event ,proposal?.proposalEvaluationScore?.adjustedScore )">
+                                <!-- <small *ngIf="proposal?.isScoreInvalid" class="invalid-feedback d-block">
+                                The Total Adjusted Score value should be less than 10 (upto 2 decimal places) or equal to 10.
+                            </small> -->
+                            </ng-container>
+                            <ng-container  *ngIf="proposal?.proposalStatus?.statusCode != 40 && proposal?.proposalStatus?.statusCode != 38">
+                                {{proposal?.proposalEvaluationScore?.adjustedScore ? proposal?.proposalEvaluationScore?.adjustedScore : '-'}}
+                            </ng-container>
+                        </td>
+                        <td *ngIf="!isNoEvaluation">
+                            <ng-container *ngIf="proposal?.proposalStatus?.statusCode == 40 || proposal?.proposalStatus?.statusCode == 38">
+                                <input class="form-control" name="rank" maxlength="20"
+                                    (keypress)="rankRnputRestriction($event)"
+                                    [(ngModel)]="proposal.proposalEvaluationScore.proposalRank"
+                                    (ngModelChange)="rankChange = true;">
+                            </ng-container>
+                            <ng-container *ngIf="proposal?.proposalStatus?.statusCode != 40 && proposal?.proposalStatus?.statusCode != 38">
+                                {{proposal?.proposalEvaluationScore?.proposalRank}}
+                            </ng-container>
+                        </td>
+                        <td>
+                            <ul class="actionButtonGroup">
+                                <li *ngIf="!isNoEvaluation && proposal?.proposalStatus?.statusCode == 40 || proposal?.proposalStatus?.statusCode == 38">
+                                    <a (click)="saveProposalRankAndScore(proposal)" class="pointer">
+                                        <i class="fa fa-floppy-o" aria-hidden="true"
+                                           title="Click here to save Rank/Adjusted Score"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="tooltip"><i title="Click here to Add/View comments"
+                                                          class="fa fa-commenting-o fa-med" aria-hidden="true"
+                                                          (click)="openOrCloseCommentArea(proposal.proposalId);"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a id="view-proposal" (click)="viewProposalById(proposal?.proposalId)"
+                                       class="pointer">
+                                        <i class="fa fa-eye" aria-hidden="true"
+                                           title="Click here to view this Proposal"></i>
+                                    </a>
+                                </li>
+                                <li *ngIf="!isNoEvaluation">
+                                    <a class="tooltip score-star" (click)="viewScoreCard(proposal,index);">
+                                        <i title="Click here to view Scorecard" class="fa fa-star-half-o fa-med"
+                                           aria-hidden="true"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+
+                    </tr>
+                    <tr>
+                        <td *ngIf="isMainPanelComment[proposal.proposalId]" colspan="11">
+                            <app-shared-comment [requestId]="proposal.proposalId"
+                            [isEditMode]="true" [requestModuleCode]="3"></app-shared-comment>
+                        </td>
+                    </tr>
+                    <tr>
+                        <ng-container *ngIf="isScoreViewEnabled[index]">
+                            <td colspan="11" *ngIf="scoreFullData">
+                                <div class="border border-primary">
+                                    <div class="nav-heading">
+                                        <div style="width: 90%;">
+                                            <ul class="subTabs mb-0">
+                                                <li [ngClass]="{'active' : criteriaTab == 'SCORE' }"
+                                                    class="d-flex ml-1">
+                                                    <a class="subTabLink pr-3 pt-1"
+                                                       (click)="criteriaTab='SCORE'">Scores</a>
+                                                </li>
+                                                <li [ngClass]="{'active' : criteriaTab == 'COMMENT' }" class="d-flex">
+                                                    <a class="subTabLink pr-3 pt-1"
+                                                       (click)="criteriaTab='COMMENT'">Comments</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div style="width: 10%;">
+                                            <a class="tooltip cross-icon"
+                                               (click)="isScoreViewEnabled[index] = !isScoreViewEnabled"><i
+                                                    title="Click here to close Scorecard" class="fa fa-times"
+                                                    aria-hidden="true"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <ng-container *ngIf="criteriaTab == 'SCORE'">
+                                        <ng-container *ngIf="header">
+                                            <table class="table tableSkin  mb-0">
+                                                <thead>
+                                                <tr class="header-border">
+                                                    <th style="max-width:40%;" scope="col" class="table-head">
+                                                        Criteria</th>
+                                                    <th *ngFor="let reviewer of header | keyvalue" scope="col"
+                                                        class="text-center table-head"> <span> {{reviewer.value}}
+                                                            </span></th>
+                                                        <th scope="col" class="text-center table-head">Average Score per Criteria</th>
+                                                        <th style="width:122px" scope="col"
+                                                            class="text-center table-head">Overall Average Score</th>
+                                                         <th style="width:110px" scope="col"
+                                                            class="text-center table-head">Average Total Score</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr *ngFor="let criteria of scoreFullData | keyvalue; first as isFirst"
+                                                        class="text-center">
+                                                        <td class="align-toleft">{{criteria.key}}</td>
+                                                        <ng-container *ngFor="let scores of criteria.value">
+                                                            <td *ngIf="scores.person.isPersonCanScore">
+                                                                {{reviewerScores[scores.scoringCriteriaCode +
+                                                                scores.person.personId]}}
+                                                                <a data-toggle="modal" data-target="#reviewer-comment-show-modal"
+                                                                    *ngIf="scores.person.workflowReviewerComments.length" class="tooltip hand-cursor"><i title="Click here to View comments"
+                                                                        class="fa fa-commenting-o f-14" aria-hidden="true"
+                                                                        (click)="showReviewerComment(scores.person.workflowReviewerComments);"></i>
+                                                                </a>
+                                                            </td>
+                                                        </ng-container>
+                                                        <td>{{criteriaTotal[criteria.key] && criteriaPersonCount[criteria.key] ? (criteriaTotal[criteria.key]/criteriaPersonCount[criteria.key]).toFixed(2) 
+                                                            : '-'}}
+                                                        </td>
+                                                        <td rowspan="0" *ngIf="isFirst" class="avg-score fw-600">
+                                                            {{proposal?.score}}</td>
+                                                        <td rowspan="0" *ngIf="isFirst" class="avg-score fw-600">
+                                                            {{totalScore}}</td>
+                                                    </tr>
+                                                    <tr class="header-border text-center">
+                                                        <td class="td-change align-toleft fw-600">Average Score per
+                                                            Reviewer</td>
+                                                        <td class="td-change fw-600"
+                                                            *ngFor="let reviewerId of sumOfReviewerScores | keyvalue">
+                                                            {{reviewerScoreCount[reviewerId.key] ? (reviewerId.value /
+                                                            reviewerScoreCount[reviewerId.key]).toFixed(2) : '-'}}
+                                                        </td>
+                                                        <td class="td-change"></td>
+                                                    </tr>
+                                                    <tr class="header-border text-center">
+                                                        <td class="td-change align-toleft fw-600">Total Score per
+                                                            Reviewer</td>
+                                                        <td class="td-change fw-600"
+                                                            *ngFor="let reviewerId of sumOfReviewerScores | keyvalue">
+                                                            {{reviewerScoreCount[reviewerId.key] ? reviewerId.value.toFixed(2) : '-'}}
+                                                        </td>
+                                                        <td class="td-change"></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </ng-container>
+                                        <ng-container *ngIf="!header">
+                                            <div class="no-data-container">
+                                                <span class="no-data-icon-outer">
+                                                    <div class="no-data-icon">
+                                                        <i class="fa fa-file-o" aria-hidden="true"></i>
+                                                        <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                                                    </div>
+                                                </span>
+                                                <h4>There is no information in this section.</h4>
+                                            </div>
+                                        </ng-container>
+
+                                    </ng-container>
+                                    <ng-container *ngIf="criteriaTab == 'COMMENT'">
+                                        <div>
+                                            <div *ngFor="let criteria of scoreFullData | keyvalue;let index = index">
+                                                <div class="card p-10">
+                                                    <div class="card-content">
+                                                        <p class="f-15 fw-700 criteria-heading"> {{criteria.key}} </p>
+                                                        <div class="card questionnaire-card p-2 mb-4 border-left-0 card-background"
+                                                            *ngFor="let reviewer of criteria.value">
+                                                            <div class="col-12 d-flex">
+                                                                <div class="comment-message-logo pr-2">
+                                                                    <i class="fa fa-user-circle fa-2x txt-big mr-1 text-secondary"
+                                                                       aria-hidden="true"></i>
+                                                                </div>
+                                                                <div class="comment-inner-head-left w-100">
+                                                                    <!-- full name of commenter -->
+                                                                    <span
+                                                                            class="text-black fw-600 txt-medium f-14">{{reviewer.person.personName}}</span>
+                                                                    &nbsp;
+                                                                    <span class="badge badge-success p-2"
+                                                                        *ngIf="reviewer.person.isPersonCanScore">Scoring
+                                                                        Panel</span>
+                                                                    <span class="badge badge-secondary p-2"
+                                                                        *ngIf="!reviewer.person.isPersonCanScore">Non-Scoring
+                                                                        Panel</span>
+                                                                    <span
+                                                                        class="badge float-right text-center score-box p-0"
+                                                                        *ngIf="reviewer.person.score != null">
+                                                                        <span
+                                                                            class="d-block p-1 score-label">Score</span>
+                                                                        <span
+                                                                            class="d-block text-center text-white score-text">{{reviewer.person.score}}</span>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div *ngIf="reviewer.person.workflowReviewerComments.length === 0"
+                                                                 class="comment-show ml-4">
+                                                                <span>No Comments</span>
+                                                            </div>
+                                                            <div *ngFor="let items of reviewer.person.workflowReviewerComments; let itemIndex = index"
+                                                                class="comment-show d w-100 mr-4">
+                                                                <hr *ngIf="itemIndex" class="light">
+                                                                <div class="comment-inner-body pt-1 card-background"
+                                                                     *ngIf="items.comment">
+                                                                    <i aria-hidden="true"
+                                                                        class="fa fa-quote-left comment-icon"></i>
+                                                                    <sub> <span class="f-14  text-color new-line-property"
+                                                                            [innerHTML]="items.comment"></span>
+                                                                    </sub>
+                                                                    <div class="d-flex justify-content-end">
+                                                                        <span *ngIf="items.isPrivate"
+                                                                              class="fw-700 text-primary txt-medium mr-4">Private</span>
+                                                                        <span
+                                                                            class="txt-medium text-secondary font-weight-light ">{{items?.updateTimeStamp
+                                                                            | dateFormatterWithTimeZone: 'long'}}</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="d-flex"
+                                                                     *ngIf="items.workflowReviewerAttachments.length > 0">
+                                                                    <div class="fileChips"
+                                                                         style="word-break: break-all;"
+                                                                         *ngFor="let file of items.workflowReviewerAttachments; let j=index">
+                                                                        <span>
+                                                                            {{ file.fileName.length > 25 ?
+                                                                            (file.fileName | slice:0:25)+'...' :
+                                                                            file.fileName}}
+                                                                            <i class="fa fa-download pointer"
+                                                                               aria-hidden="true"
+                                                                               title="Download Attachment"
+                                                                               (click)="downloadAttachments(file)"></i>
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </ng-container>
+                                </div>
+                            </td>
+                            <td colspan="11" *ngIf="!scoreFullData">
+                                <div class=" border border-primary">
+                                    <a class="tooltip cross-icon"
+                                       (click)="isScoreViewEnabled[index] = !isScoreViewEnabled"><i
+                                            title="Click here to close Scorecard" class="fa fa-times hand-cursor"
+                                            aria-hidden="true"></i>
+                                    </a>
+                                    <div class="no-data-container">
+                                        <span class="no-data-icon-outer">
+                                            <div class="no-data-icon">
+                                                <i class="fa fa-file-o" aria-hidden="true"></i>
+                                                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                                            </div>
+                                        </span>
+                                        <h4>There is no information in this section.</h4>
+                                    </div>
+                                </div>
+                            </td>
+                        </ng-container>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- confirmation Modal - whether to award ,shortlist or reject proposal -->
+    <div class="modal fade show mySkinDialog" tabindex="-1" id="main-panel-confirmation-model" role="dialog"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 *ngIf="proposalStatusCode == 'U'" class="modal-title">Reject</h5>
+                    <h5 *ngIf="proposalStatusCode == 'A'" class="modal-title">Award</h5>
+                    <h5 *ngIf="proposalStatusCode == 'S'" class="modal-title">Shortlist</h5>
+                    <button id="main-panel-delete-btn" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div *ngIf="proposalStatusCode == 'U'" class="modal-body">
+                    <p>Are you sure you want to Reject this Proposal?</p>
+                </div>
+                <div *ngIf="proposalStatusCode == 'A'" class="modal-body">
+                    <p>Are you sure you want to Award this Proposal?</p>
+                </div>
+                <div *ngIf="proposalStatusCode == 'S'" class="modal-body">
+                    <p>Are you sure you want to Shortlist this Proposal?</p>
+                </div>
+                <div class="modal-footer" *ngIf="proposalStatusCode == 'U'">
+                    <button id="main-panel-close-btn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                            data-toggle="modal">No</button>
+                    <button type="button" class="btn btn-primary-sub btn-sm" title="Reject Proposal"
+                            (click)="checkListSelection(this.proposalStatusCode)" data-dismiss="modal">Reject</button>
+                </div>
+                <div class="modal-footer" *ngIf="proposalStatusCode == 'A'">
+                    <button id="main-panel-close-btn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                            data-toggle="modal">No</button>
+                    <button type="button" class="btn btn-primary-sub btn-sm" title="Award Proposal"
+                            (click)="checkListSelection(this.proposalStatusCode)" data-dismiss="modal">Award</button>
+                </div>
+                <div class="modal-footer" *ngIf="proposalStatusCode == 'S'">
+                    <button id="main-panel-close-btn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                            data-toggle="modal">No</button>
+                    <button type="button" class="btn btn-primary-sub btn-sm" title="Shortlist Proposal"
+                            (click)="checkListSelection(this.proposalStatusCode)" data-dismiss="modal">Shortlist</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Confirmation modal for saving all proposals -->
+    <div class="modal fade show mySkinDialog" tabindex="-1" id="Save-all-proposals" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Save Proposals</h5>
+                    <button id="main-panel-delete-btn" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>This action will save all proposals. Are you sure want to continue?</p>
+                </div>
+                <div class="modal-footer">
+                    <button id="main-panel-close-btn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                            data-toggle="modal">No</button>
+                    <button type="button" class="btn btn-primary-sub btn-sm" title="Reject Proposal" data-dismiss="modal"
+                            (click)="saveAllProposals()">Yes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade mySkinDialog modal-opacity" tabindex="-1" id="reviewer-comment-show-modal" tabindex="-1"
+    role="dialog" aria-labelledby="showCommentModalTitle" aria-hidden="true">
+    <div class="modal-dialog  modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reviewer Comments</h5>
+                <button type="button" class="close" id="prop-special-revw-cmt-dismiss-btn" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <ng-container *ngIf="reviewerComments.length">
+                <div *ngFor="let comments of reviewerComments; let commentIndex = index" class="px-4">
+                    <hr *ngIf="commentIndex" class="light">
+                    <div class="comment-inner-body pt-1 card-background">
+                        <ng-container *ngIf="comments.comment">
+                            <i aria-hidden="true" class="fa fa-quote-left comment-icon"></i>
+                            <sub> <span class="f-14  text-color new-line-property" [innerHTML]="comments.comment"></span>
+                            </sub>
+                        </ng-container>
+                        <div class="d-flex" *ngIf="comments.workflowReviewerAttachments.length > 0">
+                            <div class="fileChips" style="word-break: break-all;"
+                                *ngFor="let file of comments?.workflowReviewerAttachments; let j=index">
+                                <span>
+                                    {{ file.fileName.length > 25 ?
+                                    (file.fileName | slice:0:25)+'...' :
+                                    file.fileName}}
+                                    <i class="fa fa-download pointer" aria-hidden="true" title="Download Attachment"
+                                        (click)="downloadAttachments(file)"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <span *ngIf="comments.isPrivate" class="fw-700 text-primary txt-medium mr-4">Private</span>
+                            <span class="txt-medium text-secondary font-weight-light ">{{comments?.updateTimeStamp
+                                | dateFormatterWithTimeZone: 'long'}}</span>
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+            <div class="modal-footer">
+                <button type="button" id="prop-special-revw-dlt-no-btn" class="btn btn-secondary" data-dismiss="modal"
+                    data-toggle="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+</ng-container>
+<div class="card mt-3" *ngIf="mainPanelObject?.submittedProposals.length == 0">
+    <div class="col-12">
+        <div class="no-data-container">
+            <span class="no-data-icon-outer">
+                <div class="no-data-icon">
+                    <i class="fa fa-file-o" aria-hidden="true"></i>
+                    <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                </div>
+            </span>
+            <h4>There is no information in this section.</h4>
+        </div>
+    </div>
+</div>
+</ng-container>

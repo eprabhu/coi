@@ -1,0 +1,170 @@
+<div class="modal fade bd-example-modal-lg mySkinDialog " data-backdrop="static"
+     data-keyboard="false"
+     id="certification-notification-log">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Notification Log</h5>
+                <button (click)="selectedPerson = null" aria-label="Close" class="close" data-dismiss="modal"
+                        type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div>
+                <div>
+                    <div class="card title-descriptions">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <ng-container *ngIf="!isNotifyAll">
+                                    <div class="border card gridSkin p-2 section-highlight shadow-sm mb-2">
+                                        <div class="row">
+                                            <div class="col">
+                                                <label class="block-display">Name</label>
+                                                <span *ngIf="selectedPerson?.fullName">{{selectedPerson?.fullName}}</span>
+                                                <span *ngIf="!selectedPerson?.fullName"
+                                                      class="noDataExists">No Name Found</span>
+                                            </div>
+                                            <div class="col">
+                                                <label class="block-display">Role</label>
+                                                <span *ngIf="selectedPerson?.proposalPersonRole?.description">{{selectedPerson?.proposalPersonRole?.description}}</span>
+                                                <span *ngIf="!selectedPerson?.proposalPersonRole?.description"
+                                                      class="noDataExists">No Role Found</span>
+                                            </div>
+                                            <div class="col" *ngIf="_proposalService.proposalSectionConfig['DP315']?.isActive">
+                                                <label class="block-display">Certification</label>
+                                                <span>{{!selectedPerson?.personCertified ? 'Incomplete' : 'Completed'}}</span>
+                                            </div>
+                                            <div *ngIf="isEditMode && hasModifyProposalRight"
+                                                 class="col-auto flex-center">
+                                                <button (click)="notifyAgain()" [disabled]="isSaving"
+                                                        class="btn btn-primary-sub rounded shadow"
+                                                        title="Notify Again">
+                                                    <i aria-hidden="true"
+                                                       class="fa fa-bell-o"></i>
+                                                    Notify
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="max-vh-80 mt-3 overflow-auto">
+                                        <table aria-describedby="Notification Status Table"
+                                               class="table tableSkin grid2 mb-0">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">Notification Status</th>
+                                                <th scope="col">Date Sent</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr *ngFor="let notification of notifications">
+                                                <td>{{notification?.mailSentFlag === 'Y' ? 'Delivered' : 'Not Delivered'}}</td>
+                                                <td>{{notification?.sendDate | dateFormatterWithTimeZone: 'long'}}</td>
+                                            </tr>
+                                            <tr *ngIf="notifications?.length === 0">
+                                                <td class="text-center" colspan="2">No notifications found</td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </ng-container>
+                                <ng-container *ngIf="isNotifyAll">
+                                    <div class="overflow-auto max-vh-80">
+                                        <table aria-describedby="Certification details of all persons"
+                                               class="table tableSkin grid2 m-0 light-border">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">Name</th>
+                                                <th scope="col">Role</th>
+                                                <th scope="col">Designation</th>
+                                                <th scope="col">Certification</th>
+                                                <th scope="col">Action</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <ng-container *ngFor="let person of proposalPersons;let i = index">
+                                                <tr [class.bg-light-ash]="person?.rolodexId"
+                                                    [class.table-inner-row-shown]="togglePersons[i]"
+                                                    class="small-border"
+                                                    title="{{person?.rolodexId ? 'Notification unavailable': ''}}">
+                                                    <td [class.text-invisible]="person?.rolodexId">
+                                                        <i [ngClass]="person?.rolodexId ? 'fa fa-user-circle text-danger':'fa fa-user-o text-dark'"
+                                                           [title]="person?.rolodexId ? 'Non-Employee':'Employee'"
+                                                           aria-hidden="true"
+                                                           class="mr-1"></i>
+                                                        {{person?.fullName}}</td>
+                                                    <td [class.text-invisible]="person?.rolodexId">
+                                                        {{person?.proposalPersonRole?.description}}</td>
+                                                    <td [class.text-invisible]="person?.rolodexId">
+                                                        {{person?.designation}}</td>
+                                                    <td [class.text-invisible]="person?.rolodexId">
+                                                        {{person?.personCertified ? 'Completed' : 'Incomplete'}}</td>
+                                                    <td class="text-center">
+                                                        <button (click)="showPersonNotification(i, person)"
+                                                                *ngIf="!person?.rolodexId"
+                                                                [title]="togglePersons[i]?'Close notifications': 'Show notifications'"
+                                                                class="btn">
+                                                            <i [ngClass]="togglePersons[i] ?
+                                                            'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                                                               aria-hidden="true"
+                                                               class="fa-large"></i>
+                                                        </button>
+                                                        <i *ngIf="person?.rolodexId"
+                                                           aria-hidden="true"
+                                                           class="fa fa-bell-slash-o text-invisible"></i>
+                                                    </td>
+                                                </tr>
+                                                <tr *ngIf="togglePersons[i]"
+                                                    [class.table-inner-row-shown]="togglePersons[i]"
+                                                    class="small-border">
+                                                    <td class="border p-1" colspan="100%">
+                                                        <div class="overflow-auto">
+                                                            <table aria-describedby="notification details"
+                                                                   class="bg-color border shadow-sm">
+                                                                <thead>
+                                                                <tr>
+                                                                    <th scope="col">Notification Status</th>
+                                                                    <th scope="col">Date Sent</th>
+                                                                </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                <tr *ngFor="let notification of multiplePersonNotifications[i]">
+                                                                    <td>{{notification?.mailSentFlag === 'Y' ? 'Delivered' : 'Not Delivered'}}</td>
+                                                                    <td>{{notification?.sendDate | dateFormatterWithTimeZone: 'long'}}</td>
+                                                                </tr>
+                                                                <tr *ngIf="multiplePersonNotifications[i]?.length === 0">
+                                                                    <td class="p-3 text-center" colspan="2">No
+                                                                        notifications
+                                                                        found
+                                                                    </td>
+                                                                </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </ng-container>
+                                            <tr *ngIf="proposalPersons?.length === 0">
+                                                <td class="p-3 text-center" colspan="5">No key personnel found</td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </ng-container>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button (click)="selectedPerson = null" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                        id="createModalClose" type="button">Close
+                </button>
+                <button (click)="notifyAgain('ALL')" *ngIf="isEditMode && isNotifyAll && hasModifyProposalRight && proposalPersons.length"
+                        [disabled]="isSaving"
+                        class="btn btn-primary-sub btn-sm"
+                        type="button">Notify All
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,96 @@
+<div class="row">
+    <div class="col-lg-12 pb-0 no-hover-effect">
+        <span>
+            <textarea class="form-control" [ngClass]="(commentMap.get('comment')) ? 'is-invalid d-block' : ''"
+                placeholder="Add your comments here" [(ngModel)]="comment" appLengthValidator
+                [styleList]="'p2 float-right word-count'" [isShowLimiter]='true' [limit]=4000></textarea></span>
+        <span *ngIf="(commentMap.get('comment'))" class="invalid-feedback d-block">
+            {{commentMap.get('comment')}}</span>
+    </div>
+    <div class="col-lg-12 no-hover-effect">
+        <app-file-drop [multiple]="true" (filesDropEvent)="fileDrop($event)"></app-file-drop>
+    </div>
+    <div *ngIf="uploadedFile.length > 0">
+        <div class="gridSkin">
+            <div class="row">
+                <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 fileChips pt-0 mx-2"
+                    style="word-break: break-all;">
+                    <span *ngFor="let item of uploadedFile; let i=index">
+                        {{(item?.name.length) > 30 ? (item?.name | slice:0:30)+'...' : item?.name}}
+                        <i class="fa fa-close hand-cursor" id="req-doc-dlt" (click)="deleteFromUploadedFileList(i)"
+                            title="Delete attachment" aria-hidden="true"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="ml-3" *ngIf="warningObj.attachment != null">
+            <span class="mandatory font">{{warningObj.attachment}}</span>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="row">
+            <div class="col-3 my-2">
+                <ng-container>
+                    <span class="form-check pl-4 d-flex">
+                        <input type="checkbox" class="form-check-input" [(ngModel)]="isPrivateComment"
+                            [disabled]="!maintainPrivateComment" id="checkBox">
+                        <label class="form-check-label pl-2 txt-medium" for="checkBox">
+                            Private Comment</label>
+                    </span>
+                </ng-container>
+            </div>
+            <div class="col-lg-9 no-hover-effect">
+                <span class="float-right bt-align mt-0">
+                    <button class="btn btn-secondary btn-sm" (click)="clearData();cancelEdit.emit(true)">Cancel</button>
+                    <button class="btn btn-primary-sub btn-sm" (click)="addCommentAndAttachment()">Add Comment</button>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="mt-3 comment-scroll" *ngIf="commentsAndAttachmentsList?.length">
+    <div class="col comment-message" *ngFor="let listItem of commentsAndAttachmentsList; let lastElement = last">
+
+        <!-- Comment Logo -->
+        <div class="comment-message-logo pr-2">
+            <i class="fa fa-user-circle fa-2x txt-big mr-1 text-secondary" aria-hidden="true"></i>
+        </div>
+        <div class="comment-message-body pt-1">
+            <div class="comment-inner-head">
+                <div class="comment-inner-head-left">
+                    <!-- full name of commenter -->
+                    <span class="text-black font-weight-bold txt-medium">{{listItem.updateUser}}</span>
+                    <span class="txt-medium">[Action: {{listItem.actionTypeDescription}}]</span>
+                    &nbsp;&nbsp;
+                    <!-- Private? -->
+                    <span *ngIf="listItem.isPrivateComment" class="fw-700 text-primary txt-medium">
+                        Private</span>
+                    <!-- time -->
+                    <p class="d-inline ml-10 txt-medium text-secondary font-weight-light">
+                        {{listItem.updateTime | dateFormatterWithTimeZone: 'long'}}</p>
+                </div>
+            </div>
+            <div class="comment-inner-body pt-1">
+                <!-- display comment -->
+                <div>
+                    <i *ngIf="listItem?.comment?.comments" aria-hidden="true" class="fa fa-quote-left comment-icon"></i>
+                    <sub> <span class="f-13  text-content-color new-line-property"
+                            [innerHTML]="listItem?.comment?.comments"></span>
+                    </sub>
+                    <hr *ngIf="listItem?.attachment?.length && listItem?.comment?.comments" class="mb-0">
+                    <div *ngIf="listItem?.attachment?.length" class="fileChips regularFont">
+                        <ng-container *ngFor="let attachment of listItem?.attachment">
+                            <span class="px-2">
+                                {{attachment.fileName}}
+                                <i aria-hidden="true" class="fa fa-download badge-icon ml-1 hand-cursor"
+                                    title="Download {{attachment.fileName}}"
+                                    (click)="downloadAttachment(attachment)"></i>
+                            </span>
+                        </ng-container>
+                    </div>
+                </div>
+            </div>
+            <hr *ngIf="!lastElement">
+        </div>
+    </div>
+</div>

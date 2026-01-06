@@ -1,0 +1,1178 @@
+<!-- Engagement header card -->
+<div *ngIf="relationshipsDetails.personEntityId" class="row" [ngClass]="!isTriggeredFromSlider ? 'sticky-top-50' : 'sticky-0'">
+    <div class="col-12" [class.bg-white]="isTriggeredFromSlider">
+        <div class="card shadow-sm overflow-hidden" id="coi-engagement-header-card">
+            <div class="row mx-0">
+                <div class="col-lg px-0">
+                    <div class="card-header bg-white px-3" [ngClass]="isCardExpanded ? 'border-bottom' : 'border-0'">
+                        <div class="row flex-grow-1 position-relative">
+                            <div class="d-flex align-items-center" [ngClass]="entityDetails?.entityName?.length > 20 ? 'col-12 col-lg' : 'col'">
+                                <span class="d-inline-flex align-items-center justify-content-center coi-entity-icon-bg coi-coloured-icons flex-shrink-0 fs-24 me-2">
+                                    <mat-icon aria-hidden="true">domain</mat-icon>
+                                </span>
+                                <div class="fw-bold d-flex flex-column" tabindex="-1">
+                                    <div class="d-flex align-items-center">
+                                        <a id="coi-engagement-entity-name" class="d-flex link-primary cursor-pointer align-items-center" tabindex="0"
+                                            (click)="viewEntityDetails()" (keyup.enter)="viewEntityDetails()"
+                                            [title]="'Click here to view details of ' + entityDetails?.entityName"
+                                            [attr.aria-label]="'Click here to view details of ' + entityDetails?.entityName">
+                                            <span class="text-slice">{{ entityDetails?.entityName }}</span>
+                                            <span *ngIf="relationshipsDetails?.versionStatus == 'ARCHIVE'" class="badge rounded-pill text-bg-secondary ms-2">Archive</span>
+                                        </a>
+                                        <ng-container *ngIf="entityDetails?.isForeign">
+                                            <app-common-foreign-flag [entityName]="entityDetails?.entityName"></app-common-foreign-flag>
+                                        </ng-container>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <!-- Ownership Type -->
+                                        <div class="d-flex align-items-center gap-1">
+                                            <label for="coi-eng-entity-ownership-type" class="coi-text-dark fs-13 text-nowrap">Ownership Type:</label>
+                                            <div id="coi-eng-entity-ownership-type" class="text-slice coi-text-light fs-13 coi-min-width-25px">
+                                                <app-no-data-label [valueToShow]="entityDetails?.entityOwnershipType?.description">
+                                                    <span [title]="entityDetails?.entityOwnershipType?.description"
+                                                        class="coi-text-light fs-13">{{ entityDetails?.entityOwnershipType?.description }}</span>
+                                                </app-no-data-label>
+                                            </div>
+                                        </div>
+                                        <!-- divider -->
+                                        <span class="coi-text-lighter">|</span>
+                                        <!-- Business Type -->
+                                        <div class="d-flex align-items-center gap-1">
+                                            <label for="coi-eng-entity-business-type" class="coi-text-dark fs-13 text-nowrap">Business Type:</label>
+                                            <div id="coi-eng-entity-business-type" class="text-slice coi-text-light fs-13 coi-min-width-25px">
+                                                <app-no-data-label [valueToShow]="entityDetails?.entityBusinessType?.description">
+                                                    <span [title]="entityDetails?.entityBusinessType?.description"
+                                                        class="coi-text-light fs-13">{{ entityDetails?.entityBusinessType?.description }}</span>
+                                                </app-no-data-label>
+                                            </div>
+                                        </div>
+                                        <!-- divider -->
+                                        <span class="coi-text-lighter">|</span>
+                                        <!-- Entity Type -->
+                                        <div class="d-flex align-items-center gap-1">
+                                            <label for="coi-entity-modal-entity-type" class="coi-text-dark fs-13 text-nowrap">Entity Type:</label>
+                                            <div id="coi-entity-modal-entity-type" class="text-slice coi-text-light fs-13 coi-min-width-25px">
+                                                <app-no-data-label [valueToShow]="complianceInfo?.coiEntityType?.description">
+                                                    <span [title]="complianceInfo?.coiEntityType?.description"
+                                                        class="coi-text-light fs-13">{{ complianceInfo?.coiEntityType?.description }}</span>
+                                                </app-no-data-label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- corporate linkage -->
+                                    <div *ngIf="entityFamilyTreeRoles?.length" class="d-flex align-items-center gap-1">
+                                        <mat-icon aria-hidden="true" class="flex-shrink-0 coi-text-lighter coi-scale-8 coi-coloured-icons">mediation</mat-icon>
+                                        <ng-container *ngFor="let roles of entityFamilyTreeRoles; let lastLinkage = last">
+                                            <div class="coi-text-light fs-13 text-slice" [title]="roles?.familyRoleType?.description">{{ roles?.familyRoleType?.description }}</div>
+                                            <!-- divider -->
+                                            <span *ngIf="!lastLinkage && roles?.familyRoleType?.description" class="coi-text-lighter">|</span>
+                                        </ng-container>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end align-items-center col-auto ms-auto gap-2">
+                                <!-- Entity inactivated -->
+                                <div *ngIf="entityDetails?.documentStatusTypeCode == entityDocumentStatusType.INACTIVE"
+                                    class="d-flex align-items-center gap-1 coi-warning-pill rounded-pill f-14 px-3 py-1 rounded-5">
+                                    <mat-icon aria-hidden="true" class="flex-shrink-0 coi-scale-9">warning</mat-icon>
+                                    <span>Entity inactivated</span>
+                                </div>
+                                <!-- Incomplete -->
+                                <span *ngIf="(relationshipsDetails?.versionStatus == 'ACTIVE' || relationshipsDetails?.versionStatus == 'ARCHIVE') && !relationshipsDetails?.isFormCompleted"
+                                    class="badge rounded-5 f-14 ms-auto px-3 py-2 text-bg-warning">Incomplete</span>
+                                <!-- Inactive -->
+                                <span *ngIf="relationshipsDetails?.versionStatus && !(relationshipsDetails?.versionStatus == 'ACTIVE' || relationshipsDetails?.versionStatus == 'ARCHIVE')"
+                                    class="badge rounded-5 f-14 ms-auto px-3 py-2 text-bg-secondary">Inactive</span>
+                                <!-- risk type -->
+                                <div *ngIf="isShowRiskLevel" class="d-flex align-items-center fs-14 gap-1 me-2">
+                                    <span class="coi-text-lighter">Risk:</span>
+                                    <span id="coi-entity-risk-level" class="coi-text-light">
+                                        <app-no-data-label [valueToShow]="entityDetails?.entityRiskLevelCode">
+                                            <span class="d-flex">
+                                                <mat-icon aria-hidden="true" class="flex-shrink-0 me-1"
+                                                    [ngClass]="riskIconColor[entityDetails?.entityRiskLevelCode] || riskIconColor['NA']">warning</mat-icon>
+                                                <span class="coi-text-dark">{{ entityDetails?.entityRiskLevel }}</span>
+                                            </span>
+                                        </app-no-data-label>
+                                    </span>
+                                </div>
+                                <!-- Engagement versions -->
+                                <ng-container *ngIf="engagementVersionList?.length > 0">
+                                    <div class="btn-group">
+                                        <!-- version btn -->
+                                        <button id="coi-engagement-version-btn" 
+                                            [disabled]="commonService.hasChangesAvailable || commonService?.autoSaveSavingSpinner !== 'HIDE'"
+                                            (click)="triggerClickForId('coi-engagement-version-dropdown-btn')"
+                                            class="d-flex btn btn-outline-grey fs-14 align-items-center btn-sm"
+                                            title="Click here for engagement versions" aria-label="Click here for engagement versions">
+                                            <span>Version <span *ngIf="selectedVersion?.personEntityId">{{ selectedVersion?.versionNumber }} <span *ngIf="selectedVersion?.versionStatus === 'ACTIVE'">(Active)</span></span></span>
+                                        </button>
+                                        <!-- dropdown btn -->
+                                        <button 
+                                            [disabled]="commonService.hasChangesAvailable || commonService?.autoSaveSavingSpinner !== 'HIDE'"
+                                            [matMenuTriggerFor]="entityVersionChangeBtn"  (menuOpened)="commonService.closeMatSelectOpened()" id="coi-engagement-version-dropdown-btn"
+                                            class="btn btn-outline-grey fs-14 dropdown-width dropdown-toggle dropdown-toggle-split btn-sm"
+                                            title="Click here for engagement versions" aria-label="Click here for engagement versions">
+                                        </button>
+                                    </div>
+                                    <!-- options -->
+                                    <mat-menu #entityVersionChangeBtn="matMenu" xPosition="before">
+                                        <ng-container *ngFor="let version of engagementVersionList">
+                                            <button mat-menu-item id="btn-version-change-{{version?.versionNumber}}" (click)="versionChange(version)"
+                                                title="Click here to select {{version?.versionStatus === 'ACTIVE' ? 'active' : ''}} version: {{version?.versionNumber}}"
+                                                attr.aria-label="Click here to select {{version?.versionStatus === 'ACTIVE' ? 'active' : ''}} version: {{version?.versionNumber}}">
+                                                <span class="coi-text-light fw-medium">{{ 'Version ' + version?.versionNumber }}</span>
+                                                <span *ngIf="version?.versionStatus === 'ACTIVE'" class="coi-text-light fw-medium ms-1">(Active)</span>
+                                            </button>
+                                        </ng-container>
+                                    </mat-menu>
+                                </ng-container>
+                                <button (click)="collapseHeader()" id="coi-view-relationship-details-expandmore-btn" [title]="isCardExpanded ? 'Click here to collapse' : 'Click here to expand'" [attr.aria-label]="isCardExpanded ? 'Click here to collapse' : 'Click here to expand'"
+                                    class="toggle-btn align-items-center border btn d-flex justify-content-center p-0 rounded-5 shadow-sm">
+                                    <mat-icon [ngClass]="isCardExpanded ? 'coi-rotate-180' : 'coi-rotate-0'" aria-hidden="true">expand_more</mat-icon>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body" id="coi-view-relation-details-card-body" *ngIf="isCardExpanded">
+                        <div class="row g-2">
+                                <ng-container *ngFor="let fieldOrder of cardOrder">
+                                    <div *ngIf="fieldOrder === 'ADDRESS'" tabindex="-1" class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-4 col-xxl-4"
+                                        [attr.aria-label]="'Address' + (entityDetails?.address)">
+                                        <label for="coi-eng-entity-address" class="coi-text-dark d-block">Address</label>
+                                        <div id="coi-eng-entity-address" class="text-slice">
+                                            <app-no-data-label
+                                                [valueToShow]="entityDetails?.address ? entityDetails?.address : entityDetails?.primaryAddressLine1">
+                                                <span class="text-slice fs-14" id="coi-shared-entity-address"
+                                                    [title]="entityDetails?.address ? entityDetails?.address : entityDetails?.primaryAddressLine1">
+                                                    {{entityDetails?.address ? entityDetails?.address :
+                                                    entityDetails?.primaryAddressLine1}}
+                                                    <ng-container *ngIf="!entityDetails?.address && entityDetails?.primaryAddressLine2">
+                                                        {{entityDetails?.primaryAddressLine2}}
+                                                    </ng-container>
+                                                </span>
+                                            </app-no-data-label>
+
+                                        </div>
+                                    </div>
+                                        <!-- City -->
+                                        <div *ngIf="fieldOrder === 'CITY'" tabindex="-1" class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-4 col-xxl-4"
+                                            [attr.aria-label]="'City is ' + (entityDetailsObj?.city ? entityDetailsObj?.city : 'empty')">
+                                            <label for="coi-eng-entity-city" class="coi-text-dark d-block">City</label>
+                                            <div id="coi-eng-entity-city" class="text-slice fs-14">
+                                                <app-no-data-label [valueToShow]="entityDetails?.city ? entityDetails?.city : '' ">
+                                                    <span class="text-slice" id="coi-shared-entity-address"
+                                                        [title]="entityDetails?.city ? entityDetails?.city : '' ">{{entityDetails?.city ?
+                                                        entityDetails?.city : ''}}</span>
+                                                </app-no-data-label>
+                                            </div>
+                                        </div>
+                                        <!-- State/Province/Region -->
+                                        <div *ngIf="fieldOrder === 'STATE'" tabindex="-1"
+                                            class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-4 col-xxl-4"
+                                            [attr.aria-label]="'State/Province/Region is ' + (entityDetails?.stateDetails?.stateName || entityDetails?.state || 'empty')">
+                                            <label for="coi-eng-entity-state" class="coi-text-dark d-block">State/Province/Region</label>
+                                            <div id="coi-eng-entity-state" class="text-slice fs-14">
+                                                <app-no-data-label [valueToShow]="entityDetails?.stateDetails?.stateName ? entityDetails?.stateDetails?.stateName : entityDetails?.state">
+                                                    <span [title]="entityDetails?.stateDetails?.stateName ? entityDetails?.stateDetails?.stateName : entityDetails?.state" class="coi-text-light">{{ entityDetails?.stateDetails?.stateName ? entityDetails?.stateDetails?.stateName : entityDetails?.state }}</span>
+                                                </app-no-data-label>
+                                            </div>
+                                        </div>
+                                        <!-- Country -->
+                                        <div *ngIf="fieldOrder === 'COUNTRY'" tabindex="-1"
+                                            class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-4 col-xxl-4"
+                                            [attr.aria-label]="'Country is ' + (entityDetails?.country?.countryName ? entityDetails?.country?.countryName : 'empty')">
+                                            <label for="coi-eng-entity-country" class="coi-text-dark d-block">Country</label>
+                                            <div id="coi-eng-entity-country" class="text-slice fs-14">
+                                                <app-no-data-label [valueToShow]="entityDetails?.country?.countryName">
+                                                    <span [title]="entityDetails?.country?.countryName" class="coi-text-light">{{
+                                                        entityDetails?.country?.countryName }}</span>
+                                                </app-no-data-label>
+                                            </div>
+                                        </div>
+                                        <!-- DUNS Number -->
+                                        <div *ngIf="fieldOrder === 'DUNS_NUMBER'" tabindex="-1"
+                                            class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-4 col-xxl-4"
+                                            [attr.aria-label]="'DUNS number is ' + (entityDetails?.dunsNumber ? entityDetails?.dunsNumber : 'empty')">
+                                            <label for="coi-eng-entity-duns-number" class="coi-text-dark d-block">DUNS Number</label>
+                                            <div id="coi-eng-entity-duns-number" class="text-slice fs-14">
+                                                <app-no-data-label [valueToShow]="entityDetails?.dunsNumber">
+                                                    <span [title]="entityDetails?.dunsNumber"
+                                                        class="coi-text-light">{{entityDetails?.dunsNumber}}</span>
+                                                </app-no-data-label>
+                                            </div>
+                                        </div>
+                                        <div *ngIf="fieldOrder === 'PHONE'" tabindex="-1"
+                                            class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-4 col-xxl-4"
+                                            [attr.aria-label]="'Phone number is ' + (entityDetails?.phoneNumber ? entityDetails?.phoneNumber : 'empty')">
+                                            <label for="coi-eng-entity-phone-number" class="coi-text-dark d-block">Phone</label>
+                                            <div id="coi-eng-entity-phone-number" class="text-slice fs-14">
+                                                <app-no-data-label [valueToShow]="entityDetails?.phoneNumber">
+                                                    <span [title]="entityDetails?.phoneNumber"
+                                                        class="coi-text-light">{{entityDetails?.phoneNumber}}</span>
+                                                </app-no-data-label>
+                                            </div>
+                                        </div>
+                                </ng-container>
+                                <div tabindex="-1" [ngClass]="commonService.isSfiEvaluationEnabled ? 'col-6 col-sm-6 col-md-4 col-lg-4 col-xl-4 col-xxl-4' : 'col-12'">
+                                        <span class="coi-text-dark me-2">Relationship</span>
+                                        <span class="coi-relationship-pill-container">
+                                            <ng-container *ngIf="entityDetailsServices.definedRelationships?.length">
+                                                <ng-container *ngFor="let relationship of groupedRelations | keyvalue; let isFirst = first; let outerIndex = index;">
+                                                    <span class="coi-relationship-pill">
+                                                        <span class="d-flex align-items-center coi-relationship-pill-text">
+                                                            <mat-icon aria-hidden="true"
+                                                                class="flex-shrink-0 me-1">{{ engagementTypeIcons[relationship.key] }}</mat-icon>
+                                                            <span>{{ relationship.key }}</span>
+                                                            <ng-container *ngIf="!commonService?.isCompensatedFlow && relationship?.value?.length">
+                                                                <span class="me-1 coi-text-light">:</span>
+                                                                <ng-container *ngFor="let relation of relationship.value; let isLastRelation = last; let index = index">
+                                                                    <span class="fw-normal">{{ relation?.validPersonEntityRelType?.personEntityRelType?.description }}</span>
+                                                                    <span *ngIf="!isLastRelation" class="px-1">/</span>
+                                                                </ng-container>
+                                                            </ng-container>
+                                                        </span>
+                                                    </span>
+                                                    <span
+                                                        *ngIf="commonService.isSfiEvaluationEnabled && relationshipsDetails.isSignificantFinInterest && relationship?.value?.[0]?.validPersonEntityRelType?.disclosureTypeCode == FINANCIAL_TYPE"
+                                                        class="coi-relationship-pill">
+                                                        <span class="d-flex coi-relationship-pill-text lh-sm">
+                                                            <img src="{{deployMap}}assets/images/sfi.svg" alt="{{ ENGAGEMENT_LOCALIZE.TERM_SFI_FOR_REL_PILLS }} Image" class="coi-sfi-icon me-2" aria-hidden="true">
+                                                            <span>{{ ENGAGEMENT_LOCALIZE.TERM_SFI_FOR_REL_PILLS }}</span>
+                                                        </span>
+                                                    </span>
+                                                </ng-container>
+                                            </ng-container>
+                                            <ng-container *ngIf="unifiedPersonEntityRelationships?.length">
+                                                <ng-container *ngFor="let coiFinancialEntityDetail of unifiedPersonEntityRelationships; let isLast = last">
+                                                    <span class="coi-relationship-pill">
+                                                        <span class="d-flex align-items-center coi-relationship-pill-text">
+                                                            <mat-icon aria-hidden="true" class="flex-shrink-0 me-1">{{engagementTypeIcons[coiFinancialEntityDetail?.coiDisclosureType?.description]}}</mat-icon>
+                                                            <span>{{coiFinancialEntityDetail?.coiDisclosureType?.description}}</span>
+                                                        </span>
+                                                    </span>
+                                                    <span
+                                                        *ngIf="commonService.isSfiEvaluationEnabled && relationshipsDetails.isSignificantFinInterest && coiFinancialEntityDetail?.disclosureTypeCode == FINANCIAL_TYPE"
+                                                        class="coi-relationship-pill">
+                                                        <span class="d-flex coi-relationship-pill-text lh-sm">
+                                                            <img src="{{deployMap}}assets/images/sfi.svg" alt="{{ ENGAGEMENT_LOCALIZE.TERM_SFI_FOR_REL_PILLS }} Image" class="coi-sfi-icon me-2" aria-hidden="true"> 
+                                                            <span>{{ ENGAGEMENT_LOCALIZE.TERM_SFI_FOR_REL_PILLS }}</span>
+                                                        </span>
+                                                    </span>
+                                                </ng-container>
+                                            </ng-container>
+                                            <ng-container *ngIf="!entityDetailsServices.definedRelationships?.length && !unifiedPersonEntityRelationships?.length">
+                                                --
+                                            </ng-container>
+                                        </span>
+                                </div>
+                                <ng-container *ngIf="commonService.isSfiEvaluationEnabled">
+                                    <div tabindex="-1" class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-4 col-xxl-4"
+                                        [attr.aria-label]="'Total compensated Income is ' + (relationshipsDetails?.compensationAmount ? relationshipsDetails?.compensationAmount : 'empty')">
+                                        <span class="coi-text-dark d-block">Total Compensated Income</span>
+                                        <div id="coi-eng-total-compensated-amount" class="text-slice fs-14">
+                                            <ng-container *ngIf="isFinancialAvailable">
+                                                <app-no-data-label [valueToShow]="relationshipsDetails?.compensationAmount">
+                                                    <div class="d-flex gap-2 align-items-center">
+                                                        <ng-container *ngIf="!isSystemDefinedAmount">
+                                                            <span [title]="relationshipsDetails?.compensationAmount"
+                                                                class="coi-text-light">{{relationshipsDetails?.compensationAmount | currency: currency}}</span>
+                                                            <button *ngIf="isEditMode && relationshipsDetails?.compensationAmount" (click)="openSFIAmountModal()"
+                                                                class="d-inline-flex align-items-center justify-content-center btn-none coi-entity-icon-bg coi-coloured-icons flex-shrink-0 fs-24 custom_icon_size"
+                                                                aria-label="Click here to edit total compensated amount" title="Click here to edit total compensated amount">
+                                                                <mat-icon class="coi-mat-icon-size" aria-hidden="true">edit</mat-icon>
+                                                            </button>
+                                                        </ng-container>
+                                                        <ng-container *ngIf="isSystemDefinedAmount">
+                                                             <span [title]="relationshipsDetails?.compensationAmount"
+                                                                class="coi-text-light">{{relationshipsDetails?.compensationAmount}}</span>
+                                                        </ng-container>
+                                                    </div>
+                                                </app-no-data-label>
+                                            </ng-container>
+                                            <div *ngIf="!isFinancialAvailable" class="ms-2 coi-text-lighter"> - NA - </div>
+                                        </div>
+                                    </div>
+                                    <div tabindex="-1" class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-4 col-xxl-4"
+                                        [attr.aria-label]="'Total Travel Reimbursement is ' + (relationshipsDetails?.travelReimbursementAmount ? relationshipsDetails?.travelReimbursementAmount : 'empty')">
+                                        <span class="coi-text-dark d-block">Total Travel Reimbursement Cost</span>
+                                        <div id="coi-eng-travel-amount" class="text-slice fs-14">
+                                            <ng-container *ngIf="isTravelAvailable">
+                                                <app-no-data-label [valueToShow]="relationshipsDetails?.travelReimbursementAmount">
+                                                    <span [title]="relationshipsDetails?.travelReimbursementAmount"
+                                                        class="coi-text-light">{{relationshipsDetails?.travelReimbursementAmount | currency: currency}}</span>
+                                                </app-no-data-label>
+                                            </ng-container>
+                                            <div *ngIf="!isTravelAvailable" class="ms-2 coi-text-lighter"> - NA - </div>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="relationshipsDetails?.sfiReason && isFinancialAvailable" class="d-flex alert alert-primary mb-0 py-2 col-12 mt-3">
+                                        <mat-icon class="mat-icon material-icons flex-shrink-0" aria-hidden="true">info</mat-icon>
+                                        <p class="fs-14 mb-0 ms-2">
+                                            <span class="fw-500">{{relationshipsDetails?.sfiReason}}</span>
+                                        </p>
+                                    </div>
+                                </ng-container>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Engagement Actions buttons -->
+                <div *ngIf="!isTriggeredFromSlider; else sliderView"
+                    class="p-3 border-start" [ngClass]="isEditMode && entityDetailsServices.isShowRelationshipDetailsTab ? 'col-xxl-3 col-lg-4 col-12' : 'col-xl-3'">
+                    <div class="h-100">
+                        <div class="d-grid gap-2 flex-md-wrap mt-2 mb-2" [class.d-md-flex]="canShowMoreActions()">
+                            <button *ngIf="relationshipsDetails?.versionStatus === 'ACTIVE' && !isEditMode;else noRightDesign3"
+                                class="btn btn-outline-grey d-inline-flex align-items-center justify-content-center col" id="coi-view-relationship-details-back-btn3"
+                                (click)="navigateBack()" title="Click here to close" aria-label="Click here to close">
+                                <mat-icon aria-hidden="true" class="me-2">close</mat-icon>
+                                <span class="fs-14 btn-content-back">Close</span>
+                            </button>
+                            <ng-template #noRightDesign3>
+                                <button class="btn btn-outline-grey d-inline-flex align-items-center justify-content-center col" id="coi-view-relationship-details-back-btn2"
+                                    (click)="navigateBack()" title="Click here to close" aria-label="Click here to close">
+                                    <mat-icon aria-hidden="true" class="me-2">close</mat-icon>
+                                    <span class="fs-14 btn-content-back">Close</span>
+                                </button>
+                            </ng-template>
+                            <button [matMenuTriggerFor]="beforeMenu" id="coi-view-relationship-details-more-vert-btn"
+                                [disabled]="commonService.hasChangesAvailable || commonService?.autoSaveSavingSpinner !== 'HIDE'"
+                                class="btn btn-outline-grey d-inline-flex align-items-center justify-content-center col"
+                                type="button" title="Click for More Actions" aria-label="Click for More Actions">
+                                <mat-icon aria-hidden="true" class="moreActionIcon">more_vert</mat-icon>
+                            </button>
+                            <div class="d-inline-flex align-items-center justify-content-center flex-wrap gap-2 col-12 px-0">
+                                <ng-container *ngIf="isEditMode && entityDetailsServices.isShowRelationshipDetailsTab && ['RELATION_DETAILS', 'QUESTIONNAIRE'].includes(this.entityDetailsServices.activeTab)">
+                                    <!-- Previous -->
+                                    <button *ngIf="entityDetailsServices.stepsNavBtnConfig?.previousBtnConfig?.isShowBtn"
+                                        (click)="openRelationShipSection()" id="coi-engagment-prev-btn"
+                                        [disabled]="entityDetailsServices.stepsNavBtnConfig?.previousBtnConfig?.isDisabled"
+                                        class="d-inline-flex align-items-center justify-content-center btn btn-outline-grey col fs-14"
+                                        [attr.aria-label]="entityDetailsServices.stepsNavBtnConfig?.previousBtnConfig?.ariaLabel"
+                                        [title]="entityDetailsServices.stepsNavBtnConfig?.previousBtnConfig?.title">
+                                        <mat-icon aria-hidden="true">{{ entityDetailsServices.stepsNavBtnConfig?.previousBtnConfig?.matIcon
+                                            }}</mat-icon>
+                                        <span class="ms-2">{{ entityDetailsServices.stepsNavBtnConfig?.previousBtnConfig?.btnName }}</span>
+                                    </button>
+                                    <!-- Proceed -->
+                                    <button *ngIf="entityDetailsServices.stepsNavBtnConfig?.proceedBtnConfig?.isShowBtn"
+                                        (click)="proceedButtonAction()" id="coi-engagment-proceed-btn"
+                                        [disabled]="entityDetailsServices.stepsNavBtnConfig?.proceedBtnConfig?.isDisabled"
+                                        class="d-inline-flex align-items-center justify-content-center btn btn-outline-grey col fs-14 text-nowrap"
+                                        [attr.aria-label]="entityDetailsServices.stepsNavBtnConfig?.proceedBtnConfig?.ariaLabel"
+                                        [title]="entityDetailsServices.stepsNavBtnConfig?.proceedBtnConfig?.title">
+                                        <span class="me-2">{{ entityDetailsServices.stepsNavBtnConfig?.proceedBtnConfig?.btnName }}</span>
+                                        <mat-icon aria-hidden="true" class="coi-rotate-180">{{
+                                            entityDetailsServices.stepsNavBtnConfig?.proceedBtnConfig?.matIcon }}</mat-icon>
+                                    </button>
+                                </ng-container>
+                                <button *ngIf="isEditMode && entityDetailsServices.canMangeSfi"
+                                    [disabled]="commonService.hasChangesAvailable || commonService?.autoSaveSavingSpinner !== 'HIDE'"
+                                    id="coi-view-relationship-details-save-btn" (click)="completeEngagement()"
+                                    class="d-inline-flex justify-content-center btn btn-primary align-items-center col fs-14"
+                                    title="Click here to complete engagement" aria-label="Click here to complete engagement">
+                                    <mat-icon aria-hidden="true">done</mat-icon>
+                                    <span class="ms-2 text-nowrap">Complete Engagement</span>
+                                </button>
+                            </div>
+                            <ng-template #noMangeRights>
+                                <div class="d-flex justify-content-around px-1">
+                                    <button class="btn btn-outline-grey d-inline-flex align-items-center justify-content-center col" id="coi-view-relationship-details-back-btn1"
+                                        (click)="navigateBack()" title="Click here to close" aria-label="Click here to close">
+                                        <mat-icon aria-hidden="true" class="me-2">close</mat-icon>
+                                        <span class="fs-14 btn-content-back">Close</span>
+                                    </button>
+                                    <button *ngIf="canShowMoreActions()" [matMenuTriggerFor]="beforeMenu" id="coi-view-relationship-details-morevert-btn2"
+                                        class="btn btn-outline-grey d-inline-flex align-items-center justify-content-center col"
+                                        role="button" title="Click for More Actions">
+                                        <mat-icon aria-hidden="true" class="moreActionIcon">more_vert</mat-icon>
+                                    </button>
+                                </div>
+                            </ng-template>
+                            <mat-menu #beforeMenu="matMenu" xPosition="before">
+                                <button mat-menu-item id="btn-sfi-modify"
+                                    *ngIf="relationshipsDetails?.versionStatus == 'ACTIVE' && !isEditMode && entityDetailsServices.canMangeSfi"
+                                    class="text-nowrap border-0 rounded-0 btn-primary-icon fs-14 d-flex justify-content-start w-100 align-items-center more-action"
+                                    title="Click here to modify the engagement" (click)="modifySfi()">
+                                    <mat-icon aria-hidden="true">mode</mat-icon>
+                                    <span class="btn-sfi-position fs-14 fw-medium">Modify Engagement</span>
+                                </button>
+                                <ng-container
+                                    *ngIf="entityDetailsServices.canMangeSfi && relationshipsDetails?.versionStatus === 'ACTIVE'"
+                                    class="d-flex justify-content-around mt-3 mx-3">
+                                    <button mat-menu-item id="btn-inactivate"
+                                        class="text-nowrap border-0 rounded-0 btn-primary-icon fs-14 d-flex justify-content-start w-100 align-items-center more-action"
+                                        title="Click here to deactivate the engagement" (click)="activateInactivateSfi()">
+                                        <mat-icon class="=icon-schedule-position">cancel</mat-icon>
+                                        <span class="btn-inactivate-content fs-14 fw-medium ms-2">
+                                            Deactivate
+                                        </span>
+                                    </button>
+                                </ng-container>
+                                <ng-container
+                                    *ngIf="entityDetailsServices.canMangeSfi && relationshipsDetails?.versionStatus == 'INACTIVE'"
+                                    class="d-flex justify-content-around mt-3 mx-3" tabindex="0">
+                                    <button mat-menu-item id="btn-activate"
+                                        class="text-nowrap border-0 rounded-0 btn-primary-icon fs-14 d-flex justify-content-start w-100 align-items-center more-action"
+                                        title="Click here to activate the engagement" (click)="activateInactivateSfi()">
+                                        <mat-icon aria-hidden="true">flash_on</mat-icon>
+                                        <span
+                                            [ngClass]="isEditMode ?'btn-activate-edit-content':'btn-activate-content fs-14 fw-medium'">
+                                            Activate
+                                        </span>
+                                    </button>
+                                </ng-container>
+                                <!-- Print -->
+                                <button mat-menu-item id="coi-engagement-print-btn"
+                                    title="Click here to print engagement"
+                                    aria-label="Click here to print engagement"
+                                    (click)="openPrintEngagementModal()"
+                                    [disabled]="commonService.hasChangesAvailable || commonService?.autoSaveSavingSpinner !== 'HIDE'"
+                                    class="d-flex justify-content-start align-items-center border-0 rounded-0 btn-primary-icon fs-14 more-action">
+                                    <mat-icon aria-hidden="true">print</mat-icon>
+                                    <span class="btn-sfi-position fs-14 fw-medium">Print Engagement</span>
+                                </button>
+                            </mat-menu>
+                        </div>
+                        <ng-container *ngIf="isCardExpanded">
+                            <span class="fw-medium me-1 coi-text-lighter fs-13">Last Updated On</span>
+                            <app-no-data-label
+                                [valueToShow]="relationshipsDetails?.updateTimestamp">
+                                <span class="coi-text-dark fs-13 fw-normal"> {{ relationshipsDetails?.updateTimestamp | dateFormatterWithTimeZone:'long' }} </span>
+                            </app-no-data-label>
+                        </ng-container>
+                    </div>
+                </div>
+
+                <ng-template #sliderView>
+                    <div class="col-xl-4 col-xxxl-3 p-3 border-start">
+                        <div class="h-100">
+                            <div class="d-grid gap-2 flex-md-wrap mt-2 mb-2">
+                                <div class="row d-flex justify-content-around px-1 gap-2">
+                                    <button id="btn-sfi-modify-in-slider"
+                                        *ngIf="relationshipsDetails?.versionStatus == 'ACTIVE' && !isEditMode && entityDetailsServices.canMangeSfi"
+                                        class="btn btn-outline-grey d-inline-flex align-items-center justify-content-center col"
+                                        title="Click here to modify the engagement"
+                                        aria-label="Click here to modify the engagement"
+                                        (click)="modifySfi()">
+                                        <mat-icon aria-hidden="true">mode</mat-icon>
+                                        <span class="ms-1 fs-14 fw-medium text-nowrap">Modify Engagement</span>
+                                    </button>
+                                    <button
+                                        *ngIf="entityDetailsServices.canMangeSfi && relationshipsDetails?.versionStatus == 'INACTIVE'"
+                                        id="btn-activate-in-slider"
+                                        class="btn btn-outline-grey d-inline-flex align-items-center justify-content-center col"
+                                        title="Click here to activate the engagement"
+                                        aria-label="Click here to activate the engagement"
+                                        (click)="activateInactivateSfi()">
+                                        <mat-icon class="coi-scale-9" aria-hidden="true">flash_on</mat-icon>
+                                        <span class= "fs-14 fw-medium ms-1 text-nowrap">Activate</span>
+                                    </button>
+                                    <button
+                                        *ngIf="entityDetailsServices.canMangeSfi && relationshipsDetails?.versionStatus === 'ACTIVE'"
+                                        id="btn-activate-in-slider"
+                                        class="btn btn-outline-grey d-inline-flex align-items-center justify-content-center col"
+                                        title="Click here to deactivate the engagement"
+                                        aria-label="Click here to deactivate the engagement"
+                                        (click)="activateInactivateSfi()">
+                                        <mat-icon class="coi-scale-9" aria-hidden="true">cancel</mat-icon>
+                                        <span class="fs-14 fw-medium ms-1 text-nowrap">Deactivate</span>
+                                    </button>
+                                    <button id="btn-eng-print-in-slider"
+                                        class="btn btn-outline-grey d-inline-flex align-items-center justify-content-center col"
+                                        title="Click here to print engagement"
+                                        aria-label="Click here to print engagement"
+                                        (click)="openPrintEngagementModal()">
+                                        <mat-icon class="coi-scale-9" aria-hidden="true">print</mat-icon>
+                                        <span class="fs-14 fw-medium ms-1 text-nowrap">Print Engagement</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <ng-container *ngIf="isCardExpanded">
+                                <span class="fw-medium me-1 coi-text-lighter fs-13">Last Updated On</span>
+                                <app-no-data-label
+                                    [valueToShow]="relationshipsDetails?.updateTimestamp">
+                                    <span class="coi-text-dark fs-13 fw-normal"> {{ relationshipsDetails?.updateTimestamp | dateFormatterWithTimeZone:'long' }} </span>
+                                </app-no-data-label>
+                            </ng-container>
+                        </div>
+                    </div>
+                </ng-template>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="relationshipsDetails.personEntityId" class="card mt-3">
+<!-- Engagement main navigation tabs -->
+    <ul class="nav main-navs nav-underline gap-0 border-bottom" id="coi-main-engagement-nav">
+        <li tabindex="0" (click)="executeEngagementActions('openRelationShipSection')" (keyup.space)="executeEngagementActions('openRelationShipSection') "
+            (keyup.enter)="executeEngagementActions('openRelationShipSection') ">
+            <a class="nav-link px-3 py-3 border-end" title="Click here to view Engagement Details"
+                [class.active]="entityDetailsServices.activeTab === 'RELATION_DETAILS'"
+                id="coi-view-relationship-details-sfi-details"
+                [attr.aria-label]="entityDetailsServices.activeTab === 'RELATION_DETAILS' ? 'Selected tab is Engagement details' : 'Click to view Engagement Details'">
+                Engagement Details
+            </a>
+        </li>
+        <li *ngIf="entityDetailsServices.isShowRelationshipDetailsTab" tabindex="0" (click)="executeEngagementActions('openQuestionnaireTab')"
+            (keyup.enter)="executeEngagementActions('openQuestionnaireTab')" (keyup.space)="executeEngagementActions('openQuestionnaireTab')">
+            <a class="nav-link px-3 py-3" title="Click here to view {{relationshipDetailsSectionName}}"
+                [class.active]="entityDetailsServices.activeTab === 'QUESTIONNAIRE'"
+                [class.border-end]="entityDetailsServices.isShowRelationshipDetailsTab"
+                id="coi-view-relationship-details-relationship-details"
+                [attr.aria-label]="(entityDetailsServices.activeTab === 'QUESTIONNAIRE' ? 'Selected tab is' : 'Click to view') + relationshipDetailsSectionName">
+                {{relationshipDetailsSectionName}}
+            </a>
+        </li>
+        <div class="steps-outer ms-auto">
+            <div *ngIf="isEditMode" class="position-relative d-flex align-items-center me-2">
+                <!-- save toast and loader -->
+                <div class="saved-toast-position invisible py-1 align-items-center badge d-inline-flex fw-normal fs-13 px-2 rounded-5 text-bg-light-success"
+                    id="success-toast">
+                    <span class="me-1">Last saved at {{ autoSaveService.lastSavedTime }}</span>
+                    <mat-icon aria-hidden="true" class="coi-success-icon">cloud_done</mat-icon>
+                </div>
+                <div *ngIf="commonService?.autoSaveSavingSpinner !== 'HIDE'" id="inprogress-toast"
+                    class="saved-toast-position py-1 align-items-center d-inline-flex fw-normal px-2 rounded-5">
+                    <span class="me-1 fs-14">Saving...</span>
+                    <mat-icon aria-hidden="true" class="text-success fw-600 coi-rotating">autorenew</mat-icon>
+                </div>
+            </div>
+	        <div class="d-inline-flex align-items-center align-items-stretch gap-3 ms-auto ps-3 border-start me-3">
+                <div *ngIf="relatedDislcosures?.length" class="d-flex align-items-center">
+                    <button type="button" id="coi-engagement-related-disclosures-tab" (click)="executeEngagementActions('openRelatedDislcousresSection')"
+                        [title]="entityDetailsServices.activeTab === 'RELATED_DISCLOSURES' ? 'Selected tab is related travel disclosures' : 'Click to view related travel disclosures'"
+                        [attr.aria-label]="entityDetailsServices.activeTab === 'RELATED_DISCLOSURES' ? 'Selected tab is related travel disclosures' : 'Click to view related travel disclosures'"
+                        queryparamshandling="merge" class="btn-none coi-step-tab-btn"
+                        [class.active]="entityDetailsServices.activeTab === 'RELATED_DISCLOSURES'">
+                        <span aria-hidden="true" class="coi-step-tab-icon">
+                            <mat-icon role="img" class="mat-icon-no-color coi-rotate-minus-45 flex-shrink-0 coi-mat-icon-size"
+                                aria-hidden="true">attach_file</mat-icon>
+                        </span>
+                        <span class="d-none d-lg-inline coi-step-tab-text" [attr.coi-step-tab-text]="'Travel Disclosures'">Travel Disclosures</span>
+                    </button>
+                </div>
+                <span *ngIf="relatedDislcosures?.length" class="coi-section-separator pe-1"></span>
+                <div class="d-flex align-items-center">
+                    <button type="button" (click)="executeEngagementActions('openHistorySection')" id="coi-engagement-history-tab"
+                        [title]="entityDetailsServices.activeTab === 'HISTORY' ? 'Selected tab is Engagement History' : 'Click to view Engagement History'"
+                        [attr.aria-label]="entityDetailsServices.activeTab === 'HISTORY' ? 'Selected tab is Engagement History' : 'Click to view Engagement History'"
+                        queryparamshandling="merge" class="btn-none coi-step-tab-btn"
+                        [class.active]="entityDetailsServices.activeTab === 'HISTORY'">
+                        <span aria-hidden="true" class="coi-step-tab-icon">
+                            <mat-icon role="img" class="mat-icon-no-color flex-shrink-0 coi-mat-icon-size"
+                                aria-hidden="true">update</mat-icon>
+                        </span>
+                        <span class="d-none d-lg-inline coi-step-tab-text" [attr.coi-step-tab-text]="'History'">History</span>
+                    </button>
+                </div>
+                <span *ngIf="isFromEngMigration" class="coi-section-separator pe-1"></span>
+                <div *ngIf="isFromEngMigration" class="d-flex align-items-center">
+                    <button type="button" (click)="executeEngagementActions('viewEngagementDetails')" id="coi-migrated-engagement-details" 
+                        title="Click here to view legacy engagement data" attr.aria-label="Click here to view legacy engagement data"
+                        class="btn-none coi-step-tab-btn">
+                        <span aria-hidden="true" class="coi-step-tab-icon">
+                            <mat-icon role="img" class="mat-icon-no-color flex-shrink-0 coi-mat-icon-size">visibility</mat-icon>
+                        </span>
+                        <span class="d-none d-lg-inline coi-step-tab-text" [attr.coi-step-tab-text]="'View Legacy Data'">View Legacy Data</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </ul>
+<!-- Engagement Info -->
+<!-- Relationship questionnaire tabs and relationship button-->
+<ng-container *ngIf="entityDetailsServices.activeTab === 'QUESTIONNAIRE'">
+    <app-common-shared-info-text [elementId]="'coi-eng-rel-details-info-text'" [subSectionId]="532" [customClass]="'p-2'"></app-common-shared-info-text>
+</ng-container>
+<ng-container *ngIf="entityDetailsServices.activeTab === 'RELATION_DETAILS'">
+    <app-common-shared-info-text [elementId]="'coi-eng-details-info-text'" [subSectionId]="532" [customClass]="'p-2'"></app-common-shared-info-text>
+</ng-container>
+<ng-container *ngIf="entityDetailsServices.activeTab === 'RELATED_DISCLOSURES'">
+    <app-common-shared-info-text [elementId]="'coi-eng-related-disc-info-text'" [subSectionId]="532" [customClass]="'p-2'"></app-common-shared-info-text>
+</ng-container>
+<ng-container *ngIf="entityDetailsServices.activeTab === 'HISTORY'">
+    <app-common-shared-info-text [elementId]="'coi-eng-history-info-text'" [subSectionId]="532" [customClass]="'p-2'"></app-common-shared-info-text>
+</ng-container>
+<!-- Engagement Info -->
+
+<div class="d-flex border-bottom sub-nav-outer sticky-nav-bar" id="coi-engagement-sub-nav"
+     *ngIf="relationshipDetailsSectionName !== FINANCIAL_DETAILS_SECTION_NAME && entityDetailsServices.activeTab === 'QUESTIONNAIRE' && ((!commonService.isUnifiedQuestionnaireEnabled && entityDetailsServices.definedRelationships?.length) || (commonService.isUnifiedQuestionnaireEnabled && entityDetailsServices.selectedDisclosureTypes?.length))">
+    <nav *ngIf="!commonService.isUnifiedQuestionnaireEnabled && !isMatrixTypeAvailable" class="d-flex fs-15 fw-bold user-dashboard-nav text-nowrap overflow-auto flex-grow-1"
+        [ngClass]="isEditMode && entityDetailsServices.canMangeSfi && entityDetailsServices.availableRelationships?.length ? 'nav-width' : 'w-100'">
+        <ng-container
+            *ngFor="let coiFinancialEntityDetail of entityDetailsServices.definedRelationships;let isLast = last">
+            <div class="align-items-center d-flex justify-content-between nav-options border-end" role="button"
+                [ngClass]="entityDetailsServices.activeTab === 'QUESTIONNAIRE' && entityDetailsServices.activeRelationship === coiFinancialEntityDetail?.validPersonEntityRelType?.validPersonEntityRelTypeCode?'navigation-icons relation-active fw-500':''">
+                <div (click)="openRelationshipQuestionnaire(coiFinancialEntityDetail);"
+                    class="text-secondary w-100 mx-0 nav-options-bottom">
+                    <span
+                        title="Click to view {{coiFinancialEntityDetail?.validPersonEntityRelType?.description}} Questionnaire"
+                        class="relation-border-left r-title px-3 py-3">
+                        <span class="fs-14 d-flex align-items-center" tabindex="-1">
+                            <mat-icon aria-hidden="true"
+                            class="flex-shrink-0 me-1">{{engagementTypeIcons[coiFinancialEntityDetail?.validPersonEntityRelType?.description]}}</mat-icon>
+                            {{coiFinancialEntityDetail?.validPersonEntityRelType?.description}}
+                            <span id="qnr-complete-msg"
+                                *ngIf="entityDetailsServices.relationshipCompletedObject[coiFinancialEntityDetail?.validPersonEntityRelType?.validPersonEntityRelTypeCode]"
+                                class="fa fa-check me-2" title="Completed">
+                            </span>
+                            <span id="qnr-incomplete-msg"
+                                *ngIf="!entityDetailsServices.relationshipCompletedObject[coiFinancialEntityDetail?.validPersonEntityRelType?.validPersonEntityRelTypeCode]"
+                                class="fa fa-exclamation-circle me-2" title="Incomplete">
+                            </span>
+                        </span>
+                    </span>
+                </div>
+            </div>
+        </ng-container>
+    </nav>
+    <nav *ngIf="!commonService.isUnifiedQuestionnaireEnabled && isMatrixTypeAvailable" class="d-flex fs-15 fw-bold user-dashboard-nav text-nowrap overflow-auto flex-grow-1"
+        [ngClass]="isEditMode && entityDetailsServices.canMangeSfi && entityDetailsServices.availableRelationships?.length ? 'nav-width' : 'w-100'">
+        <ng-container
+            *ngFor="let coiFinancialEntityDetail of entityDetailsServices.uniqueTabDetials;let isLast = last">
+            <div class="d-flex align-items-center justify-content-between nav-options border-end" [ngClass]="{
+                'navigation-icons relation-active fw-500': entityDetailsServices.activeTab === 'QUESTIONNAIRE' &&
+                ( entityDetailsServices.activeRelationship === coiFinancialEntityDetail?.validPersonEntityRelType?.validPersonEntityRelTypeCode ||
+                entityDetailsServices.activeRelationship === coiFinancialEntityDetail?.validPersonEntityRelType?.disclosureTypeCode)}"
+                [id]="coiFinancialEntityDetail?.validPersonEntityRelType?.disclosureTypeCode">
+                <div (click)="openIfQuestionnaireOrMatrix(coiFinancialEntityDetail);"
+                    tabindex="0"
+                    (keyup.enter)="openIfQuestionnaireOrMatrix(coiFinancialEntityDetail);"
+                    class="text-secondary w-100 mx-0 nav-options-bottom">
+                    <span
+                        title="Click here to view {{coiFinancialEntityDetail?.validPersonEntityRelType?.coiDisclosureType?.description}} Questionnaire"
+                        class="relation-border-left r-title px-3 py-3">
+                        <span class="fs-14 d-flex align-items-center" tabindex="-1">
+                            <mat-icon aria-hidden="true"
+                            class="flex-shrink-0 me-1">{{coiFinancialEntityDetail?.validPersonEntityRelType?.coiDisclosureType?.dataCapturingTypeCode === MATRIX_TYPE ? engagementTypeIcons[coiFinancialEntityDetail?.validPersonEntityRelType?.coiDisclosureType?.description] : engagementTypeIcons[coiFinancialEntityDetail?.validPersonEntityRelType?.description]}}</mat-icon>
+                            {{coiFinancialEntityDetail?.validPersonEntityRelType?.coiDisclosureType?.dataCapturingTypeCode === MATRIX_TYPE ? coiFinancialEntityDetail?.validPersonEntityRelType?.coiDisclosureType?.description : coiFinancialEntityDetail?.validPersonEntityRelType?.description}}
+                            <ng-container
+                                *ngIf="coiFinancialEntityDetail?.validPersonEntityRelType?.coiDisclosureType?.dataCapturingTypeCode !== MATRIX_TYPE">
+                                <span *ngIf="entityDetailsServices.relationshipCompletedObject[coiFinancialEntityDetail?.validPersonEntityRelType?.validPersonEntityRelTypeCode]"
+                                    id="qnr-complete-msg"
+                                    class="fa fa-check me-2" title="Completed">
+                                </span>
+                                <span *ngIf="!entityDetailsServices.relationshipCompletedObject[coiFinancialEntityDetail?.validPersonEntityRelType?.validPersonEntityRelTypeCode]"
+                                    id="qnr-incomplete-msg"
+                                    class="fa fa-exclamation-circle me-2" title="Incomplete">
+                                </span>
+                            </ng-container>
+                            <ng-container
+                                *ngIf="coiFinancialEntityDetail?.validPersonEntityRelType?.coiDisclosureType?.dataCapturingTypeCode === MATRIX_TYPE">
+                                <span *ngIf="entityDetailsServices?.isMatrixComplete"
+                                    id="qnr-complete-msg"
+                                    class="fa fa-check me-2" title="Completed">
+                                </span>
+                                <span *ngIf="!entityDetailsServices?.isMatrixComplete"
+                                    id="qnr-incomplete-msg"
+                                    class="fa fa-exclamation-circle me-2" title="Incomplete">
+                                </span>
+                            </ng-container>
+                        </span>
+                    </span>
+                </div>
+            </div>
+        </ng-container>
+    </nav>
+    <nav *ngIf="commonService.isUnifiedQuestionnaireEnabled" class="d-flex fs-15 fw-bold user-dashboard-nav text-nowrap overflow-auto flex-grow-1"
+        [ngClass]="isEditMode && entityDetailsServices.canMangeSfi && entityDetailsServices.selectedDisclosureTypes?.length ? 'nav-width' : 'w-100'">
+        <ng-container
+            *ngFor="let selectedType of entityDetailsServices.selectedDisclosureTypes;let isLast = last">
+            <div
+            *ngIf="selectedType.dataCapturingTypeCode !== null"
+            class="align-items-center d-flex justify-content-between nav-options border-end"
+            [ngClass]="entityDetailsServices?.activeTab === 'QUESTIONNAIRE' &&
+            entityDetailsServices.activeRelationship === selectedType?.disclosureTypeCode ?'navigation-icons relation-active fw-500':''">
+                <div (click)="openIfUnifiedQuestionnaire(selectedType);"
+                    class="text-secondary w-100 mx-0 nav-options-bottom">
+                    <span
+                        title="Click to view {{selectedType?.coiDisclosureType?.description}} Questionnaire"
+                        class="relation-border-left r-title px-3 py-3">
+                        <span class="fs-14 d-flex align-items-center" tabindex="-1">
+                            <mat-icon aria-hidden="true"
+                            class="flex-shrink-0 me-1">{{engagementTypeIcons[selectedType?.coiDisclosureType?.description]}}</mat-icon>
+                            {{selectedType?.coiDisclosureType?.description}}
+                        </span>
+                    </span>
+                </div>
+            </div>
+        </ng-container>
+    </nav>
+    <nav class="d-flex fs-15 fw-bold w-auto border-start user-dashboard-nav w-100 text-nowrap"
+        *ngIf="canShowAddRelationsBtn()">
+        <div class="pt-3 px-3 btn-color" role="button" tabindex="0" id="coi-view-relationship-details-add-relationnship-btn"
+            (click)="saveOrAddRelationshipModal()">
+            <span class="d-flex align-items-center">
+                <mat-icon aria-hidden="true" class="material-icons-outlined mr-2">add_circle_outline</mat-icon>
+                <span>Add Relationship</span>
+            </span>
+        </div>
+    </nav>
+</div>
+
+<!-- Relationship questionnaire section if Relationship Details tab is clicked -->
+<div *ngIf="entityDetailsServices.activeTab === 'QUESTIONNAIRE'" class="m-0 position-relative">
+    <div *ngIf="canShowDeleteRelation()"
+        class="justify-content-end d-flex">
+        <button class="d-inline-flex btn btn-tertiary btn-delete-position"
+        id="coi-entity-questionnaire-delete-btn" (click)="openDeleteModal()">
+            <mat-icon aria-hidden="true">delete_outline</mat-icon>
+            <span class="fs-14">Delete</span>
+        </button>
+    </div>
+
+    <ng-container *ngIf="!commonService.isUnifiedQuestionnaireEnabled">
+        <!-- Questionnaire Section -->
+        <div *ngIf="entityDetailsServices.definedRelationships?.length && !entityDetailsServices?.canShowMatrixForm" class="row px-3 m-0" [class.py-3]="canShowDeleteRelation()">
+            <div class="col-12 custom-quest-relationship p-0">
+                <app-entity-questionnaire *ngIf="isRelationshipDetailsFetched()" [entityId]="entityId"
+                    [relationshipDetails]="relationshipsDetails" id="focusQuestionnaire" [isEditMode]="isEditMode"
+                    (positionsToView)="scrollPosition($event)">
+                </app-entity-questionnaire>
+            </div>
+        </div>
+        <div *ngIf="entityDetailsServices.definedRelationships?.length && entityDetailsServices?.canShowMatrixForm" class="p-3">
+            <app-matrix-form [personEntityId]="entityId" [personEntityNumber]="relationshipsDetails.personEntityNumber"
+                [isEditMode]="isEditMode"
+                (matrixLoaded)="onMatrixLoaded()"></app-matrix-form>
+        </div>
+        <div *ngIf="entityDetailsServices?.isNoFormType && entityDetailsServices?.currentRelationshipQuestionnaire?.coiDisclosureType?.dataCapturingTypeCode">
+            <app-no-information></app-no-information>
+        </div>
+    </ng-container>
+
+    <ng-container *ngIf="commonService.isUnifiedQuestionnaireEnabled">
+        <!-- Questionnaire Section -->
+        <!-- [class.mt-4]="!entityDetailsServices?.canShowMatrixForm" -->
+        <div *ngIf="entityDetailsServices.selectedDisclosureTypes?.length" class="row px-3 m-0" [class.py-3]="canShowDeleteRelation()">
+            <ng-container *ngIf="!entityDetailsServices.isNoFormType">
+                <div class="col-12 custom-quest-relationship p-0" *ngIf="!entityDetailsServices?.canShowMatrixForm">
+                    <app-entity-questionnaire *ngIf="isRelationshipDetailsFetched()" [entityId]="entityId"
+                        [relationshipDetails]="relationshipsDetails" id="focusQuestionnaire" [isEditMode]="isEditMode"
+                        (positionsToView)="scrollPosition($event)">
+                    </app-entity-questionnaire>
+                </div>
+                <ng-container *ngIf="entityDetailsServices?.canShowMatrixForm">
+                    <app-matrix-form [personEntityId]="entityId" [personEntityNumber]="relationshipsDetails.personEntityNumber" [isEditMode]="isEditMode"
+                    (matrixLoaded)="onMatrixLoaded()" class="p-0"></app-matrix-form>
+                </ng-container>
+            </ng-container>
+            <div class="my-4">
+                <app-no-information *ngIf="entityDetailsServices?.isNoFormType"></app-no-information>
+            </div>
+        </div>
+    </ng-container>
+
+    <!-- Add Relationship Button when no relation is added -->
+    <ng-container *ngIf="((!commonService.isUnifiedQuestionnaireEnabled && !entityDetailsServices.definedRelationships?.length) || (commonService.isUnifiedQuestionnaireEnabled && !entityDetailsServices.selectedDisclosureTypes?.length)) && canAddRelationship()">
+            <div class="border pi-info-text p-3 mx-4 mt-4 rounded-1">
+                <p class="fs-14 m-0">
+                    <span title="Expand Policy Text" aria-describedby="Expand Policy Text">
+                        You currently do not have any relationship associated. Click on the
+                        <strong>Add Relationship</strong>
+                        button for adding relationship.
+                    </span>
+                </p>
+            </div>
+            <span class="create-button">
+                <button class="btn btn-primary btn-sm d-flex align-items-center mt-4 fs-15 mb-3 hand-cursor"
+                    (click)="saveOrAddRelationshipModal()" title="Add Relationship" id="coi-view-relationship-details-add-relationnship-btn2">
+                    <mat-icon aria-hidden="true" class="material-icons-outlined mr-2">add</mat-icon>
+                    <span class="mr-2 fs-15">Add Relationship</span>
+                </button>
+            </span>
+    </ng-container>
+
+    <!-- No data section when no relation and there is no right to add relation -->
+    <div class="mx-4" *ngIf="checkForNoRelationsAdded()">
+        <app-no-information [isBorderNeeded]="true">
+            <span>No relationship added.
+                <span *ngIf="relationshipsDetails?.versionStatus === 'INACTIVE' && !isTriggeredFromSlider">Activate Engagement
+                    to add relationship</span>
+            </span></app-no-information>
+    </div>
+</div>
+
+<!-- Engagement Details section if Engagement Details tab is clicked -->
+<div *ngIf="entityDetailsServices.activeTab === 'RELATION_DETAILS'" [class.p-3]="!isEditMode">
+    <div class="card" [ngClass]="isEditMode ? 'rounded-top-0' : 'px-2 py-3'">
+        <ng-container *ngIf="!isEditMode">
+            <div class="row row-gap-3 mb-3 mx-0">
+                <div class="col-lg-6 col-12">
+                    <span class="d-block coi-text-dark"><ng-container i18n="@@START_DATE_INVOLVEMENT">Start Date Of Involvement</ng-container></span>
+                    <span class="coi-text-light"><app-no-data-label [valueToShow]="relationshipsDetails?.involvementStartDate | dateFormatter"></app-no-data-label></span>
+                </div>
+                <div class="col-lg-6 col-12">
+                    <span class="d-block coi-text-dark"><ng-container i18n="@@END_DATE_INVOLVEMENT">End Date Of Involvement</ng-container></span>
+                    <span class="coi-text-light"><app-no-data-label [valueToShow]="relationshipsDetails?.involvementEndDate | dateFormatter"></app-no-data-label></span>
+                </div>
+                <div class="col-12">
+                    <span class="d-block coi-text-dark"><ng-container i18n="@@SPONSOR_RESEARCH">Sponsors Research</ng-container></span>
+                    <span class="coi-text-light">{{ relationshipsDetails?.sponsorsResearch ? 'Yes':'No' }}</span>
+                </div>
+                <div class="col-12">
+                    <span class="d-block coi-text-dark"><ng-container
+                        i18n="@@COMPENSATED_FOR_ACTIVITY">Are you compensated for this activity?</ng-container></span>
+                    <span class="coi-text-light">{{ relationshipsDetails?.isCompensated ? 'Yes':'No' }}</span>
+                </div>
+                <div *ngIf="commonService.engagementFlowType === ENGAGEMENT_FLOW_TYPE.FLOW_3" class="col-12">
+                    <span class="d-block coi-text-dark"><ng-container
+                        i18n="@@COMMITMENT_FOR_ACTIVITY">Do you spend time on this engagement outside your Institutional Responsibilities?</ng-container></span>
+                    <span class="coi-text-light">{{ relationshipsDetails?.isCommitment ? 'Yes':'No' }}</span>
+                </div>
+            </div>
+        </ng-container>
+        <ng-container *ngIf="isEditMode">
+            <div class="row row-gap-3 px-4 mb-3 mt-4">
+                <div class="col-lg-6 col-12">
+                    <div class="d-flex">
+                        <label class="d-block pb-1 coi-text-dark" title="Click to select date"
+                            for="start-date-involvement"><span *ngIf="commonService.isStartDateOfInvolvementMandatory" class="mandatory me-1">*</span><ng-container i18n="@@START_DATE_INVOLVEMENT_EDIT_MODE_LABEL">Start Date Of Involvement</ng-container>
+                        </label>
+                    </div>
+                    <div>
+                        <span class="dateField w-100" [attr.aria-label]="involvementDate.involvementStartDate">
+                            <input #startDateInput matInput [matDatepicker]="startDate" id="start-date-involvement"
+                                placeholder="{{datePlaceHolder}}" (click)="startDate.open()" autocomplete="off"
+                                class="d-inline-block form-control w-100"
+                                [(ngModel)]="involvementDate.involvementStartDate"
+                                (keypress)="commonService._keyPress($event, 'date')"
+                                (ngModelChange)="addUnSavedChanges();endDateValidation(); validateDateFormat('startDate');autoSaveEngagmentDetails()"
+                                (blur)="validateDateFormat('startDate')" (dateChange)="validateDateFormat('startDate');autoSaveEngagmentDetails()"
+                                [ngClass]="(mandatoryList?.has('date')) ? 'is-invalid d-block' : ''"
+                                title="Click here to select the Start Date of Involvement" i18n-title="@@START_DATE_INVOLVEMENT_TITLE" />
+                            <i (click)="startDate.open()" [class.date-field-error]="mandatoryList?.has('date')"
+                                class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                title="Click here to select the Start Date of Involvement" i18n-title="@@START_DATE_INVOLVEMENT_TITLE"
+                                aria-label="Click here to select the Start Date of Involvement" i18n-aria-label="@@START_DATE_INVOLVEMENT_ICON_ARIA_LABEL"></i>
+                            <mat-datepicker #startDate>
+                            </mat-datepicker>
+                        </span>
+                        <div *ngIf="mandatoryList?.has('date')" class="invalid-feedback d-block fs-13">
+                            {{mandatoryList?.get('date')}}
+                        </div>
+                        <span *ngIf="dateValidationMap.get('startDate')" class="d-block fs-13 invalid-feedback">{{
+                            dateValidationMap.get('startDate') }}</span>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-12">
+                    <label class="d-block pb-1 coi-text-dark text-nowrap" title="Click to select Start date"
+                        for="end-date-involvement"><ng-container i18n="@@END_DATE_INVOLVEMENT_EDIT_MODE_LABEL">End Date of Involvement (If ongoing, leave blank)</ng-container>
+                    </label>
+                    <div>
+                        <span class="dateField" [attr.aria-label]="involvementDate.involvementEndDate">
+                            <input #endDateInput matInput [matDatepicker]="endDate" id="end-date-involvement"
+                                placeholder="{{datePlaceHolder}}" (click)="endDate.open()" autocomplete="off"
+                                class="d-inline-block form-control w-100"
+                                [(ngModel)]="involvementDate.involvementEndDate"
+                                (ngModelChange)="endDateValidation(); addUnSavedChanges(); validateDateFormat('endDate');autoSaveEngagmentDetails()"
+                                (blur)="validateDateFormat('endDate')" (dateChange)="validateDateFormat('endDate');autoSaveEngagmentDetails()"
+                                [ngClass]="(mandatoryList?.has('endDate')) ? 'is-invalid d-block' : ''"
+                                (keypress)="commonService._keyPress($event, 'date')" />
+                            <i (click)="endDate.open()" [class.date-field-error]="mandatoryList?.has('endDate')"
+                                class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                title="Click here to select the End Date of Involvement" i18n-title="@@END_DATE_INVOLVEMENT_TITLE"
+                                aria-label="Click here to select the End Date of Involvement" i18n-aria-label="@@END_DATE_INVOLVEMENT_ICON_ARIA_LABEL"></i>
+                            <mat-datepicker #endDate>
+                            </mat-datepicker>
+                        </span>
+                        <div *ngIf="(mandatoryList.get('endDate'))" class="fs-13 invalid-feedback d-block">
+                            {{mandatoryList.get('endDate')}}
+                        </div>
+                        <span *ngIf="dateValidationMap.get('endDate')" class="d-block fs-13 invalid-feedback">{{
+                            dateValidationMap.get('endDate') }}</span>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="d-flex">
+                        <label for="coi-add-sfi-spr" class="d-block pb-1 coi-text-dark"><ng-container i18n="@@SPONSOR_RESEARCH">Sponsors Research</ng-container></label>
+                    </div>
+                    <div class="d-flex flex-column gap-2 pt-1 fb-ml-4">
+                        <!-- Yes -->
+                        <div class="d-flex align-items-center gap-2 col-auto p-0">
+                            <input class="m-0" type="radio" [value]="true" [checked]="additionalDetails.sponsorsResearch === true"
+                                id="coi-add-sfi-spr-0" name="coi-add-sfi-spr"
+                                title="Click here to select Yes"
+                                aria-label="Click here to select Yes"
+                                (change)="onRadioBtnChange(true, 'SPONSOR_RESEARCH')" />
+                            <label class="coi-text-light cursor-pointer" for="coi-add-sfi-spr-0">
+                                Yes
+                            </label>
+                        </div>
+                        <!-- No -->
+                        <div class="d-flex align-items-center gap-2 col-auto p-0">
+                            <input class="m-0" type="radio" [value]="false" [checked]="additionalDetails.sponsorsResearch === false"
+                                id="coi-add-sfi-spr-1" name="coi-add-sfi-spr"
+                                title="Click here to select No"
+                                aria-label="Click here to select No"
+                                (change)="onRadioBtnChange(false, 'SPONSOR_RESEARCH')" />
+                            <label class="coi-text-light cursor-pointer" for="coi-add-sfi-spr-1">
+                                No
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row row-gap-3 px-4">
+                <div id="comp-commit-toggle" class="d-flex flex-column gap-3">
+                    <div class="col-12">
+                    <div class="d-flex">
+                        <label for="coi-add-sfi-compensated"
+                            class="d-block pb-1 coi-text-dark" tabindex="-1">
+                            <ng-container i18n="@@COMPENSATED_FOR_ACTIVITY">Are you compensated for this activity?</ng-container>
+                            <app-common-help-text [subSectionId]="532" [elementId]="'coi-add-sfi-compensated'"></app-common-help-text>
+                        </label>
+                    </div>
+                    <div class="d-flex flex-column gap-2 pt-1 fb-ml-4">
+                        <!-- Yes -->
+                        <div class="d-flex align-items-center gap-2 col-auto p-0">
+                            <input class="m-0" type="radio" [value]="true" [checked]="additionalDetails.isCompensated === true"
+                                id="coi-add-sfi-compensated-0" name="coi-add-sfi-compensated"
+                                (change)="onRadioBtnChange(true, 'COMPENSATED')"
+                                title="Click here to select Yes"
+                                aria-label="Click here to select Yes"
+                                [disabled]="(!checkMandatoryFilled() || engagementsError?.length) || (commonService.hasChangesAvailable || commonService?.autoSaveSavingSpinner !== 'HIDE')"/>
+                            <label class="coi-text-light cursor-pointer" for="coi-add-sfi-compensated-0">
+                                Yes
+                            </label>
+                        </div>
+                        <!-- No -->
+                        <div class="d-flex align-items-center gap-2 col-auto p-0">
+                            <input class="m-0" type="radio" [value]="false" [checked]="additionalDetails.isCompensated === false"
+                                id="coi-add-sfi-compensated-1" name="coi-add-sfi-compensated"
+                                (change)="onRadioBtnChange(false, 'COMPENSATED')"
+                                title="Click here to select No"
+                                aria-label="Click here to select No"
+                                [disabled]="(!checkMandatoryFilled() || engagementsError?.length) || (commonService.hasChangesAvailable || commonService?.autoSaveSavingSpinner !== 'HIDE')"/>
+                            <label class="coi-text-light cursor-pointer" for="coi-add-sfi-compensated-1">
+                                No
+                            </label>
+                        </div>
+                    </div>
+                    <app-common-information [elementId]="'coi-add-sfi-compensated'"
+                        [subSectionId]="532"></app-common-information>
+                </div>
+                <div *ngIf="commonService.engagementFlowType === ENGAGEMENT_FLOW_TYPE.FLOW_3" class="col-12">
+                    <div class="d-flex">
+                        <label for="coi-add-sfi-commitment" class="d-block pb-1 coi-text-dark">
+                            <ng-container i18n="@@COMMITMENT_FOR_ACTIVITY">Do you spend time on this engagement outside your Institutional Responsibilities?</ng-container>
+                            <app-common-help-text [subSectionId]="532" [elementId]="'coi-add-sfi-commitment'"></app-common-help-text>
+                        </label>
+                    </div>
+                    <div class="d-flex flex-column gap-2 pt-1 fb-ml-4">
+                        <!-- Yes -->
+                        <div class="d-flex align-items-center gap-2 col-auto p-0">
+                            <input class="m-0" type="radio" [value]="true" [checked]="additionalDetails.isCommitment === true"
+                                id="coi-add-sfi-commitment-0" name="coi-add-sfi-commitment"
+                                (change)="onRadioBtnChange(true, 'COMMITMENT')"
+                                title="Click here to select Yes"
+                                aria-label="Click here to select Yes"
+                                [disabled]="(!checkMandatoryFilled() || engagementsError?.length) || (commonService.hasChangesAvailable || commonService?.autoSaveSavingSpinner !== 'HIDE')"/>
+                            <label class="coi-text-light cursor-pointer" for="coi-add-sfi-commitment-0">
+                                Yes
+                            </label>
+                        </div>
+                        <!-- No -->
+                        <div class="d-flex align-items-center gap-2 col-auto p-0">
+                            <input class="m-0" type="radio" [value]="false" [checked]="additionalDetails.isCommitment === false"
+                                id="coi-add-sfi-commitment-1" name="coi-add-sfi-commitment"
+                                (change)="onRadioBtnChange(false, 'COMMITMENT')"
+                                title="Click here to select No"
+                                aria-label="Click here to select No"
+                                [disabled]="(!checkMandatoryFilled() || engagementsError?.length) || (commonService.hasChangesAvailable || commonService?.autoSaveSavingSpinner !== 'HIDE')"/>
+                            <label class="coi-text-light cursor-pointer" for="coi-add-sfi-commitment-1">
+                                No
+                            </label>
+                        </div>
+                    </div>
+                    <app-common-information [elementId]="'coi-add-sfi-commitment'" [subSectionId]="532"></app-common-information>
+                </div>
+                </div>
+            </div>
+        </ng-container>
+        <app-custom-element [isAutoSaveEnabled]="false" [moduleCode]="DISCLOSUE_MODULE_CODE" [moduleItemKey]="entityId"
+            [viewMode]="isEditMode ? 'edit' : 'view'" [isShowSave]="false"
+            [customCardClass]="isEditMode ? 'border-0 mx-2 px-1' : 'border-0'" (dataChangeEvent)="setCustomDatachange($event)"
+            (saveResponseEvent)="afterAdditionalSectionSave()" [isShowToast]="false"
+            [externalSaveEvent]="$saveCustomData"></app-custom-element>
+        <div [ngClass]="isEditMode ? 'mt-3 mx-4' : 'mx-2 px-1'">
+            <app-engagement-additional-form [isEditMode]="isEditMode" [validationConfig]="validationConfig"></app-engagement-additional-form>
+        </div>
+    </div>
+</div>
+
+<ng-container *ngIf="isEditMode && entityDetailsServices.isShowRelationshipDetailsTab && ['RELATION_DETAILS', 'QUESTIONNAIRE'].includes(this.entityDetailsServices.activeTab)">
+    <app-coi-steps-navigation (stepNavAction)="stepNavAction($event)" [stepsNavBtnConfig]="entityDetailsServices.stepsNavBtnConfig" [stepsZIndex]="11"></app-coi-steps-navigation>
+</ng-container>
+
+<!-- History section if History tab is clicked-->
+<app-sfi-history *ngIf="entityDetailsServices.activeTab === 'HISTORY'" [entityId]="entityId"></app-sfi-history>
+
+<app-related-travel-disclosures *ngIf="entityDetailsServices.activeTab === 'RELATED_DISCLOSURES'" [relatedDislcosures]="relatedDislcosures"></app-related-travel-disclosures>
+
+<app-activate-inactivate-sfi-modal *ngIf="isEnableActivateInactivateSfiModal" [entityName]="entityDetails.entityName"
+    [personEntityId]="entityId" [updatedRelationshipStatus]="updatedRelationshipStatus"
+    (closeModal)="closeActivateInactivateSfiModal($event)"
+    [personEntityNumber]="relationshipsDetails?.personEntityNumber"
+    [isSignificantFinInterest]="relationshipsDetails?.isSignificantFinInterest"
+    [relationshipDetails]="getRelationshipDetails()">
+</app-activate-inactivate-sfi-modal>
+</div>
+
+<app-common-modal [modalConfig]="modalConfig" (modalAction)="postConfirmation($event)">
+    <ng-container modal-header>
+        <span>{{disclosureModalDetails.modalHeader}}</span>
+    </ng-container>
+    <ng-container modal-body>
+        <div *ngIf="disclosureModalDetails?.message" class="d-flex align-items-center justify-content-between alert alert-primary mt-1 mb-0 py-2 gap-2">
+            <div class="d-flex">
+                <!-- icon -->
+                <mat-icon class="mat-icon material-icons flex-shrink-0" aria-hidden="true">info</mat-icon>
+                <!-- text -->
+                <p class="fs-14 mb-0 ms-2"><span [innerHTML]="disclosureModalDetails?.message"></span></p>
+            </div>
+        </div>
+    </ng-container>
+
+    <ng-container *ngIf="additionalBtns?.length" modal-additional-footer-buttons>
+        <ng-container *ngFor="let btnType of additionalBtns">
+            <button type="button" class="btn fs-14 {{btnType?.event?.btnClass}}" id="validation-leave-page-modal"
+                (click)="validationModalActions(btnType)" title="Click here to {{ btnType?.event?.buttonName }}"
+                aria-label="Click here to {{ btnType?.event?.buttonName }}">
+                {{ btnType?.event?.buttonName }}
+            </button>
+        </ng-container>
+    </ng-container>
+</app-common-modal>
+
+
+<!-- DELETE RELATIONSHIP MODAL -->
+<div class="modal modal-coi fade mySkinDialog" id="deleteRelationModal"
+    tabindex="-1" role="dialog" aria-labelledby="deleteModalTitle" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fs-16">
+                    <span>Delete Relationship</span>
+                </h5>
+                <button aria-label="Click here to close"  title="Click here to close" class="btn-close fs-12" data-bs-dismiss="modal" id="dissmiss-btn"
+                    type="button">
+                </button>
+            </div>
+            <div *ngIf="entityDetailsServices.currentRelationshipQuestionnaire?.validPersonEntityRelType?.coiDisclosureType?.dataCapturingTypeCode !== MATRIX_TYPE" class="modal-body fs-14">
+                <p class="mb-0">Are you sure you want to delete
+                    <strong *ngIf="!commonService.isUnifiedQuestionnaireEnabled">{{entityDetailsServices.currentRelationshipQuestionnaire?.validPersonEntityRelType?.description}}</strong>
+                    <strong *ngIf="commonService.isUnifiedQuestionnaireEnabled">
+                        {{entityDetailsServices.currentRelationshipQuestionnaire?.coiDisclosureType?.description}}
+                    </strong>?
+                </p>
+            </div>
+            <div *ngIf="entityDetailsServices.currentRelationshipQuestionnaire?.validPersonEntityRelType?.coiDisclosureType?.dataCapturingTypeCode === MATRIX_TYPE" class="modal-body fs-14">
+                    <div *ngFor="let subsection of groupedRelations | keyvalue;" class="col-12">
+                        <ng-container *ngIf="entityDetailsServices?.currentRelationshipQuestionnaire?.validPersonEntityRelType?.coiDisclosureType?.description === subsection?.key">
+                            <div tabindex="-1" [attr.aria-label]="subsection?.key">
+                                <label for="coi-entity-sfi-relation" class="fs-14 fw-500 label-text pb-1 pt-2">Select {{subsection?.key}} Relationship type to Remove:</label>
+                            </div>
+                            <div id="coi-entity-sfi-relation" class="relation">
+                                <div *ngFor="let relation of subsection?.value;let isFirst = first; let isLast = last;"
+                                    class="form-check d-block mb-2"
+                                    [attr.aria-label]="relation?.validPersonEntityRelType?.personEntityRelType?.description">
+                                    <input type="checkbox" name="relation" class="form-check-input text-secondary border border-secondary"
+                                        [value]="relation?.personEntityRelId"
+                                        [(ngModel)]="checkedRelationships[relation?.personEntityRelId]"
+                                        (ngModelChange)="checkDeleteButtonDisabled()">
+                                    <label class="text-secondary fs-14">
+                                        {{relation?.validPersonEntityRelType?.personEntityRelType?.description}}</label>
+                                </div>
+                            </div>
+                        </ng-container>
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button id="coi-delete-relationship-modal-cancle-btn" type="button" class="btn btn-outline-secondary"
+                    aria-label="Click here to cancel" title="Click here to cancel" data-bs-dismiss="modal">Cancel</button>
+                <button *ngIf="entityDetailsServices.currentRelationshipQuestionnaire?.validPersonEntityRelType?.coiDisclosureType?.dataCapturingTypeCode !== MATRIX_TYPE" id="coi-delete-relationship-modal-delete-btn" type="button" class="btn btn-primary fs-14" data-bs-dismiss="modal"
+                    aria-label="Click to delete entity relationship" title="Click here to delete entity relationship" (click)="deleteRelationship()">Delete</button>
+                <button
+                    *ngIf="entityDetailsServices.currentRelationshipQuestionnaire?.validPersonEntityRelType?.coiDisclosureType?.dataCapturingTypeCode === MATRIX_TYPE"
+                    id="coi-delete-relationship-modal-delete-btn" type="button" class="btn btn-primary fs-14" data-bs-dismiss="modal"
+                    [disabled]="isDeleteButtonDisabled" aria-label="Click to delete entity relationship"
+                    title="Click here to delete entity relationship" (click)="deleteSelectedRelationshipType()">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<app-common-modal [modalConfig]="compSwitchOffModalConfig" (modalAction)="compModalPostconfrimation($event)">
+    <ng-container modal-header>
+        <span>Confirmation</span>
+    </ng-container>
+    <ng-container modal-body>
+        <p class="mb-0 fs-14">
+            Are you sure you want to mark this engagement as {{compMsg}}?
+        </p>
+        <div class="d-flex justify-content-between alert alert-primary mt-3 mb-0 py-2 gap-2" *ngIf="compMsg == 'compensated' && isShowInfo">
+            <mat-icon aria-hidden="true" class="flex-shrink-0">info</mat-icon>
+            <p class="fs-14 m-0">
+                Note: You currently have pending award disclosures. Once the engagement is marked as compensated, you will be
+                required to either void all pending award disclosures or deactivate the engagement until all pending disclosures
+                are submitted.
+            </p>
+        </div>
+    </ng-container>
+</app-common-modal>
+
+<!-- Commitment toggle modal -->
+<app-common-modal [modalConfig]="commitmentToggleModalConfig" (modalAction)="commitmentToggleModalAction($event)">
+    <ng-container modal-header>
+        <span>Confirmation</span>
+    </ng-container>
+    <ng-container modal-body>
+        <p *ngIf="additionalDetails.isCommitment" class="mb-0 fs-14">
+            Are you sure you want to mark this engagement as a <strong>{{ ENGAGEMENT_LOCALIZE.TERM_COMMITMENT_FOR_REL_PILLS }}</strong>?
+        </p>
+        <p *ngIf="!additionalDetails.isCommitment" class="mb-0 fs-14">
+            Are you sure you want to remove <strong>{{ ENGAGEMENT_LOCALIZE.TERM_COMMITMENT_FOR_REL_PILLS }}</strong> relation from this engagement?
+        </p>
+    </ng-container>
+</app-common-modal>
+
+<div [class.coi-custom-form-validator]= "isEditMode && entityDetailsServices.isShowRelationshipDetailsTab">
+    <app-form-validator [validationList]="entityDetailsServices.validationList" [isTabEmitNeeded]="true" (moveToNextTab)="openNextTab($event)"
+    [validationConfig]="validationConfig"></app-form-validator>
+</div>
+
+<app-common-modal [modalConfig]="compAmntModalConfig" (modalAction)="compAmntModalPostConfirmation($event)">
+    <ng-container modal-header>
+        <span>{{compAmountModalHeader}}</span>
+    </ng-container>
+    <ng-container modal-body>
+        <div class="d-flex alert alert-primary mb-0 py-2">
+            <mat-icon class="mat-icon material-icons flex-shrink-0" aria-hidden="true"
+                title="Sfi Compensated Amount Help Text.">info</mat-icon>
+            <p class="fs-14 mb-0 ms-2">
+                <span class="fw-500">You have selected "$1 - $4,999" for one or more income sources.</span>
+                <br>
+                <span>Please enter the total combined amount for all these selections:</span>
+            </p>
+        </div>
+        <p class="mb-0 fs-14 mt-3">
+            <label for="coi-eng-total-matrix-amount"><span class="mandatory me-1">*</span>Please enter total amount:</label>
+        </p>
+            <div class="input-group" [ngClass]="{'coi-is-invalid-group': compAmountValidationMap?.has('validCompAmount')}">
+                <div class="input-group-prepend rounded-end-0">
+                    <span class="input-group-text" id="coi-currency-symbol-total-comp-amount">{{commonService.currencySymbol}}</span>
+                </div>
+                <input id="coi-eng-total-matrix-amount" name="coi-comp-total-amount-field" type="text" step="any" class="dateBox form-control rounded-start-0 rounded-end" [(ngModel)]="compensatedAmount"
+                    (input)="restrictDecimalInput($event)" min="0" appCurrencyFormat [initialValue]="0" [isNumberFormatOnly]="true"/>
+            </div>
+            <div *ngIf="compAmountValidationMap.get('validCompAmount')" class="d-block fs-13 invalid-feedback">{{ compAmountValidationMap.get('validCompAmount') }}</div>
+    </ng-container>
+</app-common-modal>
+<!-- Migrated Engagement Details Slider -->
+ <app-view-eng-relationship-slider *ngIf="isFromEngMigration"></app-view-eng-relationship-slider>
+
+<!-- engagement print  -->
+<app-coi-print-modal *ngIf="printModalConfig.isOpenPrintModal" [printModalConfig]="printModalConfig" (modalClosed)="printModalClosed()"></app-coi-print-modal>

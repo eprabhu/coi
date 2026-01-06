@@ -1,0 +1,90 @@
+<div id="Proposal332" *ngIf="_commonService?.isProposalOrganizationEnabled" class="card mb-3">
+  <div class="card-header px-4">
+    <h4 class="card-title" id="proposal-organization-view">Organization     
+      <button id="organizationViewExpandBtn" class="updown-arrow" (click)="isCollapse = !isCollapse">
+        <i [ngClass]="isCollapse?'fa fa-angle-double-up':'fa fa-angle-double-down'" aria-hidden="true"
+          class="fa-large"></i>
+      </button>
+    </h4>
+  </div>
+  <div class="card-content" *ngIf="isCollapse">
+    <div class="card-body">
+      <div *ngIf="proposalOrganizations?.length == 0" class="noDataExists px-2">There are no Organizations added
+        in this proposal</div>
+      <div class="table-responsive" *ngIf="proposalOrganizations?.length > 0">
+        <table class="table tableSkin grid2" aria-describedby="organization-view">
+          <thead>
+            <th scope="col">Organization Type</th>
+            <th scope="col">Organization Name/Non-Employee</th>
+            <th scope="col">Point of Contact</th>
+            <th scope="col" *ngIf="enableOrganizationLocation">Location</th>
+            <th scope="col">Congressional District</th>
+          </thead>
+          <tbody>
+            <tr *ngFor="let org of proposalOrganizations; let index = index"
+              [ngClass]="{'delete-background': org?.status == -1,'add-background': org?.status == 1}">
+              <td>
+                <span *ngIf="org?.organizationType" [innerHTML]="org?.organizationType?.description | customTagRemover: currentMethod"></span>
+                <span *ngIf="!org?.organizationType" class="noDataExists">No data</span>
+              </td>            
+              <td>
+                <span  *ngIf="org?.rolodex && !org?.rolodex.organizations" >                  
+                    {{org?.rolodex? org?.rolodex?.organizationName : ''}}                    
+                </span>
+                <span *ngIf="org?.rolodex && org?.rolodex.organizations"  >
+                  {{org?.rolodex? org?.rolodex?.organizations.organizationName : ''}}                  
+              </span>
+                <span *ngIf="org?.organization" >
+                    {{org?.organization? org?.organization?.organizationName : ''}}
+              </span>
+              <br>
+              <span  class="f-12" [innerHtml]="getOrganizationAddress(org) | customTagRemover: currentMethod"> </span>              
+              <ng-template #noOrg>
+                <span class="noDataExists">No Data</span>
+              </ng-template>
+              </td>
+              <td>
+                <span *ngIf="!isDefaultOrganizationType(org?.organizationTypeCode)" class="noDataExists">Not Applicable</span>
+                <span  *ngIf="isDefaultOrganizationType(org?.organizationTypeCode)">
+                  <span *ngIf="org?.organization?.contactPersonName; else noContact"
+                    [innerHTML]="org?.organization?.contactPersonName | customTagRemover: currentMethod">
+                      <!-- <a class="anchor-link" data-toggle="modal" data-target="#contactViewDetailsModal"
+                      (click)="getContactDetails(index)">
+                      <i aria-hidden="true"></i>
+                    </a> -->
+                  </span>
+                </span>
+                <ng-template #noContact>
+                  <span class="noDataExists">No Data</span>
+                </ng-template>
+              </td>
+              <td *ngIf="enableOrganizationLocation">                
+                <span *ngIf="isDefaultOrganizationType(org?.organizationTypeCode)" class="noDataExists">Not Applicable</span>
+                <span *ngIf="!isDefaultOrganizationType(org?.organizationTypeCode)" [class.noDataExists]="!org?.location">
+                    {{org?.location ? org?.location : 'No Data'}}
+                </span>
+              </td>
+              <td>
+                <ng-container *ngIf="org?.proposalCongDistricts?.length > 0; else noDistrict">
+                  <ng-container *ngFor="let dist of org?.proposalCongDistricts;">
+                    <ng-container *ngIf="dist.congressionalDistrict == null" class="noDataExists">No data
+                    </ng-container>
+                    <ng-container *ngIf="dist.congressionalDistrict.description">
+                      <span
+                        [ngClass]="{ 'delete-background': dist?.status == -1,'add-background': dist?.status == 1}"
+                        [innerHTML]='dist.congressionalDistrict.description | customTagRemover: currentMethod'>
+                      </span>
+                    </ng-container>
+                  </ng-container>
+                </ng-container>
+                <ng-template #noDistrict>
+                  <span class="noDataExists">No Data</span>
+                </ng-template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

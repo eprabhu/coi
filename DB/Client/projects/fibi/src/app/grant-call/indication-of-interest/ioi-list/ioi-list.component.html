@@ -1,0 +1,150 @@
+<!-- Draft List -->
+<div class="card my-3">
+    <div class="row">
+        <div class="col-xl-9 col-lg-9 col-md-9 col-sm-9 col-9">
+            <ul class="subTabs">
+                <li role="presentation" *ngIf="_commonData.grandSectionConfig['1514']?.isActive" [ngClass]="{'active': _ioiService.ioiTabName  == 'MY_IOI'}">
+                    <a class="subTabLink" title="View My IOIs"
+                        (click)="_ioiService.ioiTabName ='MY_IOI'; loadIOIListByGrantCallId()" tabindex="0">
+                        My IOI</a>
+                </li>
+                <li role="presentation" *ngIf="_commonData.grandSectionConfig['1506']?.isActive" [ngClass]="{'active': _ioiService.ioiTabName  == 'ALL_IOI'}">
+                    <a class="subTabLink" title="View  All IOIs"
+                        (click)="_ioiService.ioiTabName ='ALL_IOI'; loadIOIListByGrantCallId()" tabindex="0">
+                        All IOI</a>
+                </li>
+                <li role="presentation" *ngIf="_commonData.grandSectionConfig['1515']?.isActive" [ngClass]="{'active': _ioiService.ioiTabName == 'DRAFT_IOI'}">
+                    <a class="subTabLink" title="View Draft IOIs"
+                        (click)="_ioiService.ioiTabName ='DRAFT_IOI'; loadIOIListByGrantCallId()" tabindex="0">
+                        Draft IOI</a>
+                </li>
+            </ul>
+        </div>
+        <div class="col-xl-3 col-lg-3 col-md-3 col-sm-3 col-3 exportButton" *ngIf="ioiList && ioiList.length > 0">
+            <div class="rate-float">
+                <span class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-6">
+                    <span class="exportIcon-margin">Export as:</span>
+                    <a title="Export data to Excel sheet" class="exportIcon-margin  hand-cursor"
+                        id="export-prop-excel-btn" (click)="exportIoiList()">
+                        <i class="fa fa-file-excel-o" aria-hidden="true"></i>
+                    </a>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="card-content">
+        <div class="card-body">
+            <table class="table tableSkin grid2" *ngIf="ioiList !=null && ioiList?.length > 0 ">
+                <caption class="d-none">Indication of Interest</caption>
+                <thead class="header-border">
+                    <th scope="col" class="hand-cursor" (click)="isDesc = !isDesc; sortBy('submittingUnitName')">Submitted Department
+                        <i aria-hidden="true" [ngClass]="((column == 'submittingUnitName')  
+                        ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 
+                        'fa fa-sort-alpha-asc blrcolor')"></i>
+                    </th>
+                    <th scope="col" class="hand-cursor" (click)="isDesc = !isDesc; sortBy('piFullName')">Principal Investigator
+                        <i aria-hidden="true" [ngClass]="((column == 'piFullName')  
+                        ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 
+                        'fa fa-sort-alpha-asc blrcolor')"></i>
+                    </th>
+                    <th scope="col" class="hand-cursor" (click)="isDesc = !isDesc; sortBy('projectTitle')">Project Title
+                        <i aria-hidden="true" [ngClass]="((column == 'projectTitle')  
+                        ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 
+                        'fa fa-sort-alpha-asc blrcolor')"></i>
+                    </th>
+                    <th scope="col" class="hand-cursor" (click)="isDesc = !isDesc; sortBy('memberCount')">Team Member
+                        <i aria-hidden="true" [ngClass]="((column == 'memberCount')  
+                        ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 
+                        'fa fa-sort-numeric-asc blrcolor')"></i>
+                    </th>
+                    <th scope="col" class="hand-cursor" (click)="isDesc = !isDesc; sortBy('requestedDirectCost')">Cost Requested
+                        <i aria-hidden="true" [ngClass]="((column == 'requestedDirectCost')  
+                        ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 
+                        'fa fa-sort-numeric-asc blrcolor')"></i>
+                    </th>
+                    <th scope="col" class="hand-cursor" (click)="isDesc = !isDesc; sortBy('updateUserFullName')">Last Updated
+                        <i aria-hidden="true" [ngClass]="((column == 'updateUserFullName')  
+                        ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 
+                        'fa fa-sort-alpha-asc blrcolor')"></i>
+                    </th>
+                    <th scope="col">Status</th>
+                    <th scope="col" (click)="isDesc = !isDesc; sortBy('submittingUnitName')">Actions</th>
+                </thead>
+                <tbody *ngFor="let createdIOI of ioiList | orderBy: {property: column, direction: direction}; let index = index;">
+                    <tr>
+                        <td>{{createdIOI?.submittingUnitName}}</td>
+                        <td>{{createdIOI?.piFullName}}</td>
+                        <td>{{createdIOI?.projectTitle}}</td>
+                        <td *ngIf="createdIOI.memberCount == null">0</td>
+                        <td *ngIf="createdIOI.memberCount != null">{{createdIOI?.memberCount}}</td>
+                        <td>{{createdIOI?.requestedDirectCost}}</td>
+                        <td>{{createdIOI?.updateUserFullName}}</td>
+                        <td *ngIf="_ioiService.ioiTabName == 'DRAFT_IOI'">Draft</td>
+                        <td *ngIf="_ioiService.ioiTabName != 'DRAFT_IOI'">Submitted</td>
+                        <td>
+                            <ul class="actionButtonGroup">
+                                <li
+                                    *ngIf="result.grantCall.grantStatusCode != 3 && _ioiService.ioiTabName != 'ALL_IOI'">
+                                    <a id="created-ioi-edit-btn" [routerLink]="['/fibi/grant/ioi/edit']"
+                                        queryParamsHandling='merge'
+                                        [queryParams]="{'ioiId': createdIOI.grantCallIOIId }">
+                                        <i class="fa fa-pencil" aria-hidden="true"
+                                            title="Click here to edit {{createdIOI?.projectTitle}}"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a id="created-ioi-view-btn" [routerLink]="['/fibi/grant/ioi/view']"
+                                        queryParamsHandling='merge'
+                                        [queryParams]="{'ioiId': createdIOI.grantCallIOIId }">
+                                        <i class="fa fa-eye" aria-hidden="true"
+                                            title="Click here to view {{createdIOI?.projectTitle}}"></i>
+                                    </a>
+                                </li>
+                                <li
+                                    *ngIf="result.grantCall.grantStatusCode != 3 && _ioiService.ioiTabName != 'ALL_IOI'">
+                                    <a href="#" id="created-ioi-user-delete-btn" data-toggle="modal"
+                                        data-target="#deleteIOIModal" (click)="setTemporaryData(createdIOI)"><i
+                                            class="fa fa-trash-o" aria-hidden="true"
+                                            title="Click here to delete {{createdIOI?.projectTitle}}"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="no-data-container" *ngIf="ioiList==null || ioiList?.length == 0">
+                <span class="no-data-icon-outer">
+                    <div class="no-data-icon">
+                        <i class="fa fa-file-o" aria-hidden="true"></i>
+                        <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                    </div>
+                </span>
+                <h4>There is no information in this section.</h4>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- DELETE IOI WARNING MODAL -->
+<div class="modal fade mySkinDialog modal-opacity" tabindex="-1" id="deleteIOIModal" tabindex="-1" role="dialog"
+    aria-labelledby="deleteModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete</h5>
+                <button id="ioi-dlt-dismiss" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this IOI?</p>
+            </div>
+            <div class="modal-footer">
+                <button id="ioi-close-btn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                    data-toggle="modal" (click)="deleteIOIId = null; deleteIndex = null">No</button>
+                <button id="ioi-delete-btn" type="button" class="btn btn-primary-sub btn-sm" (click)="deleteIOI()"
+                    data-dismiss="modal">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>

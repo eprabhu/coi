@@ -1,0 +1,112 @@
+<div id="service-request-summary" class="card">
+    <div class="card-header">
+        <h4 class="card-title">Summary
+            <span *ngIf="serviceRequest?.serviceRequestId" class="d-inline-block float-right icon-hover">
+                <a class="tooltip "><i class="fa fa-info-circle fa-med hand-cursor" aria-hidden="true"></i>
+                    <div class="tooltiptext-left card card-inner p-15 text-left">
+                        <span class="font-cv">Created By</span>
+                        <span class="font-cv font-weight-bold">{{serviceRequest?.createUserFullName}}
+                            on {{serviceRequest?.createTimestamp | dateFormatterWithTimeZone : 'long'}} </span>
+                        <span class="font-cv">Last Updated By</span><span
+                            class="font-cv font-weight-bold">{{serviceRequest?.updateUserFullName}}
+                            on {{serviceRequest?.updateTimestamp | dateFormatterWithTimeZone : 'long'}}</span>
+                    </div>
+                </a>
+            </span>
+        </h4>
+    </div>
+    <div class="card-content">
+        <div class="card-body">
+            <div class="gridSkin">
+                <div class="form-row">
+                    <div class="col-lg-4 col-md-12 col-12 mb-4">
+                        <label class="d-block"><span class="mandatory">*</span>Priority</label>
+                        <select [(ngModel)]="serviceRequest.priorityId"
+                            [ngClass]="{'is-invalid d-block': errorMap.has('priority')}"
+                            (ngModelChange)="setUnsavedChanges(true);"
+                            class="form-control">
+                            <option value="null">--- Select ---</option>
+                            <option *ngFor="let priority of priorityList" [value]="priority.priorityId"
+                                [hidden]="!priority.isActive">
+                                {{priority.description}}
+                            </option>
+                        </select>
+                        <div *ngIf="errorMap.has('priority')" class="invalid-feedback d-block">
+                            {{errorMap.get('priority')}}
+                        </div>
+                    </div>
+                    <div class="col-lg-8 col-md-12 col-12 mb-4">
+                        <label class="d-block"><span class="mandatory">*</span>Department</label>
+                        <app-endpoint-search [httpOptions]="departmentSearchOptions" [clearField]="clearFieldLeadUnit"
+                            [placeHolder]="'Type here for Department'" (onSelect)="selectDepartment($event)"
+                            [isError]="errorMap.has('department')">
+                        </app-endpoint-search>
+                        <div *ngIf="errorMap.has('department')" class="invalid-feedback d-block">
+                            {{errorMap.get('department')}}
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-12 col-12 mb-4">
+                        <label class="d-block"><span class="mandatory">*</span>Category</label>
+                        <app-autocompleter [completerOptions]="categoryCompleterOptions"
+                            [clearField]="categoryClearFiled" [placeHolder]="'Search for Category'"
+                            (onSelect)="categorySelect($event)" (onEmpty)="setUnsavedChanges(true)" [isError]="errorMap.has('category')">
+                        </app-autocompleter>
+                        <div *ngIf="errorMap.has('category')" class="invalid-feedback d-block">
+                            {{errorMap.get('category')}}
+                        </div>
+                    </div>
+                    <div class="col-lg-8 col-md-12 col-12 mb-4">
+                        <label class="d-block"><span class="mandatory">*</span>Type</label>
+                        <app-autocompleter [completerOptions]="requestTypeCompleterOptions"
+                            [clearField]="requestTypeClearFiled" [placeHolder]="'Search for Type'"
+                            (onSelect)="categoryTypeSelect($event)" [isError]="errorMap.has('type')">
+                        </app-autocompleter>
+                        <div *ngIf="errorMap.has('type')" class="invalid-feedback d-block">
+                            {{errorMap.get('type')}}
+                        </div>
+                    </div>
+                    <div *ngIf="[1,2,3,13].includes(serviceRequest?.moduleCode)" class="col-12 mb-4">
+                        <label class="d-block">Link {{serviceRequest?.serviceRequestModule?.description}}</label>
+                        <app-elastic [options]="linkedModuleSearchOptions" [clearField]="clearLinkedModuleField"
+                            [placeHolder]="linkedModulePlaceholder" (selectedResult)="selectModuleResult($event)">
+                        </app-elastic>
+                    </div>
+                    <div *ngIf="serviceRequest?.moduleDetails?.moduleCode" class="col-12 mb-4">
+                        <app-linked-module-card [moduleDetails]="serviceRequest?.moduleDetails"
+                        (unlinkModule)="unlinkModule($event)">
+                        </app-linked-module-card>
+                    </div>
+                    <div class="col-12 mb-4">
+                        <label class="d-block"><span class="mandatory">*</span>Subject</label>
+                        <input id="request-subject" placeholder="" class="form-control" autocomplete="off"
+                            maxlength="1000" [ngClass]="errorMap.has('subject') ? 'is-invalid d-block' : ''"
+                            [(ngModel)]="_serviceRequestService.serviceRequestTitle"
+                            [(ngModel)]="serviceRequest.subject"
+                            (ngModelChange)="setUnsavedChanges(true);" />
+                        <div *ngIf="errorMap.has('subject')" class="invalid-feedback d-block">
+                            {{errorMap.get('subject')}}
+                        </div>
+                    </div>
+                    <div *ngIf="serviceRequest.serviceRequestType?.helpText" class="col-12">
+                        <label>Help URL</label>
+                        <a class="anchor-link d-sm-block" [href]="'//' + serviceRequest.serviceRequestType?.helpText" target="_blank">
+                            {{(serviceRequest.serviceRequestType?.helpText.length>120) ? (serviceRequest.serviceRequestType?.helpText |
+                            slice:0:120)+'...' : (serviceRequest.serviceRequestType?.helpText)}}
+                        </a>
+                    </div>
+                    <div class="col-12 mb-4 mt-3">
+                        <label class="d-block">Description</label>
+                        <textarea class="form-control" [(ngModel)]="serviceRequest.description" [isShowLimiter]="true"
+                            appLengthValidator limit=4024
+                            (ngModelChange)="setUnsavedChanges(true);">
+                        </textarea>
+                    </div>
+                    <div *ngIf="!serviceRequest?.serviceRequestId" class="col-12 text-right">
+                        <button class="btn btn-primary-sub" type="button"
+                            (click)="saveOrUpdateServiceRequest()">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,95 @@
+<!-- Last updated by Krishnanunni on 04-12-2019 -->
+<div id="Award104" class="card mb-3">
+  <div class="card-header px-4">
+    <h4 class="card-title"><ng-container i18n="@@COMMON_KEY_PERSONNEL">Key Personnel</ng-container>
+      <span class="float-none float-sm-right d-block d-sm-inline font-weight-normal fs-14 mr-sm-5 mr-0">
+        <i aria-hidden="true" class="fa fa-user-o mr-2 pl-sm-2"></i>Employee |
+        <i aria-hidden="true" class="fa fa-user-circle text-danger mr-2"></i>Non-Employee |
+        <i aria-hidden="true" class="fa fa-home text-primary mr-2"></i>Lead Unit |
+        <i aria-hidden="true" class="fa fa-home text-grey mr-2"></i>Department |
+        <img class="mr-2" src="{{deployMap}}assets/images/org-icon-4.svg" alt="Organization icon">Organization |
+        <i aria-hidden="true" class="fa fa-users text-primary mr-2"></i>Multi-PI
+      </span>
+      <button id="project-expand-btn" class="updown-arrow" (click)="isPersonData = !isPersonData">
+        <i [ngClass]="isPersonData?'fa fa-angle-double-up':'fa fa-angle-double-down'" class="fa-large"
+          aria-hidden="true"></i>
+      </button>
+    </h4>
+  </div>
+  <div *ngIf="isPersonData" class="card-body">
+    <div *ngIf="(awardPersons?.length == 0)" class="noDataExists px-2">
+      <ng-container i18n="@@AWARD_NO_KEY_PERSONNELS_ERR">There are no key personals added in this award</ng-container>
+    </div>
+    <div class="table-responsive" *ngIf="awardPersons?.length > 0">
+      <table class="table  tableSkin grid2">
+        <caption class="sr-only"><ng-container i18n="@@AWARD_KEYPERSON_DETAILS">Key person Details</ng-container></caption>
+        <thead class="thead-light">
+          <th scope="col" style="width:20%">Name</th>
+          <th scope="col">Role</th>
+          <th scope="col" style="width:25%">Department(s) / Organization(s)</th>
+          <th scope="col">Designation</th>
+          <th scope="col">% of Effort</th>
+          <th scope="col">CV</th>
+          <th scope="col">Actions</th>
+        </thead>
+        <tbody>
+          <tr *ngFor="let person of awardPersons; let i = index" [ngClass]="{ 'delete-background': person.status == -1,
+                          'add-background': person.status == 1}">
+            <td><i class="mr-2" [ngClass]="person.rolodexId ? 'fa fa-user-circle text-danger':'fa fa-user-o'"
+                aria-hidden="true"></i>
+              <ng-container *ngIf="person?.isMultiPi"><i class="fa fa-users text-primary mr-2" aria-hidden="true"></i>
+              </ng-container>
+              <span [innerHTML]='person?.fullName | customTagRemover: currentMethod'></span>
+            </td>
+            <td [innerHTML]="(person?.proposalPersonRole?.description + 
+                             (person?.proposalPersonRole?.showProjectRole ?
+                             (person?.projectRole ? ' (' + person?.projectRole +')' :''):'')) | customTagRemover: currentMethod">
+            </td>
+            <td>
+              <ng-container *ngIf="person?.awardPersonUnits?.length != 0 ">
+                <ul class="p-0 ruleList-1" *ngFor="let dept of person?.awardPersonUnits">
+                  <li class="p-0" [ngClass]="{ 'delete-background': (dept.status == -1 || person.status == -1),
+                    'add-background': (dept.status == 1 || person.status == 1)}"><i class="fa fa-home"
+                      aria-hidden="true" [ngClass]="dept?.leadUnitFlag ? 'text-primary' : 'text-grey'"></i>
+                    <span [innerHTML]='concatUnitNumberAndUnitName(dept?.unit?.unitNumber,dept?.unit?.unitName) | customTagRemover: currentMethod'></span></li>
+                </ul>
+              </ng-container>
+              <p>
+                <img *ngIf="person?.department" class="mr-1" src="{{deployMap}}assets/images/org-icon-4.svg"
+                  alt="Organization icon">
+                <span [innerHTML]='person?.department | customTagRemover: currentMethod'></span>
+              </p>
+            </td>
+            <td><span *ngIf="person?.designation" [innerHTML]='person?.designation | customTagRemover: currentMethod'></span>
+            </td>
+            <td [innerHTML]='person?.percentageEffort | customTagRemover: currentMethod'></td>
+            <td style="width: 20%;">
+              <span *ngIf="person?.awardPersonAttachment?.length>0 else nocvattached" class="filechip-cv">
+                <span [ngClass]="{ 'delete-background': (person?.awardPersonAttachment[0]?.status == -1),
+                'add-background': (person?.awardPersonAttachment[0]?.status == 1)}"
+                  [innerHTML]='person?.awardPersonAttachment[0]?.fileName | customTagRemover: currentMethod'>
+                </span>
+              </span>
+              <ng-template #nocvattached>
+                <span class="noDataExists">No CV uploaded</span>
+              </ng-template>
+            </td>
+            <td>
+              <ul class="actionButtonGroup">
+                <li *ngIf="person?.awardPersonAttachment?.length>0">
+                  <a><i class="fa fa-download pointer" aria-hidden="true"
+                      (click)="downloadAwardPersonCV(person?.awardPersonAttachment[0], i)">
+                    </i> </a>
+                </li>
+              </ul>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pt-3">
+      <app-comment-box [sectionCode]="104" [awardId]="comparisonData.awardId" [awardNumber]="comparisonData.awardNumber"
+        [sequenceNumber]="comparisonData.sequenceNumber"></app-comment-box>
+    </div>
+  </div>
+</div>

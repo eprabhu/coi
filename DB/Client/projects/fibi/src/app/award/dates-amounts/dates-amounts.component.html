@@ -1,0 +1,201 @@
+<div *ngIf="datesAndAmountsData && !datesAndAmountsData?.isDatesAndAmountsEditable && isDatesAndAmountEdit && _commonData.awardSectionConfig['108']?.isActive"
+class="success-banner px-3 my-2 mx-0 d-flex shadow-sm justify-content-between align-items-center pb-2 pt-2">
+    <div>
+        <i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i>
+        <em class="fw-500">Dates and Amounts information is being changed in another <span class="text-lowercase">
+                <ng-container i18n="@@COMMON_AWARD">Award</ng-container>
+            </span> in this hierarchy. Dates and Amounts transactions cannot be added in this <span class="text-lowercase">
+                <ng-container i18n="@@COMMON_AWARD">Award</ng-container>
+            </span>.</em>
+    </div>
+</div>
+<div class="row mt-3" *ngIf="awardCostDetails?.activeAmountInfo || awardCostDetails?.pendingAmountInfo">
+    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+        <div class="card">
+            <div class="card-content">
+                <div class="card-header">
+                    <h4 class="card-title align-items-center d-flex">
+                        <span class="mr-auto">Overview</span>
+                        <span>
+                            <button id="project-expand-btn" class="updown-arrow"
+                                (click)="isProjectCostActive = !isProjectCostActive">
+                                <i [ngClass]="!isProjectCostActive?'fa fa-angle-double-up':'fa fa-angle-double-down '"
+                                    aria-hidden="true" class="fa-large"></i>
+                            </button>
+                        </span>
+                    </h4>
+                </div>
+                <div *ngIf="!isProjectCostActive" class="card-body p-2">
+                    <div class="table-responsive custom-table-responsive">
+                        <table class="table tableSkin grid2">
+                            <caption class="sr-only">Transaction Overview Details</caption>
+                            <thead class="thead-light">
+                                <th scope="col"></th>
+                                <th scope="col">Obligated Start Date</th>
+                                <th scope="col">Obligated End Date</th>
+                                <th class="text-right" scope="col">Obligated Distributable</th>
+                                <th class="text-right" scope="col">Obligated Total</th>
+                                <th class="text-right" scope="col">Anticipated Distributable</th>
+                                <th class="text-right" scope="col">Anticipated Total</th>
+                                <th class="text-right" scope="col">Total Project Cost</th>
+                                <th class="text-right" scope="col">In Foreign Currency</th>
+                            </thead>
+                            <tbody>
+                                <tr class="active-data" *ngIf="awardCostDetails?.activeAmountInfo">
+                                    <td class="text-success fw-700">ACTIVE</td>
+                                    <td>{{awardCostDetails?.activeAmountInfo?.startDate| dateFormatter}} </td>
+                                    <td>{{awardCostDetails?.activeAmountInfo?.endDate| dateFormatter}}</td>
+                                    <td class="text-right">{{awardCostDetails?.activeAmountInfo?.obligatedDistributableTotal
+                                        | currency: _commonService.currencyFormat}}</td>
+                                    <td class="text-right">{{awardCostDetails?.activeAmountInfo?.obligatedTotal
+                                        | currency: _commonService.currencyFormat}}</td>
+                                    <td class="text-right">{{awardCostDetails?.activeAmountInfo?.anticipatedDistributableTotal
+                                        | currency: _commonService.currencyFormat}}</td>
+                                    <td class="text-right">{{awardCostDetails?.activeAmountInfo?.anticipatedTotal
+                                        | currency: _commonService.currencyFormat}}
+                                        <a *ngIf="isViewAnticipatedDistribution && (!awardCostDetails?.pendingAmountInfo || !_commonData.checkSectionHightlightPermission('108')
+                                            || this.result.award.awardWorkflowStatus.workflowAwardStatusCode === '3')"
+                                            (click)="updateAnticipatedDistributable('A')" class="anchor-link hand-cursor">
+                                            <i class="fa fa-money rounded-icon" aria-hidden="true"></i>
+                                        </a>
+                                    </td>
+                                    <td class="text-right">{{awardCostDetails?.activeAmountInfo?.totalCost
+                                        | currency: _commonService.currencyFormat}}</td>
+                                    <td class="text-right">
+                                        <ng-container *ngIf="awardCostDetails?.activeAmountInfo?.currency?.currencySymbol ||
+                                                awardCostDetails?.activeAmountInfo?.currency?.currencyCode; else activeForeignCurrency">
+                                            {{awardCostDetails?.activeAmountInfo?.totalCostInCurrency | currency:
+                                            (awardCostDetails?.activeAmountInfo?.currency?.currencySymbol ?
+                                            awardCostDetails?.activeAmountInfo?.currency?.currencySymbol :
+                                            awardCostDetails?.activeAmountInfo?.currency?.currencyCode)}}
+                                        </ng-container>
+                                        <ng-template #activeForeignCurrency>
+                                            {{awardCostDetails?.activeAmountInfo?.totalCostInCurrency | customCurrency}}
+                                        </ng-template>
+                                    </td>
+                                </tr>
+                                <tr class="pending-data" *ngIf="awardCostDetails?.pendingAmountInfo">
+                                    <td class="text-warning  fw-700">PENDING</td>
+                                    <td>{{awardCostDetails?.pendingAmountInfo?.startDate| dateFormatter}} </td>
+                                    <td>{{awardCostDetails?.pendingAmountInfo?.endDate| dateFormatter}}</td>
+                                    <td class="text-right">{{awardCostDetails?.pendingAmountInfo?.obligatedDistributableTotal
+                                        | currency: _commonService.currencyFormat}}</td>
+                                    <td class="text-right">{{awardCostDetails?.pendingAmountInfo?.obligatedTotal
+                                        | currency: _commonService.currencyFormat}}</td>
+                                    <td class="text-right">{{awardCostDetails?.pendingAmountInfo?.anticipatedDistributableTotal
+                                        | currency: _commonService.currencyFormat}}</td>
+                                    <td class="text-right">{{awardCostDetails?.pendingAmountInfo?.anticipatedTotal
+                                        | currency: _commonService.currencyFormat}}
+                                        <a *ngIf="isViewAnticipatedDistribution && ((this.result.award.awardWorkflowStatus.workflowAwardStatusCode !== '3' &&
+                                            (_commonData.checkSectionHightlightPermission('108') || _commonData.getSectionEditableFlag('108')))
+                                            || this.result.award.awardWorkflowStatus.workflowAwardStatusCode === '3')"
+                                            (click)="updateAnticipatedDistributable('P')" class="anchor-link hand-cursor">
+                                            <i class="fa fa-money rounded-icon" aria-hidden="true"></i>
+                                        </a>
+                                    </td>
+                                    <td class="text-right">{{awardCostDetails?.pendingAmountInfo?.totalCost
+                                        | currency: _commonService.currencyFormat}}</td>
+                                    <td class="text-right">
+                                        <div class="d-inline-block position-relative">
+                                            <a *ngIf="awardCostDetails?.pendingAmountInfo?.totalCost > 0 && datesAndAmountsData?.isDatesAndAmountsEditable"
+                                                class="anchor-link hand-cursor"><i class="fa fa-pencil rounded-icon" *ngIf="!editCurrency"
+                                                    (click)="editCurrency = true" aria-hidden="true"></i></a>
+                                            <div *ngIf="editCurrency" class="row position-absolute p-2 card border inner-popup">
+                                                <div class="col-12 p-1">
+                                                    <select id="dropdown" [(ngModel)]="foreignCurrencyObject.currencyCode" class="form-control">
+                                                        <option [ngValue]="null">--select--</option>
+                                                        <option [value]="item.currencyCode" *ngFor="let item of awardCostDetails.currencyDetails">
+                                                            {{item.currencyCode}}({{item.currencySymbol}})</option>
+                                                    </select>
+                                                </div>
+                                                <div class=" col-12 p-1">
+                                                    <input type="text" class="form-control" [(ngModel)]="foreignCurrencyObject.totalCostInCurrency"
+                                                        appCurrencyFormat [initialValue]="foreignCurrencyObject.totalCostInCurrency"
+                                                        [customCurrency]="foreignCurrencyObject.currencyCode" placeholder="Enter Amount">
+                                                    <span *ngIf="warningMsg" class="mandatory font-small">{{warningMsg}}</span>
+                                                </div>
+                                                <div class="col-12 p-1 mt-2 d-flex justify-content-between">
+                                                    <button type="button" class="btn btn-small btn-secondary" *ngIf="editCurrency"
+                                                        (click)="cancelCurrency();">Cancel</button>
+                                                    <button type="button" class="btn btn-small btn-primary-sub" *ngIf="editCurrency"
+                                                        (click)="saveForeignCurrency();">Save</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <span>
+                                            <ng-container *ngIf="awardCostDetails?.pendingAmountInfo?.currency?.currencySymbol ||
+                                                awardCostDetails?.pendingAmountInfo?.currency?.currencyCode; else pendingForeignCurrency">
+                                            {{awardCostDetails?.pendingAmountInfo?.totalCostInCurrency | currency:
+                                            (awardCostDetails?.pendingAmountInfo?.currency?.currencySymbol ?
+                                            awardCostDetails?.pendingAmountInfo?.currency?.currencySymbol :
+                                            awardCostDetails?.pendingAmountInfo?.currency?.currencyCode)}}
+                                        </ng-container>
+                                        <ng-template #pendingForeignCurrency>
+                                            {{awardCostDetails?.pendingAmountInfo?.totalCostInCurrency | customCurrency}}
+                                        </ng-template>
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row p-3">
+                        <div class=" col-12 gridSkin">
+                            <div class="row p-2 ">
+                                <div class="col-lg-2 col-md-4 col-sm-6 col-12 card ">
+                                    <label class="d-sm-block">
+                                        <ng-container i18n="@@COMMON_AWARD_EFFECTIVE_DATE">Award Effective Date
+                                        </ng-container>
+                                    </label>
+                                    <span class="font-weight-bold">{{awardCostDetails?.projectStartDate |
+                                        dateFormatter}}</span>
+                                </div>
+                                <!-- Final Expiration Date -->
+                                <div class="col-lg-2 col-md-4 col-sm-6 col-12 card ">
+                                    <label class="d-sm-block">
+                                        <ng-container i18n="@@COMMON_FINAL_EXPIRATION_DATE">Final Expiration Date
+                                        </ng-container>
+                                    </label>
+                                    <span class="font-weight-bold">{{awardCostDetails?.projectEndDate |
+                                        dateFormatter}}</span>
+                                </div>
+                                <!-- Cost Share (Sponsor) -->
+                                <div class="col-lg-2 col-md-4 col-sm-6 col-12 card ">
+                                    <label class="d-sm-block">Cost Share (Sponsor)</label>
+                                    <span class="font-weight-bold">{{awardCostDetails?.sponsorTotal | currency:
+                                        _commonService.currencyFormat}}</span>
+                                </div>
+                                <!-- Cost Share (Institute) -->
+                                <div class="col-lg-2 col-md-4 col-sm-6 col-12 card ">
+                                    <label class="d-sm-block">Cost Share (Institute)</label>
+                                    <span class="font-weight-bold">{{awardCostDetails?.instituteTotal | currency:
+                                        _commonService.currencyFormat}}</span>
+                                </div>
+                                <!-- Cost Share Distributable -->
+                                <div class="col-lg-2 col-md-4 col-sm-6 col-12 card ">
+                                    <label class="d-sm-block">Cost Share Distributable</label>
+                                    <span class="font-weight-bold">{{awardCostDetails?.costShareTotal | currency:
+                                        _commonService.currencyFormat}}</span>
+                                </div>
+                                <!-- Total Cost Share -->
+                                <div class="col-lg-2 col-md-4 col-sm-6 col-12 card ">
+                                    <label class="d-sm-block">Total Cost Share</label>
+                                    <span class="font-weight-bold">{{awardCostDetails?.costShareTotal | currency:
+                                        _commonService.currencyFormat}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="award-dates-amounts-section">
+    <app-dates-amounts-edit (selectedResult)="getAwardFunds()" [datesAndAmountsData] = "datesAndAmountsData"
+    *ngIf="isDatesAndAmountEdit && datesAndAmountsData?.isDatesAndAmountsEditable && _commonData.awardSectionConfig['145']?.isActive"></app-dates-amounts-edit>
+    <app-dates-amounts-view [datesAndAmountsData] = "datesAndAmountsData"
+     *ngIf="!isDatesAndAmountEdit || !datesAndAmountsData?.isDatesAndAmountsEditable && _commonData.awardSectionConfig['145']?.isActive"></app-dates-amounts-view>
+</div>
+<app-anticipated-distribution *ngIf="anticipatedModalType" [anticipatedModalType]="anticipatedModalType"
+    [isEdit]="isDatesAndAmountEdit" [awardCostDetails]="awardCostDetails" (closeModal)="updateAnticipatedDistributable($event)"></app-anticipated-distribution>

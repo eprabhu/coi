@@ -1,0 +1,173 @@
+<div class="push4slideMenu pageMinHeight">
+    <div class="container-fluid pushFixedHeaderFooter">
+        <div class="headerPush"></div>
+        <div class="card mb-15 mt-3 rounded-0">
+            <div class="card-content">
+                <div class="card-header px-3 py-2">
+                    <h4 class="card-title align-items-center d-flex">
+                            <span class="mr-auto">Notifications</span>
+                        <a [routerLink]="['modifynotification']" class="btn btn-primary mt-0 mr-3">
+                            Create New Notification
+                        </a>
+                        <a class="tooltip-helptext"> <i class="fa fa-info-circle ct-icon-right float-right hand-cursor" aria-hidden="true"
+                        (click)="helpInfo = !helpInfo"></i></a>
+                       
+                    </h4>
+                </div>
+
+                <div class="mx-4 mt-3" *ngIf="helpInfo">
+                    <div class="col-12">
+                        <div class="p-2 row success-banner">
+                            <div class="col-auto pl-2 pr-3">
+                                <i  aria-hidden="true" class="fa fa-info-circle mr-1 info-icon"></i>
+                            </div>
+                            <div class="col px-0"><em >This module lists the notifications configured.
+                             There are options to create notification and modify the existing notifications.
+                            The notifications can be activated or deactivated as needed.</em>
+                            </div>
+                            <div class="col-auto pr-2">
+                                <button  aria-label="Close" class="close close-button " data-dismiss="modal"
+                                    id="modal-close" type="button" (click)="helpInfo = false">
+                                    <span  aria-hidden="true" class="d-block">×</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <!-- ADDED SEARCH FIELD -->
+                    <div class="card-body">
+                        <div class="form-group searchBox">
+                            <input type="text" placeholder="Search by notification"
+                                class="ng-pristine ng-valid ng-touched form-control" [(ngModel)]="searchText ">
+                            <a class="searchButton">
+                                <i aria-hidden="true" class="fa fa-search fa-med pt-2"></i>
+                            </a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table tableSkin mb-0"
+                                *ngIf="(notifications != null && notifications?.length != 0)">
+                                <caption class="sr-only">Notifications</caption>
+                                <thead>
+                                    <tr class="header-border">
+                                        <th width="10%" id="sort-notification-module" (click)="sortResult('notificationTypeId')" class="hand-cursor"
+                                            title="Click to sort by notification Type Id">
+                                            Notification # <i aria-hidden="true"
+                                                [ngClass]="((column == 'notificationTypeId')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' :
+                                                'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                                        </th>
+                                        <th width="40%" id="sort-notification-module" (click)="sortResult('description')"
+                                            class="hand-cursor" title="Click to sort by description">
+                                            Notification used for
+                                            <i aria-hidden="true"
+                                                [ngClass]="((column == 'description')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' :
+                                                'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                                        </th>
+                                        <th width="20%" id="sort-notification-module" (click)="sortResult('module')"
+                                            class="hand-cursor" title="Click to sort by Module">Applies To
+                                            <i aria-hidden="true"
+                                                [ngClass]="((column == 'module')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' :
+                                                'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                                        </th>
+                                        <!-- Notification type and Notification status are single character values hence sorting is reversed accodring to the values returned -->
+                                        <th width="13%" id="sort-notification-module" (click)="sortResult('isSystemSpecific')"
+                                            class="hand-cursor">Type
+                                            <i aria-hidden="true"
+                                                [ngClass]="((column == 'isSystemSpecific')  ? (isDesc ? 'fa fa-sort-alpha-desc sortIcon' :
+                                                'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                                        </th>
+                                        <th width="9%" id="sort-notification-module" (click)="sortResult('isActive')"
+                                            class="hand-cursor">Status
+                                            <i aria-hidden="true"
+                                                [ngClass]="((column == 'isActive')  ? (isDesc ? 'fa fa-sort-alpha-desc sortIcon' :
+                                                'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                                        </th>
+                                        <th width="8%" scope="col">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let notification of notifications
+                                    | SearchFilter : searchText :['notificationTypeId', 'description', 'module', 'isSystemSpecific', 'isActive']
+                                    | orderBy: {property: column, direction: sortOrder};let index=index"
+                                        class="pull-up">
+                                        <td title="View notification details" [routerLink]="['viewnotification']"
+                                            [queryParams]="{notificationTypeId:notification.notificationTypeId}">
+                                            {{notification.notificationTypeId}}</td>
+                                        <td title="View notification details" [routerLink]="['viewnotification']"
+                                            [queryParams]="{notificationTypeId:notification.notificationTypeId}">
+                                            {{notification.description}}</td>
+                                        <td title="View notification details" [routerLink]="['viewnotification']"
+                                            [queryParams]="{notificationTypeId:notification.notificationTypeId}">
+                                            {{notification.module}}</td>
+                                        <td>
+                                            <span *ngIf="notification.isSystemSpecific == 'N'">User</span>
+                                            <span *ngIf="notification.isSystemSpecific == 'Y'">System</span>
+                                        </td>
+                                        <td *ngIf="notification.isActive=='Y'" title="View notification details"
+                                            [routerLink]="['viewnotification']"
+                                            [queryParams]="{notificationTypeId:notification.notificationTypeId}">
+                                            <span class="badge badge-pill badge-success p-2">Active</span>
+                                        </td>
+                                        <td *ngIf="notification.isActive=='N'" title="View notification details"
+                                            [routerLink]="['viewnotification']"
+                                            [queryParams]="{notificationTypeId:notification.notificationTypeId}">
+                                            <span class="badge badge-pill badge-secondary p-2">Inactive</span>
+                                        </td>
+                                        <td>
+                                            <ul class="actionButtonGroup">
+                                                <li>
+                                                    <a title="View notification details"
+                                                        [routerLink]="['viewnotification']"
+                                                        [queryParams]="{notificationTypeId:notification.notificationTypeId}"
+                                                        class="pointer">
+                                                        <i aria-hidden="true" class="fa fa-eye pointer"></i>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a title="Edit notification " [routerLink]="['modifynotification']"
+                                                        [queryParams]="{notificationTypeId:notification.notificationTypeId}"
+                                                        class="pointer">
+                                                        <i aria-hidden="true" class="fa fa-pencil pointer"></i>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a title="Delete notification" data-toggle="modal"
+                                                        data-target="#AlertModal"
+                                                        (click)="notificationId = notification.notificationTypeId"
+                                                        class="pointer">
+                                                        <i aria-hidden="true" class="fa fa-trash pointer"></i>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footerPush"></div>
+    </div>
+</div>
+<div class="modal fade show mySkinDialog" id="AlertModal" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Notification</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this notification?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-dismiss="modal" type="button">No</button>
+                <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button"
+                    (click)="removeNotification(notificationId)">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>

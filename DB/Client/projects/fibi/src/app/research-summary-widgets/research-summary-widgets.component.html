@@ -1,0 +1,51 @@
+<div class="row"  *ngIf="researchSummaryConfig?.RS5201?.isActive">
+  <div class="col-xl-8 col-lg-8 col-md-6 col-sm-12 col-xs-12 py-2">
+    <app-autocompleter [completerOptions]="categoryCompleterOptions" [placeHolder]="'Search for Department'"
+      (onSelect)="updateUnitChange($event);">
+    </app-autocompleter>
+  </div>
+  <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12 col-xs-12 d-flex justify-content-between mt-2 pr-4 pl-4 px-0">
+      <span>
+        <input *ngIf="unitObject" type="checkbox" [(ngModel)] = "isDescentFlagOn" (ngModelChange) = "updateWidgets()">
+        <label *ngIf="unitObject" class="my-2">Include Child Unit</label>
+      </span>
+      <a id="config-dashboard-btn" class="btn btn-sm btn-tertiary mt-0" 
+              data-toggle="modal" data-target="#configureWidgetsModal" role="button" aria-expanded="false"
+              title="Configure Dashboard">
+              <i aria-hidden="true" class="fa fa-cog settings-icon"></i>
+              Configure Dashboard
+      </a>
+  </div>
+</div>
+<div *ngIf="!researchSummaryConfig?.RS5201?.isActive" class="configure-dashboard-btn">
+  <a id="config-dashboard-btn"
+    class="btn btn-sm btn-tertiary mt-0" data-toggle="modal" data-target="#configureWidgetsModal"
+    role="button" aria-expanded="false" title="Configure Dashboard">
+    <i aria-hidden="true" class="fa fa-cog settings-icon"></i>
+    Configure Dashboard
+  </a>
+</div>
+<div class="row mt-2 px-1" *ngIf="widgetList?.length">
+  <ng-container *ngFor="let widget of widgetList">
+    <div
+      [ngClass]="{'col-xl-12 col-lg-12': widget?.widgetLookup?.size == 'L', 'col-xl-6 col-lg-6': widget?.widgetLookup?.size != 'L'}"
+      class="col-md-12 col-sm-12 col-xs-12 mb-4">
+      <ng-container *ngComponentOutlet="widget.component"></ng-container>
+    </div>
+  </ng-container>
+</div>
+<ng-container *ngIf="_researchSummaryWidgetService.widgetLookUpList?.length && !widgetList?.length">
+  <div class="no-data-container">
+    <span class="no-data-icon-outer">
+      <div class="no-data-icon">
+        <i class="fa fa-file-o" aria-hidden="true"></i>
+        <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+      </div>
+    </span>
+    <h4>There are no widgets configured.</h4>
+    <a class="anchor-link" data-toggle="modal" data-target="#configureWidgetsModal">Click here to configure
+      dashboard</a>
+  </div>
+</ng-container>
+<app-configure-widgets [savedWidgetList]="savedWidgetList" [widgetLookUpList]="_researchSummaryWidgetService.widgetLookUpList"
+  (widgetUpdationEvent)="prepareSavedWidgetList($event)"></app-configure-widgets>

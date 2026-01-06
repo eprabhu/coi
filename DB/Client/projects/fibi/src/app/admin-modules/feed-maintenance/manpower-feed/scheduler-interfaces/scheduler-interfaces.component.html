@@ -1,0 +1,202 @@
+
+        <div class="row">
+            <div class="col-2">
+                <div class="table-responsive">
+                    <table class="table tableSkin grid3"
+                        aria-describedby="institute-proposal-attachment_id">
+                        <tbody>
+                            <ng-container *ngFor="let manpowerInterface of manpowerInterfaces ;
+                            " >
+                                <tr class="grid3 pointer-cursor light-background" 
+                                [ngClass]="{'active': selectedTab == manpowerInterface.interfaceTypeCode }">
+                                <td (click)="selectedTab = manpowerInterface.interfaceTypeCode; getManpowerLogDetail(manpowerInterface.interfaceTypeCode)" >
+                                    <div>
+                                        {{manpowerInterface.manpowerInterfaceType.description}}
+                                        <span *ngIf="selectedTab == manpowerInterface.interfaceTypeCode"
+                                            class="float-right">
+                                            <i aria-hidden="true" class="fa-large fa fa-arrow-right"></i>
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                            </ng-container>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+                <div class="col-10 pl-0">
+                    <div class="card">
+                        <div class="card-header">
+                        <div class="row  align-items-center d-flex justify-content-end">
+                            <div class="col-10">
+                                <span class="card-title mr-auto">List of Interface</span>
+                            </div>
+                            <div class="col-2 align-items-center d-flex justify-content-end">
+                                <button class="btn btn-sm btn-primary-sub" data-toggle="modal" data-target="#ConfirmModal">Retrigger</button>
+                            </div>
+                        </div>
+       
+                        </div>
+                        <div class="card mb-1">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="form-row">
+                                        <div class="col-md col-12">
+                                            <label >From</label>
+                                            <span >
+                                                <span class="dateField">
+                                                  <input matInput [matDatepicker]="searchStartDate" id="search_start-date" placeholder="Enter Start Date "
+                                                    [(ngModel)]="startDateSearch" 
+                                                    class="form-control d-inline-block" (click)="searchStartDate.open()"
+                                                     autocomplete="off"
+                                                    (keypress)="_commonService._keyPress($event, 'date')" />
+                                                  <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor" title="open calendar"
+                                                    (click)="searchStartDate.open()"></span>
+                                                  <mat-datepicker #searchStartDate (opened)="setFocusToElement('search_start-date')">
+                                                  </mat-datepicker>
+                                                </span>
+                                                <div *ngIf="(map.has('StartDate'))" class="invalid-feedback d-block">
+                                                    {{map.get('StartDate')}}
+                                                </div>
+                                            </span>
+                                        </div>
+                                        <div class="col-md col-12">
+                                            <label>To</label>
+                                            <span >
+                                                <span class="dateField">
+                                                  <input matInput [matDatepicker]="searchEndDate" id="search-end-date" placeholder="Enter End Date " (click)="searchEndDate.open()"
+                                                    [(ngModel)]="endDateSearch" 
+                                                    class="form-control d-inline-block"
+                                                     autocomplete="off"
+                                                    (keypress)="_commonService._keyPress($event, 'date')" />
+                                                  <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor" title="open calendar"
+                                                    (click)="searchEndDate.open()"></span>
+                                                  <mat-datepicker #searchEndDate (opened)="setFocusToElement('search-end-date')">
+                                                  </mat-datepicker>
+                                                </span>
+                                                <div *ngIf="(map.has('EndDate'))" class="invalid-feedback d-block">
+                                                    {{map.get('EndDate')}}
+                                                </div>
+                                            </span>
+                                        </div>
+                                        <div class="col-md-auto col-12 mt-22 text-right">
+                                            <button class="btn btn-secondary btn-sm btn-xs" (click)="clearSearch()">Clear</button>
+                                            <button class="btn btn-primary btn-sm btn-xs" (click)="getManpowerLogDetail(selectedTab,'search')">Search</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div *ngIf="!schedulerDetails.length" class="no-data-container">
+                            <span class="no-data-icon-outer">
+                                <div class="no-data-icon">
+                                    <i class="fa fa-file-o" aria-hidden="true"></i>
+                                    <i class="fa fa-times-circle-o"
+                                        aria-hidden="true"></i>
+                                </div>         
+                            </span> 
+                            <h4>There is no information in this section.</h4>
+                            </div>
+                            <div *ngIf="schedulerDetails.length" class="table-responsive">
+                                <table class="table tableSkin mb-0 card-inner mr-4">
+                                    <thead class="header-border">
+                                        <th class="text-center" scope="col" style="width: 20%;" tabindex="0"> Date</th>
+                                        <th class="text-center" scope="col" style="width: 20%;" tabindex="0"> Request Parameter</th>
+                                        <th class="text-center" scope="col" style="width: 20%;" tabindex="0">Total Records
+                                        </th>
+                                        <th class="text-center" scope="col" style="width: 20%;" tabindex="0">Success</th>
+                                        <th class="text-center" scope="col" style="width: 20%;" tabindex="0">Message</th>
+                                    </thead>
+            
+                                    <tbody>
+                                        <tr *ngFor="let error of schedulerDetails; let i=index">
+                                            <td class="text-center">{{error?.updateTimeStamp | dateFormatterWithTimeZone : 'long'}}
+                                            </td>
+                                            <td class="text-center">{{error?.requestParam ? error?.requestParam : '-' }}</td>
+                                            <td class="text-center"> {{error?.totalCount ? error?.totalCount : '-' }}</td>
+                                            <td class="text-center">{{error?.successCount ? error?.successCount : '-'}}</td>
+                                            <td class="text-center">{{error?.message ? error?.message : '-'}}</td>
+                                        </tr>
+                                    </tbody>
+            
+                                </table>
+            
+                            </div>
+            
+                        </div>
+            
+                    </div>
+            
+                </div>
+            </div>
+
+            <!-- Confirmation Modal -->
+<div class="modal fade mySkinDialog" id="ConfirmModal" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmation</h5>
+                <button type="button" class="close mt-1" data-dismiss="modal" aria-label="Close" (click)="clearModalData()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body ct-modal-padding my-3">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <p>Are you sure you want to Retrigger?</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-4" *ngIf="['18','2','12','13'].includes(selectedTab)">
+
+                    <span class="col-md col-12 pr-1">
+                        <label><span class="mandatory">*</span>Start Date</label>
+                        <span class="dateField">
+                          <input matInput [matDatepicker]="planStartDate" id="tart-date" placeholder="Enter Start Date "
+                            [(ngModel)]="StartDate" 
+                            class="form-control d-inline-block" (click)="planStartDate.open()"
+                             autocomplete="off"
+                            (keypress)="_commonService._keyPress($event, 'date')" />
+                          <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor" title="open calendar"
+                            (click)="planStartDate.open()"></span>
+                          <mat-datepicker #planStartDate (opened)="setFocusToElement('plan-start-date')">
+                          </mat-datepicker>
+                        </span>
+                        <div *ngIf="(map.has('StartDate'))" class="invalid-feedback d-block">
+                            {{map.get('StartDate')}}
+                        </div>
+                    </span>
+                    <span class="col-md col-12 pl-1">
+                        <label><span class="mandatory">*</span>End Date</label>
+                        <span class="dateField">
+                          <input matInput [matDatepicker]="planEndDate"  id="end-date" placeholder="Enter End Date "
+                            [(ngModel)]="EndDate" 
+                            class="form-control d-inline-block" (click)="planEndDate.open()"
+                             autocomplete="off"
+                            (keypress)="_commonService._keyPress($event, 'date')" />
+                          <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor" title="open calendar"
+                            (click)="planEndDate.open()"></span>
+                          <mat-datepicker #planEndDate (opened)="setFocusToElement('plan-start-date')">
+                          </mat-datepicker>
+                        </span>
+                        <div *ngIf="(map.has('EndDate'))" class="invalid-feedback d-block">
+                            {{map.get('EndDate')}}
+                        </div>
+                    </span>
+
+                    </div>
+                </div>
+                
+                
+            <div class="modal-footer ct-footer-padding">
+                <button  type="button" class="btn btn-secondary btn-sm"
+                    data-dismiss="modal" (click)="clearModalData()">Cancel</button>
+                <button  type="button"
+                    class="btn btn-primary-sub btn-sm" (click)="syncAPI()" >Retrigger</button>
+
+            </div>
+    </div>
+</div>

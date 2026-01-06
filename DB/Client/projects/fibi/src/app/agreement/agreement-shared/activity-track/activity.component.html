@@ -1,0 +1,135 @@
+<!-- Last updated by Krishnanunni on 22-01-2020 -->
+<div class="modal fade mySkinDialog" id="negotiationActivity" tabindex="-1" role="dialog"
+    aria-labelledby="skippedSchedulesTitle" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="skippedSchedulesLongTitle">Add Activity</h5>
+                <button type="button" id="agreement-approve-dismiss-btn" (click)="emitActivity(null)" class="close"
+                    data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="col-12 mb-0">
+                        <label class="block-display">
+                            <span class="mandatory" *ngIf="activityTypeCode === '10'">*</span>
+                            Comment</label>
+                        <textarea [(ngModel)]="negotiationsActivity.description" appLengthValidator
+                            [isShowLimiter]="true" [limit]="2000"
+                            [ngClass]="map.has('description') ? 'is-invalid d-block' : ''" class="form-control"
+                            ></textarea>
+                        <div *ngIf="map.has('description')">
+                            <span class="mandatory">{{map.get('description')}}</span>
+                        </div>
+                    </div>
+                    <div class="col-xl-12 col-lg-7 col-12">
+                        <label class="block-display">
+                            Attachments</label>
+                        <app-file-drop [multiple]="true" (filesDropEvent)="addAttachments($event)">
+                        </app-file-drop>
+                        <div *ngIf="uploadedFile?.length > 0">
+                            <div *ngFor="let item of uploadedFile; let index =index">
+                                <div class="fileChips">
+                                    <span>{{ item?.name }}
+                                        <i class="fa fa-close pointer" title="Remove Attachment"
+                                            (click)="uploadedFile.splice(index, 1)" aria-hidden="true"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 col-12 col-lg-6">
+                        <label class="block-display">
+                            <span class="mandatory">*</span>
+                            Activity Type</label>
+                        <span>
+                            <div>
+                                <select class="form-control" [(ngModel)]="activityTypeCode"
+                                    (ngModelChange)="clearDatesAndValidationMap()"
+                                    [ngClass]="map.has('activityType') ? 'is-invalid d-block' : ''">
+                                    <option [value]="activity.activityTypeCode"
+                                        *ngFor="let activity of negotiationLookUp.negotiationsActivityTypes"
+                                        [hidden]="activity.isActive != true">
+                                        {{activity?.description}}</option>
+                                </select>
+                            </div>
+                        </span>
+                        <div *ngIf="map.has('activityType')">
+                            <span class="mandatory">{{map.get('activityType')}}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 col-12 col-lg-6">
+                        <label class="block-display">Location</label>
+                        <span>
+                            <div>
+                                <select class="form-control" [(ngModel)]="negotiationLocationId"
+                                    (ngModelChange)="changeLocationTypeCode()">
+                                    <option value="general">General</option>
+                                    <option [value]="location.negotiationLocationId"
+                                        *ngFor="let location of negotiationLookUp.negotiationsLocations">
+                                        {{location?.negotiationsLocationType.description}}<span
+                                            *ngIf="location?.description">({{location?.description}})</span>
+                                    </option>
+                                </select>
+                            </div>
+                        </span>
+                    </div>
+                    <div class="col-md-2 col-sm-4 col-12  col-lg-4" *ngIf="activityTypeCode !== '10'">
+                        <label class="block-display">
+                            Start Date
+                        </label>
+                        <span class="dateField">
+                            <input matInput [matDatepicker]="openingDt" id="startgrant-opng-date" placeholder="{{datePlaceHolder}}"
+                                [(ngModel)]="dateObject.startDate"
+                                (keypress)="_commonService._keyPress($event, 'date');"
+                                class="d-inline-block form-control "
+                                [ngClass]="map.has('startDate') ? 'is-invalid d-block' : ''"
+                                (click)="openingDt.open()" />
+                            <span class="fa fa-calendar fa-large pointer insidePicker" title="open calendar"
+                                (click)="openingDt.open()"></span>
+                            <mat-datepicker #openingDt (opened)="setFocusToElement('startgrant-opng-date')"
+                                (closed)="dateValidation()">
+                            </mat-datepicker>
+                        </span>
+                    </div>
+                    <div class="col-md-2 col-sm-4 col-12  col-lg-4" *ngIf="activityTypeCode !== '10'">
+                        <label class="block-display">End Date</label>
+                        <span class="dateField">
+                            <input matInput [matDatepicker]="closingDt" id="activity-end-date" placeholder="{{datePlaceHolder}}"
+                                [(ngModel)]="dateObject.endDate"
+                                (keypress)="_commonService._keyPress($event, 'date');"
+                                class="d-inline-block form-control" (click)="closingDt.open()" />
+                            <span class="fa fa-calendar fa-large pointer insidePicker" title="open calendar"
+                                (click)="closingDt.open()"></span>
+                            <mat-datepicker #closingDt (opened)="setFocusToElement('activity-end-date')"
+                                (closed)="dateValidation()">
+                            </mat-datepicker>
+                        </span>
+                        <div *ngIf="map.has('date')" class="invalid-feedback d-block">{{map.get('date')}}
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-sm-4 col-12  col-lg-4" *ngIf="activityTypeCode !== '10'">
+                        <label class="block-display">Follow-up Date</label>
+                        <span class="dateField">
+                            <input matInput [matDatepicker]="followupDt" id="followup-date" placeholder="{{datePlaceHolder}}"
+                                [(ngModel)]="dateObject.followupDate"
+                                (keypress)="_commonService._keyPress($event, 'date');"
+                                class="d-inline-block form-control " (click)="followupDt.open()" />
+                            <span class="fa fa-calendar fa-large hand-cursor insidePicker" title="open calendar"
+                                (click)="followupDt.open()"></span>
+                            <mat-datepicker #followupDt (opened)="setFocusToElement('followup-date')"></mat-datepicker>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button (click)="clearModal();emitActivity(null)" class="btn btn-secondary btn-sm  btn-xs"
+                    data-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary-sub btn-sm  btn-xs" (click)="addActiviy()">{{tempActivity ? 'Update
+                    Activity':'Add Activity'}}</button>
+            </div>
+        </div>
+    </div>
+</div>

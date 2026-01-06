@@ -1,0 +1,243 @@
+<div class="card coi-card-regular" [id]="SFIObject?.entityId" [class.coi-card-highlight]="isTravelDisclosure  && SFIObject?.isFormCompleted && !isShowSelectButton">
+    <div class="card-body" id="coi-shared-sfi-card-body-{{uniqueId}}">
+        <div class="row">
+            <div class="col-12 mb-3">
+                <div class="row">
+                    <div class="d-flex align-items-center col gap-2">
+                        <h4 class="d-flex align-items-center col mb-0 coi-text-darker">
+                            <!-- icon -->
+                            <span class="coi-icon-bg me-2 fs-14 d-inline-flex"><mat-icon aria-hidden="true" class="coi-entity-icon-size coi-coloured-icons">domain</mat-icon></span>
+                            <!-- Entity Name -->
+                                <div class="d-flex align-items-center">
+                                    <a class="fs-6 link-primary" tabindex="0"
+                                        id="engagement-entity-name-link-{{uniqueId}}"
+                                        (click)="viewEntityDetails()" (keyup.enter)="viewEntityDetails()"
+                                        [attr.aria-label]="'Click here to view details of ' + SFIObject?.entityName"
+                                        [title]="'Click here to view details of ' + SFIObject?.entityName">
+                                        <span class="text-slice">{{ SFIObject?.entityName }}</span>
+                                    </a>
+                                    <ng-container *ngIf="SFIObject?.coiEntity?.isForeign">
+                                        <app-common-foreign-flag [entityName]="SFIObject?.entityName"></app-common-foreign-flag>
+                                    </ng-container>
+                                </div>
+                        </h4>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 col-auto text-end" [ngClass]="{'travel-engagements': isTravelDisclosure }">
+                        <div *ngIf="checkForEntityWarning()" class="d-flex align-items-center gap-1 coi-warning-pill rounded-pill f-14 px-3 py-1 rounded-5" data-bs-toggle="tooltip"
+                            [title]="getHelpText()" data-bs-placement="top">
+                            <mat-icon aria-hidden="true" class="flex-shrink-0 coi-scale-9">warning</mat-icon>
+                            <span>{{getMessage()}}</span>
+                        </div>
+
+                        <!-- Entity inactivated -->
+                        <div *ngIf="SFIObject?.coiEntity?.documentStatusTypeCode == entityDocumentStatusType.INACTIVE"
+                            class="d-flex align-items-center gap-1 coi-warning-pill rounded-pill f-14 px-3 py-1 rounded-5">
+                            <mat-icon aria-hidden="true" class="flex-shrink-0 coi-scale-9">warning</mat-icon>
+                            <span>Entity inactivated</span>
+                        </div>
+
+                        <!-- Engagement modified -->
+                        <div *ngIf="(referredFrom == 'SFI_SUMMARY' || referredFrom == 'TRAVEL_DISCLOSURE') && reqObject?.versionStatus == 'ARCHIVE'"
+                            class="d-flex align-items-center gap-1 coi-warning-pill rounded-pill f-14 px-3 py-1 rounded-5">
+                            <mat-icon aria-hidden="true" class="flex-shrink-0 coi-scale-9">warning</mat-icon>
+                            <span>Engagement modified</span>
+                        </div>
+
+                        <!-- InComplete -->
+                        <span *ngIf="!SFIObject?.isFormCompleted && SFIObject?.isActive"
+                            class="badge f-14 px-3 py-2 rounded-pill text-bg-warning">Incomplete</span>
+
+                        <!-- Inactive -->
+                        <span *ngIf="!SFIObject?.isActive " class="badge f-14 px-3 py-2 rounded-pill text-bg-secondary">Inactive</span>
+
+                        <!-- risk type -->
+                        <div *ngIf="isAdmin || isShowRiskLevel" class="d-flex align-items-center fs-14 gap-1 mx-1">
+                            <span class="coi-text-lighter">Risk:</span>
+                            <span id="coi-entity-risk-{{SFIObject?.entityId}}-{{uniqueId}}" class="coi-text-light">
+                                <app-no-data-label [valueToShow]="reqObject?.coiEntity?.entityRiskLevelCode">
+                                    <span class="d-flex">
+                                        <mat-icon aria-hidden="true" class="flex-shrink-0 me-1"
+                                            [ngClass]="riskIconColor[reqObject?.coiEntity?.entityRiskLevelCode] || riskIconColor['NA']">warning</mat-icon>
+                                        <span class="coi-text-dark">{{ reqObject?.coiEntity?.entityRiskLevel }}</span>
+                                    </span>
+                                </app-no-data-label>
+                            </span>
+                        </div>
+
+                        <!-- select -->
+                        <button *ngIf="isTravelDisclosure && SFIObject.isFormCompleted && isShowSelectButton && SFIObject.versionStatus === engagementVersionStatus.ACTIVE"
+                            class="align-items-center btn btn-outline-secondary d-flex fs-14"
+                            (click)="selectEngagement(SFIObject)" aria-label="Click here to use this engagement"
+                            [disabled]="selectedEngagementId === SFIObject?.entityId"
+                            title="Click here to use this engagement" id="coi-shared-sfi-select-btn">
+                            Disclose Travel</button>
+                        <!-- selected -->
+                            <button *ngIf="isTravelDisclosure  && SFIObject.isFormCompleted && !isShowSelectButton"
+                            class="align-items-center btn btn-primary d-flex fs-14"
+                            disabled="true">
+                            Selected</button>
+                        </div>
+                </div>
+
+            </div>
+            <div class="col-12">
+                <div class="row">
+                    <!-- ownership type -->
+                    <div class="col-md-6 col-lg-3 mb-lg-2 mb-sm-2 mb-2">
+                        <span class="coi-text-dark d-block" [attr.aria-label]="'Ownership is ' + SFIObject?.coiEntity?.entityOwnershipType?.description">Ownership Type</span>
+                        <span class="coi-text-light">
+                            <app-no-data-label
+                                [valueToShow]="SFIObject?.coiEntity?.entityOwnershipType?.description"><span id="coi-shared-eng-ownership-type">{{ SFIObject?.coiEntity?.entityOwnershipType?.description }}</span>
+                            </app-no-data-label>
+                        </span>
+                    </div>
+                    <!-- country -->
+                    <div class="col-lg-3 col-md-6 mb-lg-0 mb-sm-2 mb-2">
+                        <span class="coi-text-dark d-block">Country</span>
+                        <span class="col coi-text-light">
+                            <app-no-data-label [valueToShow]="SFIObject?.countryName">
+                                <span [attr.aria-label]="SFIObject?.countryName" class="grey-text text-slice"
+                                    title="{{SFIObject?.countryName}}" id="coi-shared-eng-country">{{SFIObject?.countryName}}</span>
+                            </app-no-data-label>
+                        </span>
+                    </div>
+                    <!-- start date -->
+                    <div class="col-lg-3 col-md-6 mb-lg-2 mb-sm-2 mb-2">
+                        <span class="coi-text-dark d-block"><ng-container i18n="@@START_DATE_INVOLVEMENT">Start Date Of Involvement</ng-container></span>
+                        <span class="coi-text-light">
+                            <app-no-data-label
+                                [valueToShow]="SFIObject?.involvementStartDate"><span id="coi-shared-eng-start-date">{{SFIObject?.involvementStartDate | dateFormatter }}</span>
+                            </app-no-data-label>
+                        </span>
+                    </div>
+                    <!-- end date -->
+                    <div class="col-lg-3 col-md-6 mb-lg-2 mb-sm-2 mb-2" tabindex="-1">
+                        <div class="mb-2">
+                            <span class="coi-text-dark d-block"><ng-container i18n="@@END_DATE_INVOLVEMENT">End Date Of Involvement</ng-container></span>
+                            <span class="coi-text-light">
+                                <app-no-data-label [valueToShow]="SFIObject?.involvementEndDate">
+                                    <span id="coi-shared-eng-end-date">{{ SFIObject?.involvementEndDate | dateFormatter }}</span>
+                                </app-no-data-label>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="d-flex align-items-center col">
+                <div class="d-flex align-items-center">
+                    <span aria-label="Relationship" class="coi-text-dark me-2">Relationship</span>
+                    <div *ngIf="SFIObject?.validPersonEntityRelTypes?.length; else showNoData">
+                        <div class="coi-relationship-pill-container">
+                            <ng-container *ngFor="let relationship of SFIObject?.relationshipDetails | keyvalue; let isFirst = first; let outerIndex = index;">
+                                <span class="coi-relationship-pill">
+                                    <span class="d-flex align-items-center coi-relationship-pill-text">
+                                        <mat-icon aria-hidden="true" class="flex-shrink-0 me-1">{{ engagementRelTypeIcons[relationship?.key] }}</mat-icon>
+                                        <span>{{ relationship?.value?.[0]?.coiDisclosureType.description }}</span>
+                                        <ng-container *ngIf="!commonService?.isCompensatedFlow && relationship?.value?.length">
+                                            <span class="me-1 coi-text-light">:</span>
+                                            <ng-container *ngFor="let relation of relationship.value; let isLastRelation = last;">
+                                                <span class="fw-normal">{{ relation?.personEntityRelType?.description }}</span>
+                                                <span *ngIf="!isLastRelation" class="px-1">/</span>
+                                            </ng-container>
+                                        </ng-container>
+                                    </span>
+                                </span>
+                                <span *ngIf="commonService.isSfiEvaluationEnabled && SFIObject.isSignificantFinInterest && relationship?.key?.toString() === RELATIONS_TYPE_SUMMARY.FINANCIAL.toString()"
+                                    class="coi-relationship-pill">
+                                    <span class="d-flex coi-relationship-pill-text lh-sm">
+                                        <img src="{{deployMap}}assets/images/sfi.svg" alt="{{ ENGAGEMENT_LOCALIZE.TERM_SFI_FOR_REL_PILLS }} Image" class="coi-sfi-icon me-2" aria-hidden="true">
+                                        <span>{{ ENGAGEMENT_LOCALIZE.TERM_SFI_FOR_REL_PILLS }}</span>
+                                    </span>
+                                </span>
+                            </ng-container>
+                        </div>
+                    </div>
+                    <ng-template #showNoData>--</ng-template>
+                </div>
+            </div>
+            <div *ngIf="referredFrom === 'SFI_SUMMARY' || referredFrom === 'TRAVEL_DISCLOSURE'"
+                class="d-flex align-items-center justify-content-end col-auto text-secondary">
+                <button class="d-flex align-items-center btn btn-outline-secondary ms-2 fs-14"
+                    aria-label="Click here to view engagement details" title="Click here to view engagement details"
+                    (click)="openSfiDetails(SFIObject?.entityId, 'view')" id="coi-shared-eng-view-btn">
+                    <mat-icon aria-hidden="true">remove_red_eye</mat-icon>
+                    <span class="ms-1">View</span>
+                </button>
+                <button *ngIf="commentDetails?.isShowComment" class="d-flex align-items-center justify-content-center sfi-comments-btn btn btn-outline-secondary ms-2 fs-14"
+                    aria-label="Click here to open comments" title="Click here to open comments"
+                    (click)="openReviewComment(SFIObject)" id="coi-shared-eng-comment-btn">
+                    <mat-icon aria-hidden="true">rate_review</mat-icon>
+                    <span class="ms-1">Comments<span *ngIf="commentDetails?.entityCommentCount > 0">({{commentDetails?.entityCommentCount}})</span>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div *ngIf="!['SFI_SUMMARY', 'TRAVEL_DISCLOSURE', 'DISCLOSURE_APPLY_TO_ALL'].includes(referredFrom)" class="card-footer">
+        <div class="row">
+            <div class="d-flex align-items-center col-md-6 col-lg-4">
+                <span class="d-inline-flex coi-text-lighter d-lg-block fs-13">Last Updated On</span>
+                <app-no-data-label [valueToShow]="SFIObject?.updateTimestamp">
+                    <span id="coi-shared-eng-last-updated" class="coi-text-dark fs-13 fw-normal ms-1"
+                        [attr.aria-label]="(SFIObject?.updateTimestamp | dateFormatterWithTimeZone: 'long')">{{SFIObject?.updateTimestamp | dateFormatterWithTimeZone: 'long'}}</span>
+                </app-no-data-label>
+            </div>
+            <div class="d-flex align-items-end justify-content-end col-md-6 col-lg-8 mt-lg-0">
+                <div class="d-flex align-items-center justify-content-end col-lg col-12 gap-2">
+                    <!-- Modify engagement -->
+                    <button *ngIf="(!isTriggeredFromSlider || canEditEngagement) && SFIObject.isActive" class="d-flex align-items-center btn btn-outline-secondary ms-2 fs-14"
+                        aria-label="Click here to modify engagement" title="Click here to modify engagement"
+                        (click)="modifySfiDetails(SFIObject?.entityId, 'edit')" id="coi-shared-eng-modify-btn">
+                        <mat-icon class="me-1" aria-hidden="true">edit</mat-icon>
+                        <span>Modify</span>
+                    </button>
+                    <!-- View engagement -->
+                    <button class="d-flex align-items-center btn btn-outline-secondary fs-14"
+                        aria-label="Click here to view engagement" title="Click here to view engagement"
+                        (click)="openSfiDetails(SFIObject?.entityId, 'view')" id="coi-shared-eng-view-btn">
+                        <mat-icon class="me-1" aria-hidden="true">visibility</mat-icon>
+                        <span>View</span>
+                    </button>
+                    <ng-container *ngIf="!isTriggeredFromSlider || canEditEngagement">
+                        <!-- more option btn -->
+                        <button [matMenuTriggerFor]="beforeMenu" id="coi-shared-eng-more-action-btn"
+                            class="d-flex align-items-center btn btn-outline-secondary fs-14"
+                            title="Click here for more actions" aria-label="Click here for more actions">
+                            <mat-icon aria-hidden="true" class="moreActionIcon">more_vert</mat-icon>
+                        </button>
+
+                        <!-- more options -->
+                        <mat-menu #beforeMenu="matMenu" xPosition="before">
+                            <!-- Activate engagement -->
+                            <button *ngIf="!SFIObject?.isActive && isShowActivateButton" mat-menu-item
+                                class="more-action"
+                                title="Click here to activate engagement" aria-label="Click here to activate engagement"
+                                (click)="activateDeactivate(SFIObject)" id="coi-shared-eng-activate-btn">
+                                <mat-icon class="coi-text-lighter flex-shrink-0 me-2" aria-hidden="true">offline_bolt</mat-icon>
+                                <span class="coi-text-light fw-medium">Activate</span>
+                            </button>
+                            <!-- Deactivate engagement -->
+                            <button *ngIf="SFIObject?.isActive" mat-menu-item
+                                class="more-action"
+                                title="Click here to deactivate engagement" aria-label="Click here to deactivate engagement"
+                                (click)="activateDeactivate(SFIObject)" id="coi-shared-eng-inactive-btn">
+                                <mat-icon class="coi-text-lighter flex-shrink-0 me-2" aria-hidden="true">cancel</mat-icon>
+                                <span class="coi-text-light fw-medium">Deactivate</span>
+                            </button>
+                            <!-- Delete engagement -->
+                            <button *ngIf="SFIObject?.canDelete && commonService.canDeleteEngagement" mat-menu-item
+                                class="more-action"
+                                aria-label="Click here to delete engagement" title="Click here to delete engagement"
+                                (click)="deleteConfirmation(SFIObject?.personEntityId)" id="coi-shared-eng-delete-btn">
+                                <mat-icon class="coi-text-lighter flex-shrink-0 me-2" aria-hidden="true">delete</mat-icon>
+                                <span class="coi-text-light fw-medium">Delete</span>
+                            </button>
+                        </mat-menu>
+                    </ng-container>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

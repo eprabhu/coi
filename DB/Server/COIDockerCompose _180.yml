@@ -1,0 +1,76 @@
+version: "3.9"
+
+services:
+
+  zipkin:
+    image: 'openzipkin/zipkin'
+    container_name: zipkin
+    ports:
+      - "9411:9411"   
+      
+  service-registry:
+    image: 'polusdocker/service-registry:0.0.1'
+    container_name: service-registry
+    ports:
+      - "8761:8761"   
+
+  config-server:
+    image: 'polusdocker/config-server:0.0.1'
+    container_name: config-server
+    ports:
+      - "9296:9296"
+    depends_on:
+      - service-registry
+      
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://config-server:9296/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  api-gateway:
+    image: 'polusdocker/api-gateway:0.0.1'
+    container_name: api-gateway
+    ports:
+      - "9090:9090"
+    depends_on:
+       config-server:
+        condition: service_healthy
+        
+    environment:
+      - CONFIG_SERVER_URL=http://192.168.1.180:9296
+      - EUREKA_SERVER_ADDRESS=http://192.168.1.180:8761/eureka
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://api-gateway:9090/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  auth-server:
+    image: 'polusdocker/auth-server:0.0.1'
+    container_name: auth-server
+    ports:
+      - "9898:9898"
+    depends_on:
+       api-gateway:
+        condition: service_healthy
+        
+    environment:
+      - CONFIG_SERVER_URL=http://192.168.1.180:9296
+      - EUREKA_SERVER_ADDRESS=http://192.168.1.180:8761/eureka
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://auth-server:9898/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      
+  fcoi:
+    image: 'polusdocker/fcoi:0.0.1'
+    container_name: fcoi
+    ports:
+      - "8070:8070"
+    depends_on:
+      - api-gateway
+    environment:
+      - CONFIG_SERVER_URL=http://192.168.1.180:9296
+      - EUREKA_SERVER_ADDRESS=http://192.168.1.180:8761/eureka

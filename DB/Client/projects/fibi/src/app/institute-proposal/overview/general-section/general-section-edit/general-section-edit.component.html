@@ -1,0 +1,299 @@
+<div class="card my-3" id="ip-general-section">
+    <div class="card-header px-4">
+        <h4 class="card-title">General Proposal Information
+            <span *ngIf="generalDetails?.proposalId != null" class="d-inline-block float-right">
+                <a class="tooltip "><i class="fa fa-info-circle fa-med hand-cursor" aria-hidden="true"></i>
+                    <div class="tooltiptext-right card card-inner p-15 text-left">
+                        <span class="font-cv">Last Updated By</span>
+                        <span class="font-cv font-weight-bold">{{generalDetails?.updateUserFullName}}
+                            on {{generalDetails?.updateTimeStamp | dateFormatterWithTimeZone : 'long'}} </span>
+                    </div>
+                </a>
+            </span>
+        </h4>
+    </div>
+    <div class="card-content">
+        <div class="card-body">
+            <div class="form-row" *ngIf="generalDetails?.grantCall">
+                <div class="form-group col-6">
+                    <label class="d-block">Title of Grant Call</label>
+                    <span class="viewMode">{{generalDetails?.grantCall?.grantCallId}} - {{generalDetails?.grantCall?.grantCallName}}</span>
+                </div>
+                <div class="col-2 mt-5" *ngIf="generalDetails?.grantCallId">
+                    <span class="actionButtonGroup d-inline-block float-left">
+                        <a id="prop-eyeIcon-view-btn"
+                            title="Click here to view {{generalDetails?.grantCall?.grantCallName}}"
+                            (click)="showGrantDetails = true;" class="anchor-link " tabindex="0">
+                            View Grant Call Details
+                        </a>
+                    </span>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-xl-9 col-lg-9 col-md-8 col-sm-6">
+                    <label class="d-sm-block"><span class="mandatory">*</span>Title</label>
+                    <textarea rows="1" appAutoGrow id="prop-title" placeholder="Type here for Title" class="form-control"
+                    [ngClass]="errorMap.has('title') ? 'is-invalid d-block' : ''" [(ngModel)]="generalDetails.title"
+                    (ngModelChange)="isDataChanged = true;setUnsavedChanges(true)"
+                    appLengthValidator
+                    [isShowLimiter]='true' [limit]=1000> </textarea>
+                    <div *ngIf="errorMap.has('title')" class="invalid-feedback d-block">*
+                        Please provide a title</div>
+                </div>
+                <div class="form-group col-xl-3 col-lg-3 col-md-4 col-sm-6">
+                    <label for="ip-status" class="d-sm-block">Status</label>
+                    <select id="ip-status" class="form-control" [(ngModel)]="generalDetails.statusCode"
+                        (ngModelChange)="setProposalStatus();setUnsavedChanges(true)">
+                        <option [ngValue]=null>--select--</option>
+                        <option *ngFor="let item of statusCodes" [value]="item.statusCode" [hidden]="!item.isActive">
+                            {{item.description}}</option>
+                    </select>
+                </div>
+                <div class="form-group col-xl-3 col-lg-3 col-md-4 col-sm-6">
+                    <label for="prop-type"><span class="mandatory">*</span>Proposal Type</label>
+                    <select id="prop-type" class="form-control dateBox"
+                        [ngClass]="errorMap.has('type') ? 'is-invalid d-block' : ''"
+                        [(ngModel)]="generalDetails.typeCode" 
+                        (ngModelChange)="setUnsavedChanges(true)">
+                        <option [value]=null>--Select--</option>
+                        <option *ngFor="let type of proposalTypes" [value]="type.typeCode"
+                            [hidden]="type.isActive != true">
+                            {{type.description}}</option>
+                    </select>
+                    <div *ngIf="errorMap.has('type')" class="invalid-feedback d-block">*
+                        Please provide a type</div>
+                </div>
+                <div class="form-group col-xl-3 col-lg-3 col-md-4 col-sm-6">
+                    <label for="prop-grant-type"><span class="mandatory">*</span><ng-container i18n="@@COMMON_TYPE_OF_GRANT">Type of Grant</ng-container></label>
+                    <select id="prop-grant-type" class="form-control dateBox"
+                        [ngClass]="errorMap.has('grantType') ? 'is-invalid d-block' : ''"
+                        [disabled]="generalDetails.grantCallId !== null" [(ngModel)]="generalDetails.grantTypeCode"
+                        (ngModelChange)="changeCategoryValue();setUnsavedChanges(true)">
+                        <option value=null>--Select--</option>
+                        <option *ngFor="let grantType of grantCallTypes" [value]="grantType.grantTypeCode"
+                            [hidden]="grantType.isActive != true">
+                            {{grantType.description}}</option>
+                    </select>
+                    <div *ngIf="errorMap.has('grantType')" class="invalid-feedback d-block">
+                        * Please select a type of grant</div>
+                </div>
+                <div class="form-group col-xl-3 col-lg-3 col-md-4 col-sm-6">
+                    <label for="prop-category"><span class="mandatory">*</span>
+                        <ng-container i18n="@@COMMON_CATEGORY_PROPOSAL">Category</ng-container>
+                    </label>
+                    <select id="prop-category" class="form-control dateBox"
+                        [ngClass]="errorMap.has('category') ? 'is-invalid d-block' : ''"
+                        [disabled]="generalDetails.grantCallId" [(ngModel)]="generalDetails.activityTypeCode"
+                        (ngModelChange)="setUnsavedChanges(true)">
+                        <option [value]=null>--Select--</option>
+                        <option *ngFor="let category of activityTypes" [value]="category.activityTypeCode"
+                            [hidden]="!category.isActive || (this.enableActivityGrantCallMapping && category.grantTypeCode != generalDetails.grantTypeCode)">
+                            {{category.description}}
+                        </option>
+                    </select>
+                    <div *ngIf="errorMap.has('category')" class="invalid-feedback d-block">*
+                        Please select a category</div>
+                </div>
+                <div class="form-group col-xl-3 col-lg-3 col-md-4 col-sm-6 mt-1">
+                    <label class="d-block">Anticipated Award Type</label>
+                    <select id="prop-award-type" class="form-control dateBox"
+                        [(ngModel)]="generalDetails.awardTypecode"
+                        (ngModelChange)="setUnsavedChanges(true)">
+                        <option [ngValue]=null>--Select--</option>
+                        <option *ngFor="let awardType of awardTypes" [value]="awardType.awardTypeCode"
+                            [hidden]="awardType.isActive != true">
+                            {{awardType.description}}</option>
+                    </select>
+                </div>
+                 <!-- SMU Specific change-->
+                <!-- <div class="form-group col">
+                    <label>Discipline Cluster</label>
+                    <select id="institute-proposal-discipline-cluster" class="form-control dateBox"
+                        [(ngModel)]="generalDetails.clusterCode"
+                        [disabled]="(generalDetails?.grantCall?.grantCallType?.categoryCode === 1 ||
+                        generalDetails?.typeCode === 1) && generalDetails?.clusterCode === 3"
+                        (ngModelChange)="setDisciplineCluster();setUnsavedChanges(true)">
+                        <option [ngValue]=null>--Select--</option>
+                        <option *ngFor="let cluster of disciplineClusters" [ngValue]="cluster?.id">{{cluster.description}}
+                        </option>
+                    </select>
+                </div> -->
+                <div class="form-group col-xl-3 col-lg-3 col-md-4 col-sm-6">
+                    <label class="d-sm-block">
+                        <ng-container i18n="@@COMMON_SPONSOR">Sponsor</ng-container>
+                    </label>
+                    <app-endpoint-search id="prop-sponsor" [httpOptions]="sponsorHttpOptions"
+                        [placeHolder]="'Type here for Sponsor Name'" (onSelect)="onSponsorSelect($event)"
+                        (onEmpty)="onSponsorSelect($event)">
+                    </app-endpoint-search>
+                </div>
+                <div class="form-group col-xl-3 col-lg-3 col-md-4 col-sm-6">
+                    <label class="d-sm-block"><span class="mandatory">*</span>Proposed Start Date</label>
+                    <span class="dateField">
+                        <input matInput [matDatepicker]="startDate" placeholder="{{datePlaceHolder}}" id="prop-start-date" autocomplete="off"
+                            style="width: 100% !important" class="d-inline-block form-control"
+                            [ngClass]="errorMap.has('startDate') ? 'is-invalid d-block' : ''"
+                            (keypress)="keyPress($event, 'date')" [(ngModel)]="generalDetails.startDate"
+                            (ngModelChange)="proposalStartDateValidation();setUnsavedChanges(true)"
+                            (click)="startDate.open()">
+                        <i class="fa fa-calendar fa-large hand-cursor insidePicker" id="prop-start-date-icon"
+                            (click)="startDate.open()" aria-hidden="true"></i>
+                        <mat-datepicker #startDate (opened)="setFocusToElement('prop-start-date')">
+                        </mat-datepicker>
+                    </span>
+                    <div *ngIf="errorMap.has('startDate')" class="invalid-feedback d-block">
+                        {{errorMap.get('startDate')}}</div>
+                </div>
+                <div class="form-group col-xl-3 col-lg-3 col-md-4 col-sm-6">
+                    <label class="d-sm-block"><span class="mandatory">*</span>Proposed End Date</label>
+                    <span class="dateField">
+                        <input matInput [matDatepicker]="endDate" class="d-inline-block form-control" id="prop-end-date" placeholder="{{datePlaceHolder}}"
+                            autocomplete="off" [ngClass]="errorMap.has('endDate') ? 'is-invalid d-block' : ''"
+                            (keypress)="keyPress($event, 'date')" [(ngModel)]="generalDetails.endDate"
+                            (ngModelChange)="proposalStartDateValidation();setUnsavedChanges(true)"
+                            (click)="endDate.open()">
+                        <i id="prop-end-date-icon" class="fa fa-calendar fa-large hand-cursor insidePicker"
+                            (click)="endDate.open()" aria-hidden="true"></i>
+                        <mat-datepicker #endDate (opened)="setFocusToElement('prop-end-date')">
+                        </mat-datepicker>
+                    </span>
+                    <div *ngIf="errorMap.has('endDate')" class="invalid-feedback d-block">
+                        {{errorMap.get('endDate')}}</div>
+                </div>
+                <div class="form-group col-xl-3 col-lg-3 col-md-4 col-sm-6">
+                    <label class="d-sm-block mb-2">Duration</label>
+                    <span><strong>{{generalDetails.duration}}</strong></span>
+                </div>
+                <div class="form-group col-xl-3 col-lg-3 col-md-4 col-sm-6">
+                    <label for="prop-prime-sponsor">Prime Sponsor</label>
+                    <app-endpoint-search id="prop-prime-sponsor" [httpOptions]="primeSponsorHttpOptions"
+                        [placeHolder]="'Type here for Prime Sponsor Name'" (onSelect)="onPrimeSponsorSelect($event)">
+                    </app-endpoint-search>
+                </div>
+                <div class="form-group col-xl-3 col-lg-3 col-md-4 col-sm-6">
+                    <label for="prop-sponsor-id">
+                        <ng-container i18n="@@COMMON_SPONSOR_PROPOSAL_ID">Sponsor Proposal ID</ng-container>
+                    </label>
+                    <input id="prop-sponsor-id" type="text" placeholder="" autocomplete="off" class="form-control"
+                        [(ngModel)]="generalDetails.sponsorProposalNumber"
+                        (ngModelChange)="setUnsavedChanges(true)"/>
+                </div>
+                <div class="form-group col-xl-3 col-lg-3 col-md-6 col-sm-6">
+                    <label for="prop-sub-date">Sponsor Deadline Date</label><span class="dateField"> <input
+                            matInput [matDatepicker]="subDt"
+                            placeholder="{{datePlaceHolder}}" id="prop-sub-date" style="width: 100% !important"
+                            autocomplete="off" class="d-inline-block form-control"
+                            [(ngModel)]="generalDetails.sponsorDeadlineDate" (keypress)="keyPress($event, 'date')"
+                            (ngModelChange)="getInternalDeadlineDate();setUnsavedChanges(true)"
+                            (click)="subDt.open()" />
+                        <i id="prop-sub-date-icon" class="fa fa-calendar fa-large insidePicker hand-cursor"
+                            aria-hidden="true" (click)="subDt.open()"></i>
+                        <mat-datepicker #subDt (opened)="setFocusToElement('prop-sub-date')">
+                        </mat-datepicker>
+                    </span>
+                    <div *ngIf="errorMap.has('deadlineDate')" class="invalid-feedback d-block">
+                        {{errorMap.get('deadlineDate')}}</div>
+                </div>
+                <div class="form-group col-xl-3 col-lg-3 col-md-6 col-sm-6">
+                    <label for="prop-internal-date">Internal Deadline Date</label>
+                    <span class="dateField"> <input matInput [matDatepicker]="internalDt" placeholder="{{datePlaceHolder}}"
+                            [disabled]="generalDetails.internalDeadLineDate === null" id="prop-internal-date"
+                            style="width: 100% !important" autocomplete="off"
+                            class="d-inline-block form-control" [(ngModel)]="generalDetails.internalDeadLineDate"
+                            (ngModelChange)="internalDateValidation();setUnsavedChanges(true)"
+                            (keypress)="keyPress($event, 'date');"
+                            (click)="internalDt.open()">
+                        <i id="prop-internal-date-icon" class="fa fa-calendar fa-large insidePicker hand-cursor"
+                            aria-hidden="true" (click)="internalDt.open()"></i>
+                        <mat-datepicker #internalDt (opened)="setFocusToElement('prop-internal-date')"></mat-datepicker>
+                    </span>
+                    <div *ngIf="validationMap.has('internalDeadline')" class="invalid-feedback d-block">
+                        {{validationMap.get('internalDeadline')}}</div>
+                </div>
+                <div class="form-group col-xl-3 col-lg-3 col-md-4 col-sm-6">
+                    <label title="Master Proposal Number">
+                        <ng-container i18n="@@COMMON_MASTER_PROPOSAL">Master Proposal</ng-container> #
+                    </label>
+                    <div class="searchBox mb-0 memberSearchBox">
+                        <app-elastic [options]="proposalElasticOptions" [placeHolder]="'Type here for Master Proposal#'"
+                            (selectedResult)="onBaseProposalNumberSelect($event)">
+                        </app-elastic>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <label for="prop-funding-opp-number">Funding Opportunity Number</label>
+                    <span>
+                        <input id="prop-funding-opp-number" type="text" placeholder="" class="form-control"
+                            [(ngModel)]="generalDetails.programAnnouncementNumber"
+                            (ngModelChange)="setUnsavedChanges(true)"/>
+                    </span>
+                </div>
+                <div class="form-group col-xl-3 col-lg-3 col-md-6 col-sm-6">
+                    <label for="prop-cfda-number"
+                        title="CFDA (Catalogue of Federal Domestic Assistance Number) is a five-digit number assigned in the awarding document to most grants and cooperative agreements funded by the Federal government.">CFDA
+                        Number</label>
+                    <span>
+                        <input id="prop-cfda-number" type="text" placeholder="" class="form-control"
+                            [(ngModel)]="generalDetails.cfdaNumber" (ngModelChange)="setUnsavedChanges(true)"/>
+                    </span>
+                </div>
+                <div class="form-group col-lg-12 col-md-12 col-sm-12 col-12">
+                                    <div class="form-row">
+                                        <div class="col mb-0">
+                                            <label for="inst-prop-keywords">Keywords of Research</label>
+                                              <span *ngIf="helpText?.instituteProposalInformation && helpText?.instituteProposalInformation['keywordsOfResearch']?.helpTextInfo"
+                                                class="d-inline-block icon-hover">
+                                                <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med"
+                                                        aria-hidden="true"></i>
+                                                    <div class="tooltiptext-left card card-inner p-15 text-left">
+                                                        <span class="font-cv">{{helpText?.instituteProposalInformation['keywordsOfResearch']?.helpTextInfo}}</span>
+                                                    </div>
+                                                </a>
+                                            </span> 
+                                            <app-endpoint-search id="inst-prop-keywords" 
+                                            [httpOptions]="keywordHttpOptions"
+                                            [clearField]="clearKeywordField"
+                                                [placeHolder]="'Type here for Keyword or add your own Keyword'" 
+                                                (onSelect)="keywordSelectFunction($event)"
+                                                (onEmpty)="showAddKeywordFunction($event)" 
+                                                (searchValue)="getSearchValue($event)" [addSearchText]="true"
+                                                (onNewValueSelect)="addKeywordToDatabase($event)">
+                                            </app-endpoint-search>
+                                            <div class="form-row col fileChips px-2" style="word-break: break-all;"
+                                                *ngIf="instituteProposalKeywords?.length > 0">
+                                                <ng-container *ngFor="let keyword of instituteProposalKeywords;let i = index">
+                                                    <span>{{keyword?.scienceKeyword?.description}}
+                                                        <i class="fa fa-close hand-cursor" id="prop-keywrd-dlt" (click)="deleteKeyword(keyword.keywordId,i)"
+                                                            aria-hidden="true" title="Remove this keyword"></i>
+                                                    </span>
+                                                </ng-container>
+                                            </div>
+                                            <span class="invalid-feedback d-block"
+                                                *ngIf="keywordWarning">{{keywordWarning}}</span>
+                                        </div>
+                                    </div>
+                                    </div>
+                <div class="col-12">
+                    <label>Abstract</label>
+                    <ng-container *ngIf="!_commonService.isIE">
+                        <div class="alert alert-warning p-1 f-15 mb-2 d-flex align-items-center">
+                            <i class="fa fa-info-circle info-icon mx-2 mt-1" aria-hidden="true"></i>
+                            <em>The editor does not support images.</em>
+                        </div>
+                        <ckeditor [(ngModel)]="generalDetails.abstractDescription" [editor]="Editor"
+                            [config]="editorConfig" (ready)="onReady($event)"
+                            (ngModelChange)="setUnsavedChanges(true)">
+                        </ckeditor>
+                    </ng-container>
+                    <textarea *ngIf="_commonService.isIE" class="ngx-textarea form-control"
+                        [(ngModel)]="generalDetails.abstractDescription"
+                        (ngModelChange)="dataVisibilityObj.dataChangeFlag = true;instituteService.isInstituteProposalDataChange = true"
+                        rows="10"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- grant details view modal -->
+<app-grant-details-view *ngIf="showGrantDetails" (showGrantDetails)="setGrantDetailsValue($event)"
+    [grantCallId]="generalDetails?.grantCallId"></app-grant-details-view>

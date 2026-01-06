@@ -1,0 +1,385 @@
+<div *ngIf="(selectedComponent.componentType || selectedSection.sectionId) && !['HL','BR'].includes(selectedComponent.componentType)" class="card fb-card-border fb-mr-10">
+    <div [ngClass]="{'modal-header': isModalView, 'card-header fb-card-header-label d-flex align-items-center fb-header-padding': !isModalView}">
+        <h4 [ngClass]="{'modal-title': isModalView, 'm-0 fb-fs-16': !isModalView}">
+        Configure {{getElementText(selectedComponent.componentType)}}
+        </h4>
+        <button *ngIf="isModalView" id="FB-additional-info-modal-close" type="button" class="close" (click)="closeModalAdditionInfoModal()" title="Click here to close" aria-label="Click here to close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div *ngIf="showSelectedSection && selectedSection?.sectionId"
+         [ngClass]="{'scroll modal-body': isModalView, 'section-edit': !isModalView}">
+        <div>
+            <label class="d-block fb-mt-3 fw-600 fb-label-font-size" for="FB-section-name">Section Label</label>
+            <input id="FB-section-name" type="text" class="form-control"
+                (ngModelChange)="formBuilderService.unSavedChange = true;" placeholder="Section Label"
+                [(ngModel)]="selectedSection.sectionName" appTailingSpaceRemover appLengthValidator [limit]="300">
+        </div>
+        <label class="d-block fw-600 fb-mt-3 fb-label-font-size" for="FB-section-header">
+            Section Header
+        </label>
+        <ckeditor id="FB-section-header" (ngModelChange)="formBuilderService.unSavedChange = true;"
+                  [(ngModel)]="selectedSection.sectionHeader" [editor]="Editor" [config]="editorConfig" (ready)="onReady($event)"
+                  placeholder="Comment" row="1" maxlength="2000"></ckeditor>
+        <label class="d-block fb-mt-3 fw-600 fb-label-font-size" for="FB-section-footer">
+            Section Footer
+        </label>
+        <ckeditor id="FB-section-footer" (ngModelChange)="formBuilderService.unSavedChange = true;"
+                  [(ngModel)]="selectedSection.sectionFooter" [editor]="Editor" [config]="editorConfig" (ready)="onReady($event)"
+                  placeholder="Comment" row="1" maxlength="2000"></ckeditor>
+    </div>
+    <div *ngIf="['SE','NE','DE','CB','RB','ES','AS','SD','UD','TE','CE','QN','PE','RT','PT','CR','AT'].includes(selectedComponent?.componentType)"
+
+         [ngClass]="{'scroll':isModalView}" class="section-edit">
+        <div *ngIf=" ['CE','PE','QN'].includes(selectedComponent.componentType)" id="FB-element-Name">
+            <label *ngIf="selectedComponent.componentType === 'CE'" class="fb-mt-3 fw-600 fb-label-font-size"
+                   for="FB-custom-element">
+                <span class="fb-mandatory">*</span>Custom Element</label>
+            <label *ngIf="selectedComponent.componentType === 'QN'" class="fb-mt-3 fw-600 fb-label-font-size"
+                   for="FB-questionnaire-element"><span class="fb-mandatory">*</span>Questionnaire</label>
+            <label *ngIf="selectedComponent.componentType === 'PE'" class="fb-mt-3 fw-600 fb-label-font-size"
+                   for="FB-program-element">
+                <span class="fb-mandatory">*</span>Program Element</label>
+            <app-autocompleter *ngIf="selectedComponent.componentType === 'CE'" [uniqueId]="'FB-custom-element'"
+                               [completerOptions]="autoCompleterOption" (onSelect)="refrenceId($event)"
+                               [clearField]="clearField" placeHolder="Search Custom Element"
+                               [isError]="(formValidation?.has('componentRefIDValidation')) ? 'is-invalid d-block' : ''">
+            </app-autocompleter>
+            <app-autocompleter *ngIf="selectedComponent.componentType === 'QN'" [uniqueId]="'FB-questionnaire-element'"
+                               [completerOptions]="autoCompleterOption" (onSelect)="refrenceId($event)"
+                               [clearField]="clearField" placeHolder="Search Questionnaire"
+                               [isError]="(formValidation?.has('componentRefIDValidation')) ? 'is-invalid d-block' : ''">
+            </app-autocompleter>
+            <app-autocompleter *ngIf="selectedComponent.componentType === 'PE'" [uniqueId]="'FB-program-element'"
+                               [completerOptions]="autoCompleterOption" (onSelect)="refrenceId($event)"
+                               [clearField]="clearField" placeHolder="Search Program Element"
+                               [isError]="(formValidation?.has('componentRefIDValidation')) ? 'is-invalid d-block' : ''">
+            </app-autocompleter>
+            <div *ngIf="formValidation?.has('componentRefIDValidation')">
+                <span class="text-danger fs-14 d-inline-block">*Please select an element from the list</span>
+            </div>
+        </div>
+
+        <div *ngIf="['SE','NE','DE','CB','RB','ES','AS','SD','UD','TE','PT', 'AT'].includes(selectedComponent.componentType)">
+
+            <!-- For custom-element creation -->
+            <div>
+                <label for="FB-Custom-label" class="fb-mt-3 fw-600 fb-label-font-size">
+                    Label
+                </label>
+                <input id="FB-Custom-label" placeholder="Label" appLengthValidator [limit]="300"
+                       [(ngModel)]="selectedComponent.label" type="text" class="form-control" appTailingSpaceRemover>
+            </div>   
+            <!-- For custom-element creation -->
+            <ng-container *ngIf="['SE','NE'].includes(selectedComponent.componentType)">
+              <div>
+                <label class="fb-mt-3 fw-600 fb-label-font-size" for="FB-data-Length">
+                    <span class="fb-mandatory">*</span>Data Length
+                </label>
+                <input id="FB-data-Length"
+                       [ngClass]="{ 'is-invalid d-block': formValidation?.has('dataLengthValidation')||
+                       formValidation?.has('dataLengthOverLimitValidation') }"
+                       [(ngModel)]="customDataElement.dataLength" (keypress)="numberValidation($event);"
+                       (paste)="numberValidation($event);" class="form-control" placeholder="e.g: 10, 5, 2 etc"
+                       autocomplete="off" (keyup)="setDefaultValueLength();lengthValidation(100)" appLengthValidator
+                       [limit]="3" appTailingSpaceRemover>
+                <div *ngIf="formValidation?.has('dataLengthValidation')">
+                    <span class="text-danger fs-14 d-inline-block">*Please enter a data length</span>
+                </div>
+                <div *ngIf="formValidation?.has('dataLengthOverLimitValidation')">
+                    <span class="text-danger fs-14 d-inline-block">*Maximum data length is 100.</span>
+                </div>
+              </div>
+                <label class="fb-mt-3 fw-600 fb-label-font-size" for="FB-default-value">
+                    Default Value
+                </label>
+                <input type="text" placeholder="Default Value" id="FB-default-value" class="form-control"
+                       (keypress)="selectedComponent?.componentType ==='NE'?numberValidation($event):''"
+                       (paste)="selectedComponent?.componentType ==='NE'?numberValidation($event):''"
+                       [(ngModel)]="customDataElement.defaultValue" autocomplete="off" [disabled]="!customDataElement?.dataLength"
+                       (keyup)="setDefaultValueLength()" appTailingSpaceRemover>
+            </ng-container>
+            <!--common lookup for all -->
+            <ng-container *ngIf="['ES','AS','SD','UD'].includes(selectedComponent.componentType)">
+                <label class="fb-mt-3 fw-600 fb-label-font-size">
+                    <span class="fb-mandatory">*</span>Lookup Type
+                </label>
+                <select [(ngModel)]="customDataElement.lookupArgument" (ngModelChange)="selectedCustomDataLookup()"
+                        class="form-control">
+                    <option [ngValue]=null>--Select--</option>
+                    <option [ngValue]="option?.code" *ngFor=" let option of customDatalookUpArray">{{option?.description}}
+                    </option>
+                </select>
+                <div *ngIf="formValidation?.has('lookupArgumentValidation')">
+                    <span class="text-danger fs-14 d-inline-block">*Please select a value</span>
+                </div>
+                <!--common lookup for all  End-->
+                <!--common Default value lookup for all -->
+                <ng-container *ngIf="['AS','ES'].includes(selectedComponent.componentType)">
+                    <label class="fb-mt-3 fw-600 fb-label-font-size">
+                        Default Value
+                    </label>
+                    <select [(ngModel)]="customDataElement.defaultValue" class="form-control">
+                        <option [ngValue]=null>--Select--</option>
+                        <option [ngValue]="option.value" *ngFor=" let option of customDataDefaultValueArray">{{option.key}}
+                        </option>
+                    </select>
+                </ng-container>
+            </ng-container>
+            <!--common Default value lookup for all  End-->
+
+            <!--common option for all-->
+            <ng-container *ngIf="['CB','RB'].includes(selectedComponent.componentType)">
+                <label class="fb-mt-3 fw-600 fb-label-font-size">
+                    Options
+                </label>
+                <div>
+                    <div *ngFor="let option of customDataOptions let index = index; let lastIndex = last" [ngClass]="{'fb-mb-3': !lastIndex}" class="row">
+                        <div class="col-12 d-flex">
+                            <i class="fa fa-circle fb-mr-2 fs-12 fb-option-circle"></i>
+                            <div class="w-95">
+                                    <ckeditor tabindex="0" id="FB-option-{{index}}"
+                                    [(ngModel)]="option.optionName" [editor]="Editor" [config]="editorConfig"
+                                    (ready)="onReady($event)"></ckeditor>
+                            </div>
+                            <i *ngIf="customDataOptions.length > 1" tabindex="0" title="Click here to remove option" aria-label="Click here to remove option" (click)="deleteOptions(index)" (keydown.enter)="deleteOptions(index)"
+                               class="fa fa-close text-danger fb-ml-2 hand-cursor fb-mt-3"></i>
+                        </div>
+                    </div>
+                    <div *ngIf="formValidation?.has('Optionvalidation')">
+                        <span class="text-danger fs-14 d-inline-block">*Options cannot be empty</span>
+                    </div>
+                    <button class="btn btn-sm btn-tertiary fb-add-option"
+                        id="FB-add-radio-opt" (click)="addCustomDataOptions();" aria-label="Click here to add new option" title="Click here to add new option">Add new option
+                    </button>
+                </div>
+            </ng-container>
+            <!--common option for all  End-->
+            <!--common multi-select toggel-->
+            <ng-container *ngIf="['SD','UD'].includes(selectedComponent.componentType)">
+
+                <label tabindex="0" class="d-block fb-mt-3 fw-600 fb-label-font-size">
+                    Is Multiple?
+                </label>
+                <span class="py-1" aria-label="" role="switch">
+                <a *ngIf="customDataElement.isMultiSelectLookup === 'Y'" class="fb-pl-2">
+                    <label class="switch" tabindex="0" (click)="customDataElement.isMultiSelectLookup = 'N'"
+                           (keyup.enter)="customDataElement.isMultiSelectLookup = 'N'">
+                        <input type="checkbox" checked>
+                        <span class="slider round"><small (keyup.enter)="customDataElement.isMultiSelectLookup = 'N'"
+                                                          class="fs-12 fb-mt-1 activate-text">Yes</small></span>
+                    </label>
+                </a>
+                <a *ngIf="customDataElement.isMultiSelectLookup === 'N'" class="fb-pl-2">
+                    <label class="switch" tabindex="0" (click)="customDataElement.isMultiSelectLookup = 'Y'"
+                           (keyup.enter)="customDataElement.isMultiSelectLookup = 'Y'">
+                        <input type="checkbox">
+                        <span class="slider round"><small (keyup.enter)="customDataElement.isMultiSelectLookup = 'Y'"
+                                                          class="deactivate-text deactivate-text-color  fs-12 fb-mt-1">No</small></span>
+                    </label>
+                </a>
+            </span>
+            </ng-container>
+            <!--common multi-select toggel end-->
+
+
+            <!-- custom-element creation end -->
+        </div>
+
+                <div *ngIf="selectedComponent?.componentType === 'AT'">
+                    <label for="fb-captureDescCheckbox" class="fb-mt-3 fw-600 fb-label-font-size">
+                        Capture Attachment Description
+                    </label>
+                    <input type="checkbox" id="fb-captureDescCheckbox" class="fb-ml-3"
+                           [checked]="selectedComponent.captureDescription === 'Y'"
+                           (keyup.enter)="toggleCaptureDescription()" (change)="toggleCaptureDescription()">
+
+                </div>
+
+        <ng-container
+                *ngIf="!['HL','BR','SE','NE','DE','CB','RB','ES','AS','SD','UD','TE','PT', 'AT'].includes(selectedComponent.componentType)">
+            <div>
+                <label class="d-block fb-mt-3 fw-600 fb-label-font-size" for="FB-label">
+                    Label</label>
+                <input type="text" placeholder="Label" appLengthValidator limit="300" id="FB-label" class="form-control"
+                    (ngModelChange)="formBuilderService.unSavedChange = true;" [(ngModel)]="selectedComponent.label"
+                    appTailingSpaceRemover>
+            </div>
+        </ng-container>
+
+        <ng-container *ngIf="selectedComponent.componentType === 'CR'">
+            <div>
+                <label for="FB-currency-input" class="d-block fb-mt-3 fw-600 fb-label-font-size"><span
+                        class="fb-mandatory">*</span>Currency</label>
+                <select [(ngModel)]="customDataElement.defaultValue" id="FB-currency-code-input" class="form-control"
+                    aria-label="Select currency">
+                    <option [ngValue]="null">--Select--</option>
+                    <option [ngValue]="item.currencySymbol || item.currencyCode"
+                        *ngFor="let item of formBuilderService.currencyLookup">
+                        {{ item.currencyCode }} ({{ item.currencySymbol }})
+                    </option>
+                </select>
+                <div *ngIf="formValidation?.has('currencyValidation')">
+                    <span class="text-danger fs-14 d-inline-block">*Please select a currency</span>
+                </div>
+            </div>
+            <div>
+                <label class="fb-mt-3 fw-600 fb-label-font-size" for="FB-data-Length">
+                    <span class="fb-mandatory">*</span>Data Length
+                </label>
+                <input id="FB-data-Length" [ngClass]="{ 'is-invalid d-block': formValidation?.has('dataLengthValidation')||
+                               formValidation?.has('dataLengthOverLimitValidation') }"
+                    [(ngModel)]="customDataElement.dataLength" (keypress)="numberValidation($event);"
+                    (paste)="numberValidation($event);" class="form-control" placeholder="e.g: 10, 5, 2 etc" autocomplete="off"
+                    (keyup)="lengthValidation(30)" appLengthValidator [limit]="2" appTailingSpaceRemover>
+                <div *ngIf="formValidation?.has('dataLengthValidation')">
+                    <span class="text-danger fs-14 d-inline-block">*Please enter a data length</span>
+                </div>
+                <div *ngIf="formValidation?.has('dataLengthOverLimitValidation')">
+                    <span class="text-danger fs-14 d-inline-block">*Maximum data length is 30.</span>
+                </div>
+            </div>
+        </ng-container>
+
+        <ng-container
+                *ngIf="['SE','NE','DE','TE','PT'].includes(selectedComponent.componentType)">
+            <div>
+                <label class="d-block fb-mt-3 fw-600 fb-label-font-size" for="FB-placeHolder">
+                    Placeholder Text</label>
+                <input type="text" appLengthValidator [limit]="100" appTailingSpaceRemover id="FB-placeHolder" class="form-control"
+                    [(ngModel)]="customDataElement.placeHolderText" placeholder="Placeholder">
+            </div>
+        </ng-container>
+
+        <ng-container
+                *ngIf="['SE','NE','DE','CB','RB','ES','AS','SD','UD','TE','CE','QN','PE','PT','CR','AT'].includes(selectedComponent.componentType)">
+            <label class="d-block fw-600 fb-mt-3 fb-label-font-size" for="">
+                Header
+            </label>
+            <ckeditor tabindex="0" (ngModelChange)="formBuilderService.unSavedChange = true;"
+                      [(ngModel)]="selectedComponent.componentHeader" [editor]="Editor" [config]="editorConfig"
+                      (ready)="onReady($event)" placeholder="Comment" row="1" maxlength="2000"></ckeditor>
+            <label class="d-block fb-mt-3 fw-600 fb-label-font-size" for="">
+                Footer
+            </label>
+            <ckeditor tabindex="0" (ngModelChange)="formBuilderService.unSavedChange = true;"
+                      [(ngModel)]="selectedComponent.componentFooter" [editor]="Editor" [config]="editorConfig"
+                      (ready)="onReady($event)" placeholder="Comment" row="1" maxlength="2000"></ckeditor>
+        </ng-container>
+
+        <ng-container *ngIf="['PE', 'RT'].includes(selectedComponent.componentType)">
+            <label class="d-block fb-mt-3 fw-600 fb-label-font-size" for="FB-element-data"><span class="fb-mandatory">*</span>Element data</label>
+            <ckeditor tabindex="0" id="FB-element-data" (ngModelChange)="formBuilderService.unSavedChange = true;"
+                      [(ngModel)]="selectedComponent.componentData" [editor]="Editor" [config]="editorConfig"
+                      (ready)="onReady($event)" maxlength="2000"></ckeditor>
+                      <div *ngIf="formValidation?.has('elementValidation')">
+                      <span class="text-danger fs-14 d-inline-block">*Please enter the element data</span></div>
+        </ng-container>
+
+        <div
+                *ngIf="['CE','QN','HL','BR','SE','NE','DE','CB','RB','ES','AS','SD','UD','TE','PT','CR','AT'].includes(selectedComponent.componentType)">
+
+            <label tabindex="0" class="d-block fb-mt-3 fw-600 fb-label-font-size">
+                Is this form element mandatory?
+            </label>
+            <span class="py-1" aria-label="" role="switch">
+            <a *ngIf="selectedComponent.isMandatory === 'Y' " class="fb-pl-2">
+                <label class="switch" tabindex="0" (click)="mandatoryToggle()"
+                       (keyup.enter)="mandatoryToggle()">
+                    <input type="checkbox" checked>
+                    <span class="slider round"><small (keyup.enter)="selectedComponent.isMandatory = 'N'"
+                                                      class="fs-12 fb-mt-1 activate-text">Yes</small></span>
+                </label>
+            </a>
+            <a *ngIf="selectedComponent.isMandatory === 'N'" class="fb-pl-2">
+                <label class="switch" tabindex="0" (click)="selectedComponent.isMandatory = 'Y'; setFocusToValidationMessage();"
+                       (keyup.enter)="selectedComponent.isMandatory = 'Y'; setFocusToValidationMessage();">
+                    <input type="checkbox">
+                    <span class="slider round"><small (keyup.enter)="selectedComponent.isMandatory = 'Y'"
+                                                      class="deactivate-text deactivate-text-color  fs-12 fb-mt-1">No</small></span>
+                </label>
+            </a>
+        </span>
+            <ng-container *ngIf="selectedComponent.isMandatory === 'Y'">
+                <div>
+                    <label class="d-block fb-mt-3 fw-600 fb-label-font-size" [for]="FB_VALIDATION_MESSAGE_ID"><span
+                            class="fb-mandatory">*</span>Provide a validation
+                        message</label>
+                    <input [ngClass]="(formValidation?.has('mandatoryMessageValidation')) ? 'is-invalid d-block' : ''"
+                        [id]="FB_VALIDATION_MESSAGE_ID" type="text" tabindex="0" appTailingSpaceRemover class="form-control"
+                        (ngModelChange)="formBuilderService.unSavedChange = true;" [(ngModel)]="selectedComponent.validationMessage"
+                        placeholder="Validation Message" appLengthValidator limit="1000">
+                    <div *ngIf="formValidation?.has('mandatoryMessageValidation')">
+                        <span class="text-danger fs-14 d-inline-block">*Please enter a message</span>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+
+    <div *ngIf="['SE','NE','DE','CB','RB','ES','AS','SD','UD','TE','CE','QN','PE','RT','PT', 'CR', 'AT'].includes(selectedComponent.componentType)" [ngClass]="{'modal-footer fb-pr-15': isModalView, 'd-flex justify-content-end update-configuration p-2': !isModalView}">
+        <button *ngIf="isInitialSave " type="button" [ngClass]="{'fb-mr-2': !isModalView}"
+                class="btn btn-secondary btn-sm" (click)="closeModalAdditionInfoModal();"
+                aria-label="Click here to close" id="FB-save-configuration-close-btn" title="Click here to close">Close
+        </button>
+        <button *ngIf="isInitialSave" type="button"
+                class="btn btn-primary-sub btn-sm" (click)="saveForComponents();"
+                aria-label="Click here to save configurations" id="FB-save-configuration-btn" title="Click here to save configurations"><i
+                class="fa fa-save fb-mr-2" aria-hidden="true"></i> Save Configurations</button>
+        <button *ngIf="!isInitialSave" type="button" [ngClass]="{'fb-mr-2': !isModalView}"
+                class="btn btn-secondary btn-sm" (click)="closeModalAdditionInfoModal();"
+                aria-label="Click here to close" id="FB-update-configuration-close-btn" title="Click here to close">Close
+        </button>
+        <button *ngIf="!isInitialSave" type="button"
+                class="btn btn-primary-sub btn-sm" (click)="updateForComponents();"
+                aria-label="Click here to update configurations" id="FB-update-configuration-btn" title="Click here to update configurations"><i
+                class="fa fa-save fb-mr-2" aria-hidden="true"></i> Update Configurations
+        </button>
+    </div>
+
+    <div *ngIf="showSelectedSection && selectedSection.sectionId" [ngClass]="{'modal-footer fb-pr-15': isModalView, 'd-flex justify-content-end update-configuration align-items-center p-2': !isModalView}">
+        <button type="button" [ngClass]="{'fb-mr-2': !isModalView}"
+                class="btn btn-secondary btn-sm" (click)="closeModalAdditionInfoModal();"
+                aria-label="Click here to close" id="FB-update-section-configuration-close-btn" title="Click here to close">Close
+        </button>
+        <button class="btn btn-primary-sub btn-sm" id="FB-update-configuration"
+                aria-label="Click here to update configurations" (click)="updateForSection();"
+                (keyup.enter)="updateForSection();" (keyup.space)="updateForSection();" title="Click here to update configurations">
+            <i class="fa fa-save fb-mr-2" aria-hidden="true"></i>Update Configurations
+        </button>
+    </div>
+
+</div>
+
+<div id="fb-questionnaire-confirmation-popup" class="modal fade mySkinDialog" tabindex="-1" role="dialog"
+    aria-labelledby="fb-confirmation-modal-title" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog" role="document" appModalDrag>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="fb-confirmation-modal-title" class="modal-title">Confirmation</h5>
+                <button id="confirmation-modal-close-btn" type="button" class="close" data-dismiss="modal"
+                    title="Click here to close modal" aria-label="Click here to close modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>You have marked individual questions as mandatory, but the <strong>'Form Builder Questionnaire Mandatory'</strong> setting is
+                    turned off. This means users can skip those questions without validation. Do you want to enable the <strong>'Form
+                    Builder Questionnaire Mandatory'</strong> setting?</p>
+            </div>
+            <div class="modal-footer">
+                <button id="form-builder-questionnaire-skip-btn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                    title="Click here to move ahead without completing this step"
+                    aria-label="Click here to move ahead without completing this step" data-toggle="modal"
+                    (click)="configWithoutMandatory()">Skip</button>
+                <button id="form-builder-questionnaire-proceed-btn" type="button" class="btn btn-primary-sub btn-sm"
+                    aria-label="Click here to continue to the next step" title="Click here to continue to the next step"
+                    data-dismiss="modal" (click)="proceedConfigurationAction()">Proceed
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button id="form-builder-questionnaire-modal-trigger-btn" class="d-none" tabindex="-1" aria-hidden="true" data-toggle="modal"
+    data-target="#fb-questionnaire-confirmation-popup"></button>

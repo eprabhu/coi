@@ -1,0 +1,196 @@
+<!-- Created and Updated By Ramlekshmy I on 23-11-2019 -->
+<!-- Contact Section-->
+<div id="Award106" class="card mb-3" [ngClass]="{'item-highlighted': isHighlighted}">
+  <div class="card-header px-4">
+    <h4 class="card-title">Contacts 
+      <span class="d-block d-sm-block float-sm-right font-weight-normal mr-sm-5 fs-14">
+        <i aria-hidden="true" class="fa fa-user-o mr-2"></i>Employee |
+        <i aria-hidden="true" class="fa fa-user-circle text-danger mr-2"></i>Non-Employee
+        <span *ngIf="isEditable">
+          <button class="btn btn-sm btn-tertiary ml-3" data-toggle="modal" data-target="#add-contact-modal" > Add Contact</button>
+        </span>
+      </span>
+      <button id="project-expand-btn" class="updown-arrow" (click)="isShowCollapse = !isShowCollapse">
+        <i [ngClass]="isShowCollapse?'fa fa-angle-double-up':'fa fa-angle-double-down'" class="fa-large"
+          aria-hidden="true"></i>
+      </button>
+    </h4>
+  </div>
+  <div class="card-content" *ngIf="isShowCollapse">
+    <div class="card-body">
+      <!-- Contact Details View Starts Here-->
+      <div class="noDataOnChart noDataExists p-2" *ngIf="result?.awardContacts?.length == 0 && isEditable">
+        <div class="no-data-container">
+          <span class="no-data-icon-outer">
+            <div class="no-data-icon">
+              <i aria-hidden="true" class="fa fa-file-o"></i>
+              <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+            </div>
+          </span>
+          <h4>There is no information in this section.</h4>
+        </div>
+      </div>
+      <div *ngIf="!isEditable && (result?.awardContacts?.length == 0 || !result?.awardContacts)" class="noDataExists">
+        <ng-container i18n="@@AWARD_NO_CONTACTS_ADDED">There are no contacts added 
+          in this Award</ng-container></div>
+      <div class="table-responsive">
+        <table class="table tableSkin grid2" *ngIf="result?.awardContacts?.length > 0 && isShowCollapse">
+          <caption class="sr-only">Contact Details</caption>
+          <thead class="thead-light">
+            <th scope="col" colspan="2">Name</th>
+            <th scope="col">Contact Type</th>
+            <th scope="col" colspan="2">Designation</th>
+            <th scope="col" colspan="2">Office Phone</th>
+            <th scope="col" colspan="2">Email Address</th>
+            <th scope="col" class="w-10">Actions</th>
+          </thead>
+          <tbody>
+            <tr *ngFor="let contact of result?.awardContacts; let i = index">
+              <td><i class="mr-2" aria-hidden="true"
+                  [ngClass]="contact.rolodexId ? 'fa fa-user-circle text-danger':'fa fa-user-o'"></i>{{contact?.fullName}}
+              </td>
+              <td colspan="2">{{ getTypeDescription(contact?.contactTypeCode) }}</td>
+              <td colspan="2"><span *ngIf="contact?.designation != null">{{contact?.designation}}</span>
+              </td>
+              <td colspan="2"><span *ngIf="contact?.phoneNumber != null">{{contact?.phoneNumber}}</span></td>
+              <td colspan="2"><span *ngIf="contact?.emailAddress != null">{{contact?.emailAddress}}</span></td>
+              <td>
+                <ul class="actionButtonGroup">
+                  <li>
+                    <a id="award-key-view-btn" (click)="fetchPersonDetails(contact)" data-toggle="modal"
+                       tabindex="0">
+                      <i class="fa fa-eye" aria-hidden="true" title="Click here to view {{contact?.fullName}}"></i>
+                    </a>
+                  </li>
+                  <ng-container *ngIf="isEditable">
+                    <li>
+                      <a id="award-contact-edit-btn"
+                        (click)="contactDataFlag.isContactEdit = true; editIndex = i;editContact();" tabindex="0" data-toggle="modal" data-target="#add-contact-modal">
+                        <i class="fa fa-pencil" aria-hidden="true" title="Click here to edit {{contact?.fullName}}"></i>
+                      </a>
+                    </li>
+                    <li>
+                      <a href="#"
+                        *ngIf="!contactDataFlag.isContactEdit || (contactDataFlag.isContactEdit && editIndex !== i)"
+                        id="award-contact-delete-btn" data-toggle="modal" data-target="#delete-contact-modal"
+                        (click)="deleteContactIndex = i;map.clear();" tabindex="0">
+                        <i class="fa fa-trash-o" aria-hidden="true"
+                          title="Click here to delete {{contact?.fullName}}"></i>
+                      </a>
+                    </li>
+                  </ng-container>
+                </ul>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- Contact Details View Ends Here-->
+    </div>
+  </div>
+</div>
+<!-- Contact Delete Warning Modal -->
+<div class="modal fade mySkinDialog modal-opacity" tabindex="-1" id="delete-contact-modal" role="dialog"
+  aria-labelledby="deleteModalTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete</h5>
+        <button id="award-dlt-contact-dismiss" type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this member?</p>
+      </div>
+      <div class="modal-footer">
+        <button id="award-contact-close-btn" type="button" class=" btn-secondary btn-sm" data-dismiss="modal"
+          data-toggle="modal">Cancel</button>
+        <button id="awrad-contact-delete-btn" type="button" class="btn btn-primary-sub btn-sm"
+          (click)="deleteContactDetails()" data-dismiss="modal">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Contact Delete Warning Modal Ends Here-->
+<!-- Generalize this modal later -->
+
+<app-address-book *ngIf="contactDataFlag.isAddNonEmployeeContactModal"
+  [isAddNonEmployeeModal]="contactDataFlag.isAddNonEmployeeContactModal"
+  (rolodexResult)="setRolodexContactObject($event)"></app-address-book>
+  <app-person-rolodex-view (personRolodexViewModal)="setPersonRolodexModalView($event)" 
+  *ngIf="isRolodexViewModal" [personRolodexType]="type" [personRolodexId]="id" [personRolodexIsTraining]="isTraining" 
+  [personRolodexPersonDescription]="personDescription" ></app-person-rolodex-view>
+
+  <div class="modal fade mySkinDialog" id="add-contact-modal" role="dialog" aria-labelledby="skippedSchedulesTitle"
+    aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{contactDataFlag?.isContactEdit ? 'Update' : 'Add'}} Contact</h5>
+          <button type="button" class="close" (click)="resetContactFields();" data-dismiss="modal"
+            aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body py-1 px-3">
+          <app-award-overview-modal-card></app-award-overview-modal-card>
+          <div class="w-100">
+            <div class="form-row">
+              <div class="col-lg-6 col-md-6 col-sm-12 col-12 mt-3">
+                <input id="emp-radio" type="radio" class="radio-inline" name='employees_nonemployees' [value]="false"
+              [(ngModel)]="contactDataFlag.isNonEmployee" (ngModelChange)="changeMemberType()"> <span
+              class="mr-3"><label for="emp-radio">Employee</label></span>
+            <input id="non-emp-radio" type="radio" class="radio-inline" name='employees_nonemployees' [value]="true"
+              [(ngModel)]="contactDataFlag.isNonEmployee" (ngModelChange)="changeMemberType()"> <label for="non-emp-radio">Non-
+              Employee</label>
+            <div class="searchBox mb-0">
+              <app-elastic [options]="contactsElasticOptions" [clearField]="clearNameField"
+                [isError]="(map.get('contactfullname')) ? true : false"
+                [placeHolder]="contactDataFlag?.isNonEmployee ? 'Search a non-employee' : 'Search an employee'"
+                (selectedResult)="selectPersonName($event)">
+              </app-elastic>
+              <div *ngIf="contactDataFlag?.isNonEmployee && _commonService.isEnableAddtoAddressBook">
+                <a id="prop-non-employee-add-btn" class="anchor-link" data-toggle="modal"
+                  data-target="#add-non-employee" (click)="contactDataFlag.isAddNonEmployeeContactModal = true; contactDataFlag.isShowElasticResults =false; switchToNonEmployeeModal()">
+                  <i class="fa fa-user-plus" aria-hidden="true"></i> <ng-container i18n="@@COMMON_ADD_TO_ADDRESS_BOOK">Add to Address Book</ng-container></a>
+              </div>
+            </div>
+              </div>
+              <div class="col-lg col-md-3 col-sm col-9 mt-3">
+                <span class="mandatory">*</span><label for="contactType">Contact Type</label>
+                <select id="contactType" [(ngModel)]="awardContactDetails.contactTypeCode"
+                  [ngClass]="(map.get('type')) ? 'is-invalid d-block' : ''" class="form-control">
+                  <option value=null>--Select--</option>
+                  <option *ngFor="let contactType of personnelLookupData.awardContactTypeList"
+                    [value]="contactType.contactTypeCode" [hidden]="contactType.isActive != true">
+                    {{ contactType.description }}</option>
+                </select>
+                <div *ngIf="(map.get('type'))" class="invalid-feedback">{{map?.get('type')}}</div>
+              </div>
+              <div class="col-12" *ngIf="contactDataFlag.isShowElasticResults">
+                <app-person-rolodex-card (ShowElasticResults)="setShowElasticResults($event)"
+                  [personRolodexObject]="selectedContactMember"></app-person-rolodex-card>
+              </div>
+            </div>
+            <div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div class="text-center text-md-right">
+            <button id="award-key-personnel-cancel-btn" data-dismiss="modal" class="btn btn btn-secondary btn-xs mx-2"
+              (click)="resetContactFields();">Cancel</button>
+            <button *ngIf="!contactDataFlag?.isContactEdit" id="award-key-personnel-add-btn" class="btn btn-primary-sub btn-xs"
+              (click)="saveOrUpdateAwardContact('I')">
+              Add Contact
+            </button>
+            <button *ngIf="contactDataFlag?.isContactEdit" id="award-key-personnel-update-btn"
+              class="d-inline-block btn btn-primary-sub btn-xs px-2" (click)="saveOrUpdateAwardContact('U')">
+              Update Contact
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

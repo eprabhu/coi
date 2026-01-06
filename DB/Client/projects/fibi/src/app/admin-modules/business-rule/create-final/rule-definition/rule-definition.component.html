@@ -1,0 +1,149 @@
+<div class="row ">
+    <div class="col-lg-12 ">
+        <div class="p-relative condition-add">
+
+            <span (click)="deleteSubRule()" class="ruleclosebtn">
+                <i class="fa fa-times" aria-hidden="true"></i>
+            </span>
+            <div class="row">
+                <div class="col-lg-12 pb">
+                    <div class="rules-option">Build an
+                        expression using :
+                        <div *ngFor="let item of typeUsedForRule; let index = index"
+                            class="form-check form-check-inline">
+                            <label class="hand-icon form-check-label mr-4">
+                                <input class="hand-icon form-check-input mr-0" type="radio"
+                                    name="{{singleRule.EXPRESSION_NUMBER}}"
+                                    [(ngModel)]="singleRule.EXPRESSION_TYPE_CODE" value="{{item.id}}"
+                                    (change)="RuleCategorySelectionChange(item,singleRule)">
+                                <span *ngIf="item.name==='Variable'">{{ruleDefinition.ruleAppliedToName}}
+                                    Data</span>
+                                <span *ngIf="item.name!=='Variable'">{{item.name}}</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row ruleDefinition">
+                <div class="col-lg-5 row">
+                    <div class="col">
+                        <app-autocompleter *ngIf="singleRule?.EXPRESSION_TYPE_CODE != 'Q'" [completerOptions]="expressionOptions" [clearField]="expressionClear"
+                            [placeHolder]="expressionPlaceholder" (onSelect)="expressionSelect($event, singleRule)">
+                        </app-autocompleter>
+                        <div class="form-group searchBox" *ngIf="singleRule?.EXPRESSION_TYPE_CODE == 'Q'">
+                            <input type="text" class="forTextAreaEntry form-group form-control scheduleBoxes" 
+                            [title]="singleRule.QUESTION" id="question_name" placeholder="Select question" 
+                            disabled
+                            [ngModel]="singleRule.QUESTION_NAME?.length > 50 ?(singleRule?.QUESTION_NAME | slice:0:50) +'...' : singleRule?.QUESTION_NAME">
+                        </div>
+                        <div class="fs-13 fw-500 pl-2 text-break" *ngIf="singleRule?.EXPRESSION_TYPE_CODE == 'F' && singleRule?.FUNCTION_DESCRIPTION">
+                            {{singleRule?.FUNCTION_DESCRIPTION}}
+                        </div>
+                        <div class="fs-13 fw-500 pl-2 text-break"
+                            *ngIf="singleRule?.EXPRESSION_TYPE_CODE == 'Q' && singleRule?.QUESTIONNAIRE_DESCRIPTION">
+                            #{{singleRule?.QUESTIONNAIRE_DESCRIPTION}}
+                        </div>
+                    </div>
+                    <span *ngIf="(singleRule?.EXPRESSION_TYPE_CODE == 'F' && singleRule?.FUNCTION_PARAMETERS && singleRule?.FUNCTION_PARAMETERS.length)"
+                        (click)="openDataInModal()">
+                        <a class="eye-icon pointer">
+                            <i class="fa fa-eye" aria-hidden="true"></i>
+                        </a>
+                    </span>
+                    <span *ngIf="(singleRule?.EXPRESSION_TYPE_CODE == 'Q')"
+                    (click)="openQuestionsModal(true)">
+                    <a class="eye-icon pointer">
+                        <i class="fa fa-pencil" aria-hidden="true"></i>
+                    </a>
+                    </span>
+                </div>
+                <div class="col-lg-3">
+                    <select (change)="generateRuleSummery(null, null); clearRValuesForEmptyOperators()" class="form-control"
+                        [(ngModel)]="singleRule.CONDITION_OPERATOR" [disabled]="checkFunctionParametersFilled()">
+                        <option value="">Please choose an operator</option>
+                        <option [value]="operator.name" *ngFor="let operator of  singleRule?.conditionalOperators">
+                            {{operator.name}}</option>
+                    </select>
+                    <div *ngIf="checkFunctionParametersFilled()" class="invalid-feedback d-block">
+                        * Please fill all the function parameters before continuing
+                    </div>
+                </div>
+                <div class="col-lg-4" *ngIf="!(['Is Empty','Is Not Empty'].includes(singleRule.CONDITION_OPERATOR))">
+                    <input (keyup)="generateRuleSummery()" class="form-control" [(ngModel)]="singleRule.RVALUE_LABEL"
+                        (ngModelChange)="singleRule.RVALUE = singleRule.RVALUE_LABEL;" type="text"
+                        *ngIf="(singleRule?.questionnaireFieldType==='Text' || singleRule?.questionnaireFieldType== 'elastic' 
+                        || singleRule?.questionnaireFieldType=='endpoint' 
+                        || singleRule?.questionnaireFieldType?.toLowerCase()=='systemlookup' || singleRule?.questionnaireFieldType?.toLowerCase()=='userlookup') && singleRule.EXPRESSION_TYPE_CODE === 'Q'"  />
+                    <textarea (keyup)="generateRuleSummery()" class="forTextAreaEntry form-control"
+                        [(ngModel)]="singleRule.RVALUE_LABEL"
+                        (ngModelChange)="singleRule.RVALUE = singleRule.RVALUE_LABEL;"
+                        *ngIf="singleRule.questionnaireFieldType==='Textarea' && singleRule.EXPRESSION_TYPE_CODE === 'Q'"
+                        placeholder="">{{ruleDefinition.ruleSummery}}</textarea>
+                    <div
+                        *ngIf="singleRule?.questionnaireFieldType?.toLowerCase()==='checkbox' && singleRule?.EXPRESSION_TYPE_CODE === 'Q'">
+                        <div *ngFor="let list of  singleRule?.ruleDataSource" class="modulelist irb-modulelist"
+                            class="form-check form-check-inline">
+                            <label class="hand-icon form-check-label">
+                                <input [checked]="list['isChecked']" [(ngModel)]="list['isChecked']"
+                                    (ngModelChange)="onChangeRValueCheckBox(list.OPTION_LABEL, singleRule)"
+                                    class="hand-icon form-check-input" type="checkbox" value="{{list.OPTION_LABEL}}">
+                                {{list.OPTION_LABEL}}
+                            </label>
+                        </div>
+                    </div>
+
+                    <div
+                        *ngIf="singleRule?.questionnaireFieldType?.toLowerCase()==='radio' && singleRule?.EXPRESSION_TYPE_CODE === 'Q'">
+                        <div *ngIf="singleRule?.EXPRESSION_TYPE_CODE !== 'V'">
+                            <div *ngFor="let list of  singleRule.ruleDataSource" class="modulelist irb-modulelist"
+                                class="form-check form-check-inline">
+                                <label class="hand-icon form-check-label">
+                                    <input type="radio" name="{{list.QUESTION_NUMBER +singleRule.EXPRESSION_NUMBER}}"
+                                        [value]="list.OPTION_LABEL" (change)="onChangeRValueRadio(list,singleRule)"
+                                        [(ngModel)]="singleRule.RVALUE"
+                                        (ngModelChange)="singleRule.RVALUE_LABEL = singleRule.RVALUE;"
+                                        class="form-check-input" required />
+                                    {{list.OPTION_LABEL}}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <select (change)="onChangeRValueSelectList(singleRule)" [(ngModel)]="singleRule.RVALUE"
+                        class="hand-icon form-control"
+                        *ngIf="(singleRule?.questionnaireFieldType==='Y/N' || singleRule?.questionnaireFieldType==='Y/N/NA') && singleRule?.EXPRESSION_TYPE_CODE === 'Q'">
+                        <option value="">--select--
+                        </option>
+                        <option [value] ="list.OPTION_LABEL" *ngFor="let list of singleRule?.ruleDataSource">
+                            {{list.OPTION_LABEL}}
+                        </option>
+                    </select>
+                    <div *ngIf="singleRule?.questionnaireFieldType?.toLowerCase()==='date' && ['Q', 'V'].includes(singleRule?.EXPRESSION_TYPE_CODE)"
+                        class="ct-date-dv">
+                        <input matInput [matDatepicker]="dt3" [(ngModel)]="singleRule.RVALUE"
+                        (ngModelChange)="setDateFormat(singleRule,singleRule.RVALUE)"
+                            placeholder="{{singleRule.RVALUE}}" class="br-date-picker form-control"
+                            id="business-date" (click)="dt3.open()">
+                        <span class="fa fa-calendar fa-large hand-cursor insidePicker" (click)="dt3.open()">
+                        </span>
+                        <mat-datepicker #dt3 id="dt3" (opened)="setFocusToElement('business-date')">
+                        </mat-datepicker>
+                    </div>
+
+                    <span
+                        *ngIf="singleRule?.EXPRESSION_TYPE_CODE == 'F' || (singleRule?.EXPRESSION_TYPE_CODE == 'V' && singleRule?.questionnaireFieldType == 'ShowLookUp')">
+                        <app-autocompleter [completerOptions]="rValueOptions" [clearField]="rValueClear"
+                            [placeHolder]="rValuePlaceholder" (onSelect)="generateRuleSummery($event, singleRule)"
+                            *ngIf="(!checkFunctionParametersFilled()) ||
+                                (singleRule?.EXPRESSION_TYPE_CODE == 'V' && singleRule?.questionnaireFieldType == 'ShowLookUp')">
+                        </app-autocompleter>
+                        <input type="text" class="form-control" [disabled]="true" placeholder="Search"
+                        *ngIf="checkFunctionParametersFilled()">
+                    </span>
+                    <input (keyup)="generateRuleSummery()" [(ngModel)]="singleRule.RVALUE"
+                        (ngModelChange)="singleRule.RVALUE_LABEL = singleRule.RVALUE;" type="text" class="scheduleBoxes"
+                        *ngIf="singleRule.EXPRESSION_TYPE_CODE == 'V' && singleRule.questionnaireFieldType == 'HideLookUp'" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

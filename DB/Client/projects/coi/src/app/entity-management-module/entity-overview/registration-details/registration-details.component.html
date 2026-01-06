@@ -1,0 +1,113 @@
+<div class="card overflow-hidden" [id]="REGISTRATION_DETAILS.sectionId">
+    <div class="px-3 my-1 d-flex align-items-center">
+        <div class="col fs-16 my-2">
+            <label for="coi-entity-reg-details">
+                <span>{{REGISTRATION_DETAILS.sectionName}}</span>
+                <app-common-help-text [subSectionId]="REGISTRATION_DETAILS.sectionId" [elementId]="'coi-entity-reg-details'"></app-common-help-text>
+            </label>
+        </div>
+        <div class="col-auto" *ngIf="entityRegistrations.length && isEditMode && canManageEntity && !isDunsViewMode">
+            <button id="additional-address-add-button"
+                class="btn btn-primary fs-14 d-inline-flex" title="Click here to add registration details"
+                aria-label="Click here to add registration details" (click)="addRegistrationDetails(true)">
+                <mat-icon>add</mat-icon>Add Registration Details
+            </button>
+        </div>
+    </div>
+    <div *ngIf="!entityRegistrations.length">
+        <app-no-information [isBorderNeeded]="false" [canShowAddButton]="isEditMode && canManageEntity && !isDunsViewMode" [buttonName]="'Add Registration Details'" (buttonAction)="addRegistrationDetails($event)"></app-no-information>
+    </div>
+    <div *ngIf="entityRegistrations.length" class="row mx-0 row-gap-2">
+        <div *ngFor="let registration of entityRegistrations;let isLast = last;let i = index"
+            [ngClass]="isLast ? 'mb-3' : 'mb-2'" class="col-sm-12 col-lg-6 mt-sm-2 mt-lg-0">
+            <div class="card coi-entity-details-card px-2 py-1">
+                <div class="d-flex">
+                    <div class="col-md-9 col-lg-10 fs-14">
+                        <span class="coi-text-light">{{registration?.registrationType ? registration?.registrationType?.description : registration?.registrationTypeDescription}}</span>
+                        <span class="d-flex coi-text-light fw-600">{{registration?.regNumber}}</span>
+                    </div>
+                    <div *ngIf="isEditMode && !isDunsViewMode" class="col-md-3 col-lg-2 d-flex align-items-center justify-content-end mb-auto">
+                        <button class="btn btn-primary-icon d-flex align-items-center justify-content-center rounded-circle p-2 m-1" (click)="editRelationship(registration, i)"
+                            title="Click here to update registration details" aria-label="Click here to update registration details">
+                            <mat-icon aria-hidden="true" class="flex-shrink-0">edit</mat-icon>
+                        </button>
+                        <button class="btn btn-primary-icon d-flex align-items-center justify-content-center rounded-circle p-2 m-1"
+                            title="Click here to delete registration details" aria-label="Click here to delete registration details" (click)="confirmDelete(registration, i)">
+                            <mat-icon aria-hidden="true" class="flex-shrink-0">delete</mat-icon>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- open add industry confirmation -->
+<div class="modal modal-lg fade mySkinDialog" data-bs-backdrop="static" id="addRegistrationDetails"
+    role="dialog" tabindex="-1" aria-labelledby="addRegistrationDetails-header">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title" id="addRegistrationDetails-header">{{isEditIndex != null ? 'Update':'Add'}} Registration Details</h4>
+                <app-common-help-text *ngIf="isEditIndex !== null" [subSectionId]="REGISTRATION_DETAILS.sectionId" [elementId]="'coi-entity-registration-update'"></app-common-help-text>
+                <app-common-help-text *ngIf="isEditIndex === null" [subSectionId]="REGISTRATION_DETAILS.sectionId" [elementId]="'coi-entity-registration-add'"></app-common-help-text>
+				<button type="button" class="btn-close" id="coi-add-registration-details-close-btn"
+                        title="Click here to close" data-bs-dismiss="modal" aria-label="Click here to close" (click)="clearRegistrationDetails()"></button>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<div class="col-sm-12 col-lg-6">
+                        <label class="fs-14 fw-500 pb-1 coi-label-help" for="coi-entity-registration-type">
+                            <span class="mandatory me-1">*</span>Entity Registration Type
+                            <app-common-help-text [subSectionId]="REGISTRATION_DETAILS.sectionId" [elementId]="'coi-entity-registration-type'"></app-common-help-text>
+                        </label>
+                        <app-look-up (selectedResult)="entityRegistrationTypeSelect($event)" [options]="entityRegistrationTypeOption"
+                            [uniqueId]="'coi-entity-registration-type'" [isError]="mandatoryList?.has('regTypeCode')" [isDisabled]="isEditIndex!=null"
+                            [selectedLookUpList]="selectedRegistrationType" [defaultValue]="entityRegistrationDefaultValue">
+                        </app-look-up>
+                        <div *ngIf="mandatoryList?.has('regTypeCode')" class="invalid-feedback d-block fs-13" tabindex="-1"
+                            aria-label="Entity Registration Type">
+                            <span id="coi-entity-registration-type-validation1">{{mandatoryList?.get('regTypeCode')}}</span>
+                        </div>
+					</div>
+                    <div class="col-sm-12 col-lg-6 mt-sm-2 mt-lg-0">
+                        <label class="fs-14 fw-500 pb-1 coi-label-help" for="coi-entity-registration-number">
+                            <span class="mandatory me-1">*</span>Entity Registration Number
+                            <app-common-help-text [subSectionId]="REGISTRATION_DETAILS.sectionId" [elementId]="'coi-entity-registration-number'"></app-common-help-text>
+                        </label>
+                        <input type="text" class="form-control fs-13" id="coi-entity-name" name="coi-entity-name"
+                            [ngClass]="(mandatoryList?.has('registrationNumber')) ? 'is-invalid d-block' : ''"
+                            [(ngModel)]="registrationDetails.regNumber" appLengthValidator [limit]="30">
+                        <div *ngIf="mandatoryList?.has('registrationNumber')" class="invalid-feedback d-block fs-13">
+                            {{mandatoryList?.get('registrationNumber')}}
+                        </div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-outline-secondary" id="coi-add-entity-registration-details-cancel-btn"
+                    name="coi-add-entity-registration-details-cancel-btn" type="button"
+                    title="Click here to cancel" aria-label="Click here to cancel" (click)="clearRegistrationDetails()">
+                    Cancel
+				</button>
+				<button class="btn btn-primary me-0" id="coi-add-entity-registration-details-add-btn"
+                    name="coi-add-entity-registration-details-add-btn" type="button"
+					title="Click here to {{isEditIndex != null ? 'update': 'add'}} registration details"
+                    attr.aria-label="Click here to {{isEditIndex != null ? 'update': 'add'}} registration details"
+                    (click)="isEditIndex != null ? editRegistration() : addRegistration()">
+                    {{isEditIndex != null ? 'Update':'Add'}} Registration Details
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<app-common-modal [modalConfig]="modalConfig" (modalAction)="postConfirmation($event)">
+    <ng-container modal-header>
+        <span>Confirmation<app-common-help-text [subSectionId]="REGISTRATION_DETAILS.sectionId" [elementId]="'coi-entity-registration-delete'"></app-common-help-text></span>
+    </ng-container>
+    <ng-container modal-body>
+        <p>Are you sure you want to delete <strong>{{entityRegistrationDefaultValue}}</strong>?</p>
+    </ng-container>
+</app-common-modal>

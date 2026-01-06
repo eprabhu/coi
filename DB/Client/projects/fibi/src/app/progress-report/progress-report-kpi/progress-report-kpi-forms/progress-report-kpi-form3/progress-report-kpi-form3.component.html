@@ -1,0 +1,258 @@
+<div class="table-responsive mb-2 p-2 shadow-sm border position-relative">
+    <div>
+        <label class="label mt-2 mb-1" for="manPowerDev">{{title}}</label>
+        <button *ngIf="isEditMode" (click)="clearDefaultValues()" class="btn btn-outline-primary btn-xs float-sm-right fs-14-nav mb-2 mr-50" data-toggle="modal"
+            [attr.data-target]="'#manpower-form-modal' + kpiSummaryId" id="toggleModal">
+            <span><i aria-hidden="true" class="fa fa-plus pr-2"></i></span> Add Entry
+        </button>
+        <button  class="updown-arrow" (click)="isFormOpen = !isFormOpen">
+            <i aria-hidden="true" [ngClass]="isFormOpen?'fa fa-angle-double-down':'fa fa-angle-double-up'"
+               class="fa-large"></i>
+        </button>
+    </div>
+    <ng-container *ngIf="isFormOpen">
+        <table *ngIf="summaryDetail.length > 0"
+            aria-describedby="Manpower Development (Number of PhD and Masters Students Trained or Being Trained)"
+            class="table tableSkin mb-0">
+            <thead>
+                <tr>
+                    <th scope="col">Name of Student</th>
+                    <th scope="col">Citizenship</th>
+                    <th scope="col">Current Status</th>
+                    <th scope="col">Date Enrolled</th>
+                    <th scope="col">Date Graduated / Resigned</th>
+                    <th scope="col">Date of Joining this Project</th>
+                    <th scope="col">Date of leaving this Project</th>
+                    <th scope="col">Comments</th>
+                    <th *ngIf="isEditMode" scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let kpi of summaryDetail;let index = index">
+                    <td>{{kpi?.nameOfStudent}}</td>
+                    <td>{{kpi?.citizenship}}</td>
+                    <td>{{kpi?.kpiManpowerDevelopmentCurrentStatus?.description}}</td>
+                    <td>{{kpi?.dateEnrolled | dateFormatter}}</td>
+                    <td>{{kpi?.dateGraduated | dateFormatter}}</td>
+                    <td>{{kpi?.dateOfJoining | dateFormatter}}</td>
+                    <td>{{kpi?.dateOfLeaving | dateFormatter}}</td>
+                    <td>
+                        <ul class="actionButtonGroup">
+                            <li>
+                                <div class="dropdown">
+                                    <a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" tabindex="0">
+                                        <i class="fa fa-commenting-o hand-cursor hoverColor mr-1 comment-icon" aria-hidden="true" title="Comment"></i>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
+                                        <div class="new-line-property">{{kpi?.comments ? kpi?.comments : 'Not Available'}}
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </td>
+                    <td *ngIf="isEditMode" class="text-nowrap">
+                        <ul class="actionButtonGroup icon">
+                            <li>
+                                <a class="hand-cursor" (click)="editKPI(kpi, index)"> 
+                                    <i aria-hidden="true" class="fa fa-pencil"></i>
+                                </a>
+                                <a (click)="selectedKPIForDelete = kpi; selectedKPIIndexForDelete = index;" class="hand-cursor  ml-2"
+                                    [attr.data-target]="'#deleteEntryModal' + kpiSummaryId" data-toggle="modal">
+                                    <i aria-hidden="true" class="fa fa-trash-o"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <ng-container *ngIf="summaryDetail.length === 0">
+            <p class="p-3 text-center fs-13 bg-color mb-0 mt-2">No Entries Found.</p>
+        </ng-container>
+    </ng-container>
+  
+</div>
+<!-- ADD OR EDIT MODAL -->
+<div class="modal fade bd-example-modal-lg mySkinDialog " id="manpower-form-modal{{kpiSummaryId}}">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{(mode === 'ADD' ? 'Add' : 'Edit')}} Entry</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div>
+                <div>
+                    <div class="card mb-3 title-descriptions">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="form-row">
+                                    <div class="col-5 form-group">
+                                        <label class="block-display" for="nameOfStudent"> <span
+                                                class="mandatory">*</span>
+                                            Name of Student</label>
+                                        <div>
+                                            <input class="form-control" [(ngModel)]="kpiManPowerDevForm.nameOfStudent"
+                                                [ngClass]="(formMap.get('nameOfStudent')) ? 'is-invalid d-block' : ''"
+                                                id="nameOfStudent" placeholder="Name of Student" type="text" />
+                                            <div *ngIf="(formMap.get('nameOfStudent'))"
+                                                class="invalid-feedback d-block">
+                                                {{formMap.get('nameOfStudent')}}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4 form-group">
+                                        <label class="block-display" for="citizenship">
+                                            Citizenship</label>
+                                        <div>
+                                            <input class="form-control" [(ngModel)]="kpiManPowerDevForm.citizenship"
+                                                id="citizenship" placeholder="Citizenship" type="text" />
+                                        </div>
+                                    </div>
+                                    <div class="col-3 form-group">
+                                        <label class="block-display" for="status"><span
+                                                class="mandatory">*</span>Current
+                                            Status</label>
+                                        <div>
+                                            <select class="form-control"
+                                                [(ngModel)]="kpiManPowerDevForm.currentStatusCode"
+                                                [ngClass]="(formMap.get('currentStatusCode')) ? 'is-invalid d-block' : ''"
+                                                id="status">
+                                                <option [ngValue]=null>--Select--</option>
+                                                <ng-container
+                                                    *ngFor="let type of lookupData?.kpiManpowerDevelopmentCurrentStatus">
+                                                    <option *ngIf="type.isActive" [value]="type.currentStatusCode">
+                                                        {{type?.description}}
+                                                    </option>
+                                                </ng-container>
+                                            </select>
+                                            <div *ngIf="(formMap.get('currentStatusCode'))"
+                                                class="invalid-feedback d-block">
+                                                {{formMap.get('currentStatusCode')}}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 form-group">
+                                        <label class="block-display">
+                                            Date Enrolled</label>
+                                        <span class="dateField">
+                                            <input matInput [matDatepicker]="enroll" (click)="enroll.open()"
+                                                autocomplete="off" class="d-inline-block form-control"
+                                                [(ngModel)]="kpiManPowerDevForm.dateEnrolled" id="dateEnrolled"
+                                                [ngClass]="(formMap.get('dateEnrolled')) ? 'is-invalid d-block' : ''"
+                                                placeholder="{{datePlaceHolder}}">
+                                            <i (click)="enroll.open()" aria-hidden="true"
+                                                class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                                id="enroll-date-icon" title="Open Calendar"></i>
+                                            <mat-datepicker #enroll
+                                                (opened)="setFocusToElement('dateEnrolled')">
+                                            </mat-datepicker>
+                                        </span>
+                                        <div *ngIf="(formMap.get('dateEnrolled'))" class="invalid-feedback d-block">
+                                            {{formMap.get('dateEnrolled')}}
+                                        </div>
+                                    </div>
+                                    <div class="col-6 form-group">
+                                        <label class="block-display" for="dateGraduated">
+                                            Date Graduated / Resigned</label>
+                                        <span class="dateField">
+                                            <input matInput [matDatepicker]="graduate" (click)="graduate.open()"
+                                                autocomplete="off" class="d-inline-block form-control"
+                                                [(ngModel)]="kpiManPowerDevForm.dateGraduated" id="dateGraduated"
+                                                placeholder="{{datePlaceHolder}}">
+                                            <i (click)="graduate.open()" aria-hidden="true"
+                                                class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                                id="graduate-date-icon" title="Open Calendar"></i>
+                                            <mat-datepicker #graduate
+                                                (opened)="setFocusToElement('dateGraduated')">
+                                            </mat-datepicker>
+                                        </span>
+                                    </div>
+                                    <div class="col-6 form-group">
+                                        <label class="block-display"><span
+                                                class="mandatory">*</span>Date of Joining this Project</label>
+                                        <span class="dateField">
+                                            <input matInput [matDatepicker]="join" (click)="join.open()" autocomplete="off" class="d-inline-block form-control"
+                                                [(ngModel)]="kpiManPowerDevForm.dateOfJoining" id="dateOfJoining" placeholder="{{datePlaceHolder}}"
+                                                [ngClass]="(formMap.get('dateOfJoining')) ? 'is-invalid d-block' : ''">
+                                            <i (click)="join.open()" aria-hidden="true" class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                                id="join-date-icon" title="Open Calendar"></i>
+                                            <mat-datepicker #join (opened)="setFocusToElement('dateOfJoining')">
+                                            </mat-datepicker>
+                                        </span>
+                                        <div *ngIf="(formMap.get('dateOfJoining'))" class="invalid-feedback d-block">
+                                            {{formMap.get('dateOfJoining')}}
+                                        </div>
+                                    </div>
+                                    <div class="col-6 form-group">
+                                        <label class="block-display" for="dateOfLeaving">
+                                            Date of leaving this Project</label>
+                                        <span class="dateField">
+                                            <input matInput [matDatepicker]="leave" (click)="leave.open()" autocomplete="off"
+                                                class="d-inline-block form-control"
+                                                [(ngModel)]="kpiManPowerDevForm.dateOfLeaving" id="dateOfLeaving"
+                                                [ngClass]="(formMap.get('dateOfLeaving')) ? 'is-invalid d-block' : ''"
+                                                placeholder="{{datePlaceHolder}}">
+                                            <i (click)="leave.open()" aria-hidden="true"
+                                                class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                                id="leave-date-icon" title="Open Calendar"></i>
+                                            <mat-datepicker #leave (opened)="setFocusToElement('dateOfLeaving')">
+                                            </mat-datepicker>
+                                        </span>
+                                        <div *ngIf="(formMap.get('dateOfLeaving'))" class="invalid-feedback d-block">
+                                            {{formMap.get('dateOfLeaving')}}
+                                        </div>
+                                    </div>
+                                    <div class="col-12 form-group">
+                                        <label class="block-display" for="comment">
+                                            Comments</label>
+                                        <div>
+                                            <textarea [isShowLimiter]='true' [limit]=200 appLengthValidator
+                                                [(ngModel)]="kpiManPowerDevForm.comments" placeholder="Comments"
+                                                class="form-control dateBox text-area-height" cols="30" id="comment"
+                                                rows="2"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-dismiss="modal" type="button">Close</button>
+                <button (click)="processRequest()" class="btn btn-primary-sub btn-sm" type="button">{{(mode === 'ADD' ?
+                    'Add' : 'Update')}}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DELETE WARNING MODAL -->
+<div aria-hidden="true" aria-labelledby="deleteModalTitle" class="modal fade mySkinDialog modal-opacity" id="deleteEntryModal{{kpiSummaryId}}" role="dialog"
+     tabindex="-1">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" id="prop-dlt-member-dismiss"
+                        type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this entry?</p>
+            </div>
+            <div class="modal-footer">
+                <button (click)="selectedKPIIndexForDelete = null; selectedKPIForDelete = null;" class="btn btn-secondary" data-dismiss="modal" data-toggle="modal"
+                        id="coi-progress-report-kpi-form-delete-warning-close-btn" type="button">Close
+                </button>
+                <button (click)="deleteSelectedKPI()" class="btn btn-primary-sub btn-sm" data-dismiss="modal"
+                        id="coi-progress-report-kpi-form--delete-warning-delete-btn" type="button">Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

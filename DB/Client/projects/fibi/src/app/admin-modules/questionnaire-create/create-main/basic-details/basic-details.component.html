@@ -1,0 +1,162 @@
+<div class="row">
+    <div class="col-12 form-outer irb-qst-form-outer">
+        <div class="card-details">
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="col">
+                        <label class="bold-600">Title</label>
+                        <input type="text" class="form-control" id="questionnaireName"
+                            [(ngModel)]="data.header.QUESTIONNAIRE_NAME" [(ngModel)]="newUsage.QUESTIONNAIRE_LABEL"
+                            (ngModelChange)="createQuestionnaireService.isGeneralDetailsChanged = true"
+                            placeholder="Title" aria-label="Username" aria-describedby="basic-addon1"
+                            [disabled]="isViewMode">
+                        <span class="bar"></span>
+                    </div>
+                    <!-- <div class="col">
+                        <label class="bold-600">Group</label>
+                        <select class="form-control" [disabled]="isViewMode"
+                            [(ngModel)]="data.header.QUEST_GROUP_TYPE_CODE">
+                            <option *ngFor="let group of data.questionnaireGroup"
+                                value="{{group.QUEST_GROUP_TYPE_CODE}}">
+                                {{group?.DESCRIPTION}}</option>
+                        </select>
+                    </div> -->
+                    <div class="col-sm-1 col-auto" *ngIf='!isViewMode'>
+                        <span class="float-right">
+                            <label class="bold-600">Activate</label>
+                            <a>
+                                <label class="switch d-block">
+                                    <input type="checkbox" [(ngModel)]="data.header.IS_FINAL" id="defaultCheck1"
+                                    (ngModelChange)="createQuestionnaireService.isGeneralDetailsChanged = true"
+                                        [checked]="data.header.IS_FINAL">
+                                    <span class="slider round">
+                                        <small [ngClass]="{'deactivate-text': !data.header.IS_FINAL}">
+                                            {{data.header.IS_FINAL ? 'Yes': 'No'}}
+                                        </small>
+                                    </span>
+                                </label>
+                            </a>
+                        </span>
+                    </div>
+                    <div class="col-12">
+                        <label class="bold-600">Description</label>
+                        <textarea class="form-control" placeholder="Description" appLengthValidator
+                            [isShowLimiter]='!isViewMode' [limit]=4000
+                            [(ngModel)]="data.header.QUESTIONNAIRE_DESCRIPTION" 
+                            (ngModelChange)="createQuestionnaireService.isGeneralDetailsChanged = true"
+                            aria-label="Username"
+                            [disabled]="isViewMode" aria-describedby="basic-addon1"></textarea>
+                        <span class="bar"></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="tbl-1-outer">
+                            <div class="table-responsive">
+                                <table class="table qst-table-thead mb-0">
+                                    <caption class="sr-only">Questionnaire</caption>
+                                    <thead class="qst-header-bg">
+                                        <tr class="text-dark">
+                                            <th scope="col">Mandatory</th>
+                                            <th scope="col">Applied to</th>
+                                            <th scope="col">Sub Section</th>
+                                            <th scope="col">Rule</th>
+                                            <th scope="col">Questionnaire Label</th>
+                                            <th scope="col" *ngIf="!isViewMode">Actions</th>
+                                        </tr>
+                                        <tr *ngIf="!isViewMode">
+                                            <td class="text-center align-middle"> <input type="checkbox"
+                                                    [(ngModel)]="newUsage.IS_MANDATORY" 
+                                                    (ngModelChange)="createQuestionnaireService.isGeneralDetailsChanged = true"
+                                                    /></td>
+                                            <td>
+                                                <select [(ngModel)]="newUsage.MODULE_ITEM_CODE" class="form-control"
+                                                    [ngClass]="(errorMap.get('duplicate')) ? 'is-invalid d-block' : ''"
+                                                    (ngModelChange)="createQuestionnaireService.isGeneralDetailsChanged = true;updateUsageDetails()">
+                                                    <option [value]=0>--select--</option>
+                                                    <option *ngFor="let module of moduleList"
+                                                    [disabled]="module.IS_ACTIVE != 'Y'"  [hidden]="module.IS_ACTIVE != 'Y'" [value]="module.MODULE_CODE">
+                                                        {{module.DESCRIPTION}}
+                                                    </option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <select [(ngModel)]="newUsage.MODULE_SUB_ITEM_CODE"
+                                                    class="form-control w-100"
+                                                    (ngModelChange)="createQuestionnaireService.isGeneralDetailsChanged = true; newUsage.RULE_ID = null; getRuleList();">
+                                                    <option [value]='0'>--select option--</option>
+                                                    <option [value]="subModule.SUB_MODULE_CODE"
+                                                        *ngFor="let subModule of subModuleList"
+                                                        [disabled]="subModule.IS_ACTIVE != 'Y'"   [hidden]="subModule.IS_ACTIVE != 'Y'">
+                                                        {{subModule.DESCRIPTION}}
+                                                    </option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <select [(ngModel)]="newUsage.RULE_ID" 
+                                                (ngModelChange)="createQuestionnaireService.isGeneralDetailsChanged = true"
+                                                class="form-control w-100">
+                                                    <option [value]=0>--select option--</option>
+                                                    <option [value]="rule.RULE_ID" *ngFor="let rule of ruleList">
+                                                        {{rule.RULE}}
+                                                    </option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="form-control"
+                                                    [(ngModel)]="newUsage.QUESTIONNAIRE_LABEL" 
+                                                    (ngModelChange)="createQuestionnaireService.isGeneralDetailsChanged = true"
+                                                    placeholder="Name"
+                                                    aria-label="Username" aria-describedby="basic-addon1">
+                                                <span class="bar"></span>
+                                            </td>
+                                            <td class="text-center align-middle">
+                                                <i *ngIf="UsageEditIndex == null" (click)="addNewUsage()"
+                                                    class="fa fa-plus f-16 mt-2 mr-2 hand-cursor" title="Add Usage"
+                                                    aria-hidden="true"></i>
+                                                <i *ngIf="UsageEditIndex != null" (click)="updateUsage()"
+                                                    class="fa fa-floppy-o f-16 mt-2 mr-2 hand-cursor"
+                                                    title="Update Usage" aria-hidden="true"></i>
+                                                <i *ngIf="UsageEditIndex != null" (click)="cancelUsageEdit()"
+                                                    class="fa fa-times f-16 mt-2 hand-cursor" title="cancel"
+                                                    aria-hidden="true"></i>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td *ngIf="(errorMap.has('duplicate'))" class="border-0"></td>
+                                            <td colspan=" 5" *ngIf="(errorMap.has('duplicate'))"
+                                                class="text-danger fs-12 py-0 border-0">
+                                                {{errorMap.get('duplicate')}}
+                                            </td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr *ngFor="let list of data.usage; let listIndex= index" class="pull-up">
+                                            <ng-container *ngIf="list.AC_TYPE != 'D'">
+                                                <td class="text-center"> <i *ngIf="list.IS_MANDATORY"
+                                                        class="fa fa-check" aria-hidden="true"></i></td>
+                                                <td>{{list.MODULE_NAME}}</td>
+                                                <td>{{list.SUB_MODULE_NAME}}&nbsp;
+                                                </td>
+                                                <td>{{list.RULE}}</td>
+                                                <td>{{list.QUESTIONNAIRE_LABEL}}</td>
+                                                <td *ngIf="!isViewMode" class="qst-action-icon">
+                                                    <span><i (click)="removeUsage(listIndex)"
+                                                            class="fa fa-times close-icon" title="Cancel"
+                                                            aria-hidden="true"></i></span>
+                                                    <span><i (click)="editUsage(list,listIndex)"
+                                                            class="fa fa-pencil close-icon" title="Edit Questionnaire"
+                                                            aria-hidden="true"></i></span>
+                                                </td>
+                                            </ng-container>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

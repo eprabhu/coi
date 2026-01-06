@@ -1,0 +1,159 @@
+<ng-container *ngIf="ipService.ipSectionConfig['206']?.isActive">
+	<div class="card my-3" id="Proposal206">
+		<div class="card-header" [ngClass]="{'py-2':isModifyProposal}">
+			<h4 class="card-title align-items-center d-flex" id="institute-proposal-attachment">
+				<div class="mr-auto">Attachments</div>
+				<div class="mr-5">
+					<button id="attachmentExpandBtn" class="updown-arrow btnPositionFullWidget"
+						(click)="isAttachmentListOpen = !isAttachmentListOpen">
+						<i aria-hidden="true"
+							[ngClass]="isAttachmentListOpen?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+							class="fa-large"></i>
+					</button>
+				</div>
+			</h4>
+		</div>
+		<div class="card-content" *ngIf="isAttachmentListOpen">
+			<div class="card-body">
+				<div class="no-data-container" *ngIf="ipAttachments?.length == 0">
+					<span class="no-data-icon-outer">
+						<div class="no-data-icon">
+							<i class="fa fa-file-o" aria-hidden="true"></i>
+							<i class="fa fa-times-circle-o" aria-hidden="true"></i>
+						</div>
+					</span>
+					<h4>There is no information in this section.</h4>
+				</div>
+				<div class="table-responsive">
+					<table *ngIf="ipAttachments?.length > 0" class="table tableSkin grid2"
+						aria-describedby="institute-proposal-attachment">
+						<thead>
+							<th scope="col" style="width: 24%" title="Click to sort by Attachment Type">Document Type</th>
+							<th scope="col" style="width: 25%" title="Click to sort by Description">Description</th>
+							<th scope="col" title="Click to sort by File Name"> File Name</th>
+							<th scope="col" title="Click to sort by Status">Status</th>
+							<th scope="col" title="Click to sort by Update User">Updated By</th>
+							<th scope="col">Actions</th>
+						</thead>
+						<tbody>
+							<ng-container *ngFor="let attachment of latestVersionAttachments; let i = index">
+								<tr [ngClass]="{ 'delete-background': attachment.status == -1,
+                              'add-background': attachment.status == 1}">
+									<td>{{attachment?.attachmentType?.description}}
+									</td>
+									<td>
+										<span>{{(attachment?.description?.length
+											> 30)?(attachment?.description |
+											slice:0:30)+'...':(attachment?.description)}}
+										</span>
+									</td>
+									<td title="{{(attachment?.fileName?.length>20)?(attachment?.fileName):''}}">
+										{{(attachment?.fileName?.length > 20)?(attachment?.fileName |
+										slice:0:20)+'...':(attachment?.fileName)}}
+									</td>
+									<td>
+										<span>
+											{{attachment?.narrativeStatus?.description}}
+										</span>
+									</td>
+									<td>
+										<span>{{attachment.lastUpdateUserFullName}} on
+											{{attachment.updateTimeStamp | dateFormatter}}</span>
+									</td>
+									<td>
+										<ul class="actionButtonGroup">
+											<li>
+												<a (click)="downloadProposalAttachments(attachment)" id="ip-doc-dwnlod-btn"
+													title="Click here to download {{(attachment?.fileName?.length > 20)?(attachment?.fileName | slice:0:20)+'...':(attachment?.fileName)}}">
+													<i class="fa fa-download pointer" aria-hidden="true"></i>
+												</a>
+											</li>
+											<li>
+												<a id="prop-doc-version-btn"
+													(click)="getVersion(attachment.documentId, attachment.versionNumber, attachment.fileName)"
+													title="Click here to view file versions" data-toggle="modal"
+													data-target="#proposal-doc-version-modal" tabindex="0">
+													<img class="version-icon"
+														src="{{deployMap}}assets/images/version-icons.png"
+														alt="version-icon" aria-hidden="true">
+												</a>
+											</li>
+										</ul>
+									</td>
+								</tr>
+							</ng-container>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</ng-container>
+
+
+<div class="modal fade mySkinDialog" tabindex="-1" id="proposal-doc-version-modal" tabindex="-1" role="dialog"
+	aria-labelledby="versionModalTitle" aria-hidden="true">
+	<div [ngClass]="(attachmentVersions.length == 0)?'modal-dialog':'modal-dialog modal-lg'" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 *ngIf="attachmentVersions.length > 0" class="modal-title"
+					title="{{(fileName?.length>55)?(fileName):''}}">Versions
+					of {{(fileName?.length > 55)?(fileName | slice:0:55)+'...':(fileName)}}</h5>
+				<h5 *ngIf="attachmentVersions.length == 0" class="modal-title"
+					title="{{(fileName?.length>35)?(fileName):''}}">Versions
+					of {{(fileName?.length > 35)?(fileName | slice:0:28)+'...':(fileName)}}</h5>
+				<button type="button" id="ip-version-close" class="close" data-dismiss="modal"
+					id="ip-doc-version-dlt-dismiss" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body" *ngIf="attachmentVersions.length > 0">
+				<table id="doc-version-table" class="table table-responsive tableSkin"
+					[ngClass]="(attachmentVersions.length > 8)? 'version-table-scroll' : 'version-table-noscroll'">
+					<caption class="sr-only">Attachment Versions</caption>
+					<thead *ngIf="attachmentVersions.length > 0">
+						<tr>
+							<th scope="col" style="width: 5%;">Version</th>
+							<th scope="col">File Name</th>
+							<th scope="col">Updated By</th>
+							<th scope="col" style="width: 5%;">Action</th>
+						</tr>
+					</thead>
+					<tbody *ngIf="attachmentVersions.length > 0">
+						<tr *ngFor="let version of attachmentVersions ">
+							<td style="width: 5%;">
+								<span>{{version.versionNumber}}</span>
+							</td>
+							<td>
+								<span
+									title="{{(version?.fileName?.length>40)?(version?.fileName):''}}">{{(version?.fileName?.length
+									> 40)?(version?.fileName | slice:0:40)+'...':(version?.fileName)}}</span>
+							</td>
+							<td>
+								<span>{{version.lastUpdateUserFullName}} on
+									{{version.updateTimeStamp | dateFormatterWithTimeZone : 'long'}}</span>
+							</td>
+							<td style="width: 5%;">
+								<ul class="actionButtonGroup">
+									<li>
+										<a (click)="downloadProposalAttachments(version)" id="ip-doc-dwnlod-btn"
+											title="Click here to download {{(version?.fileName?.length > 20)?(version?.fileName | slice:0:20)+'...':(version?.fileName)}}">
+											<i class="fa fa-download pointer" aria-hidden="true"></i>
+										</a>
+									</li>
+								</ul>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="modal-body" *ngIf="attachmentVersions.length == 0">
+				<p>There are no versions found</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" id="grant-doc-dlt-no-btn" class="btn btn-secondary mr-2" data-dismiss="modal"
+					data-toggle="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>

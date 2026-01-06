@@ -1,0 +1,531 @@
+<!-- Last Updated By Ramlekshmy I on 16-01-2020 -->
+<div class="card mb-3">
+    <div class="card-header p-2 px-4">
+        <h4 class="card-title person-title" id="proposal-keyperson-edit"><ng-container i18n="@@COMMON_KEY_PERSONNEL">Key Personnel</ng-container>
+            <span class="float-none float-sm-right d-block d-sm-inline font-weight-normal fs-14 mr-sm-5 mr-0">
+                <i aria-hidden="true" class="fa fa-user-o mr-2 pl-sm-2"></i>Employee |
+                <i aria-hidden="true" class="fa fa-user-circle text-danger mr-2"></i>Non-Employee |
+                <i aria-hidden="true" class="fa fa-home text-primary mr-2"></i>Lead Unit |
+                <i aria-hidden="true" class="fa fa-home text-grey mr-2"></i>Department |
+                <img class="mr-2" src="{{deployMap}}assets/images/org-icon-4.svg" alt="Organization icon">Organization |
+                <i aria-hidden="true" class="fa fa-users text-primary mr-2"></i>Multi-PI
+                    <span class="mr-4"><button id="prop-key-personnel-add-btn" class="btn btn-tertiary btn-sm mt-0 button-right float-right mr-3"
+                             data-toggle="modal" data-target="#add-key-person-modal">
+                            <ng-container i18n="@@PROPOSAL_ADD_KEY_PERSONNEL">Add Key Personnel</ng-container></button>
+                        </span>
+            </span>
+            <button id="proposal-kepperson-expand-btn" class="updown-arrow"
+                (click)="dataVisibilityObj.isKeyPersonWidgetOpen = !dataVisibilityObj.isKeyPersonWidgetOpen">
+                <i [ngClass]="dataVisibilityObj.isKeyPersonWidgetOpen?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                    aria-hidden="true" class="fa-large"></i>
+            </button>
+            <span *ngIf="!result?.proposal?.investigator"
+                class="invalid-feedback d-lg-inline d-block font-weight-normal txt-medium"><i
+                    class="fa fa-exclamation-circle mr-1" aria-hidden="true"></i>Please provide a Principal
+                Investigator</span>
+        </h4>
+    </div>
+    <div class="card-content" *ngIf="dataVisibilityObj.isKeyPersonWidgetOpen">
+    <div class="card-body p-2">
+          <div class="noDataOnChart noDataExists p-2" *ngIf="result?.proposalPersons?.length == 0">
+            <div class="no-data-container">
+              <span class="no-data-icon-outer">
+                <div class="no-data-icon">
+                  <i aria-hidden="true" class="fa fa-file-o"></i>
+                  <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                </div>
+              </span>
+              <h4>There is no information in this section.</h4>
+            </div>
+          </div>
+        <div class="table-responsive"
+            *ngIf="result?.proposalPersons?.length > 0 && dataVisibilityObj.isKeyPersonWidgetOpen">
+            <table aria-describedby="proposal-keyperson-edit"
+                class="table tableSkin grid2">
+                <caption class="d-none">Key person Details</caption>
+                <thead class="thead-light">
+                    <th scope="col" style="width:20%">Name</th>
+                    <th scope="col">Role</th>
+                    <th scope="col" style="width:30%">Department(s) / Organization(s)</th>
+                    <th scope="col" style="width:20%">Designation</th>
+                    <th scope="col" style="width:5%">% of Effort
+                        <span *ngIf="helpText?.keyPersons && helpText?.keyPersons['percentOfEffort']?.helpTextInfo"
+                            class="d-inline-block icon-hover hand-cursor">
+                            <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med" aria-hidden="true"></i>
+                                <div class="tooltiptext-right card card-inner p-15 text-left">
+                                    <span class="font-cv">{{helpText?.keyPersons['percentOfEffort']?.helpTextInfo}}</span>
+                                </div>
+                            </a>
+                        </span>
+                    </th>
+                    <th scope="col" *ngIf="canShowTraining">Training</th>
+                    <th scope="col" *ngIf="canShowCertification">Certification</th>
+                    <th scope="col" style="width:5%">Actions</th>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let person of result?.proposalPersons; let i = index">
+                        <td class="text-nowrap"><i class="mr-2"
+                                [ngClass]="person.rolodexId ? 'fa fa-user-circle text-danger':'fa fa-user-o'"
+                                aria-hidden="true"></i>
+                            <ng-container *ngIf="person?.isMultiPi"><i class="fa fa-users text-primary mr-2"
+                                    aria-hidden="true"></i></ng-container>{{person?.fullName}}
+                        </td>
+                        <td>{{(person?.proposalPersonRole?.description +
+                              (person?.proposalPersonRole?.showProjectRole ?
+                              (person?.projectRole ? ' (' + person?.projectRole +')' :''):''))}}
+                        </td>
+                         <td>
+                            <ng-container *ngIf="person?.units?.length">
+                                <ul class="p-0" *ngFor="let dept of person?.units">
+                                    <li class="list-none"><i class="fa fa-home" aria-hidden="true"
+                                            [ngClass]="dept?.leadUnit ? 'text-primary' : 'text-grey'"></i>
+                                        <span>{{concatUnitNumberAndUnitName(dept?.unit?.unitNumber,dept?.unit?.unitName)}}</span></li>
+                                </ul>
+                            </ng-container>
+                            <p><img *ngIf="person?.department" class="mr-1" src="{{deployMap}}assets/images/org-icon-4.svg" alt="Organization icon">
+                            {{person?.department}}
+                            </p>
+                        </td>
+                        <td><span *ngIf="person?.designation else nodesignation">{{person?.designation}}</span>
+                            <ng-template #nodesignation>
+                                <span class="noDataExists">No designation specified</span>
+                            </ng-template>
+                        </td>
+                        <td>{{person?.percentageOfEffort}}</td>
+                        <td class="f-16 text-nowrap" *ngIf="canShowTraining">
+                            <i *ngIf="person?.trainingStatus !== 'Not Applicable'" 
+                            [ngClass]="person?.trainingStatus === 'Completed'?
+                            'fa-check-circle text-success':'fa-exclamation-circle text-warning'"
+                            aria-hidden="true" class="fa"></i>
+                            <span class="badge font-weight-normal p-0" [class.text-black-50]="person?.trainingStatus == 'Not Applicable'">{{person?.trainingStatus}}</span>
+                        </td>
+                        <td class="f-16 text-nowrap" *ngIf="canShowCertification">
+                            <ng-container
+                                    *ngIf="(person?.proposalPersonRole?.certificationRequired === 'Y' && ( person?.rolodexId?result.nonEmployeeCertification:true)) else noCertification">
+                                <i [ngClass]="person?.personCertified ?
+                                   'fa-check-circle text-success':'fa-exclamation-circle text-warning'"
+                                   aria-hidden="true" class="fa"></i>
+                                <span class="badge font-weight-normal p-0">
+                                      {{person?.personCertified ? 'Completed' : 'Incomplete'}}
+                                  </span>
+                            </ng-container>
+                            <ng-template #noCertification>
+                                <span class="f-12 text-black-50">Not Applicable</span>
+                            </ng-template>
+                        </td>
+                        <td>
+                            <ul class="actionButtonGroup d-flex flex-center">
+                                <li>
+                                    <a id="prop-key-person-view-btn" (click)="fetchKeyPersonDetails(person)">
+                                        <i class="fa fa-eye" aria-hidden="true"
+                                            title="Click here to view {{person?.fullName}}"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a id="prop-key-person-edit-btn" data-toggle="modal" data-target="#add-key-person-modal" (click)="editIndex = true;editKeyPerson(i)">
+                                        <i class="fa fa-pencil" aria-hidden="true"
+                                            title="Click here to edit {{person?.fullName}}"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" id="prop-key-person-delete-btn" data-toggle="modal"
+                                        data-target="#deleteMemberModal"
+                                        (click)="deletePersonId = person?.proposalPersonId"><i class="fa fa-trash-o"
+                                            aria-hidden="true" title="Click here to delete {{person?.fullName}}"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <span class="d-inline-block dropdown">
+                                        <button class="btn btn-sm icons-toggle more-btn list-more-btn"
+                                            type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
+                                            title="More Actions" aria-expanded="false">
+                                            <i aria-hidden="true" class="fa fa-ellipsis-v" aria-hidden="true"></i>
+                                        </button>
+                                        <div class="dropdown-menu action-dropdown-menu more-options-aligned moreActionBtnGroup f-16"
+                                        aria-labelledby="dropdownMenuButton">
+                                            <ul class="more-actions-menu">
+                                                <li>
+                                                    <a class="dropdown-item text-left d-block pointer" href="#" data-target="#addCVModal" data-toggle="modal"
+                                                    (click)="isShowMoreOptions = !isShowMoreOptions;selectedPersonEdit = person;loadPersonnelAttachTypes();
+                                                    getVersion(person.proposalPersonAttachment)"
+                                                    *ngIf="dataVisibilityObj.mode != 'view'"><i class="fa fa-link mr-2"
+                                                        aria-hidden="true"></i>Attachments</a>
+                                                </li>
+                                                <ng-container *ngIf="canShowCertification
+                                                                     && person.proposalPersonRole.certificationRequired === 'Y' && (person?.rolodexId?result.nonEmployeeCertification:true)">
+                                                    <li>
+                                                        <a (click)="navigateToCertification(person)"
+                                                           class="dropdown-item text-left d-block pointer"
+                                                           title="Goto person certification">
+                                                            <i aria-hidden="true" class="fa fa-file-text mr-1"></i> Certify</a>
+                                                    </li>
+                                                </ng-container>
+                                                <li>
+                                                    <a (click)="notifyPersonCertification(person)"
+                                                       *ngIf="person?.personId && person.proposalPersonRole.certificationRequired === 'Y'"
+                                                       class="dropdown-item text-left d-block pointer"
+                                                       title="Certification reminder notification">
+                                                    <i aria-hidden="true" class="fa fa-bell"></i> Notify</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </span>
+                                </li>
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</div>
+<!-- DELETE CV WARNING MODAL -->
+<div class="modal fade mySkinDialog"  tabindex="-1" id="deleteProposalCvAttachment" tabindex="-1"
+    role="dialog" aria-labelledby="deleteModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete</h5>
+                <button type="button" class="close" data-dismiss="modal" id="proposal-cv-dlt-dismiss" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this attachment?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="proposal-cv-dlt-no-btn" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                    data-toggle="modal">Cancel</button>
+                <button type="button" id="proposal-cv-dlt-yes-btn" class="btn btn-primary-sub btn-sm"
+                (click) ="deleteCV(deleteProposalCV)"data-dismiss="modal">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- DELETE MEMBER WARNING MODAL -->
+<div class="modal fade mySkinDialog modal-opacity" tabindex="-1" id="deleteMemberModal" tabindex="-1" role="dialog"
+    aria-labelledby="deleteModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete</h5>
+                <button id="prop-dlt-member-dismiss" type="button" class="close" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this member?</p>
+            </div>
+            <div class="modal-footer">
+                <button id="coi-key-person-delete-member-warning-modal-cancel-btn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                    data-toggle="modal">No</button>
+                <button id="coi-key-person-delete-member-warning-modal-delete-btn" type="button" class="btn btn-primary-sub btn-sm"
+                    (click)="deletePerson()" data-dismiss="modal">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ADD CV MODAL -->
+<div class="modal fade mySkinDialog" id="addCVModal" tabindex="-1" role="dialog" aria-labelledby="skippedSchedulesTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Key Personnel Attachment(s) <span *ngIf="selectedPersonEdit">-
+                        {{selectedPersonEdit.fullName}}</span></h5>
+                <button type="button" class="close" (click)="clearCVData()" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <app-file-drop [multiple]="true" (filesDropEvent)="cvDrop($event)"></app-file-drop>
+                <div class="row pl-3" *ngFor="let item of uploadedFile; let i=index">
+                    <div class="col-lg-4 col-12 pl-1">
+                        <label for="prop-doc-popup-type"><span class="mandatory">*</span>Attachment Type</label>
+                        <select id="prop-doc-popup-type" class="form-control dateBox"
+                            [(ngModel)]="selectedAttachmentType[i]">
+                            <option [value]=null>--Select--</option>
+                            <option *ngFor="let attachType of result?.personnelAttachTypes"
+                                [value]="attachType.attachmentTypeCode" [hidden]="attachType.isActive != true">
+                                {{attachType?.description}}<span *ngIf="attachType?.isPrivate">(Confidential)</span></option>
+                        </select>
+                    </div>
+                    <div class="col-lg-4 col-12">
+                        <label for="desc">Description</label>
+                        <textarea id="desc" cols=2 rows="1" id="prop-doc-popup-desc"
+                            [(ngModel)]="selectedAttachmentDescription[i]" placeholder=""
+                            class="form-control dateBox text-area-height" appLengthValidator [isShowLimiter]='true'
+                            [limit]=200>
+                            </textarea>
+                    </div>
+                    <div class="col-lg-3 col-12" title="{{item?.name}}">
+                        <label class="d-block"><span class="mandatory">*</span>File Name</label>
+                        <span>{{(item?.name?.length
+                              > 15)?(item?.name | slice:0:15)+'...':(item?.name)}}</span>
+                    </div>
+                    <div class="col-lg-1 col text-right">
+                        <ul class="actionButtonGroup mt-5">
+                            <li>
+                                <a id="prop-doc-popup-dlt-btn" class="fa fa-trash-o hand-cursor" title="Remove File"
+                                    (click)="deleteFromUploadedFileList(i)"></a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div *ngIf="attachmentWarningMsg != null">
+                    <span class="mandatory font">{{attachmentWarningMsg}}</span>
+                </div>
+                <div class="modal-footer" *ngIf="uploadedFile?.length > 0">
+                    <button type="button" class="btn btn-secondary" (click)="clearCVData()"
+                        data-toggle="modal">Clear</button>
+                    <button type="button" class="btn btn-primary-sub" (click)="addPersonAttachment()">Add</button>
+                </div>
+                <div *ngIf="uploadedFiles.length">
+                    <table class="table tableSkin">
+                        <caption class="sr-only">CV details</caption>
+                        <thead class="header-border">
+                            <th (click)="sortResult('attachmentTypeCode')"> Attachment Type
+                                <i [ngClass]="((sortListBy == 'attachmentTypeCode') ? (!isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                    aria-hidden="true"></i>
+                            </th>
+                            <th style="width: 25%" (click)="sortResult('description')" scope="col" class="hand-cursor"
+                                id="sort-by-attach-desc" title="Click to sort by Description">
+                                <span>Description
+                                    <i [ngClass]="((sortListBy == 'description') ? (!isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                        aria-hidden="true"></i>
+                                </span>
+                            </th>
+                            <th class="table-border-bottom hand-icon" scope="col" (click)="sortResult('fileName')"
+                                title="Click to sort by File Name">File Name
+                                <i [ngClass]="((sortListBy == 'fileName') ? (!isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                    aria-hidden="true"></i>
+                            </th>
+                            <th style="width: 25%" scope="col" (click)="sortResult('updateUserFullName')"
+                                class="table-border-bottom hand-icon">Updated By
+                                <i [ngClass]="((sortListBy == 'updateUserFullName') ? (!isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                    aria-hidden="true"></i>
+                            </th>
+                        </thead>
+                        <tbody>
+                            <tr
+                                *ngFor="let files of uploadedFiles | orderBy: {property: sortListBy , direction: direction}">
+                                <td>
+                                    <span class="d-block">{{files.attachmentType.description}}</span>
+                                    <span *ngIf="files?.attachmentType?.isPrivate" class="badge bg-danger text-white">Confidential</span>
+                                </td>
+                                <td>{{files.description}}</td>
+                                <td title="{{(files?.fileName?.length>10)?(files?.fileName):''}}">
+                                    <span *ngIf="files?.fileName?.length>0" title="{{files?.fileName}}"
+                                        class="filechip-cv">
+                                        <span>{{(files?.fileName?.length > 30)?(files?.fileName|
+                                            slice:0:10)+'...':(files?.fileName)}} <i class="fa fa-download pointer"
+                                                aria-hidden="true"
+                                                title="Click here to download {{(files?.fileName > 10)?(files?.fileName | slice:0:10)+'...':(files?.fileName)}}"
+                                                (click)="downloadProposalPersonCV(files)"></i>
+                                        </span>
+                                    </span>
+                                </td>
+                                <td>{{files?.lastUpdateUserFullName ? files?.lastUpdateUserFullName : ''}} on
+                                    {{files.updateTimeStamp | dateFormatterWithTimeZone : 'long'}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer" *ngIf="uploadedFiles.length">
+                    <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" (click)="clearCVData();"
+                        >Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<app-address-book *ngIf="isAddNonEmployeeModal" [isAddNonEmployeeModal]="isAddNonEmployeeModal"
+    (rolodexResult)="setRolodexPersonObject($event)"></app-address-book>
+<div class="modal fade mySkinDialog" tabindex="-1" id="EligibilityWarningKeyPersonModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Eligibility Criteria Validation</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12 ">
+                        <div>
+                            <div class="alert" [ngClass]="result?.grantEligibilityStatus?.status ==='VE'? 'alert-danger': 'alert-warning'" role="alert">
+                                <i class="fa fa-exclamation-circle icon " [ngClass]="result?.grantEligibilityStatus?.status ==='VE'? 'text-danger': 'text-warning'" aria-hidden="true"></i>
+                                <strong>{{result?.grantEligibilityStatus?.status ==='VE'? 'Error:': 'Warning:'}} </strong><span>{{result?.grantEligibilityStatus?.message}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<app-person-rolodex-view (personRolodexViewModal)="setPersonRolodexModalView($event)" 
+*ngIf="isRolodexViewModal" [personRolodexType]="type" [personRolodexProposalPersonId]=" proposalPersonId" [personRolodexIsDegree] = "true" [personRolodexIsViewMode]="false" [personRolodexId]="id" [personRolodexIsTraining]="isTraining" 
+[personRolodexPersonDescription]="personDescription" [personRolodexTrainingStatus]="trainingStatus"></app-person-rolodex-view>
+
+<!-- Add Key Personnel Modal -->
+<div class="modal fade mySkinDialog" id="add-key-person-modal" role="dialog" aria-labelledby="skippedSchedulesTitle"
+    aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{editIndex == null ? 'Add' : 'Update'}} Key Personnel</h5>
+                <button type="button" class="close" (click)="resetPersonFields()" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body py-1 px-3">
+                <app-proposal-overview-modal-card></app-proposal-overview-modal-card>
+                <div class="w-100">
+                    <div class="form-row">
+                        <div class="col-lg-6 col-md-6 col-sm-12 col-12 mt-3">
+                            <input id="employee" type="radio" name='employee_nonemployee' [value]='false'
+                                [(ngModel)]="isNonEmployee" checked="true" (ngModelChange)="changeMemberType()">
+                            <label for="employee" class="mr-3">
+                                Employee
+                            </label>
+                            <input id="non-employee" type="radio" name='employee_nonemployee' [value]='true'
+                                [(ngModel)]="isNonEmployee" (ngModelChange)="changeMemberType()">
+                            <label for="non-employee">
+                                Non-Employee
+                            </label>
+                            <div class="searchBox position-relative mb-0">
+                                <app-elastic id="proposal-key-person-name" [options]="elasticSearchOptions"
+                                    [clearField]="clearField" [isError]="(mandatoryList?.has('name')) ? true : false"
+                                    [placeHolder]="isNonEmployee ? 'Type here for an non-employee name': 'Type here for an employee name'"
+                                    (selectedResult)="selectedMemberName($event)"></app-elastic>
+                                <a *ngIf="isNonEmployee && _commonService.isEnableAddtoAddressBook"
+                                    id="proposal-non-employee-add-btn" class="anchor-link d-block fs-14"
+                                    (click)="isAddNonEmployeeModal = true; isShowPersonResultCard = false; switchToNonEmployeeModal();">
+                                    <i class="fa fa-user-plus" aria-hidden="true"></i>
+                                    <ng-container i18n="@@COMMON_ADD_TO_ADDRESS_BOOK">Add to Address Book</ng-container>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-1 text-center mt-3">
+                            <label>Multi-PI</label>
+                            <input class="checkBoxClass" id="proposal-project-multi-pi" type="checkbox"
+                                [(ngModel)]="personDetails.isMultiPi" (ngModelChange)="changeMultiPI()" />
+                        </div>
+                        <div class="col-sm-12 col-12 mt-3"
+                            [ngClass]="personDetails?.proposalPersonRole?.showProjectRole? 'col-lg-2 col-md-2' : 'col-lg-5 col-md-5'">
+                            <label><span class="mandatory">*</span>Role</label>
+                            <select id="prop-project-role" class="form-control"
+                                [(ngModel)]="personDetails.proposalPersonRole"
+                                (ngModelChange)="checkLeadPISelected();clearProjectRole();"
+                                [ngClass]="(mandatoryList?.has('role')) ? 'is-invalid d-block' : ''">
+                                <option [value]=null>--Select--</option>
+                                <option *ngFor="let role of roleTypesArray" [ngValue]="role"
+                                    [hidden]="role.isActive != true">
+                                    {{role?.description}}</option>
+                            </select>
+                            <div *ngIf="(mandatoryList?.has('role'))"
+                                class="invalid-feedback position-absolute d-block">
+                                {{mandatoryList?.get('role')}}</div>
+                        </div>
+                        <div *ngIf="personDetails?.proposalPersonRole?.showProjectRole"
+                            class="col-lg col-md-3 col-sm col-9 mt-3">
+                            <label>Project Role</label>
+                            <input type="text" class="form-control" placeholder="Type here for Project Role"
+                                [(ngModel)]="personDetails.projectRole"
+                                (ngModelChange)="personDetails.projectRole = personDetails.projectRole.trim() || null">
+                        </div>
+                        <div class="col-12" *ngIf="isShowPersonResultCard">
+                            <app-person-rolodex-card (ShowElasticResults)="setShowElasticResults($event)"
+                                [personRolodexObject]="selectedMemberObject"></app-person-rolodex-card>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-12 col-12 mb-0">
+                            <label class="p-0">Department</label>
+                            <div class="searchBox">
+                                <app-endpoint-search [httpOptions]="deptHttpOptions" [clearField]="clearDeptField"
+                                    [isError]="deptHttpOptions?.errorMessage"
+                                    [placeHolder]="isUnitExist ? 'Search here to add more Departments' : 'Search here for Department'"
+                                    (onSelect)="triggerUnitChange($event)">
+                                </app-endpoint-search>
+                                <span class="col-8 info-msg px-0"
+                                    *ngIf="isUnitExist && personDetails?.proposalPersonRole?.id == 3">
+                                    <i class="fa fa-info-circle fa-med hand-cursor mr-2 info-icon"
+                                        aria-hidden="true"></i>Click on the<i class="fa fa-home text-grey switch-icon"
+                                        aria-hidden="true"></i>icon to mark department as
+                                    Lead Unit
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-12 col-12">
+                            <label class="p-0">% of Effort</label>
+                            <span *ngIf="helpText?.keyPersons && helpText?.keyPersons['percentOfEffort']?.helpTextInfo"
+                                class="d-inline-block icon-hover hand-cursor">
+                                <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med"
+                                        aria-hidden="true"></i>
+                                    <div class="tooltiptext-left card card-inner p-15 text-left">
+                                        <span
+                                            class="font-cv">{{helpText?.keyPersons['percentOfEffort']?.helpTextInfo}}</span>
+                                    </div>
+                                </a>
+                            </span>
+                            <input type="number" id="proposal-project-percent-effort" class="form-control"
+                                [(ngModel)]="personDetails.percentageOfEffort"
+                                placeholder="eg: 100, 99.99, 10.22, 25 etc"
+                                (keyup)="limitKeypress(personDetails.percentageOfEffort);">
+                            <div *ngIf="(mandatoryList?.has('percentageOfEffort'))"><span
+                                    class="mandatory font">{{mandatoryList?.get('percentageOfEffort')}}</span></div>
+                        </div>
+                        <div class="form-row mb-0">
+                            <ng-container *ngFor="let unit of personDetails?.units; let unitIndex = index">
+                                <ng-container *ngIf="!unit?.isDeleted">
+                                    <div class="col-auto hightlighted-text mb-3">
+                                        <ng-container *ngIf="personDetails?.proposalPersonRole?.id == 3">
+                                            <input class="radio-inline mt-3 position-absolute invisible"
+                                                id="proposal-mark-lead-unit {{unitIndex}}" type="radio"
+                                                name="mark-lead-unit" [checked]="unit.leadUnit"
+                                                (click)="checkUnitRight(unitIndex, 'CREATE_PROPOSAL')" /><label
+                                                for="proposal-mark-lead-unit {{unitIndex}}" class="switch-icon"><i
+                                                    class="fa fa-home"
+                                                    [ngClass]="unit.leadUnit ? 'text-primary' : 'text-grey'"
+                                                    title="Click here to mark {{unit?.unit?.unitName}} as Lead Unit"
+                                                    aria-hidden="true"></i></label>
+                                        </ng-container>
+                                        <span>
+                                            {{unit?.unit?.unitName}}
+                                            <i class="fa fa-times hand-cursor" id="proposal-unit-delete"
+                                                title="Remove {{unit?.unit?.unitName}}"
+                                                (click)="deleteDepartment(unitIndex);" aria-hidden="true"></i></span>
+                                    </div>
+                                </ng-container>
+                            </ng-container>
+                        </div>
+                        <div class="font mandatory col-12" *ngIf="noRightOnUnitMsg">{{noRightOnUnitMsg}}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="text-center text-md-right">
+                    <button id="prop-key-personnel-cancel-btn" data-dismiss="modal"
+                        class="btn btn btn-secondary btn-xs mx-2" (click)="resetPersonFields();">Cancel</button>
+                    <button *ngIf="editIndex == null" id="prop-key-personnel-add-btn" class="btn btn-primary-sub btn-xs"
+                        (click)="keyPersonValidation()">
+                        <ng-container i18n="@@PROPOSAL_ADD_KEY_PERSONNEL">Add</ng-container>
+                    </button>
+                    <button *ngIf="editIndex !== null" id="prop-key-personnel-update-btn"
+                        class="d-inline-block btn btn-primary-sub btn-xs px-2" (click)="keyPersonValidation()">
+                        <ng-container i18n="@@PROPOSAL_UPDATE_KEY_PERSONNEL">Update</ng-container>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,397 @@
+<!-- created by jobin -->
+<div class="mb-3">
+  <div class="row m-1 mt-3 px-0">
+    <div class="col-auto px-0 pt-2 fs-13">
+      <label class="bold">Sort by : </label>
+      <span (click)="sortOrcid('publicationYear')" class="ml-2 sort-options" title="Sort by Publication Year"
+        [ngClass]="sort.sortColumn == 'publicationYear' ? 'sort-options-active' : ''">Publication Year<i class="pl-1 fa"
+          [ngClass]="sort.sortColumn == 'publicationYear' && isDesc ? 'fa-sort-amount-desc' : 'fa-sort-amount-asc'"
+          aria-hidden="true"></i></span>
+      <span (click)="sortOrcid('title')" class="sort-options" title="Sort by Title"
+        [ngClass]="sort.sortColumn == 'title' ? 'sort-options-active' : ''">Title<i class="pl-1 fa"
+          [ngClass]="sort.sortColumn == 'title' && isDesc ? 'fa-sort-amount-desc' : 'fa-sort-amount-asc'"
+          aria-hidden="true"></i></span>
+      <span (click)="sortOrcid('work_type')" class="sort-options" title="Sort by Work Category/Type"
+        [ngClass]="sort.sortColumn == 'work_type' ? 'sort-options-active' : ''">Work
+        Category/Type<i class="pl-1 fa"
+          [ngClass]="sort.sortColumn == 'work_type' && isDesc ? 'fa-sort-amount-desc' : 'fa-sort-amount-asc'"
+          aria-hidden="true"></i></span>
+    </div>
+    <div class="col">
+      <div class="row">
+        <div *ngIf="!isAward" class="col-lg col-12 pr-0">
+          <input type="text" class="form-control" placeHolder="Search By Title" [(ngModel)]="searchTitle">
+        </div>
+        <div *ngIf="isAward" class="col-lg col-12 pr-0">
+          <app-elastic [placeHolder]="'Search by Person Name'" (selectedResult)="personSearch($event)"
+            [clearField]="clearPersonField" [options]="elasticPersonSearchOptions">
+          </app-elastic>
+        </div>
+        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 px-2">
+          <select class="form-control" [(ngModel)]="searchWorkCategory" (change)="setTypeOtions(searchWorkCategory)">
+            <option [ngValue]="null">Pick a Work Category</option>
+            <option [value]="category.orcidWorkCategoryCode" *ngFor="let category of orcidData.orcidWorkCategories">
+              {{category?.description}}</option>
+          </select>
+        </div>
+        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 pl-0 pr-2">
+          <select class="form-control" [(ngModel)]="searchworkType">
+            <option [ngValue]="null">Pick a Work Type</option>
+            <option [value]="type.orcidWorkTypeCode" *ngFor="let type of workTypes">{{type?.description}}
+            </option>
+          </select>
+        </div>
+        <div>
+          <button type="button" class="btn btn-secondary" (click)="clearOrcidFilters()">Clear</button>
+          <button title="Create New Task" class="btn btn-primary-sub btn-xs px-5" (click)="searchOrcid()"
+            id="orcid-search-btn">
+            Search
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="orcidData?.personOrcidWorks?.length">
+    <div
+      *ngFor="let work of orcidData.personOrcidWorks | orderBy: {property: sort.sortColumn, direction: sort.sortOrder}; let index = index"
+      class="mt-3">
+      <div class="card box-shadow">
+        <div class="card-header py-2">
+          <div class="align-items-center d-flex justify-content-center row">
+            <div class="col">
+              <span>
+                <label class="font-weight-bold f-15 mb-0">
+                  <span class="privacy-icon" *ngIf="work?.orcidWork?.visibility=='public'" title="Everyone"><i class="ml-1 fa fa-users public-works"
+                      aria-hidden="true"></i></span>
+                  <span class="privacy-icon" *ngIf="work?.orcidWork?.visibility=='limited'" title="Trusted Parties"><i class="ml-1 fa fa-user limited-works"
+                      aria-hidden="true"></i></span>
+                  <span class="privacy-icon" *ngIf="work?.orcidWork?.visibility=='private'" title="Only Me"><i class="ml-1 fa fa-lock private-works"
+                      aria-hidden="true"></i></span>
+                  <!-- <input *ngIf="!isAward" type="checkbox" [(ngModel)]="isWorkSelected[work.personOrcidWorkId]"> -->
+                  <span>{{work?.orcidWork?.title}}</span>
+                </label>
+              </span>
+              <div>
+                <label class="pl-3 fs-14 font-italic">Created on: {{work?.orcidWork?.createDate  | dateFormatter}}  |</label>
+                <label *ngIf="work?.orcidWork?.source" class="pl-1 fs-14 font-italic">Source: {{work?.orcidWork?.source}}</label>
+                <span class="badge badge-pill" [ngClass]="work?.orcidWork?.orcidWorkStatus?.orcidWorkStatusCode == 'A' ?
+                'badge-success' : 'badge-warning'">
+                  {{work?.orcidWork?.orcidWorkStatus?.description}}</span>
+              </div>
+            </div>
+            <div class="col-2 text-right pr-0">
+                <button *ngIf="!isAward" class="btn btn-primary"
+                (click)="isShowTaggedAwards[index] = !isShowTaggedAwards[index]">
+                <span *ngIf="!isShowTaggedAwards[index]"><i class="fa fa-link mr-3" aria-hidden="true"></i>Link Awards</span>
+                <span *ngIf="isShowTaggedAwards[index]"><i class="fa fa-book mr-3" aria-hidden="true"></i>Work Details</span>
+                <span *ngIf="work?.linkedAwards?.length && !isShowTaggedAwards[index]">({{work?.linkedAwards?.length}})</span></button>
+              </div>
+          </div>
+        </div>
+        <div *ngIf="!isShowTaggedAwards[index]" class="card-body py-0 gridSkin">
+          <div class="row pb-2">
+            <div *ngIf="!isAward" class="col-lg-7 col-md-4 col-sm-6 col-12 pb-0">
+              <label class="d-sm-block">{{titleLabelSwitch(work?.orcidWork?.orcidWorkType?.orcidWorkTypeCode)}} :</label>
+              <span *ngIf="work?.orcidWork?.journalTitle">{{work?.orcidWork?.journalTitle}}</span>
+              <span *ngIf="!work?.orcidWork?.journalTitle" class="noDataExists">No Data Specified</span>
+            </div>
+            <div *ngIf="isAward" class="col-lg-5 col-md-4 col-sm-6 col-12 pb-0">
+              <label class="d-sm-block">{{titleLabelSwitch(work?.orcidWork?.orcidWorkType?.orcidWorkTypeCode)}} :</label>
+              <span *ngIf="work?.orcidWork?.journalTitle">{{work?.orcidWork?.journalTitle}}</span>
+              <span *ngIf="!work?.orcidWork?.journalTitle" class="noDataExists">No Data Specified</span>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6 col-12 pb-0">
+              <label class="d-sm-block">Publication Date :</label>
+              <span *ngIf="work?.orcidWork?.publicationDate">{{work?.orcidWork?.publicationDate}}</span>
+              <span *ngIf="!work?.orcidWork?.publicationDate" class="noDataExists">No Data Specified</span>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6 col-12 pb-0">
+              <label class="d-sm-block">Work Category/ Type :</label>
+              <span *ngIf="work?.orcidWork?.orcidWorkType?.orcidWorkCategory?.description">
+                {{work?.orcidWork?.orcidWorkType?.orcidWorkCategory?.description}}/ {{work?.orcidWork?.orcidWorkType?.description}}</span>
+              <span *ngIf="!work?.orcidWork?.orcidWorkType?.orcidWorkCategory?.description" class="noDataExists">No Data Specified</span>
+            </div>
+            <div *ngIf="isAward" class="col-lg-2 col-md-4 col-sm-6 col-12 pb-0">
+              <label class="d-sm-block">Person Linked to this Work :</label>
+              <span *ngIf="work?.personFullname"><i class="fa fa-user" aria-hidden="true"></i> {{work?.personFullname}}</span>
+              <span *ngIf="!work?.personFullname" class="noDataExists">No Data Specified</span>
+            </div>
+            <div
+              *ngIf="!isMoreInfoShowLevel2[index] && ['3', '4'].includes(work.orcidWork.orcidWorkType.orcidWorkCategory.orcidWorkCategoryCode)"
+              class="col-12 pb-0">
+              <label class="d-sm-block" title="{{work?.orcidWork?.citationValue}}">Citation (Type : {{work?.orcidWork?.citationType?.description}}):
+              </label>
+              <span *ngIf="!work?.orcidWork?.citationValueFormatted?.length && !work?.orcidWork?.citationValue" class="noDataExists">No Data Specified</span>
+              <span *ngIf="work?.orcidWork?.citationValue && work?.orcidWork?.citationType?.orcidWorkCitationTypeCode !== 'bibtex'" 
+              >{{work?.orcidWork?.citationValue}}</span>
+              <div *ngIf="work?.orcidWork?.citationValueFormatted?.length &&
+              work?.orcidWork?.citationType?.orcidWorkCitationTypeCode === 'bibtex'" class="row pl-0">
+                <ng-container *ngFor="let citation of work?.orcidWork?.citationValueFormatted;let citationIndex = index">
+                  <div *ngIf="citationIndex%2 == 0" class="col-3">
+                    <span *ngIf="citation === '~' || citation === '}'"> </span>
+                    <span *ngIf="citation !== '~' && citation !== '}'">{{citation}}</span>
+                  </div>
+                  <div *ngIf="citationIndex%2 != 0" class="col-9">
+                    <span *ngIf="citation === '~' || citation === '}'"> </span>
+                    <span *ngIf="citation !== '~' && citation !== '}'">{{citation}}</span>
+                  </div>
+                </ng-container>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="isMoreInfoShowLevel1[index]" class="row">
+            <div class="col-lg-7 col-md-4 col-sm-6 col-12 pb-0">
+              <label class="d-sm-block">Contributors :</label>
+              <span *ngIf="work?.orcidWork?.orcidWorkContributors?.length">
+                <span *ngFor="let contributor of work?.orcidWork?.orcidWorkContributors;let contriindex = index">
+                  <span
+                  *ngIf="contriindex < work?.orcidWork?.orcidWorkContributors?.length">{{contributor?.creditName}}
+                  <span *ngIf="contriindex != (work?.orcidWork?.orcidWorkContributors?.length-1)">|</span></span>
+                </span>
+              </span>
+              <span *ngIf="!work?.orcidWork?.orcidWorkContributors?.length" class="noDataExists">No Data
+                Specified</span>
+            </div>
+            <div class="col-lg-5 col-md-4 col-sm-6 col-12 pb-0">
+              <label class="d-sm-block">External Identifier :</label>
+              <span *ngIf="work?.orcidWork?.orcidWorkExternalIdentifiers?.length">
+                <div *ngFor="let identifier of work?.orcidWork?.orcidWorkExternalIdentifiers">
+                  <span>{{identifier?.identifierValue}} <b>(Type : {{identifier?.identifierType}})</b> <span
+                    title="{{identifier?.identifierUrl}}"
+                      *ngIf="identifier?.identifierUrl" class="pl-1 text-primary"><i class="fa fa-external-link mr-2"
+                        (click)="redirectUrl(identifier?.identifierUrl)" aria-hidden="true"></i></span></span>
+                </div>
+              </span>
+              <span *ngIf="!work?.orcidWork?.orcidWorkExternalIdentifiers?.length" class="noDataExists">No Data
+                Specified</span>
+            </div>
+          </div>
+          <div class="collapse-orcid gridSkin py-3">
+            <i *ngIf="!isMoreInfoShowLevel1[index] && !isMoreInfoShowLevel2[index]"
+              class="fa fa-chevron-down collapse-arrow"
+              (click)="isMoreInfoShowLevel1[index] = !isMoreInfoShowLevel1[index]" aria-hidden="true"></i>
+            <i *ngIf="isMoreInfoShowLevel1[index]" class="fa fa-chevron-down collapse-arrow"
+              (click)="isMoreInfoShowLevel2[index] = !isMoreInfoShowLevel2[index]; isMoreInfoShowLevel1[index] = !isMoreInfoShowLevel1[index]"
+              aria-hidden="true"></i>
+            <i *ngIf="isMoreInfoShowLevel2[index]" class="fa fa-chevron-up collapse-arrow"
+              (click)="isMoreInfoShowLevel2[index] = !isMoreInfoShowLevel2[index]" aria-hidden="true"></i>
+            <div *ngIf="isMoreInfoShowLevel2[index]" class="row">
+              <div class="col-lg-5 col-md-4 col-sm-6 col-12">
+                <label class="d-sm-block">Translated Title :</label>
+                <span *ngIf="work?.orcidWork?.translatedTitle">{{work?.orcidWork?.translatedTitle}}</span>
+                <span *ngIf="!work?.orcidWork?.translatedTitle" class="noDataExists">No Data Specified</span>
+              </div>
+              <div class="col-lg-2 col-md-4 col-sm-6 col-12 pb-0">
+                <label class="d-sm-block">Language of this Title :</label>
+                <span *ngIf="work?.orcidWork?.locale?.description">{{work?.orcidWork?.translatedLocale?.description}}</span>
+                <span *ngIf="!work?.orcidWork?.locale?.description" class="noDataExists">No Data Specified</span>
+              </div>
+              <div class="col-lg-2 col-md-4 col-sm-6 col-12">
+                <label class="d-sm-block">Subtitle :</label>
+                <span *ngIf="work?.orcidWork?.subTitle">{{work?.orcidWork?.subTitle}}</span>
+                <span *ngIf="!work?.orcidWork?.subTitle" class="noDataExists">No Data Specified</span>
+              </div>
+              <div class="col-lg-2 col-md-4 col-sm-6 col-12 pb-0">
+                <label class="d-sm-block">Country of publication :</label>
+                <span *ngIf="work?.orcidWork?.countryName">{{work?.orcidWork?.countryName}}</span>
+                <span *ngIf="!work?.orcidWork?.countryName" class="noDataExists">No Data Specified</span>
+              </div>
+              <div class="col-lg-7 col-md-4 col-sm-6 col-12 pb-0">
+                <label class="d-sm-block">Contributors :</label>
+                <span *ngIf="work?.orcidWork?.orcidWorkContributors?.length">
+                  <span *ngFor="let contributor of work?.orcidWork?.orcidWorkContributors;let contriindex = index">
+                    <span
+                    *ngIf="contriindex < work?.orcidWork?.orcidWorkContributors?.length">{{contributor?.creditName}}
+                    <span *ngIf="contriindex != (work?.orcidWork?.orcidWorkContributors?.length-1)">|</span></span>
+                  </span>
+                </span>
+                <span *ngIf="!work?.orcidWork?.orcidWorkContributors?.length" class="noDataExists">No Data
+                  Specified</span>
+              </div>
+              <div class="col-lg-5 col-md-4 col-sm-6 col-12 pb-0">
+                <label class="d-sm-block">URL :</label>
+                <span *ngIf="work?.orcidWork?.url" (click)="redirectUrl(work?.orcidWork?.url)"
+                  class="anchor-link">{{work?.orcidWork?.url}}</span>
+                <span *ngIf="!work?.orcidWork?.url" class="noDataExists">No Data Specified</span>
+              </div>
+              <div class="col-12 pb-0">
+                <label class="d-sm-block">External Identifier :</label>
+                <span *ngIf="work?.orcidWork?.orcidWorkExternalIdentifiers?.length">
+                  <div *ngFor="let identifier of work?.orcidWork?.orcidWorkExternalIdentifiers">
+                    <span>{{identifier?.identifierValue}} <b>(Type : {{identifier?.identifierType}})</b> <span
+                      title="{{identifier?.identifierUrl}}"
+                      *ngIf="identifier?.identifierUrl" class="pl-1 text-primary"><i class="fa fa-external-link mr-2"
+                          (click)="redirectUrl(identifier?.identifierUrl)" aria-hidden="true"></i></span></span>
+                  </div>
+                </span>
+                <span *ngIf="!work?.orcidWork?.orcidWorkExternalIdentifiers?.length" class="noDataExists">No Data
+                  Specified</span>
+              </div>
+              <div class="col-12 pb-0">
+                <label class="d-sm-block" title="{{work?.orcidWork?.citationValue}}">Citation (Type : {{work?.orcidWork?.citationType?.description}}):
+                </label>
+                <span *ngIf="!work?.orcidWork?.citationValueFormatted?.length && !work?.orcidWork?.citationValue" class="noDataExists">No Data Specified</span>
+                <span *ngIf="work?.orcidWork?.citationValue && work?.orcidWork?.citationType?.orcidWorkCitationTypeCode !== 'bibtex'">
+                  {{work?.orcidWork?.citationValue}}</span>
+                <div *ngIf="work?.orcidWork?.citationValueFormatted?.length &&
+                  work?.orcidWork?.citationType?.orcidWorkCitationTypeCode === 'bibtex'" class="row pl-0">
+                  <ng-container *ngFor="let citation of work?.orcidWork?.citationValueFormatted;let citationIndex = index">
+                    <div *ngIf="citationIndex%2 == 0" class="col-3">
+                      <span *ngIf="citation === '~' || citation === '}'"> </span>
+                      <span *ngIf="citation !== '~' && citation !== '}'">{{citation}}</span>
+                    </div>
+                    <div *ngIf="citationIndex%2 != 0" class="col-9">
+                      <span *ngIf="citation === '~' || citation === '}'"> </span>
+                      <span *ngIf="citation !== '~' && citation !== '}'">{{citation}}</span>
+                    </div>
+                  </ng-container>
+                </div>
+            </div>
+              <div class="col-12 pb-0">
+                <label class="d-sm-block">Description :</label>
+                <span *ngIf="work?.orcidWork?.shortDescription">{{work?.orcidWork?.shortDescription}}</span>
+                <span *ngIf="!work?.orcidWork?.shortDescription" class="noDataExists">No Data Specified</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="isShowTaggedAwards[index]" @slideInOut class="card-body py-0 gridSkin">
+          <div class="row">
+            <div class="col-auto pl-2">
+              <label class="font-weight-bold f-15 mt-2">Link Awards
+                <span *ngIf="work?.linkedAwards?.length">({{work?.linkedAwards?.length}})</span>
+              </label>
+            </div>
+            <div class="col-lg col-md-4 col-sm-6 col-12 px-0">
+              <app-elastic [options]="awardElasticSearchOptions" [clearField]="awardClearField"
+                [isError]="isAwardLinkError"
+                [placeHolder]="'Search: Award#, Account No, Title, Lead Unit, Sponsor, Principal Investigator'"
+                (selectedResult)="awardSelect($event, work?.personOrcidWorkId)">
+              </app-elastic>
+            </div>
+            <div class="col-auto pr-0">
+              <button title="Link Award" class="btn btn-tertiary btn-sm mt-0"
+                (click)="linkPersonOrcidWorksToAward(work?.personOrcidWorkId)" id="tag-award-to-work-btn"> Link
+                Award
+              </button>
+            </div>
+          </div>
+          <span class="invalid-feedback d-block"
+            *ngIf="this.isDuplicate[work?.personOrcidWorkId]">{{this.isDuplicate[work?.personOrcidWorkId]}}</span>
+          <div class="table-responsive">
+            <table class="table mt-2 tableSkin grid2">
+              <caption class="sr-only">Orcid Award Details</caption>
+              <thead *ngIf="work?.linkedAwards?.length">
+                <th style="width: 11%;">Award Number</th>
+                <th style="width: 14%;">Account Number</th>
+                <th style="width: 17%;">Title</th>
+                <th style="width: 14%;">PI</th>
+                <th style="width: 14%;">Lead Unit</th>
+                <th style="width: 12%;">Sponsor</th>
+                <th style="width: 12%;">Sponsor Award No.</th>
+                <th>Actions</th>
+              </thead>
+              <tbody>
+                <tr *ngFor="let award of work?.linkedAwards">
+                  <td>#{{award?.awardDetail?.moduleItemKey}}</td>
+                  <td>{{award?.awardDetail?.accountNumber}}</td>
+                  <td>{{award?.awardDetail?.title}}</td>
+                  <td>{{award?.awardDetail?.piName}}</td>
+                  <td>{{award?.awardDetail?.leadUnitName}}</td>
+                  <td>{{award?.awardDetail?.sponsorName}}</td>
+                  <td>{{award?.awardDetail?.sponsorAwardNumber}}</td>
+                  <td>
+                    <ul class="actionButtonGroup">
+                      <li>
+                        <a [routerLink]="['/fibi/award//project-outcome/orcid']"
+                          [queryParams]="{ 'awardId': award?.awardDetail?.moduleId }" target="_blank">
+                          <i class="fa fa-eye" aria-hidden="true" title="Click here to view"></i>
+                        </a>
+                      </li>
+                      <li>
+                        <a data-toggle="modal" data-target="#unlinkAwardModal"
+                          (click)="unlinkAward=award; deleteIndex=index">
+                          <i class="ml-1 fa fa-trash-o" aria-hidden="true"
+                            title="Click here to unlink this award"></i>
+                        </a>
+                      </li>
+                    </ul>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="!orcidData?.personOrcidWorks?.length" class="mt-3 card">
+    <div class="no-data-container">
+      <span class="no-data-icon-outer">
+        <div class="no-data-icon">
+          <i class="fa fa-file-o" aria-hidden="true"></i>
+          <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+        </div>
+      </span>
+      <h4>There is no information in this section.</h4>
+    </div>
+  </div>
+</div>
+<!-- link multiple personOrcidWorks to award button -->
+<div *ngIf="!isAward && showLinkMultipleAward() && !isLinkAwardsToOrcidWorks"
+  class="tag-award-link d-flex align-items-center hand-cursor " id="tag-award-button"
+  (click)="isLinkAwardsToOrcidWorks = true;updateOverlayState()">
+  <span id="tag-award-button-icon pr-3">
+    <i aria-hidden="true" id="tag-award-button-icon" class="fa fa-link px-3"></i>
+  </span>
+  <span class="ml-2"> Link Award to Selected Work </span>
+</div>
+<div class="overlay" #awardMultiTagOverlay (click)="closeMultiAwardAdd()"></div>
+<!-- Multiple Award Tag Modal -->
+<div *ngIf="isLinkAwardsToOrcidWorks">
+  <div class="card p-3 award-tag-container">
+    <div class="row">
+      <div class="col-lg col-md-4 col-sm-6 col-12">
+        <app-elastic [options]="awardElasticSearchOptions" [clearField]="awardClearField"
+          (selectedResult)="multiAwardSelect($event)"
+          [placeHolder]="'Search: Award#, Account No, Title, Lead Unit, Sponsor, Principal Investigator, Status'">
+        </app-elastic>
+      </div>
+      <div class="col-auto">
+        <button title="Link Award" class="btn btn-primary" id="multiple-award-tag-search-btn"
+          (click)="linkPersonOrcidWorksToAward(null)">
+          Link Award
+        </button>
+      </div>
+    </div>
+    <span class="col-1 close-btn" (click)="closeMultiAwardAdd()">
+      <i class="fa fa-times-circle f-18" aria-hidden="true"></i>
+    </span>
+  </div>
+</div>
+<!-- Model for award unlink confirmation -->
+<div class="modal fade mySkinDialog" id="unlinkAwardModal" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header ct-footer-padding">
+        <h4 class="modal-title">Unlink Award</h4>
+        <button type="button" class="close" id="prop-special-revw-dlt-dismiss-btn" data-dismiss="modal"
+          aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body ct-modal-padding">
+        <div class="form-row">
+          <div class="form-group col-12">
+            <p>Are you sure you want to unlink this award from your work?</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer ct-footer-padding d-flex justify-content-md-end justify-content-center">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+        <button type="button" class="btn btn-primary-sub" data-dismiss="modal"
+          (click)="unLinkPersonOrcidWorkFromAward()">Yes</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,5 @@
+UPDATE message
+SET UPDATE_USER = 'admin',
+    UPDATE_TIMESTAMP = UTC_TIMESTAMP(),
+    DESCRIPTION = 'OPA Disclosure Creation Required'
+WHERE MESSAGE_TYPE_CODE='166';

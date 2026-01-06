@@ -1,0 +1,128 @@
+<ng-container *ngIf="_commonData.grandSectionConfig['1511']?.isActive">
+    <!-- Last updated by jobin on 28-02-2020 -->
+    <!-- Last updated by Arun Raj( 1.Showed a warning message if no evaluation panel selected using map function.
+                                   2.Code Optimization - a)Too many if statements in a single function ('addPanel()') gets reduced into
+                                                           seperate functions.
+                                                         b)Used 'find' method for finding duplicates instead of 'forEach' method.)
+                                  on 27/03/2020 -->
+    <div *ngIf="!this._commonData.isViewMode" class="card my-3">
+        <div class="card-content">
+            <div class="card-body pb-3">
+                <div class="form-row">
+                    <div class="col-md col-12 mb-0">
+                        <label class="d-block"><span class="mandatory">*</span>Select an evaluation panel</label>
+                        <select name="evaluation" id="grant-target-type" class="form-control" [(ngModel)]="workFlow"
+                            [ngClass]="warningMessage.has('evaluationWarningText') ?
+          'd-inline-block form-control ng-pristine ng-valid is-invalid d-block ng-touched' :
+          'd-inline-block form-control ng-pristine ng-valid ng-touched'">
+                            <option [ngValue]="null">--Select--</option>
+                            <option *ngFor="let addPan of workflowMapsList" [ngValue]="addPan">{{addPan.mapName}}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-auto col-12 d-flex align-items-md-end justify-content-sm-center mb-0">
+                        <button type="button" id="grant-sponsor-add-btn" title="Add Evaluation Panel"
+                            class="btn btn-primary-sub btn-xs" (click)="addPannel()">
+                            Add
+                        </button>
+                    </div>
+                </div>
+                <div class="invalid-feedback block-display" *ngIf="warningMessage.has('evaluationWarningText')">
+                    {{warningMessage.get('evaluationWarningText')}}
+                </div>
+                <div class="no-data-container p-3" *ngIf="workflowMapDetail?.length == 0">
+                    <span class="no-data-icon-outer">
+                        <div class="no-data-icon">
+                            <i class="fa fa-file-o" aria-hidden="true"></i>
+                            <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                        </div>
+                    </span>
+                    <h4>There is no information in this section.</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div *ngFor="let evaluationList of workflowMapDetail; let index=index;" class="card mt-3">
+        <div class="card-header px-4 py-2" *ngIf="workflowMapDetail.length != 0 ">
+            <h4 class="card-title" [ngClass]="{'py-2' : !isModifyOrPublishGrantCall}">
+                <div class="row align-items-center justify-content-between">
+                    <div class="col-md col-12">{{evaluationList.workflowMap.mapName}}<span
+                            class=" badge badge-color ml-3"
+                            *ngIf="evaluationList?.isMainPanel=='Y' && this._commonData.isViewMode">Main Panel</span>
+                    </div>
+                    <div class="col-md col-12 d-flex justify-content-end">
+                        <span class="d-flex align-items-center mr-md-5 mr-3"
+                            *ngIf="isTwoStageEvaluation && !this._commonData.isViewMode">
+                            <label class="mr-2">Main Panel</label>
+                            <a class="mt-1" *ngIf="evaluationList.isMainPanel === 'N' || !evaluationList.isMainPanel"
+                                [ngClass]="isDisable? 'low-opacity' : ''">
+                                <label class="switch m-0" title="Click here to select as Main Panel">
+                                    <input type="checkbox" (click)="toggleTrue(index)" [disabled]="isDisable">
+                                    <span class="slider round f-14" [ngClass]="isDisable? 'no-drop' : ''"><small
+                                            class="deactivate-text">No</small></span>
+                                </label>
+                            </a>
+                            <a class="mt-1" *ngIf="evaluationList.isMainPanel === 'Y'">
+                                <label class="switch m-0" title="Click here to deselect Main Panel">
+                                    <input type="checkbox" (click)="toggleFalse(index)" checked>
+                                    <span class="slider round f-14"><small>Yes</small></span>
+                                </label>
+                            </a>
+                        </span>
+                        <span>
+                            <a href="#" data-toggle="modal" *ngIf="!this._commonData.isViewMode" title="Delete Panel" class="cursor-pointer mr-2"
+                                data-target="#deleteGrantEvaluation" (click)="setEvaluationDeleteObject(evaluationList, index)">
+                                <i class="fa fa-trash-o pointer f-16 o-theme-icon" aria-hidden="true"></i></a>
+                            <button *ngIf="isModifyOrPublishGrantCall" title="Click to view team members"
+                                class="updown-arrow position-static" (click)="isCollapsed[index] =!isCollapsed[index];">
+                                <i aria-hidden="true"
+                                    [ngClass]="isCollapsed[index] ?'fa fa-angle-double-down': 'fa fa-angle-double-up'"
+                                    class="fa-large"></i>
+                            </button>
+                        </span>
+                    </div>
+
+                </div>
+            </h4>
+        </div>
+        <div class="card-content p-3" *ngIf="!isCollapsed[index] && isModifyOrPublishGrantCall">
+            <table class="tableSkin" *ngIf="evaluationList.workflowMap.workflowMapDetails.length > 0">
+                <caption class="sr-only">Evaluation Panel</caption>
+                <thead>
+                    <th scope="col" class="w-50">Name</th>
+                    <th scope="col" class="w-50">Description</th>
+                </thead>
+                <tbody *ngFor="let mapPerson of evaluationList.workflowMap.workflowMapDetails">
+                    <tr>
+                        <td class="w-50">{{mapPerson.fullName }}</td>
+                        <td class="w-50">{{mapPerson.description}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="modal fade mySkinDialog" tabindex="-1" id="deleteGrantEvaluation" role="dialog" aria-labelledby="deleteModalTitle"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete</h5>
+                    <button type="button" class="close" data-dismiss="modal" id="prop-doc-dlt-dismiss"
+                        aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this item?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="evaluation-doc-dlt-no-btn" class="btn btn-secondary" data-dismiss="modal"
+                        data-toggle="modal">No</button>
+                    <button type="button" id="evaluation-doc-dlt-yes-btn" class="btn btn-primary-sub btn-sm"
+                        data-dismiss="modal" (click)="deleteEvaluation()">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</ng-container>

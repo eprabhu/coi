@@ -1,0 +1,156 @@
+<!-- Terms -->
+<div id="Award110" class="card my-3">
+    <div class="card-header px-4 py-2">
+        <h4 class="card-title align-items-center d-flex">
+            <span class="mr-auto">Terms</span>
+            <button id="prop-special-revw-view-modal-btn" class="btn btn-tertiary btn-sm mt-0 mr-5" data-toggle="modal"
+                data-target="#add-terms-modal"
+                (click)="clearTermObject();termObject.awardSponsorTerm.sponsorTermTypeCode = '';">
+                <span>Add Terms</span>
+            </button>
+            <button class="updown-arrow" (click)="isTerms = !isTerms">
+                <i aria-hidden="true" [ngClass]="!isTerms?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                    class="fa-large"></i>
+            </button>
+        </h4>
+    </div>
+    <div class="card-content">
+        <div *ngIf="!isTerms" class="card-body">
+            <div class="no-data-container" *ngIf="termKeys?.length == 0">
+                    <span class="no-data-icon-outer">
+                            <div class="no-data-icon">
+                                <i class="fa fa-file-o" aria-hidden="true"></i>
+                                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                            </div>
+                        </span>
+                        <h4>There is no information in this section.</h4>
+            </div>
+            <table class="table tableSkin grid2">
+                <caption class="sr-only">Sponsor Terms List</caption>
+                <thead class="d-none">
+                    <tr>
+                        <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody *ngIf="termKeys?.length > 0">
+                    <tr *ngFor="let key of  termKeys;">
+                        <td>
+                            <div>
+                                <label>{{key}} ({{termDatas[key]?.length}})</label>
+                            </div>
+                            <div *ngFor="let termCodeList of termDatas[key]; let i = index;">
+                                {{termCodeList.sponsorTerm}}
+                            </div>
+                        </td>
+                        <td>
+                            <div>
+                                <ul class="actionButtonGroup">
+                                    <li>
+                                        <a data-target="#add-terms-modal" data-toggle="modal" href="#"
+                                            id="delete-area-of-research-btn">
+                                            <i aria-hidden="true" class="fa fa-pencil hand-cursor hoverColor"
+                                                title="Edit this Terms" (click)="editTerms(key,termDatas[key])"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<!-- Terms ends -->
+<!--TERMS MODAL-->
+<div class="modal fade show mySkinDialog modal-opacity" id="add-terms-modal" tabindex="-1" role="dialog"
+    aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="skippedSchedulesLongTitle">Add Terms</h5>
+                <button type="button" id="award-terms-close-btn" class="close" data-dismiss="modal" aria-label="Close"
+                    (click)="clearTermObject()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-8 col-sm-10 col-12">
+                        <label for="term-class" class="d-block"> <span class="mandatory">*</span>Term Class</label>
+                        <span>
+                            <select class="committeeBox form-control w-100" id="term-class"
+                                [ngClass]="{'is-invalid d-block':!isTermsValid && !termObject.awardSponsorTerm.sponsorTermTypeCode}"
+                                [(ngModel)]="termObject.awardSponsorTerm.sponsorTermTypeCode"
+                                (ngModelChange)="filterSponsorTermList(termObject.awardSponsorTerm.sponsorTermTypeCode)"
+                                [disabled]="isEdit">
+                                <option value="">--Select--</option>
+                                <option [value]="sponsorTermType.sponsorTermTypeCode"
+                                    *ngFor="let sponsorTermType of reportTermsLookup?.sponsorTermTypeList">
+                                    {{sponsorTermType.description}}</option>
+                            </select>
+                        </span>
+                    </div>
+                    <div class="col-12 mb-2" *ngIf="!isTermsValid">
+                        <span class="invalid-feedback" *ngIf="!termObject.awardSponsorTerm.sponsorTermTypeCode">Please select term class.</span>
+                        <span class="invalid-feedback" *ngIf="termObject.awardSponsorTerm.sponsorTermTypeCode">Please select atleast one term.</span>
+                    </div>
+                </div>
+                <div class="borderBox col-12 normalPadd terms-modal-body p-0 modal-container-ht" style=" border: none;">
+                    <table class="table tableSkin grid2 mt-3"
+                        *ngIf="termObject.awardSponsorTerm.sponsorTermTypeCode && sponsorTermList.length">
+                        <caption class="sr-only">Terms List</caption>
+                        <thead class="d-none">
+                            <tr>
+                                <th scope="col"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr width="100%">
+                                <td style="width: 10%">
+                                    <label class="custom-checkbox custom-alt">
+                                        <input type="checkbox" [(ngModel)]="termCheckAll"
+                                            (ngModelChange)="checkUncheckAllTerms()">
+                                        <span class="checkmark alt-check"></span>
+                                    </label>
+                                </td>
+                                <td style="width: 90%">
+                                    <label>Terms</label>
+                                </td>
+                            </tr>
+                            <tr *ngFor="let sponsorTerm of sponsorTermList">
+                                <td>
+                                    <label class="custom-checkbox custom-alt">
+                                        <input type="checkbox" name="{{sponsorTerm.sponsorTermCode}}"
+                                            [(ngModel)]="sponsorTerm.isChecked" id="{{sponsorTerm.sponsorTermCode}}"
+                                            (change)="onChangeTerm(sponsorTerm.sponsorTermCode, sponsorTerm.description, $event,sponsorTerm.acType,sponsorTerm.awardSponsorTermId)">
+                                        <span class="checkmark alt-check"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    {{sponsorTerm.description}}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="no-data-container" *ngIf="sponsorTermList?.length <= 0 && 
+                                                        termObject.awardSponsorTerm.sponsorTermTypeCode != ''">
+                                                        <span class="no-data-icon-outer">
+                                                                <div class="no-data-icon">
+                                                                    <i class="fa fa-file-o" aria-hidden="true"></i>
+                                                                    <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                                                                </div>
+                                                            </span>
+                                                            <h4>There is no information in this section.</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="prop-special-revw-close-btn" class="btn btn-secondary"
+                    data-dismiss="modal" (click)="clearTermObject()">Cancel</button>
+                <button type="button" id="prop-special-revw-add-btn" class="btn btn-primary-sub"
+                    (click)="saveTerms()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>

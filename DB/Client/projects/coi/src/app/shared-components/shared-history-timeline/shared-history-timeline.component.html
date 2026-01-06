@@ -1,0 +1,58 @@
+<div [@fadeInOutHeight]>
+    <div class="card {{customClass}}" [id]="timelineId">
+        <ng-content select="[history-header]"></ng-content>
+        <div class="card-content">
+            <div class="card-body">
+                <ul *ngIf="!isEmptyObject(historyLogs); else showNoData" class="timeline">
+                    <ng-container *ngFor="let history of historyLogs | keyvalue: sortNull">
+                        <!-- Iterate over entries within each group -->
+                        <li *ngFor="let historyEntry of history.value">
+                            <!-- Display message with HTML content -->
+                            <span class="fs-14" [innerHTML]="historyEntry?.message" tabindex="0"></span>
+                            <!-- Display timestamp with key -->
+                            <p class="coi-text-lighter fs-13" tabindex="0">
+                                {{ history?.key }} {{ historyEntry?.updateTimestamp | dateFormatterWithTimeZone:'time' }}
+                            </p>
+                            <!-- Display comment if available -->
+                            <p *ngIf="historyEntry?.comment" class="coi-text-light" tabindex="0">
+                                <span class="fs-14">
+                                    <!-- Quote icon -->
+                                    <mat-icon class="format_quote">format_quote</mat-icon>
+                                    <!-- Show trimmed comment if too long, with "Read more" -->
+                                    <span *ngIf="!isReadMore[historyEntry?.updateTimestamp] && historyEntry?.comment?.length > 460; else showFullInfo"
+                                        class="fst-italic mx-2" [attr.aria-label]="historyEntry?.comment">
+                                        <!-- Partial comment -->
+                                        <span class="coi-text-light mt-2">{{ historyEntry?.comment | slice:0:460 }}</span>
+                                        <!-- Read more toggle -->
+                                        <button (click)="toggleReadMore(historyEntry?.updateTimestamp)"
+                                            class="btn-none" title="Click here to read more" aria-label="Click here to read more">
+                                            <span class="fw-medium">... <u>Read more</u></span>
+                                        </button>
+                                    </span>
+
+                                    <!-- Template to show full comment and "Read less" toggle -->
+                                    <ng-template #showFullInfo>
+                                        <!-- comment -->
+                                        <span [attr.aria-label]="historyEntry?.comment"
+                                            class="fst-italic mx-2 coi-text-light">{{ historyEntry?.comment }}</span>
+                                        <!-- read less -->
+                                        <button *ngIf="historyEntry?.comment?.length > 460"
+                                            class="btn-none mt-2 fw-medium"
+                                            title="Click here to read less"
+                                            aria-label="Click here to read less"
+                                            (click)="toggleReadMore(historyEntry?.updateTimestamp)">
+                                            <span class="fw-medium"><u>Read Less</u></span>
+                                        </button>
+                                    </ng-template>
+                                </span>
+                            </p>
+                        </li>
+                    </ng-container>
+                </ul>
+                <ng-template #showNoData>
+                    <app-no-information [isBorderNeeded]="false"></app-no-information>
+                </ng-template>
+            </div>
+        </div>
+    </div>
+</div>

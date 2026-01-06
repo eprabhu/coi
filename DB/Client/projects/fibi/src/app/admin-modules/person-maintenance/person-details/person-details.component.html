@@ -1,0 +1,685 @@
+<!-- New/Edit Person -->
+<div class="card mt-3 mb-3" *ngIf="_personService.isPersonEdit">
+  <div class="card-header position-relative py-0">
+    <h4 class="card-title align-items-center d-flex">
+      <span class="mr-auto" *ngIf="person?.personId == null">Create New Person</span>
+      <span class="mr-auto" *ngIf="person?.personId">Edit Person</span>
+      <div class="align-items-center d-flex">
+          <label style="font-size: 1.4rem !important;font-weight: 700;">Activate</label>
+          <a class="ml-3 mr-5 pt-1">
+              <label class="switch">
+                  <input type="checkbox" [(ngModel)]="isPersonActive" id="personDefaultCheck"
+                      [checked]="isPersonActive">
+                  <span class="slider round fs-15">
+                      <small [ngClass]="{'deactivate-text': !isPersonActive}">
+                          {{isPersonActive ? 'Yes': 'No'}}
+                      </small>
+                  </span>
+              </label>
+          </a>
+      </div>
+      <button class="btn more-btn  back-btn-header" title="Back"
+      [routerLink]="['/fibi/person']" (click)="_personService.isPersonEditOrView = false">
+        <i class="fa fa-reply" aria-hidden="true"></i>
+      </button>
+    </h4>
+  </div>
+  <div class="card-body">
+    <div class="person-details-outer">
+      <div class="card card-inner mb-3">
+        <div class="card-content">
+          <div class="card-header p-3">
+            <h4 class="card-title align-items-center d-flex">Person Details
+            </h4>
+          </div>
+          <div class="card-body">
+            <div class="form-row">
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">
+                  <span class="mandatory">*</span>First Name</label>
+                <input type="text" id="person-name" placeholder="" class="form-control dateBox"
+                  [(ngModel)]="person.firstName" [ngClass]="(map.get('personfirstname')) ? 'is-invalid d-block' : ''" />
+                <div *ngIf="(map.get('personfirstname'))" class="invalid-feedback d-block">
+                  Please enter person firstname.
+                </div>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">
+                  <span class="mandatory">*</span>Last Name</label>
+                <input class="form-control dateBox" type="text" id="person-last-name" placeholder=""
+                  [(ngModel)]="person.lastName" [ngClass]="(map.get('personlastname')) ? 'is-invalid d-block' : ''" />
+                <div *ngIf="(map.get('personlastname'))" class="invalid-feedback d-block">
+                  Please enter person lastname.
+                </div>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">
+                  Middle Name</label>
+                <input class="form-group form-control dateBox" type="text" id="person-middle-name" placeholder=""
+                  [(ngModel)]="person.middleName" />
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">
+                  <span class="mandatory">*</span>Full Name</label>
+                <input class="form-control dateBox" type="text" id="person-full-name" placeholder=""
+                  [(ngModel)]="person.fullName" [ngClass]="(map.get('personfullname')) ? 'is-invalid d-block' : ''" />
+                <div *ngIf="(map.get('personfullname'))" class="invalid-feedback d-block">
+                  Please enter person fullname.
+                </div>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">Date Of Birth</label>
+                <span class="dateField">
+                  <input matInput [matDatepicker]="dateofbirth" id="person-dateofbirth"
+                    placeholder="{{datePlaceHolder}}" [(ngModel)]="person.dateOfBirth" class="form-group form-control"
+                    (keypress)="_commonService._keyPress($event, 'date')" (click)="dateofbirth.open()" />
+                  <i class="fa fa-calendar fa-large hand-cursor insidePicker" title="open calendar"
+                    (click)="dateofbirth.open()" aria-hidden="true"></i>
+                  <mat-datepicker #dateofbirth (opened)="setFocusToElement('person-dateofbirth')">
+                  </mat-datepicker>
+                </span>
+              </div>
+              <!-- <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                              <label class="d-block">
+                                  Age</label>
+                              <input type="text" id="person-age" placeholder=""
+                                  class="form-group form-control dateBox" [(ngModel)]="person.age"
+                                  (keypress)="inputRestriction($event)" />
+                          </div> -->
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">
+                  Gender</label>
+                <span>
+                  <select [(ngModel)]="person.gender"
+                    class="form-group form-control ng-pristine ng-valid ng-touched wd-100">
+                    <option value="">--Select--</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                  </select>
+                </span>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">
+                  Education Level</label>
+                <input type="text" id="person-education-level" placeholder="" class="form-group form-control dateBox"
+                  [(ngModel)]="person.educationLevel" />
+              </div>
+
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block"><span class="mandatory">*</span>Email
+                  Address</label>
+                <input type="text" id="person-email" placeholder="" class="form-control dateBox"
+                  [(ngModel)]="person.emailAddress" [ngClass]="(map.get('personemail')) ? 'is-invalid d-block' : ''" />
+                <div *ngIf="(map.get('personemail'))" class="invalid-feedback d-block">
+                  Please enter email address.
+                </div>
+                <div *ngIf="addPersonEmailWarningMsg != null">
+                  <span class="invalid-feedback d-block">&nbsp;{{addPersonEmailWarningMsg}}</span>
+                </div>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">Mobile Number</label>
+                <div>
+                  <input rows="1" id="person-mobile" placeholder="" maxlength="80"
+                    class="forTextAreaEntry form-group form-control scheduleBoxes" [(ngModel)]="person.mobileNumber"
+                    (keyup)="phoneNumberValidation(person.mobileNumber)" [ngClass]="map.has('phoneNumberWarning') ? 
+                                      'd-inline-block form-control ng-pristine ng-valid is-invalid d-block ng-touched' : 
+                                      'd-inline-block form-control ng-pristine ng-valid ng-touched'" />
+                </div>
+                <div class="invalid-feedback block-display" *ngIf="map.has('phoneNumberWarning')">
+                  {{map.get('phoneNumberWarning')}}
+                </div>
+                <div class="invalid-feedback block-display" *ngIf="map.has('phoneNumberWarningAlphabets')">
+                  {{map.get('phoneNumberWarningAlphabets')}}
+                </div>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">
+                  <span class="mandatory">*</span>User Name</label>
+                <input type="text" rows="1" id="person-username" placeholder="" maxlength="80" autocomplete="off"
+                  class="forTextAreaEntry form-control scheduleBoxes" [(ngModel)]="person.principalName"
+                  [ngClass]="(map.has('personprincipalname')) ? 'is-invalid d-block' : ''" />
+                <div *ngIf="(map.has('personprincipalname'))" class="invalid-feedback d-block">
+                  {{map.get('personprincipalname')}}
+                </div>
+              </div>
+              <div *ngIf="!isEditPerson || !this._commonService.enableSSO"  class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">
+                  <span class="mandatory">*</span>Password.</label>
+                <input type="password" rows="1" id="person-password" placeholder="" autocomplete="off" maxlength="80"
+                  class="forTextAreaEntry form-control scheduleBoxes" [(ngModel)]="person.password"
+                  (ngModelChange)="person.isPasswordChange = true"
+                  [ngClass]="(map.get('personpassword')) ? 'is-invalid d-block' : ''" />
+                <div *ngIf="(map.get('personpassword'))" class="invalid-feedback d-block">
+                  Please enter password.
+                </div>
+              </div>
+              <div *ngIf="!isEditPerson || !this._commonService.enableSSO" class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">
+                  <span class="mandatory">*</span>Confirm Password</label>
+                <input type="password" rows="1" id="person-confirm-password" placeholder="" autocomplete="off"
+                  maxlength="80" class="forTextAreaEntry form-control scheduleBoxes" [(ngModel)]="confirmPassword"
+                  (ngModelChange)="person.isPasswordChange = true"
+                  [ngClass]="map.has('confirmPersonPassword') ? 'is-invalid d-block' : ''" />
+                <div *ngIf="map.has('confirmPersonPassword')" class="invalid-feedback d-block">
+                  {{(map.get('confirmPersonPassword'))}}
+                </div>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">Address Line 1</label>
+                <textarea id="person-address1" maxlength="80"
+                  class="forTextAreaEntry form-group form-control scheduleBoxes" [(ngModel)]="person.addressLine1"
+                  appLengthValidator [isShowLimiter]='true' [limit]=80></textarea>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">Address Line 2</label>
+                <textarea id="person-address2" maxlength="80"
+                  class="forTextAreaEntry form-group form-control scheduleBoxes" [(ngModel)]="person.addressLine2"
+                  appLengthValidator [isShowLimiter]='true' [limit]=80></textarea>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">Address Line 3</label>
+                <textarea id="person-address3" maxlength="80"
+                  class="forTextAreaEntry form-group form-control scheduleBoxes" [(ngModel)]="person.addressLine3"
+                  appLengthValidator [isShowLimiter]='true' [limit]=80></textarea>
+              </div>
+
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">City</label>
+                <input rows="1" id="person-city" placeholder="" maxlength="80"
+                  class="forTextAreaEntry form-group form-control scheduleBoxes" [(ngModel)]="person.city" />
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">Postal Code</label>
+                <input type="text" id="person-postal-code" placeholder="" class="form-group form-control dateBox"
+                  [(ngModel)]="person.postalCode" (keypress)="inputRestriction($event)" />
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">State/Province</label>
+                <input type="text" id="person-state" placeholder="" class="form-group form-control dateBox"
+                  [(ngModel)]="person.state" />
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">Country</label>
+                <app-autocompleter [completerOptions]="countrySearchOptions" [clearField]="countryClearField"
+                [placeHolder]="'Type here for Country'" (onSelect)="countryChangeFunction($event)"
+               ></app-autocompleter>
+              </div>
+              <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">Country Of Citizenship</label>
+                <app-autocompleter [completerOptions]="countryOfCitizenshipSearchOptions" [clearField]="citizenshipClearField"
+                [placeHolder]="'Type here for Country'" (onSelect)="citizenshipChangeFunction($event)"
+                ></app-autocompleter>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="person-details-outer">
+      <div class="card card-inner mb-3">
+        <div class="card-content">
+          <div class="card-header">
+            <h4 class="card-title">Organization Details</h4>
+          </div>
+          <div class="card-body">
+            <div class="form-row">
+              <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">Primary Title</label>
+                <input type="text" id="person-primary-title" placeholder="" class="form-group form-control dateBox"
+                  [(ngModel)]="person.primaryTitle" />
+              </div>
+              <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">Directory Title</label>
+                <input type="text" id="person-directory-title" placeholder="" class="form-group form-control dateBox"
+                  [(ngModel)]="person.directoryTitle" />
+              </div>
+              <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">
+                  <span class="mandatory">*</span>Home Unit</label>
+                <div class="searchBox">
+                  <app-endpoint-search [httpOptions]="homeUnitSearchOptions" [clearField]="clearField"
+                    [isError]="(map.get('personhomeunit')) ? true : false" [placeHolder]="'Type here for Home Unit'"
+                    (onSelect)="homeUnitChangeFunction($event)">
+                  </app-endpoint-search>
+                </div>
+              </div>
+              <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">Prior Name</label>
+                <input type="text" id="person-prior-name" placeholder="" class="form-group form-control dateBox"
+                  [(ngModel)]="person.priorName" />
+              </div>
+              <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">School</label>
+                <input type="text" id="person-school" placeholder="" class="form-group form-control dateBox"
+                  [(ngModel)]="person.school" />
+              </div>
+              <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">Job Code</label>
+                <input type="text" id="person-jobcode" placeholder="" maxlength="6"
+                  class="form-group form-control dateBox" [(ngModel)]="person.jobCode" />
+              </div>
+              <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">Salary Anniversary Date</label>
+                <span class="dateField">
+                  <input matInput [matDatepicker]="salarydate" id="person-salarydate" placeholder="{{datePlaceHolder}}"
+                    [(ngModel)]="person.salaryAnniversary" class="form-group form-control"
+                    (keypress)="_commonService._keyPress($event, 'date')" (click)="salarydate.open()" />
+                  <span class="fa fa-calendar fa-large hand-cursor insidePicker" title="open calendar"
+                    (click)="salarydate.open()"></span>
+                  <mat-datepicker #salarydate (opened)="setFocusToElement('person-salarydate')">
+                  </mat-datepicker>
+                </span>
+              </div>
+              <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">Office Location</label>
+                <input type="text" id="person-office-location" placeholder="" class="form-group form-control dateBox"
+                  [(ngModel)]="person.officeLocation" />
+              </div>
+              <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">Secondary Office location</label>
+                <input type="text" id="person-secondary-officelocation" placeholder=""
+                  class="form-group form-control dateBox" [(ngModel)]="person.secOfficeLocation" />
+              </div>
+              <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">Secondary Office Phone</label>
+                <div>
+                  <input type="text" id="person-secondary-oficephone" placeholder=""
+                    class="form-group form-control dateBox" [(ngModel)]="person.secOfficePhone"
+                    (keyup)="phoneNumberValidation(person.secOfficePhone)" [ngClass]="map.has('phoneNumberWarning') ? 
+                                      'd-inline-block form-control ng-pristine ng-valid is-invalid d-block ng-touched' : 
+                                      'd-inline-block form-control ng-pristine ng-valid ng-touched'" />
+                </div>
+                <div class="invalid-feedback block-display" *ngIf="map.has('phoneNumberWarning')">
+                  {{map.get('phoneNumberWarning')}}
+                </div>
+                <div class="invalid-feedback block-display" *ngIf="map.has('phoneNumberWarningAlphabets')">
+                  {{map.get('phoneNumberWarningAlphabets')}}
+                </div>
+              </div>
+              <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">Fax Number</label>
+                <input id="person-fax" placeholder="" maxlength="80"
+                  class="forTextAreaEntry form-group form-control scheduleBoxes" [(ngModel)]="person.faxNumber"
+                  (keypress)="inputRestriction($event)" />
+              </div>
+              <div class="form-group col-lg-3 col-md-4 col-sm-6 col-12">
+                <label class="d-block">Pager number</label>
+                <input rows="1" id="person-pagenumber" placeholder="" maxlength="80"
+                  class="forTextAreaEntry form-group form-control scheduleBoxes" [(ngModel)]="person.pagerNumber"
+                  (keypress)="inputRestriction($event)" />
+              </div>
+            </div>
+            <!-- new checkboxes-->
+            <div class="card-details mt-0 p-0">
+              <h4 class="card-title">Other Information</h4>
+              <div class="row media-card m-0 checkbox-container-bg">
+                <div class="form-check mr-2 col-md-auto col-sm-4 col-12">
+                  <input class="form-check-input" type="checkbox" name="isfaculty" [(ngModel)]="person.isFaculty">
+                  <label class="form-check-label" for="Is Faculty">
+                    Is Faculty
+                  </label>
+                </div>
+                <div class="form-check mr-2 col-md-auto col-sm-5 col-12">
+                  <input class="form-check-input" type="checkbox" name="graduatestudentstaff"
+                    [(ngModel)]="person.isGraduateStudentStaff">
+                  <label class="form-check-label" for="Is Graduate Student Staff">
+                    Is Graduate Student Staff
+                  </label>
+                </div>
+                <div class="form-check mr-2 col-md-auto col-sm-4 col-12">
+                  <input class="form-check-input" type="checkbox" name="isResearchStaff"
+                    [(ngModel)]="person.isResearchStaff">
+                  <label class="form-check-label" for="Is Research Staff">
+                    Is Research Staff
+                  </label>
+                </div>
+                <div class="form-check mr-2 col-md-auto col-sm-4 col-12">
+                  <input class="form-check-input" type="checkbox" name="isServiceStaff"
+                    [(ngModel)]="person.isServiceStaff">
+                  <label class="form-check-label" for="Is Service Staff">
+                    Is Service Staff
+                  </label>
+                </div>
+                <div class="form-check mr-2 col-md-auto col-sm-4 col-12">
+                  <input class="form-check-input" type="checkbox" name="isSupportStaff"
+                    [(ngModel)]="person.isSupportStaff">
+                  <label class="form-check-label" for="Is Support Staff">
+                    Is Support Staff
+                  </label>
+                </div>
+                <div class="form-check mr-2 col-md-auto col-sm-4 col-12">
+                  <input class="form-check-input" type="checkbox" name="isOtherAcadamic"
+                    [(ngModel)]="person.isOtherAcadamic">
+                  <label class="form-check-label" for="Is Other Academic">
+                    Is Other Academic
+                  </label>
+                </div>
+                <div class="form-check col-md-auto col-sm-4 col-12">
+                  <input class="form-check-input" type="checkbox" name="isMedicalStaff"
+                    [(ngModel)]="person.isMedicalStaff">
+                  <label class="form-check-label" for="Is Medical Staff">
+                    <ng-container i18n="@@PERSON_IS_MEDICAL_STAFF">Is Medical Staff</ng-container>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <!-- new checkboxes-->
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="row flex-column flex-sm-row justify-content-md-end justify-content-center">
+        <button (click)="cancelPersonEdit();"
+          class="btn btn-secondary mb-3 mb-sm-0 mr-sm-3 btn-sm">Cancel</button>
+        <button *ngIf="person?.personId == null" class="btn btn-primary-sub btn-sm" (click)="savePerson('I')">Create
+          Person</button>
+        <button *ngIf="person?.personId" class="btn btn-primary-sub btn-sm" (click)="savePerson('U')">Update
+          Person</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-3 mb-3" *ngIf="!_personService.isPersonEdit">
+  <div class="card-header position-relative">
+    <h4 class="card-title pr-26">Person Details
+      <a *ngIf="hasMaintainTrainingRight"
+         (click)="redirectToTrainingMaintenance()"
+         id="show-training-person" title="Training"
+         class="btn btn-sm btn-tertiary float-right">
+        Training
+      </a>
+      <a *ngIf="isMaintainUserRoles" title="Person Role Maintenance"
+        class="btn btn-sm btn-tertiary role-color float-right mr-2" id=" rolemaintenance-btn"
+        [routerLink]="['/fibi/role-maintainance']"
+        [queryParams]="{ unitId: person?.unit?.unitNumber,personId: person?.personId}">
+        Person Role Maintenance
+      </a>
+      <a *ngIf="isMaintainPerson" title="Edit Person" class="btn btn-sm btn-tertiary float-right mr-2"
+        id="currentpending-btn" (click)="editPerson()">
+        Edit Person
+      </a>
+      <button id="person-expand-btn" class="updown-arrow font hoverColor"
+        (click)="showOrHideDataFlagsObj.isPersonViewData = !showOrHideDataFlagsObj.isPersonViewData">
+        <i [ngClass]="showOrHideDataFlagsObj.isPersonViewData?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+          class="fa-large" aria-hidden="true"></i>
+      </button>
+    </h4>
+  </div>
+  <!--View Person-->
+  <div class="" *ngIf="!_personService.isPersonEdit && showOrHideDataFlagsObj.isPersonViewData">
+    <div class="card-body gridSkin">
+      <div class="row">
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+          <label class="d-sm-block">Person ID</label>
+          <span [ngClass]="person?.personId ? '' : 'noDataExists'">
+            {{person?.personId ? person?.personId : 'No Data'}} </span>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+          <label class="d-sm-block">User Name</label>
+          <span [ngClass]="person?.principalName ? '' : 'noDataExists'">
+            {{person?.principalName ? person.principalName : 'No Data'}}
+          </span>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+          <label class="d-sm-block">FullName</label>
+          <span [ngClass]="person?.fullName ? '' : 'noDataExists'">
+            {{person?.fullName ? person.fullName : 'No Data'}} </span>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+          <label class="d-sm-block">Date Of Birth</label>
+          <span *ngIf="person?.dateOfBirth != null" class="d-block">
+            {{person?.dateOfBirth | dateFormatter}}</span>
+          <span *ngIf="!person?.dateOfBirth" [ngClass]="!person?.dateOfBirth ?  'noDataExists' : ''">
+            {{ 'No Data'}}
+          </span>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+          <label class="d-sm-block">Gender</label>
+          <span [ngClass]="person?.gender ? '' : 'noDataExists'">
+            {{person?.gender ? person.gender : 'No Data'}} </span>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+          <label class="d-sm-block">First Name</label>
+          <span [ngClass]="person?.firstName ? '' : 'noDataExists'">
+            {{person?.firstName ? person.firstName : 'No Data'}}
+          </span>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+          <label class="d-sm-block">Last Name</label>
+          <span [ngClass]="person?.lastName ? '' : 'noDataExists'">
+            {{person?.lastName ? person.lastName : 'No Data'}} </span>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+          <label class="d-sm-block">Middle Name</label>
+          <span [ngClass]="person?.middleName ? '' : 'noDataExists'">
+            {{person?.middleName ? person.middleName : 'No Data'}}
+          </span>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+          <label class="d-sm-block">Education Level</label>
+          <span [ngClass]="person?.educationLevel ? '' : 'noDataExists'">
+            {{person?.educationLevel ? person.educationLevel : 'No Data'}}</span>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+          <label class="d-sm-block">Mobile Number</label>
+          <span [ngClass]="person?.mobileNumber ? '' : 'noDataExists'">
+            {{person?.mobileNumber ? person.mobileNumber : 'No Data'}}
+          </span>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+          <label class="d-sm-block">Email Address</label>
+          <span [ngClass]="person?.emailAddress ? '' : 'noDataExists'">
+            {{person?.emailAddress ? person.emailAddress : 'No Data'}}
+          </span>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+          <label class="d-sm-block">AddressLine1</label>
+          <span [ngClass]="person?.addressLine1 ? '' : 'noDataExists'">
+            {{person?.addressLine1 ? person.addressLine1 : 'No Data'}}
+          </span>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+          <label class="d-sm-block">AddressLine2</label>
+          <span [ngClass]="person?.addressLine2 ? '' : 'noDataExists'">
+            {{person?.addressLine2 ? person.addressLine2 : 'No Data'}}
+          </span>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+          <label class="d-sm-block">AddressLine3</label>
+          <span [ngClass]="person?.addressLine3 ? '' : 'noDataExists'">
+            {{person?.addressLine3 ? person.addressLine3 : 'No Data'}}
+          </span>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+          <label class="d-sm-block">City</label>
+          <span [ngClass]="person?.city ? '' : 'noDataExists'">
+            {{person?.city ? person.city : 'No Data'}} </span>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+          <label class="d-sm-block">State</label>
+          <span [ngClass]="person?.state ? '' : 'noDataExists'">
+            {{person?.state ? person.state : 'No Data'}} </span>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+          <label class="d-sm-block">Country</label>
+          <span *ngIf="!person?.countryCode" class = 'noDataExists'>
+            No Data
+          </span>
+          <span *ngIf="person?.countryCode">
+           {{person.countryCode}} - {{person?.countryDetails?.countryName}}
+          </span>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+          <label class="d-sm-block">Country Of Citizenship</label>
+          <span *ngIf="!person?.countryOfCitizenshipCode" class = 'noDataExists'>
+            No Data
+          </span>
+          <span *ngIf="person?.countryOfCitizenshipCode">
+           {{person?.countryOfCitizenshipCode}} - {{person?.countryOfCitizenshipDetails?.countryName}}
+          </span>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+          <label class="d-sm-block">Postal Code</label>
+          <span [ngClass]="person?.postalCode ? '' : 'noDataExists'">
+            {{person?.postalCode ? person.postalCode : 'No Data'}}
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<div class="" *ngIf="!_personService.isPersonEdit">
+  <div class="card mb-3">
+    <div class="card-content">
+      <div class="card-header">
+        <h4 class="card-title">Organization Details
+          <span class="float-right ">
+            <button id="person-expand-btn" class="updown-arrow font hoverColor"
+              (click)="showOrHideDataFlagsObj.isOrganizationViewData = !showOrHideDataFlagsObj.isOrganizationViewData">
+              <i [ngClass]="showOrHideDataFlagsObj.isOrganizationViewData?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                class="fa-large" aria-hidden="true"></i>
+            </button>
+          </span>
+        </h4>
+      </div>
+      <div class="card-body gridSkin" *ngIf="!_personService.isPersonEdit && showOrHideDataFlagsObj.isOrganizationViewData">
+
+        <div class="row">
+          <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+            <label class="d-sm-block">Primary Title</label>
+            <span [ngClass]="person?.primaryTitle ? '' : 'noDataExists'">
+              {{person?.primaryTitle ? person?.primaryTitle : 'No Data'}}
+            </span>
+          </div>
+          <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+            <label class="d-sm-block">Directory Title</label>
+            <span [ngClass]="person?.directoryTitle ? '' : 'noDataExists'">
+              {{person?.directoryTitle ? person?.directoryTitle : 'No Data'}}
+            </span>
+          </div>
+          <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+            <label class="d-sm-block">Home Unit</label>
+            <span [ngClass]="person?.unit?.unitName ? '' : 'noDataExists'">
+              {{concatUnitNumberAndUnitName(person?.unit?.unitNumber, person?.unit?.unitName) }}
+            </span>
+          </div>
+          <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+            <label class="d-sm-block">Prior Name</label>
+            <span [ngClass]="person?.priorName ? '' : 'noDataExists'">
+              {{person?.priorName ? person?.priorName : 'No Data'}}
+            </span>
+          </div>
+          <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+            <label class="d-sm-block">School</label>
+            <span [ngClass]="person?.school ? '' : 'noDataExists'">
+              {{person?.school ? person?.school : 'No Data'}} </span>
+          </div>
+          <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+            <label class="d-sm-block">Office Location</label>
+            <span [ngClass]="person?.officeLocation ? '' : 'noDataExists'">
+              {{person?.officeLocation ? person?.officeLocation : 'No Data'}}
+            </span>
+          </div>
+          <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+            <label class="d-sm-block">Secondary Office Location</label>
+            <span [ngClass]="person?.secOfficeLocation ? '' : 'noDataExists'">
+              {{person?.secOfficeLocation ? person?.secOfficeLocation : 'No Data'}}
+            </span>
+          </div>
+          <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+            <label class="d-sm-block">Secondary Office Phone</label>
+            <span [ngClass]="person?.secOfficePhone ? '' : 'noDataExists'">
+              {{person?.secOfficePhone ? person?.secOfficePhone : 'No Data'}}
+            </span>
+          </div>
+          <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+            <label class="d-sm-block">Salary Anniversary</label>
+            <span *ngIf="person?.salaryAnniversary!= null" class="d-block">
+              {{person?.salaryAnniversary | dateFormatter}}</span>
+            <span *ngIf="person?.salaryAnniversary == null"
+              [ngClass]="!person?.salaryAnniversary ? 'noDataExists' : ''"> {{'No Data'}}
+            </span>
+          </div>
+          <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+            <label class="d-sm-block">JobCode</label>
+            <span [ngClass]="person?.jobCode ? '' : 'noDataExists'">
+              {{person?.jobCode ? person?.jobCode : 'No Data'}} </span>
+          </div>
+          <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+            <label class="d-sm-block">Fax Number</label>
+            <span [ngClass]="person?.faxNumber ? '' : 'noDataExists'">
+              {{person?.faxNumber ? person?.faxNumber : 'No Data'}}
+            </span>
+          </div>
+          <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+            <label class="d-sm-block">Pager Number</label>
+            <span [ngClass]="person?.pagerNumber ? '' : 'noDataExists'">
+              {{person?.pagerNumber ? person?.pagerNumber : 'No Data'}}
+            </span>
+          </div>
+        </div>
+
+        <!-- new checkboxes-->
+        <div class="card-details mt-0 p-0" *ngIf="!_personService.isPersonEdit && isMaintainPerson">
+          <h4 class="card-title">Other Information</h4>
+          <div class="row media-card checkbox-container-bg mt-3"
+            *ngIf="!_personService.isPersonEdit">
+            <div class="form-check mr-2 col-md-auto col-sm-4 col-12">
+              <input class="form-check-input" type="checkbox" name="typeperson" [checked]="person.isFaculty" disabled>
+              <label class="form-check-label" for="Is Faculty">
+                Is Faculty
+              </label>
+            </div>
+            <div class="form-check mr-2 col-md-auto col-sm-4 col-12">
+              <input class="form-check-input" type="checkbox" name="typeperson"
+                [checked]="person.isGraduateStudentStaff" disabled>
+              <label class="form-check-label" for="Is Graduate Student Staff">
+                Is Graduate Student Staff
+              </label>
+            </div>
+            <div class="form-check mr-2 col-md-auto col-sm-4 col-12">
+              <input class="form-check-input" type="checkbox" name="typeperson" [checked]="person.isResearchStaff"
+                disabled>
+              <label class="form-check-label" for="Is Research Staff">
+                Is Research Staff
+              </label>
+            </div>
+            <div class="form-check mr-2 col-md-auto col-sm-4 col-12">
+              <input class="form-check-input" type="checkbox" name="typeperson" [checked]="person.isServiceStaff"
+                disabled>
+              <label class="form-check-label" for="Is Service Staff">
+                Is Service Staff
+              </label>
+            </div>
+            <div class="form-check mr-2 col-md-auto col-sm-4 col-12">
+              <input class="form-check-input" type="checkbox" name="typeperson" [checked]="person.isSupportStaff"
+                disabled>
+              <label class="form-check-label" for="Is Support Staff">
+                Is Support Staff
+              </label>
+            </div>
+            <div class="form-check mr-2 col-md-auto col-sm-4 col-12">
+              <input class="form-check-input" type="checkbox" name="typeperson" [checked]="person.isOtherAcadamic"
+                disabled>
+              <label class="form-check-label" for="Is Other Academic">
+                Is Other Academic
+              </label>
+            </div>
+            <div class="form-check mr-2 col-md-auto col-sm-4 col-12">
+              <input class="form-check-input" type="checkbox" name="typeperson" [checked]="person.isMedicalStaff"
+                disabled>
+              <label class="form-check-label" for="Is Medical Staff">
+                <ng-container i18n="@@PERSON_IS_MEDICAL_STAFF">Is Medical Staff</ng-container>
+              </label>
+            </div>
+          </div>
+        </div>
+        <!-- new checkboxes-->
+      </div>
+    </div>
+  </div>
+</div>

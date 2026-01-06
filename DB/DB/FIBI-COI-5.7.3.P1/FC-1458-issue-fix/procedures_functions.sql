@@ -1,0 +1,1 @@
+\. ./FIBI-COI-5.7.3.P1/FC-1458-issue-fix/Procedures/GET_COI_PROPOSAL_DASHBOARD.sql

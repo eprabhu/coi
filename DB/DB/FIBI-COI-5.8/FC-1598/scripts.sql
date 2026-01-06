@@ -1,0 +1,1 @@
+INSERT IGNORE INTO PARAMETER (PARAMETER_NAME, VALUE, DESCRIPTION, UPDATE_TIMESTAMP, UPDATE_USER) VALUES ('IS_START_DATE_OF_INVOLVEMENT_MANDATORY', 'Y', 'This parameter determines whether the \'Start Date of Involvement\' field in Engagement is mandatory. Set to \'Y\' to make the field required, or \'N\' to make it optional.', UTC_TIMESTAMP(), 'admin');

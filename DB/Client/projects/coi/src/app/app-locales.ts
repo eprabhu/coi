@@ -1,0 +1,214 @@
+import '@angular/localize/init';
+
+export const COMMON_DISCLOSURE_STATUS = $localize`:@@COMMON_DISCLOSURE_STATUS:Disclosure Status`;
+export const COMMON_DOCUMENT_STATUS = $localize`:@@COMMON_DOCUMENT_STATUS:Disclosure Status`;
+export const COMMON_DISPOSITION_STATUS = $localize`:@@COMMON_DISPOSITION_STATUS:Disposition Status`;
+export const COI_REVIEW_STATUS = $localize`:@@COI_REVIEW_STATUS:Review Status`;
+export const COI_CERTIFICATION_DATE = $localize`:@@COI_CERTIFICATION_DATE:Certification Date`;
+export const OVERALL_REVIEW = $localize`:@@OVERALL_REVIEW:Overall Review`;
+export const COMMON_DEPARTMENT = $localize`:@@COMMON_DEPARTMENT:Department`;
+
+// Travel disclosure labels
+export const TRAVEL_REVIEW_STATUS_LABEL = $localize`:@@TRAVEL_REVIEW_STATUS:Review Status`;
+export const TRAVEL_CERTIFICATION_DATE = $localize`:@@TRAVEL_CERTIFICATION_DATE:Certification Date`;
+export const TRAVEL_TRIP_TITLE = $localize`:@@TRAVEL_TRIP_TITLE:Trip Title`;
+export const TRAVEL_PURPOSE = $localize`:@@TRAVEL_PURPOSE:Purpose`;
+export const TRAVEL_COUNTRY = $localize`:@@TRAVEL_COUNTRY:Country`;
+export const TRAVEL_DATE = $localize`:@@TRAVEL_DATE:Travel Date`;
+export const TRAVEL_REIMBURSED_COST = $localize`:@@TRAVEL_REIMBURSED_COST:Reimbursed Cost`;
+export const TRAVEL_ADMINISTRATOR = $localize`:@@TRAVEL_ADMINISTRATOR:Administrator`;
+export const TRAVEL_ADMIN_GROUP = $localize`:@@TRAVEL_ADMIN_GROUP:Admin Group`;
+
+// Consulting disclosure labels
+export const CONSULTING_REVIEW_STATUS_LABEL = $localize`:@@CONSULTING_REVIEW_STATUS:Review Status`;
+export const CONSULTING_CERTIFICATION_DATE = $localize`:@@CONSULTING_CERTIFICATION_DATE:Certification Date`;
+
+// OPA disclosure labels
+export const OPA_CERTIFICATION_DATE = $localize`:@@OPA_CERTIFICATION_DATE:Certification Date`;
+export const OPA_EXPIRATION_DATE = $localize`:@@OPA_EXPIRATION_DATE:Expiration Date`;
+export const OPA_REVIEW_STATUS_LABEL = $localize`:@@OPA_REVIEW_STATUS:Review Status`;
+
+// Advance search labels
+export const ADV_SEARCH_OPA_REVIEW_TITLE = $localize`:@@ADV_SEARCH_OPA_REVIEW_TITLE:Click to search by Review Status`;
+export const ADV_SEARCH_REVIEW_TITLE = $localize`:@@ADV_SEARCH_REVIEW_TITLE:Click here to search by Review Status`;
+export const ADV_SEARCH_CERT_DATE_TITLE = $localize`:@@ADV_SEARCH_CERT_DATE_TITLE:Click here to search by Certification Date`;
+export const ADV_SEARCH_TRAVEL_REVIEW_TITLE = $localize`:@@ADV_SEARCH_TRAVEL_REVIEW_TITLE:Click here to search by Review Status`;
+export const ADV_SEARCH_TRAVEL_CERT_DATE_TITLE = $localize`:@@ADV_SEARCH_TRAVEL_CERT_DATE_TITLE:Click here to search by Certification Date`;
+export const ADV_SEARCH_CONSULTING_REVIEW_TITLE = $localize`:@@ADV_SEARCH_CONSULTING_REVIEW_TITLE:Click here to search by Review Status`;
+export const ADV_SEARCH_CONSULTING_CERT_DATE_TITLE = $localize`:@@ADV_SEARCH_CONSULTING_CERT_DATE_TITLE:Click here to search by Certification Date`;
+
+export const ADV_SEARCH_REVIEW_ARIA_LABEL = $localize`:@@ADV_SEARCH_REVIEW_ARIA_LABEL:Review Status dropdown`;
+export const ADV_SEARCH_CERT_DATE_ARIA_LABEL = $localize`:@@ADV_SEARCH_CERT_DATE_ARIA_LABEL:Certification Date`;
+export const ADV_SEARCH_CONSULTING_REVIEW_AL = $localize`:@@ADV_SEARCH_CONSULTING_REVIEW_AL:Review Status dropdown`;
+export const ADV_SEARCH_TRAVEL_CERT_DATE_AL = $localize`:@@ADV_SEARCH_TRAVEL_CERT_DATE_AL:Certification Date`;
+export const ADV_SEARCH_CONSULTING_CERT_DATE_AL = $localize`:@@ADV_SEARCH_CONSULTING_CERT_DATE_AL:Certification Date`;
+export const ADV_SEARCH_TRAVEL_REVIEW_AL = $localize`:@@ADV_SEARCH_TRAVEL_REVIEW_AL:Review Status dropdown`;
+
+export const ADV_SEARCH_LEAD_UNIT_PH = 'Search by Lead Unit'
+export const ADV_SEARCH_DEPARTMENT_PH = $localize`:@@ADVANCE_SEARCH_DEPARTMENT_PH:Search by Department`;
+export const ADV_SEARCH_PROJECT_NUMBER_PH = $localize`:@@ADV_SEARCH_PROJECT_NUMBER_PH:Type the Project Number here`;
+export const ADV_SEARCH_PROJECT_TITLE_PH = $localize`:@@ADV_SEARCH_PROJECT_TITLE_PH:Type the Project Title here`;
+
+//Route log labels
+export const WORKFLOW_ADD_ALTERNATE_APPROVER_BUTTON = $localize`:@@WORKFLOW_ADD_ALTERNATE_APPROVER_BUTTON:Add Alternate Approver`;
+export const WORKFLOW_ADD_NEW_APPROVER_BUTTON = $localize`:@@WORKFLOW_ADD_NEW_APPROVER_BUTTON:Add Approver`;
+export const WORKFLOW_NEW_SEQUENTIAL_STOP_BUTTON = $localize`:@@WORKFLOW_ADD_SEQUENTIAL_STOP_BUTTON:Add Sequential Stop`;
+export const WORKFLOW_BYPASS_BUTTON = $localize`:@@WORKFLOW_BYPASS:Bypass Reviewer`;
+export const WORKFLOW_STATUS = {
+    APPROVED: $localize`:@@WORKFLOW_STATUS_APPROVED:Approved`,
+    BYPASSED: $localize`:@@WORKFLOW_STATUS_BYPASSED:Bypassed`,
+    REJECTED: $localize`:@@WORKFLOW_STATUS_REJECTED:Returned`,
+    TO_BE_SUBMITTED: $localize`:@@WORKFLOW_STATUS_TO_BE_SUBMITTED:To Be Submitted`,
+    PENDING: $localize`:@@WORKFLOW_STATUS_PENDING:Waiting For Approval`,
+    WITHDRAWN: $localize`:@@WORKFLOW_STATUS_WITHDRAWN:Withdrawn`,
+    DEACTIVATED: $localize`:@@WORKFLOW_STATUS_DEACTIVATED:Deactivated`,
+};
+export const AWARD_ERR_MESSAGE = $localize`:@@AWARD_ERR_MESSAGE:Please lodge issue at COI Support`;
+
+export const COMMON_TERMS_LOCALIZE = {
+    TERM_WITHDRAW: $localize`:@@TERM_WITHDRAW:Withdraw`,
+    TERM_WITHDRAWN: $localize`:@@TERM_WITHDRAWN:Withdrawn`,
+    TERM_WITHDRAWAL: $localize`:@@TERM_WITHDRAWAL:Withdrawal`,
+};
+
+// Declaration labels
+export const DECLARATION_LOCALIZE = {
+    TERM: $localize`:@@DECLARATION_TERM:Declaration`,
+    PLURAL_TERM: $localize`:@@DECLARATION_PLURAL_TERM:Declarations`,
+    SUBMISSION: $localize`:@@DECLARATION_SUBMISSION:Submission`,
+    TERM_REVIEW_STATUS: $localize`:@@DECL_TERM_REVIEW_STATUS:Review Status`,
+    TERM_BADGE_REVIEW_STATUS: $localize`:@@DECL_TERM_BADGE_REVIEW_STATUS:Review`,
+    TERM_DISPOSITION_STATUS: $localize`:@@DECL_TERM_DISPOSITION_STATUS:Disposition Status`,
+    TERM_BADGE_DISPOSITION_STATUS: $localize`:@@DECL_TERM_BADGE_DISPOSITION_STATUS:Disposition`,
+    TERM_WITHDRAW: COMMON_TERMS_LOCALIZE.TERM_WITHDRAW,
+    TERM_WITHDRAWN: COMMON_TERMS_LOCALIZE.TERM_WITHDRAWN,
+    TERM_WITHDRAWAL: COMMON_TERMS_LOCALIZE.TERM_WITHDRAWAL
+};
+
+export const REVIEWER_DASHBOARD_LOCALIZE = {
+    TERM_DISCLOSURE_STATUS: COMMON_DISCLOSURE_STATUS,
+    TERM_DISPOSITION_STATUS: COMMON_DISPOSITION_STATUS,
+    TERM_OVERVIEW: $localize`:@@REV_DASH_TERM_OVERVIEW:Overview`,
+    TERM_DEPT_OVERVIEW: $localize`:@@REV_DASH_TERM_DEPT_OVERVIEW:Department Overview`,
+}
+
+export const REVIEWER_DASHOARD_PERSON_LIST_LOCALIZE = {
+    TERM_INPROGRESS_DISCLOSURE: $localize`:@@REV_DASH_PERSON_LIST_TERM_INPROGRESS_DISCLOSURE:In progress`,
+    TERM_NOT_YET_CREATED_DISCLOSURE: $localize`:@@REV_DASH_PERSON_LIST_TERM_NOT_YET_CREATED_DISCLOSURE:Not Yet Created`,
+}
+
+export const COMMON_DISCL_LOCALIZE = {
+    // TERMS
+    TERM_COI: $localize`:@@TERM_COI:COI`,
+    TERM_OPA: $localize`:@@TERM_OPA:OPA`,
+    TERM_CONSULTING: $localize`:@@TERM_CONSULTING:Consulting`,
+    TERM_TRAVEL: $localize`:@@TERM_TRAVEL:Travel`,
+    TERM_PROJECT: $localize`:@@TERM_PROJECT:Project`,
+    TERM_PROJECT_DISCL_PREFIX: $localize`:@@TERM_PROJECT_DISCL_PREFIX:`,
+    TERM_COI_INITIAL_DISCL: $localize`:@@TERM_COI_INITIAL_DISCL:COI Initial Disclosure`,
+    TERM_COI_REVISION_DISCL: $localize`:@@TERM_COI_REVISION_DISCL:COI Revision`,
+    FCOI_REVISE_BTN: $localize`:@@FCOI_REVISE_BTN:Revise COI`,
+    TERM_WITHDRAW: COMMON_TERMS_LOCALIZE.TERM_WITHDRAW,
+    TERM_WITHDRAWN: COMMON_TERMS_LOCALIZE.TERM_WITHDRAWN,
+    TERM_WITHDRAWAL: COMMON_TERMS_LOCALIZE.TERM_WITHDRAWAL,
+    TERM_DISCLOSURE_TYPE: $localize`:@@TERM_DISCLOSURE_TYPE:Disclosure Type`,
+    TERM_REQUEST_RECALL: $localize`:@@TERM_TERM_REQUEST_RECALL:Request to Recall`,
+    // Badge prefix
+    ANNUAL_BADGE_PREFIX: $localize`:@@ANNUAL_DISCL_BADGE_PREFIX:`,
+    PROJECT_BADGE_PREFIX: $localize`:@@PROJECT_DISCL_BADGE_PREFIX:`,
+    TRAVEL_BADGE_PREFIX: $localize`:@@TRAVEL_DISCL_BADGE_PREFIX:`,
+    CONSULTING_BADGE_PREFIX: $localize`:@@CONSULTING_DISCL_BADGE_PREFIX:`,
+    // validation msg
+    PROJECT_DISCL_CREATION_VALIDATION_MSG: $localize`:@@PROJECT_DISCL_CREATION_VALIDATION_MSG:You must have a COI Disclosure before creating a Project Disclosure.`,
+    // Common labels
+    COMMON_DISCLOSURE_STATUS: COMMON_DISCLOSURE_STATUS,
+    COMMON_DOCUMENT_STATUS: COMMON_DOCUMENT_STATUS,
+    COMMON_DISPOSITION_STATUS: COMMON_DISPOSITION_STATUS,
+    COI_REVIEW_STATUS: COI_REVIEW_STATUS,
+    COMMON_DEPARTMENT: COMMON_DEPARTMENT,
+
+    // COI disclosure labels
+    COI_CERTIFICATION_DATE: COI_CERTIFICATION_DATE,
+    COI_EXPIRATION_DATE: $localize`:@@COI_EXPIRATION_DATE:Expiration`,
+
+    // Travel disclosure labels
+    TRAVEL_REVIEW_STATUS_LABEL: TRAVEL_REVIEW_STATUS_LABEL,
+    TRAVEL_CERTIFICATION_DATE: TRAVEL_CERTIFICATION_DATE,
+    TRAVEL_TRIP_TITLE: TRAVEL_TRIP_TITLE,
+    TRAVEL_PURPOSE: TRAVEL_PURPOSE,
+    TRAVEL_COUNTRY: TRAVEL_COUNTRY,
+    TRAVEL_DATE: TRAVEL_DATE,
+    TRAVEL_REIMBURSED_COST: TRAVEL_REIMBURSED_COST,
+    TRAVEL_ADMINISTRATOR: TRAVEL_ADMINISTRATOR,
+    TRAVEL_ADMIN_GROUP: TRAVEL_ADMIN_GROUP,
+
+    // Consulting disclosure labels
+    CONSULTING_REVIEW_STATUS_LABEL: CONSULTING_REVIEW_STATUS_LABEL,
+    CONSULTING_CERTIFICATION_DATE: CONSULTING_CERTIFICATION_DATE,
+
+    // OPA disclosure labels
+    OPA_CERTIFICATION_DATE: OPA_CERTIFICATION_DATE,
+    OPA_EXPIRATION_DATE: OPA_EXPIRATION_DATE,
+    OPA_REVIEW_STATUS_LABEL: OPA_REVIEW_STATUS_LABEL
+};
+
+// Engagement
+export const ENGAGEMENT_LOCALIZE = {
+    ENG_REL_TOGGLE_VALIDATION_MSG: $localize`:@@ENG_REL_TOGGLE_VALIDATION_MSG:This engagement is neither marked as OPA nor as a compensated engagement. Please update the details before proceeding.`,
+    ENG_SPONSOR_REQUIRED_MSG: $localize`:@@ENG_SPONSOR_REQUIRED_MSG:Please select an option to proceed.`,
+    ENG_COMPENSATED_REQUIRED_MSG: $localize`:@@ENG_COMPENSATED_REQUIRED_MSG:Please select an option to proceed.`,
+    ENG_COMMITMENT_REQUIRED_MSG: $localize`:@@ENG_COMMITMENT_REQUIRED_MSG:Please select an option to proceed.`,
+    TERM_COMMITMENT_FOR_REL_PILLS: $localize`:@@TERM_COMMITMENT_FOR_REL_PILLS:Commitment`,
+    TERM_CONSULTING_FOR_REL_PILLS: $localize`:@@TERM_CONSULTING_FOR_REL_PILLS:Consulting`,
+    TERM_FINANCIAL_FOR_REL_PILLS: $localize`:@@TERM_FINANCIAL_FOR_REL_PILLS:Financial`,
+    TERM_TRAVEL_FOR_REL_PILLS: $localize`:@@TERM_TRAVEL_FOR_REL_PILLS:Travel`,
+    TERM_SFI_FOR_REL_PILLS: $localize`:@@TERM_SFI_FOR_REL_PILLS:SFI`,
+    TERM_SIGNIFICANT_FINANCIAL: $localize`:@@TERM_SIGNIFICANT_FINANCIAL:Significant Financial Interest (SFI)`,
+};
+
+// CA Dashboard Keyperson disclosure
+export const DISCLOSURE_SUBMISSION_STATUS = {
+    'Pending': $localize`:@@CA_DASH_KEYPERSON_SUBMISSION_PENDING:Pending`,
+    'TO_BE_DETERMINED': $localize`:@@CA_DASH_KEYPERSON_SUBMISSION_TO_BE_DETERMINE:To be determined`,
+    'Completed': $localize`:@@CA_DASH_KEYPERSON_SUBMISSION_COMPLETED:Completed`,
+    'Not Required': $localize`:@@CA_DASH_KEYPERSON_SUBMISSION_NOT_REQUIRED:Not Required`,
+    'Yet to disclose': $localize`:@@CA_DASH_KEYPERSON_SUBMISSION_YET_TO_DISCLOSE:Yet to disclose`,
+};
+
+export const DISCLOSURE_CERTIFICATION_STATUS = {
+    'COMPLETED': $localize`:@@CA_DASH_KEYPERSON_CERT_STATUS_COMPLETED:Completed`,
+    'INCOMPLETE': $localize`:@@CA_DASH_KEYPERSON_CERT_STATUS_INCOMPLETE:Incomplete`,
+    'NOT_REQUIRED': $localize`:@@CA_DASH_KEYPERSON_CERT_STATUS_NOT_REQUIRED:Not Required`
+};
+
+export const CA_DASH_KEYPERSON_DISCL_LOCALIZE = {
+    DISCLOSURE_SUBMISSION_STATUS: DISCLOSURE_SUBMISSION_STATUS,
+    DISCLOSURE_CERTIFICATION_STATUS: DISCLOSURE_CERTIFICATION_STATUS
+};
+
+// CA Dashboard Project disclosure
+export const PROJECT_OVERALL_SUBMISSION_STATUS = {
+    'Pending': $localize`:@@CA_DASH_PROJECT_SUBMISSION_PENDING:Pending`,
+    'Completed': $localize`:@@CA_DASH_PROJECT_SUBMISSION_COMPLETED:Completed`,
+    'N/A': $localize`:@@CA_DASH_PROJECT_SUBMISSION_N/A:N/A`,
+    'Not Required': $localize`:@@CA_DASH_PROJECT_SUBMISSION_NOT_REQUIRED:Not Required`,
+    'Yet to disclose': $localize`:@@CA_DASH_PROJECT_SUBMISSION_YET_TO_DISCLOSE:Yet to disclose`,
+};
+
+export const CA_DASH_PROJECT_LOCALIZE = {
+    PROJECT_OVERALL_SUBMISSION_STATUS: PROJECT_OVERALL_SUBMISSION_STATUS
+};
+
+// CMP labels
+export const CMP_LOCALIZE = {
+    TERM_CMP: $localize`:@@TERM_CMP:CMP`,
+    TERM_DEPARTMENT: COMMON_DEPARTMENT,
+    TERM_CMP_STATUS: $localize`:@@TERM_CMP_STATUS:CMP Status`,
+    TERM_BADGE_CMP_STATUS: $localize`:@@TERM_BADGE_CMP_STATUS:CMP`,
+    TERM_WITHDRAW: COMMON_TERMS_LOCALIZE.TERM_WITHDRAW,
+    TERM_WITHDRAWN: COMMON_TERMS_LOCALIZE.TERM_WITHDRAWN,
+    TERM_WITHDRAWAL: COMMON_TERMS_LOCALIZE.TERM_WITHDRAWAL,
+    TERM_RECIPIENT: $localize`:@@TERM_CMP_BUILDER_RECIPIENT:Recipient`,
+    CMP_BUILDER_DEFAULT_SECTION_NAME: $localize`:@@TERM_CMP_BUILDER_DEFAULT_SECTION_NAME:Untitled Section`,
+    CMP_BUILDER_DEFAULT_SECTION_HEADER: $localize`:@@TERM_CMP_BUILDER_DEFAULT_SECTION_HEADER:(Untitled Section)`,
+};

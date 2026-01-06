@@ -1,0 +1,167 @@
+<div class="card rounded-0">
+  <div class="card-content">
+    <div class="card-header py-2">
+      <h4 class="card-title align-items-center d-flex">
+        <div class="mr-auto width-80 mt-0">Committed Amount of {{internalOrderCode}}</div>
+        <span class="d-flex">
+          <span class="pt-3">All Transactions</span>
+          <span>
+            <a class="pl-2" *ngIf="isShowAllTransactions == 'Y'">
+              <label class="mb-0 mt-2 switch">
+                <input type="checkbox" (click)="isShowAllTransactions = 'N';viewTransactionDetails()">
+                <span class="slider round"><small
+                    class="deactivate-text pt-1">No</small></span>
+              </label>
+            </a>
+            <a class="pl-2" *ngIf="isShowAllTransactions == 'N'">
+              <label class="mb-0 mt-2 switch">
+                <input type="checkbox" (click)="isShowAllTransactions = 'Y';viewTransactionDetails()" checked>
+                <span class="slider round"><small class="pt-1">Yes</small></span>
+              </label>
+            </a>
+          </span>
+        </span>
+        <span
+          *ngIf="awardBudgetTransactionDetails?.expenseTransactions?.length > 0"
+          class="exportButton text-right">
+          <span class="exportIcon-margin">Export as :</span>
+          <a title="Export data to Excel sheet" class="exportIcon-margin  hand-cursor"
+            id="export-award-expense-comitted-amount-excel-btn" (click)="exportcomitted('xlsx')" tabindex="0">
+            <i aria-hidden="true" class="fa fa-file-excel-o"></i>
+          </a>
+          <a class="exportIcon-margin">|</a>
+          <a title="Export data to PDF document" class="hand-cursor" id="export-award-expense-comitted-amount-pdf-btn"
+            (click)="exportcomitted('pdf')" tabindex="0"><i aria-hidden="true" class="fa fa-file-pdf-o"></i></a>
+        </span>
+          <button type="button" class="btn more-btn ml-4"  (click)="redirectionPath()" title="'Back to' {{tab == 'P' ? 'purchase' : 'expense'}}"><i
+              class="fa fa-reply" aria-hidden="true"></i></button>
+      </h4>
+    </div>
+    <div class="card card-inner">
+      <div class="card-content">
+        <div class="card-body"
+          *ngIf="(awardBudgetTransactionDetails?.expenseTransactions?.length > 0); else noData">
+          <div class="fixed-header-table">
+            <table class="tableStyle">
+              <caption class="sr-only">Expense Details</caption>
+              <thead>
+                <tr class="th-seperation line-height">
+                  <th style="width:8%" scope="col"><ng-container i18n="@@AWARD_WBS_NUMBER_FOR_OFIN_USE">WBS Number (for OFIN use)</ng-container></th>
+                  <th style="width:8%" scope="col">GL Account</th>
+                  <th style="width:8%" scope="col">PO / PR Date</th>
+                  <th style="width:10%" scope="col">System Doc ref</th>
+                  <!-- <th style="width:10%" scope="col">Source Doc ref</th> -->
+                  <th style="width:8%" scope="col">Amount</th>
+                  <th class="text-align-left pl-3" scope="col">Vendor </th>
+                  <th class="text-align-left pl-3" scope="col">Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <ng-container>
+                  <tr class="th-seperation"
+                      *ngFor="let transactions of awardBudgetTransactionDetails?.expenseTransactions">
+                      <td>{{transactions?.internalOrderCode}}</td>
+                      <td>{{transactions?.fiGlAccount }}</td>
+                      <td>{{(transactions?.poPrFlag == 'PR') ? (transactions?.prDate | dateFormatter) : (transactions?.poDate | dateFormatter)}}</td>
+                      <td>{{transactions?.documentNumber}}</td>
+                      <!-- <td>{{transactions?.invoiceNumber}}</td> -->
+                      <td class="text-right">{{transactions?.amountInFmacurrency | currency}}
+                        <span class="badge badge-pill"
+                          [ngClass]="{'badge-primary ': transactions?.poPrFlag == 'PR' , 
+                                         'badge-success ': transactions?.poPrFlag == 'PO'}">{{transactions?.poPrFlag }}</span></td>
+                      <td>{{transactions?.vendorCode}}<span
+                          *ngIf="transactions?.vendorCode && transactions?.vendorName"> -
+                        </span>{{transactions?.vendorName}}</td>
+                      <td>{{transactions?.remarks}}</td>
+                    </tr>
+                </ng-container>
+                <!-- <ng-container
+                  *ngIf="(awardBudgetTransactionDetails?.sapTransactions?.length > 0 || awardBudgetTransactionDetails?.nonSapTransactions?.length > 0)">
+                  <ng-container *ngIf="awardBudgetTransactionDetails?.sapTransactions?.length > 0">
+                    <tr class="th-seperation">
+                      <td colspan="12" class="text-center">
+                        <span>Committed Expense from SAP</span></td>
+                    </tr>
+                    <tr class="th-seperation"
+                      *ngFor="let transactions of awardBudgetTransactionDetails?.sapTransactions">
+                      <td>{{transactions?.fiGlAccount }}</td>
+                      <td>{{transactions?.documentDate | dateFormatter}}</td>
+                      <td>{{transactions?.transactionReferenceNumber}}</td>
+                      <td class="text-right">{{transactions?.amountInFmacurrency | currency}}
+                        <span class="badge badge-pill"
+                          [ngClass]="{'badge-primary ': transactions?.poPrFlag == 'PR' , 
+                                         'badge-success ': transactions?.poPrFlag == 'PO'}">{{transactions?.poPrFlag }}</span></td>
+                      <td>{{transactions?.vendorCode}}<span
+                          *ngIf="transactions?.vendorCode && transactions?.vendorName"> -
+                        </span>{{transactions?.vendorName}}</td>
+                      <td>{{transactions?.fiGlDescription}}</td>
+                    </tr>
+                  </ng-container>
+                  <ng-container *ngIf="awardBudgetTransactionDetails?.nonSapTransactions?.length > 0">
+                    <tr class="th-seperation">
+                      <td colspan="12" class="text-center">
+                        <label class="width-max">Manually entered committed items</label>
+                      </td>
+                    </tr>
+                    <tr class="th-seperation"
+                      *ngFor="let transactions of awardBudgetTransactionDetails?.nonSapTransactions">
+                      <td>{{transactions?.fiGlAccount}}</td>
+                      <td>{{transactions?.documentDate | dateFormatter}}</td>
+                      <td>{{transactions?.transactionReferenceNumber}}</td>
+                      <td class="text-right">{{transactions?.amountInFmacurrency | currency}}
+                        <span class="badge badge-pill"
+                          [ngClass]="{'badge-primary ': transactions?.poPrFlag == 'PR' , 
+                                         'badge-success ': transactions?.poPrFlag == 'PO'}">{{transactions?.poPrFlag }}</span></td>
+                      <td>{{transactions?.vendorCode}}<span
+                          *ngIf="transactions?.vendorCode && transactions?.vendorName"> -
+                        </span>{{transactions?.vendorName}}</td>
+                      <td>{{transactions?.fiGlDescription}}</td>
+                    </tr>
+                  </ng-container>
+                </ng-container> -->
+                <!-- <ng-container
+                      *ngIf="((awardBudgetTransactionDetails?.committedExpenseTransactions?.length > 0) && (awardExpenseTab == 'COMMITTED_EXPENSE'))">
+                      <tr class="th-seperation" *ngFor="let transactions of awardBudgetTransactionDetails?.committedExpenseTransactions">
+                        <td>{{transactions?.fmPostingDate | dateFormatter}}</td>
+                        <td>{{transactions?.bankClearingDate | dateFormatter}}</td>
+                        <td>{{transactions?.documentDate | dateFormatter}}</td>
+                        <td>{{transactions?.fiGlAccount}}<span
+                            *ngIf="transactions?.fiGlAccount && transactions?.fiGlDescription"> -
+                          </span>{{transactions?.fiGlDescription}}</td>
+                        <td>{{transactions?.amountInFmacurrency | currency}}</td>
+                        <td>{{transactions?.vendorCode}}<span
+                            *ngIf="transactions?.vendorCode && transactions?.vendorName"> -
+                          </span>{{transactions?.vendorName}}</td>
+                        <td>{{transactions?.assetLocation}}</td>
+                        <td>{{transactions?.remarks}}</td>
+                      </tr>
+                    </ng-container> -->
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td>Total</td>
+                  <td class="text-right">{{totalExpenses?.amountInFmacurrency | currency}}</td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+        <ng-template #noData>
+          <div class="no-data-container">
+            <span class="no-data-icon-outer">
+              <div class="no-data-icon">
+                <i class="fa fa-file-o" aria-hidden="true"></i>
+                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+              </div>
+            </span>
+            <h4>There is no information in this section.</h4>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>

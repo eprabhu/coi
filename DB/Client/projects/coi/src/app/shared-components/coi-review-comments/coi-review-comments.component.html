@@ -1,0 +1,173 @@
+<div (click)="sectionKey = null" class="d-flex flex-column gap-2 col">
+    <!-- filter / search / add -->
+    <div [ngClass]="reviewCommentsConfig?.triggeredSource?.isTriggeredFromSlider ? 'coi-custom-slider-sticky-top' : 'top-0'"
+        class="position-sticky bg-white z-index-10">
+        <div class="advance-search coi-search-box rounded-3 overflow-hidden">
+            <div class="d-flex">
+                <!-- search box -->
+                <div class="col d-flex align-items-center search-area position-relative px-3 py-2">
+                    <span class="filter-search">
+                        <!-- search icon -->
+                        <mat-icon aria-hidden="true" class="fs-25px">search</mat-icon>
+                        <!-- search input -->
+                        <input class="form-control pe-5" type="text" id="coi-RevC-{{reviewCommentsConfig?.uniqueId}}-search"
+                            [(ngModel)]="reviewCommentsConfig.searchText" (ngModelChange)="searchTextChanged()"
+                            placeholder="Search by comments" autocomplete="off"
+                            [attr.aria-label]="'Search by comments. Current value is ' + (reviewCommentsConfig.searchText ? '' : 'empty')">
+                    </span>
+                    <!-- close btn -->
+                    <button *ngIf="reviewCommentsConfig.searchText"
+                        id="coi-RevC-{{reviewCommentsConfig?.uniqueId}}-cls-btn"
+                        class="d-flex align-items-center btn-none" (click)="clearSearch()"
+                        title="Click here to clear search" aria-label="Click here to clear search">
+                        <mat-icon class="closeButton" aria-hidden="true">close</mat-icon>
+                    </button>
+                </div>
+                <!-- go to section -->
+                <div *ngIf="reviewCommentsConfig?.filteredReviewCommentsList?.length && reviewCommentsConfig?.addAllCommentsConfig?.length" class="col-auto border-start">
+                    <button [matMenuTriggerFor]="beforeMenu" (click)="isExpandGoToSection = !isExpandGoToSection"
+                        id="coi-RevC-{{reviewCommentsConfig?.uniqueId}}-goto-btn"
+                        [title]="'Click here to ' + (isExpandGoToSection ? 'collapse' : 'expand') + ' section navigation list'"
+                        [attr.aria-label]="'Click here to ' + (isExpandGoToSection ? 'collapse' : 'expand') + ' section navigation list'"
+                        class="d-flex justify-content-center align-items-center coi-btn-light py-3 px-4">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0">format_list_bulleted</mat-icon>
+                        <span class="px-2">Go To</span>
+                        <mat-icon aria-hidden="true" class="flex-shrink-0" [ngClass]="isExpandGoToSection ? 'coi-rotate-180' : 'coi-rotate-0'">expand_more</mat-icon>
+                    </button>
+                    <!-- section btns -->
+                    <mat-menu #beforeMenu="matMenu" xPosition="before" (closed)="isExpandGoToSection = !isExpandGoToSection">
+                        <ng-container *ngFor="let parentSection of reviewCommentsConfig?.filteredReviewCommentsList;">
+                            <button *ngIf="!parentSection?.componentComments?.[0]?.moduleSectionDetails?.sectionKey" mat-menu-item type="button"
+                                (click)="scrollToSection('sectionKey-' +  parentSection?.componentTypeCode, goToIndex)"
+                                title="Click here to navigate to {{parentSection?.componentName}}"
+                                aria-label="Click here to navigate to {{parentSection?.componentName}}"
+                                id="coi-RevC-{{parentSection?.componentTypeCode}}-goto-{{goToIndex}}">
+                                <span class="fw-medium fs-14">{{ parentSection?.componentName }}</span>
+                            </button>
+                            <ng-container *ngFor="let goToSection of parentSection?.componentComments; let goToIndex = index;">
+                                <button *ngIf="goToSection?.moduleSectionDetails?.sectionKey" mat-menu-item type="button" (click)="scrollToSection(goToSection?.moduleSectionDetails?.sectionKey, goToIndex)"
+                                    title="Click here to navigate to {{goToSection?.moduleSectionDetails?.sectionName || goToSection?.moduleSectionDetails?.otherDetails?.location}}"
+                                    aria-label="Click here to navigate to {{goToSection?.moduleSectionDetails?.sectionName || goToSection?.moduleSectionDetails?.otherDetails?.location}}"
+                                    id="coi-RevC-{{goToSection?.moduleSectionDetails?.sectionKey}}-goto-{{goToIndex}}">
+                                    <span class="fw-medium fs-14">{{ goToSection?.moduleSectionDetails?.sectionName || goToSection?.moduleSectionDetails?.otherDetails?.location }}</span>
+                                </button>
+                            </ng-container>
+                        </ng-container>
+                    </mat-menu>
+                </div>
+                 <!-- Add Comment -->
+                 <div *ngIf="reviewCommentsConfig?.isEditMode && reviewCommentsConfig?.addAllCommentsConfig?.length && !isShowAddCommentEditor['ALL_SECTION_COMMENT']"
+                    class="d-flex align-items-center justify-content-center px-3 col-auto border-start">
+                    <button id="coi-RevC-{{uniqueId}}-add-btn"
+                        (click)="openAddAllComments()"
+                        class="btn coi-btn-sm btn-tertiary d-flex position-relative flex-shrink-0 mt-0 gap-1 col-auto"
+                        title="Click here to add new comment" aria-label="Click here to add new comment">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0">add</mat-icon>
+                        <span>Add Comment</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- add comments editor card -->
+    <ng-container *ngIf="isShowAddCommentEditor['ALL_SECTION_COMMENT']">
+        <div class="d-flex flex-column gap-2 bg-body-secondary rounded-3 p-3 shadow-sm border">
+            <div class="d-flex align-items-center gap-2">
+                <h4 title="Add New Comment" class="fs-16 fw-bold m-0 text-slice col">Add New Comment</h4>
+                <div class="col-auto">
+                    <select [(ngModel)]="selectedAddCommentSection.moduleSectionDetails.sectionKey" class="form-control form-select"
+                        (ngModelChange)="addCommentSectionChanges($event)" id="coi-RevC-{{reviewCommentsConfig?.uniqueId}}-section-select">
+                        <ng-container *ngFor="let commentSections of reviewCommentsConfig?.addAllCommentsConfig">
+                            <ng-container *ngFor="let commentAddSection of commentSections?.componentComments">
+                                <option [value]="commentAddSection?.moduleSectionDetails?.sectionKey">{{ commentAddSection?.moduleSectionDetails?.sectionName }}</option>
+                            </ng-container>
+                        </ng-container>
+                    </select>
+                </div>
+            </div>
+            <app-coi-review-comments-card [commentCardConfig]="addCommentCardConfig"></app-coi-review-comments-card>
+        </div>
+    </ng-container>
+
+    <ng-container *ngFor="let section of reviewCommentsConfig?.filteredReviewCommentsList">
+        <div [id]="'coi-RevC-{{reviewCommentsConfig?.uniqueId}}-section-' + section?.componentTypeCode"
+            class="d-flex flex-column bg-body-secondary rounded-3 px-3 pt-1 pb-3 shadow-sm border">
+            <ng-container *ngIf="section?.componentName">
+                <div class="d-flex gap-2 justify-content-between align-items-center pt-2 pb-1 bg-body-secondary coi-comment-card-header-sticky coi-comment-card-header-shade">
+                    <!-- header section -->
+                    <h4 [title]="section?.componentName"
+                        class="fs-16 fw-bold m-0 text-slice">{{ section?.componentName }}</h4>
+                    <!-- Add Comment Btn -->
+                    <ng-container *ngIf="reviewCommentsConfig?.isEditMode && (reviewCommentsConfig?.isDocumentOwner || section?.canMaintainComments || section?.canMaintainPrivateComments)">
+                        <button *ngIf="!isShowAddCommentEditor[section?.componentTypeCode] && !section?.componentComments?.[0]?.moduleSectionDetails"
+                            id="coi-RevC-{{uniqueId}}-add-btn" (click)="openAddComment(section?.componentTypeCode, section?.componentComments?.[0]?.reviewCommentsList?.[0])"
+                            class="btn btn-outline-primary fs-14 coi-btn-sm d-flex align-items-center gap-1"
+                            title="Click here to add new {{section?.componentName}} comment" attr.aria-label="Click here to add new {{section?.componentName}} comment">
+                            <mat-icon aria-hidden="true" class="flex-shrink-0">add</mat-icon>
+                            <span>Add Comment</span>
+                        </button>
+                    </ng-container>
+                </div>
+            </ng-container>
+            <!-- sub section and comment card -->
+            <div *ngFor="let subSection of section?.componentComments; let firstSubsection = first" class="row rounded-3" [class.mt-3]="!firstSubsection"
+                id="coi-RevC-{{reviewCommentsConfig?.uniqueId}}-section-{{subSection?.moduleSectionDetails?.sectionKey || 'sectionKey-' +  section?.componentTypeCode }}"
+                [class.coi-card-highlight-bg]="!subSection?.moduleSectionDetails?.sectionKey && sectionKey === 'sectionKey-' +  section?.componentTypeCode || (subSection?.moduleSectionDetails?.sectionKey && sectionKey === subSection?.moduleSectionDetails?.sectionKey)">
+                <!-- sub section details -->
+                <div *ngIf="subSection?.moduleSectionDetails?.sectionKey"
+                    [ngClass]="section?.componentName ? 'coi-comment-card-sub-header-sticky' : 'coi-comment-card-header-sticky'"
+                    class="d-flex align-items-center gap-2 justify-content-between bg-body-secondary py-2">
+                    <div *ngIf="subSection?.moduleSectionDetails?.sectionName || subSection?.moduleSectionDetails?.otherDetails?.location" class="d-flex flex-column gap-1">
+                        <!-- parent section -->
+                        <h5 [title]="subSection?.moduleSectionDetails?.sectionName || subSection?.moduleSectionDetails?.otherDetails?.location" [class.fs-16]="!section?.componentName"
+                            class="text-slice coi-text-dark mb-0">{{ subSection?.moduleSectionDetails?.sectionName || subSection?.moduleSectionDetails?.otherDetails?.location }}</h5>
+                        <!-- child section -->
+                        <div *ngIf="subSection?.moduleSectionDetails?.subsectionName" class="coi-comment-subsection-divider pt-2">
+                            <h6 [title]="subSection?.moduleSectionDetails?.subsectionName"
+                                class="text-slice coi-text-dark mb-0 fs-13" [innerHTML]="subSection?.moduleSectionDetails?.subsectionName | safe" ></h6>
+                        </div>
+                    </div>
+                    <!-- Add Comment Btn for sub sections -->
+                    <!-- condition need to revisit -->
+                    <ng-container *ngIf="reviewCommentsConfig?.isEditMode && (reviewCommentsConfig?.isDocumentOwner || subSection?.moduleSectionDetails?.canMaintainComments || subSection?.moduleSectionDetails?.canMaintainPrivateComments)">
+                        <button *ngIf="!isShowAddCommentEditor[subSection?.moduleSectionDetails?.sectionKey]" id="coi-RevC-{{uniqueId}}-add-btn"
+                            (click)="openAddComment(subSection?.moduleSectionDetails?.sectionKey, subSection?.reviewCommentsList?.[0])"
+                            class="btn btn-outline-primary fs-14 coi-btn-sm d-flex align-items-center gap-1 col-auto"
+                            title="Click here to add new comment" aria-label="Click here to add new comment">
+                            <mat-icon aria-hidden="true" class="flex-shrink-0">add</mat-icon>
+                            <span>Add Comment</span>
+                        </button>
+                    </ng-container>
+                </div>
+                <div class="d-flex flex-column gap-2">
+                    <!-- add comments editor card -->
+                    <ng-container *ngIf="(!subSection?.moduleSectionDetails?.sectionKey && isShowAddCommentEditor[section?.componentTypeCode]) || (subSection?.moduleSectionDetails?.sectionKey && isShowAddCommentEditor[subSection?.moduleSectionDetails?.sectionKey])">
+                        <app-coi-review-comments-card [commentCardConfig]="addCommentCardConfig"></app-coi-review-comments-card>
+                    </ng-container>
+                    <!-- comments card -->
+                    <ng-container *ngFor="let reviewComments of subSection?.reviewCommentsList">
+                        <app-coi-review-comments-card *ngIf="reviewComments?.commentDetails?.commentId" [commentCardConfig]="reviewComments"></app-coi-review-comments-card>
+                        <ng-container *ngIf="!((!subSection?.moduleSectionDetails?.sectionKey && isShowAddCommentEditor[section?.componentTypeCode]) || (subSection?.moduleSectionDetails?.sectionKey && isShowAddCommentEditor[subSection?.moduleSectionDetails?.sectionKey]))">
+                            <!--  || (!reviewCommentsConfig?.isDocumentOwner && !subSection?.moduleSectionDetails?.canMaintainComments && !subSection?.moduleSectionDetails?.canMaintainPrivateComments && !section?.canMaintainComments && !section?.canMaintainPrivateComments) -->
+                            <ng-container *ngIf="!reviewComments?.commentDetails?.commentId">
+                                <app-no-information customClass="mt-2 rounded-3"></app-no-information>
+                            </ng-container>
+                        </ng-container>
+                    </ng-container>
+                    <!-- no data card if there is no comment while performing searching -->
+                    <ng-container *ngIf="!((!subSection?.moduleSectionDetails?.sectionKey && isShowAddCommentEditor[section?.componentTypeCode]) || (subSection?.moduleSectionDetails?.sectionKey && isShowAddCommentEditor[subSection?.moduleSectionDetails?.sectionKey]))">
+                        <ng-container *ngIf="!subSection?.reviewCommentsList?.length && (!reviewCommentsConfig?.isEditMode || (!reviewCommentsConfig?.isDocumentOwner && !subSection?.moduleSectionDetails?.canMaintainComments && !subSection?.moduleSectionDetails?.canMaintainPrivateComments && !section?.canMaintainComments && !section?.canMaintainPrivateComments))">
+                            <app-no-information customClass="mt-2 rounded-3"></app-no-information>
+                        </ng-container>
+                    </ng-container>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+    <!-- no data card for no single comments -->
+    <ng-container *ngIf="!reviewCommentsConfig?.filteredReviewCommentsList?.length && !isShowAddCommentEditor['ALL_SECTION_COMMENT']">
+        <app-no-information customClass="mt-0 rounded-3"><span>{{ reviewCommentsConfig?.searchText ? noDataMessage?.['NO_SEARCH_RESULT'] : noDataMessage?.['NO_COMMENTS_TO_DISPLAY'] }}</span></app-no-information>
+    </ng-container>
+
+</div>

@@ -1,0 +1,497 @@
+<div class="push4slideMenu pageMinHeight">
+    <div class="container-fluid pushFixedHeaderFooter">
+        <div class="headerPush"></div>
+        <div class="card mb-15 mt-3 rounded-0">
+            <div class="card-content">
+                <div class="card-header d-flex justify-content-between px-3 py-1">
+                    <h4 class="card-title align-items-center d-flex">Training Details</h4>
+                    <div class="text-right">
+                        <button (click)="locationBack()" class="btn more-btn mt-0" title="Back to Training List">
+                            <i aria-hidden="true" class="fa fa-reply"></i>
+                        </button>
+                    </div>
+                </div>
+                <section class="card-body">
+                    <div class="form-row mx-0">
+                        <div *ngIf="personTrainingId && !isEditMode"
+                             class="col-12 f-14 mb-3 p-2 shadow-sm success-banner">
+                            <i aria-hidden="true" class="fa fa-user-o"> &nbsp;</i>Employee &nbsp;
+                            <i aria-hidden="true" class="fa fa-user-circle text-danger">&nbsp;</i>Non Employee
+                        </div>
+                        <div class="col-md-4">
+                            <div *ngIf="!personTrainingId || isEditMode">
+                                <div class="form-check-inline">
+                                    <label>
+                                        <input (change)="changePersonType(personType)" [(ngModel)]="personType"
+                                               class="form-check-input" name="optradio"
+                                               type="radio"
+                                               value="employee">
+                                        <span>Employee</span>
+                                    </label>
+                                </div>
+                                <div class="form-check-inline">
+                                    <label class="form-check-label">
+                                        <input (change)="changePersonType(personType)" [(ngModel)]="personType"
+                                               class="form-check-input" name="optradio"
+                                               type="radio" value="non-employee">
+                                        <span>Non-Employee</span>
+                                    </label>
+                                    <span class="mandatory">*</span>
+                                </div>
+                                <div class="position-relative">
+                                    <app-elastic (selectedResult)="selectPersonElasticResult($event)"
+                                                 [clearField]="clearField"
+                                                 [isError]="validationMap.get('personID')"
+                                                 [options]="personSearchOptions"
+                                                 [placeHolder]="elasticPlaceHolder"></app-elastic>
+                                    <div *ngIf="(validationMap.get('personID'))" class="invalid-feedback d-block">
+                                        Please enter a person name.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div *ngIf="!personTrainingId || isEditMode">
+                                <label class="d-block mb-1">Completion Date</label>
+                                <div>
+                                    <span class="dateField">
+                                        <input matInput [matDatepicker]="DATE_ACKNOWLEDGED" (keypress)="_commonService._keyPress($event, 'date');"
+                                               [(ngModel)]="personTrainingDetails.dateAcknowledged"
+                                               (ngModelChange)="validateAcknowledgementDate($event)"
+                                               [ngClass]="(invalidData.dateAcknowledged) ? 'is-invalid d-block' : ''"
+                                               (click)="DATE_ACKNOWLEDGED.open()" autocomplete="off"
+                                               class="d-inline-block form-control"
+                                               id="complete-date"
+                                               placeholder="{{datePlaceHolder}}" type="text"/>
+                                        <i (click)="DATE_ACKNOWLEDGED.open()" aria-hidden="true"
+                                           class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                           id="complete-date-icon" title="Open Calendar"></i>
+                                        <mat-datepicker #DATE_ACKNOWLEDGED
+                                                       (opened)="setFocusToElement('complete-date')">
+                                        </mat-datepicker>
+                                    </span>
+                                    <div *ngIf="(invalidData.dateAcknowledged)"
+                                         class="invalid-feedback d-block">
+                                         {{invalidData?.invalidDateAcknowledgedMessage}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div *ngIf="!personTrainingId || isEditMode">
+                                <label class="d-block mb-1">Expiration Date</label>
+                                <div>
+                                    <span class="dateField">
+                                        <input matInput [matDatepicker]="EXPIRATION_DATE" (keypress)="_commonService._keyPress($event, 'date');"
+                                               [(ngModel)]="personTrainingDetails.followupDate"
+                                               (ngModelChange)="validateExpirationDate($event)"
+                                               [ngClass]="(invalidData.followupDate) ? 'is-invalid d-block' : ''"
+                                               (click)="EXPIRATION_DATE.open()" autocomplete="off"
+                                               class="d-inline-block form-control"
+                                               id="exp-date"
+                                               placeholder="{{datePlaceHolder}}">
+                                        <i (click)="EXPIRATION_DATE.open()" aria-hidden="true"
+                                           class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                           id="exp-date-icon" title="Open Calendar"></i>
+                                        <mat-datepicker #EXPIRATION_DATE
+                                                       (afterPickerOpen)="setFocusToElement('exp-date')">
+                                        </mat-datepicker>
+                                    </span>
+                                    <div *ngIf="(invalidData.followupDate)"
+                                         class="invalid-feedback d-block">
+                                         {{invalidData?.invalidFollowupDateMessage}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div *ngIf="personTrainingId && !isEditMode"
+                         class="border card gridSkin p-2 section-highlight shadow-sm mb-2">
+                        <div class="row">
+                            <div class="col">
+                                <label class="block-display">Person Name</label>
+                                <span *ngIf="personnelTrainingInfo?.personDetails?.name">
+                                    <i [ngClass]="!personnelTrainingInfo?.personTraining?.nonEmployee ? 'fa-user-o':'fa-user-circle text-danger'"
+                                       aria-hidden="true" class="fa"></i>
+                                    {{personnelTrainingInfo?.personDetails?.name}}
+                                </span>
+                                <span *ngIf="!personnelTrainingInfo?.personDetails?.name" class="noDataExists">No Person Name Found</span>
+                            </div>
+                            <div class="col">
+                                <label class="block-display">Primary Title</label>
+                                <span *ngIf="personnelTrainingInfo?.personDetails?.primaryTitle">{{personnelTrainingInfo?.personDetails?.primaryTitle}}</span>
+                                <span *ngIf="!personnelTrainingInfo?.personDetails?.primaryTitle" class="noDataExists">No Primary Title Found</span>
+                            </div>
+                            <div class="col">
+                                <label class="block-display">Training</label>
+                                <span *ngIf="personnelTrainingInfo?.personTraining?.training?.description">{{personnelTrainingInfo?.personTraining?.training?.description}}</span>
+                                <span *ngIf="!personnelTrainingInfo?.personTraining?.training?.description"
+                                      class="noDataExists">No Training Found</span>
+                            </div>
+                            <div class="col">
+                                <label class="block-display">Score</label>
+                                <span *ngIf="personnelTrainingInfo?.personTraining?.score">{{personnelTrainingInfo?.personTraining?.score}}</span>
+                                <span *ngIf="!personnelTrainingInfo?.personTraining?.score"
+                                      class="noDataExists">No Score Found</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <label class="block-display">Completion Date</label>
+                                <span *ngIf="personnelTrainingInfo?.personTraining?.dateAcknowledged">{{personnelTrainingInfo?.personTraining?.dateAcknowledged | dateFormatter}}</span>
+                                <span *ngIf="!personnelTrainingInfo?.personTraining?.dateAcknowledged"
+                                      class="noDataExists">No Completion Date Found</span>
+                            </div>
+                            <div class="col">
+                                <label class="block-display">Expiration Date</label>
+                                <span *ngIf="personnelTrainingInfo?.personTraining?.followupDate">{{personnelTrainingInfo?.personTraining?.followupDate | dateFormatter}}</span>
+                                <span *ngIf="!personnelTrainingInfo?.personTraining?.followupDate" class="noDataExists">No Expiration Date Found</span>
+                            </div>
+                            <div class="col">
+                                <label class="block-display">Email</label>
+                                <span *ngIf="personnelTrainingInfo?.personDetails?.email">{{personnelTrainingInfo?.personDetails?.email}}</span>
+                                <span *ngIf="!personnelTrainingInfo?.personDetails?.email" class="noDataExists">No Email Found</span>
+                            </div>
+                            <div class="col">
+                                <label class="block-display">Unit</label>
+                                <span *ngIf="personnelTrainingInfo?.personDetails?.unit">{{personnelTrainingInfo?.personDetails?.unit}}</span>
+                                <span *ngIf="!personnelTrainingInfo?.personDetails?.unit" class="noDataExists">No Unit Found</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <label class="block-display">Address</label>
+                                <span *ngIf="personnelTrainingInfo?.personDetails?.address">{{personnelTrainingInfo?.personDetails?.address}}</span>
+                                <span *ngIf="!personnelTrainingInfo?.personDetails?.address" class="noDataExists">No Address Found</span>
+                            </div>
+                            <div class="col">
+                                <label class="block-display">City</label>
+                                <span *ngIf="personnelTrainingInfo?.personDetails?.city">{{personnelTrainingInfo?.personDetails?.city}}</span>
+                                <span *ngIf="!personnelTrainingInfo?.personDetails?.city" class="noDataExists">No City Found</span>
+                            </div>
+                            <div class="col">
+                                <label class="block-display">Country</label>
+                                <span *ngIf="personnelTrainingInfo?.personDetails?.country">{{personnelTrainingInfo?.personDetails?.country}}</span>
+                                <span *ngIf="!personnelTrainingInfo?.personDetails?.country" class="noDataExists">No Country Found</span>
+                            </div>
+                            <div class="col">
+                                <label class="block-display">Office Location</label>
+                                <span *ngIf="personnelTrainingInfo?.personDetails?.officeLocation">{{personnelTrainingInfo?.personDetails?.officeLocation}}</span>
+                                <span *ngIf="!personnelTrainingInfo?.personDetails?.officeLocation"
+                                      class="noDataExists">No Office Location Found</span>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div *ngIf="showPersonElasticBand" class="col ml-2 mt-4 p-0 resultCard viewMode">
+                        <button (click)="showPersonElasticBand = false" class="closeResultCard ontop"
+                                id="close-elastic-person">
+                            <i aria-hidden="true" class="fa fa-times"></i>
+                        </button>
+                        <div class="bg-light mr-3 row shadow-lg">
+                            <div class="col-lg-3 col-md-6 col-12">
+                                <label>Name</label>
+                                <span>{{elasticSelectedPerson.fullName}}
+                                    <span *ngIf="elasticSelectedPerson.isExternalUser" class="badge badge-warning ml-2">External</span>
+                                    </span>
+                            </div>
+                            <div class="col-md-6 col-12 col-lg-3">
+                                <label>Designation</label>
+                                <span class="text-black txt-medium">{{elasticSelectedPerson?.designation}}</span>
+                            </div>
+                            <div *ngIf="personType === 'employee'" class="col-md-6 col-12 col-lg-3">
+                                <label>Home Unit</label>
+                                <span class="text-black txt-medium">{{elasticSelectedPerson?.homeUnit}}</span>
+                            </div>
+                            <div *ngIf="personType === 'non-employee'" class="col-lg-3 col-md-6 col-12">
+                                <label>Organization</label>
+                                <span>{{elasticSelectedPerson.organization}}</span>
+                            </div>
+                            <div class="col-md-6 col-12 col-lg-3">
+                                <label>Email Address</label>
+                                <span class="text-black txt-medium">{{elasticSelectedPerson?.email}}</span>
+                            </div>
+                            <div class="col-md-6 col-12 col-lg-3">
+                                <label>Phone Number</label>
+                                <span class="text-black txt-medium">{{elasticSelectedPerson?.phoneNumber}}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div *ngIf="isEditMode || !personTrainingId" class="gridSkin">
+                        <div class="mb-3 px-3 row">
+                            <div class="col no-hover-effect">
+                                <label class="block-display">Training <span class="mandatory">*</span></label>
+                                <app-endpoint-search (onSelect)="selectedTraining($event)"
+                                                     [clearField]="clearField" [httpOptions]="trainingSearchOptions"
+                                                     [isError]="validationMap.get('trainingCode')"
+                                                     [placeHolder]="'Search for a training'"
+                                                     class="w-100"></app-endpoint-search>
+                                <div *ngIf="(validationMap.get('trainingCode'))" class="invalid-feedback d-block">
+                                    Please enter a training name.
+                                </div>
+                            </div>
+                            <div class="col no-hover-effect">
+                                <label class="block-display" for="score">Score</label>
+                                <input type="text" id="score" class="form-control" [(ngModel)]="score" maxlength="9">
+                            </div>
+                            <div [class.align-items-center]="validationMap.get('trainingCode')"
+                                 class="align-items-end col-auto d-flex no-hover-effect">
+                                <button (click)="savePersonTrainingDetails()" class="btn btn-primary"
+                                        title="Save"
+                                        type="button"> Save
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col">
+                            <div *ngIf="personTrainingId" [ngClass]="isEditMode ? 'mt-2': 'mt-3'"
+                                 class="card-inner">
+                                <div [class.py-2]="isEditMode" class="card-header px-2 pl-3">
+                                    <div class="card-title d-flex align-items-center">
+                                        <span>Training Comments</span>
+                                        <span class="ml-auto">
+                                                <button (click)="resetCommentInput();showCommentDiv=!showCommentDiv;" *ngIf="isEditMode"
+                                                        class="btn btn-sm btn-tertiary mt-0">
+                                                    <i aria-hidden="true" class="fa fa-plus mr-2"></i>
+                                                    Add Comments
+                                                </button>
+                                            </span>
+                                    </div>
+                                </div>
+                                <section>
+
+                                    <div *ngIf="isEditMode && showCommentDiv"
+                                         class="border-bottom grid2 pt-2 pb-3">
+                                        <div class="col">
+                                            <div class="form-group">
+                                                <label>Comments <span class="mandatory">*</span>
+                                                </label>
+                                                <textarea [(ngModel)]="personTrainingComments.comment"
+                                                          [class.poping-border]="isCommentEdit"
+                                                          [ngClass]="invalidData.invalidCommentData? 'is-invalid d-block':''"
+                                                          appAutoGrow
+                                                          appLengthValidator
+                                                          class="form-control txt-small" id="trainingComments"
+                                                          maxlength="4000"
+                                                          placeholder="Comments"
+                                                          rows="2"></textarea>
+                                                <div *ngIf="(invalidData.invalidCommentData)"
+                                                     class="invalid-feedback d-block">Please enter valid comments
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col text-right">
+                                            <button (click)="saveTrainingComment()" *ngIf="!isCommentEdit"
+                                                    class="btn btn-primary-sub"
+                                                    title="Add"
+                                                    type="button">
+                                                Add
+                                            </button>
+                                            <button (click)="saveTrainingComment()" *ngIf="isCommentEdit"
+                                                    class="btn btn-primary-sub"
+                                                    title="Save"
+                                                    type="button">
+                                                Save
+                                            </button>
+                                            <button class="btn btn-secondary" (click)="resetCommentInput();showCommentDiv=false">Cancel</button>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="personnelTrainingComments.length > 0" class="m-3">
+                                        <table class="table tableSkin grid2">
+                                            <caption class="sr-only">Training Comments list</caption>
+                                            <thead>
+                                            <tr>
+                                                <th scope="col" style="width: 70%">Comments</th>
+                                                <th scope="col" style="width: 20%">Update User</th>
+                                                <th *ngIf="isEditMode" scope="col" style="width: 10%">Action</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <ng-container *ngIf="personnelTrainingComments.length > 0">
+                                                <tr *ngFor="let comment of personnelTrainingComments let i = index">
+                                                    <td class="new-line-property">{{comment.comment}}</td>
+                                                    <td>{{comment.updateUserName}}</td>
+                                                    <td *ngIf="isEditMode" class="action-btn-list py-0"
+                                                        style="width: 10%">
+                                                        <ul class="actionButtonGroup d-flex">
+                                                            <li (click)="editTrainingComment(comment,i)" class="mx-1"
+                                                                title="Edit comment">
+                                                                <a><i aria-hidden="true" class="fa fa-pencil"></i></a>
+                                                            </li>
+                                                            <li (click)="deleteTrainingComment(comment, i)" class="mx-1"
+                                                                data-target="#deletewarningModal"
+                                                                data-toggle="modal" title="Delete comment">
+                                                                <a><i aria-hidden="true" class="fa fa-trash"></i></a>
+                                                            </li>
+                                                        </ul>
+                                                    </td>
+                                                </tr>
+                                            </ng-container>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div *ngIf="personnelTrainingComments.length === 0" class>
+                                        <p class="f-13 m-0 p-4 text-center">No Comments Found</p>
+                                    </div>
+                                </section>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div *ngIf="personTrainingId" [ngClass]="isEditMode ? 'mt-2': 'mt-3'"
+                                 class="card-inner">
+                                <div [class.py-2]="isEditMode" class="card-header px-2 pl-3">
+                                    <div class="card-title d-flex align-items-center">
+                                        <span>Training Attachments</span>
+                                        <span class="ml-auto">
+                                            <button (click)="clearAttachmentsModal()" *ngIf="isEditMode"
+                                                    class="btn btn-sm btn-tertiary mt-0"
+                                                    data-target="#attachmentModal"
+                                                    data-toggle="modal">
+                                                <i aria-hidden="true" class="fa fa-plus mr-2"></i>
+                                                Add Attachments
+                                            </button>
+                                        </span>
+                                    </div>
+
+                                </div>
+                                <section>
+                                    <div *ngIf="personnelTrainingAttachments.length > 0" class="p-3">
+                                        <table class="grid2 m-0 table tableSkin">
+                                            <caption class="sr-only">Training Attachment list</caption>
+                                            <thead class="tbl-head-clr ">
+                                            <tr class="solid-bottom txt-small">
+                                                <th scope="col">File Name</th>
+                                                <th scope="col">Description</th>
+                                                <th scope="col" style="width: 20%">Update User</th>
+                                                <th scope="col" style="width: 10%">Action</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <ng-container *ngIf="personnelTrainingAttachments.length > 0">
+                                                <tr *ngFor="let attachment of personnelTrainingAttachments;let i = index;">
+                                                    <td class="align-middle">{{attachment.fileName}}</td>
+                                                    <td class="align-middle"
+                                                        style="width: 20%" class="new-line-property">{{attachment.description}}</td>
+                                                    <td class="align-middle">{{attachment.updateUserName}}</td>
+                                                    <td class="action-btn-list px-0 py-0" style="width: 10%">
+                                                        <ul class="actionButtonGroup d-flex">
+                                                            <li (click)="downloadTrainingAttachment(attachment)"
+                                                                class="px-1"
+                                                                title="Download attachment">
+                                                                <a><i aria-hidden="true"
+                                                                      class="fa fa-download txt-small"></i></a>
+                                                            </li>
+                                                            <li (click)="setDeleteAttachmentObj(attachment, i)"
+                                                                *ngIf="isEditMode" class="px-1"
+                                                                data-target="#deletewarningModal"
+                                                                data-toggle="modal" title="Delete attachment">
+                                                                <a><i aria-hidden="true"
+                                                                      class="fa fa-trash txt-small"></i></a>
+                                                            </li>
+                                                        </ul>
+                                                    </td>
+                                                </tr>
+                                            </ng-container>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div *ngIf="personnelTrainingAttachments.length === 0">
+                                        <p class="f-13 m-0 p-4 text-center">No Attachments Found</p>
+                                    </div>
+                                </section>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--attachment modal-->
+<div aria-hidden="true" aria-labelledby="helpModalCenterTitle" class="modal mySkinDialog fade" data-backdrop="static"
+     data-keyboard="false"
+     id="attachmentModal" role="dialog" tabindex="-1">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header popup-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Add Attachment</h5>
+                <button (click)="dismissAttachmentModal()" aria-label="Close" class="close modal-close"
+                        data-dismiss="modal"
+                        type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-popup border-bottom">
+                <div class="modal-padding">
+                    <div *ngIf="noFileChosen" class="alert alert-danger f-13">
+                        Please choose at least one file to add
+                        <strong>*</strong>
+                    </div>
+                    <div *ngIf="multipleFile" class="alert alert-danger txt-medium">
+                        Cannot Add Multiple Files
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="txt-secondary txt-medium">Description</label>
+                                <textarea [(ngModel)]="attachmentModal.description"
+                                          appLengthValidator
+                                          class="form-control"
+                                          rows="2" maxlength="2000"
+                                          placeholder="Description"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <app-file-drop (filesDropEvent)="fileDrop($event)" [multiple]="false"></app-file-drop>
+                    <div class="fileChips">
+						<span *ngFor="let item of uploadedFile; let i=index">{{ item.name }}
+                            <i (click)="deleteFromUploadedFileList(item)" aria-hidden="true" class="fa fa-times pdf"
+                               title="Remove Attachment"></i>
+						</span>
+                    </div>
+                </div>
+            </div>
+            <section class="col-12 p-2 text-right">
+                <button class="btn btn-secondary" data-dismiss="modal" id="cancelbtn">Cancel</button>
+                <button (click)="addTrainingAttachment()" aria-label="Close"
+                        class="btn btn-primary-sub" title="Add Attachment">Add
+                </button>
+            </section>
+        </div>
+    </div>
+</div>
+<!--delete Warning modal-->
+<div *ngIf="showPopup" aria-hidden="true" aria-labelledby="deleteModalTitle" class="modal fade mySkinDialog"
+     id="deletewarningModal"
+     role="dialog" tabindex="-1">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header popup-header dotted-bottom">
+                <h5 class="modal-title txt-large thick">Delete
+                </h5>
+                <button aria-label="Close" class="close modal-close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-pop-up txt-medium dotted-bottom">
+                <p class="m-0">Are you sure you want to delete this item?</p>
+            </div>
+            <div class="modal-footer btn-row-med p-2">
+                <button (click)="showPopup = false" aria-label="Close" class="btn btn-secondary"
+                        data-dismiss="modal">No
+                </button>
+                <button (click)="deleteComment()" *ngIf="isCommentDelete"
+                        class="btn btn-primary-sub"
+                        data-dismiss="modal" type="button margin-class">Yes
+                </button>
+                <button (click)="deleteTrainingAttachments()" *ngIf="!isCommentDelete" class="btn btn-primary-sub"
+                        data-dismiss="modal" type="button margin-class">Yes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,22 @@
+export interface SponsorAuditLog {
+        'acronym'?: string,
+        'active'?: string,
+        'addressLine1'?: string,
+        'addressLine2'?: string,
+        'addressLine3'?: string,
+        'contactPerson'?: string,
+        'country'?: string,
+        'createUser'?: string, 
+        'emailAddress'?: string,
+        'phoneNumber'?: string,
+        'postalCode' ?: string,
+        'rolodexId'?: string, 
+        'rolodexName'?: string,
+        'sponsorCode'?: string, 
+        'sponsorGroup'?: string,
+        'sponsorLocation'?: string,
+        'sponsorName'?: string,
+        'sponsorType'?: string,
+        'sponsorTypeCode'?: string,
+        'unit'?: string
+}

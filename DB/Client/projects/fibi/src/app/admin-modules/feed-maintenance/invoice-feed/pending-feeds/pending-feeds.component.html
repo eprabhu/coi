@@ -1,0 +1,249 @@
+<div class="card mb-3">
+    <div class="card-content">
+        <div class="card-body">
+            <div class="form-row">
+                <div class="col-lg col-md-4 col-sm-4 col-12">
+                    <label class="d-block">Claim Number</label>
+                    <input type="text" class="form-control" placeholder="Claim Number"
+                        [(ngModel)]="pendingFeedSearchParam.property7" id="pending-feed-claim-number"
+                        (keyup.enter)="pendingFeedSearchParam.isAdvanceSearch = 'A';resetCheckBoxAndTmpFeedList();getPendingFeeds();">
+                </div>
+                <div class="col-lg col-md-4 col-sm-4 col-12">
+                    <label class="d-block">Award Number</label>
+                    <input type="text" class="form-control" placeholder="Award Number"
+                        [(ngModel)]="pendingFeedSearchParam.property8" id="pending-feed-award-number"
+                        (keyup.enter)="pendingFeedSearchParam.isAdvanceSearch = 'A';resetCheckBoxAndTmpFeedList();getPendingFeeds();">
+                </div>
+                <div class="col-lg col-md-4 col-sm-4 col-12">
+                    <label class="d-block">Account Number</label>
+                    <input type="text" class="form-control" placeholder="Account Number"
+                        [(ngModel)]="pendingFeedSearchParam.property9" id="pending-feed-award-number"
+                        (keyup.enter)="pendingFeedSearchParam.isAdvanceSearch = 'A';resetCheckBoxAndTmpFeedList();getPendingFeeds();">
+                </div>
+                <div class="col-lg col-md-4 col-sm-4 col-12">
+                    <label class="d-block">Feed Status</label>
+                    <select class="form-control" [(ngModel)]="searchFeedStatus">
+                        <option value='P'>Queue for Feed</option>
+                        <option value='H'>Hold for Feed</option>
+                        <option value='X'>Cancelled</option>
+                        <option value="N">Not Required to Feed</option>
+                    </select>
+                </div>
+                <div
+                    class="col-lg-auto col-md-auto col-12 align-self-end d-md-block d-sm-flex justify-content-end mt-3 mt-md-0 mt-sm-3">
+                    <button class="btn btn-secondary btn-sm btn-xs" (click)="resetAndSearch();">Clear</button>
+                    <button class="btn btn-primary btn-sm btn-xs"
+                        (click)="pendingFeedSearchParam.isAdvanceSearch = 'A';resetCheckBoxAndTmpFeedList();pendingFeedSearchParam.currentPage = 1;getPendingFeeds();">Search</button>
+                </div>
+                <div class="col-xl-4 col-12 align-self-end mt-xl-0 mt-3">
+                    <span *ngIf="isMaintainInvoiceProcessing" class="d-flex float-right">
+                        <button class="btn btn-sm btn-tertiary  mt-0 mr-2" data-toggle="modal"
+                            (click)="actionComment = null;isCommented = true;setAction('5');"
+                            data-target="#modal-sap-pending-feed"
+                            *ngIf="pendingFeedSearchParam.property4[0] === 'P'">Generate Batch Files</button>
+                        <ng-container>
+                            <!-- <button class="btn btn-sm btn-primary-sub mr-2" data-toggle="modal"
+                            (click)="actionComment = null;isCommented = true;setAction('6');"
+                            data-target="#modal-sap-pending-feed"
+                            *ngIf="pendingFeedSearchParam.property4[0] === 'P'">Cancel Feed</button>
+                        <button class="btn btn-sm btn-primary-sub" data-toggle="modal"
+                            (click)="actionComment = null;isCommented = true;setAction('10');"
+                            data-target="#modal-sap-pending-feed"
+                            *ngIf="pendingFeedSearchParam.property4[0] === 'P'">Hold for Feed</button>
+                        <button class="btn btn-sm btn-primary-sub ml-2" data-toggle="modal"
+                            (click)="actionComment = null;isCommented = true;setAction('7');"
+                            data-target="#modal-sap-pending-feed" *ngIf="pendingFeedSearchParam.property4[0] === 'H'">Queue
+                            to Feed</button> -->
+                        </ng-container>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-content">
+        <div class="card-header px-4">
+            <p class="card-title align-items-center d-flex">
+                <span class="mr-auto">Pending Feeds</span>
+                    <span class="float-right">
+                        <span class="exportButton ml-4" *ngIf="pendingFeedData?.claimInvoiceFeedDtoList?.length">
+                            <span class="exportIcon-margin fs-14">Export as:</span>
+                                <a title="Export data to Excel sheet" class="exportIcon-margin  hand-cursor"
+                                (click)="exportAsTypeDoc('excel')" id="export-prop-excel-btn" tabindex="0">
+                                    <i aria-hidden="true" class="fa fa-file-excel-o f-16"></i>
+                                </a>
+                        </span>
+                    </span>
+            </p>
+        </div>
+        <div class="card-body">
+            <ng-container *ngIf="pendingFeedData?.claimInvoiceFeedDtoList?.length;else noData">
+            <div class="table-responsive card-inner mt-3">
+                <table class="table tableSkin mb-0">
+                    <!-- <caption>Feed List</caption> -->
+                    <thead class="header-border">
+                        <tr>
+                            <th scope="col" >
+                                <input title="Select All" type="checkbox" [(ngModel)]="checkAll"
+                                    (ngModelChange)="checkOrUncheckBatches()"
+                                    [disabled]="(!isMaintainInvoiceProcessing)|| (!pendingFeedData?.claimInvoiceFeedDtoList?.length || pendingFeedSearchParam.property4[0] === 'N' || pendingFeedSearchParam.property4[0] === 'X')">
+                            </th>
+                            <th scope="col" (click)="sortResult('feedId')" class="hand-cursor">Feed ID
+                                <i aria-hidden="true" [ngClass]="((pendingFeedSearchParam.sortBy == 'feedId')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' :
+                                'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                            </th>
+                            <th scope="col" (click)="sortResult('claimNumber')" class="hand-cursor">Claim Number
+                                <i aria-hidden="true" [ngClass]="((pendingFeedSearchParam.sortBy == 'claimNumber')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' :
+                                    'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                            </th>
+                            <th scope="col" (click)="sortResult('awardNumber')" class="hand-cursor">Award Number
+                                <i aria-hidden="true" [ngClass]="((pendingFeedSearchParam.sortBy == 'awardNumber')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' :
+                                    'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                            </th>
+                            <!-- <th>Principal Investigator</th> -->
+                            <th scope="col" (click)="sortResult('feedType')" class="hand-cursor">Type
+                                <i aria-hidden="true" [ngClass]="((pendingFeedSearchParam.sortBy == 'feedType')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' :
+                                'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                            </th>
+                            <th scope="col" (click)="sortResult('updateUser')" class="hand-cursor">Updated By
+                                <i aria-hidden="true" [ngClass]="((pendingFeedSearchParam.sortBy == 'updateUser')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' :
+                                'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                            </th>
+                            <th scope="col" (click)="sortResult('updateTimeStamp')" class="hand-cursor">Updated On
+                                <i aria-hidden="true" [ngClass]="((pendingFeedSearchParam.sortBy == 'updateTimeStamp')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' :
+                                'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                            </th>
+                            <th scope="col" (click)="sortResult('feedStatus')" class="hand-cursor">Feed Status
+                                <i aria-hidden="true" [ngClass]="((pendingFeedSearchParam.sortBy == 'feedStatus')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' :
+                                'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                            </th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                            <tr *ngFor="let feed of pendingFeedData?.claimInvoiceFeedDtoList;let i = index">
+                                <td>
+                                    <input type="checkbox" [(ngModel)]="isChecked[feed?.feedId]"
+                                        *ngIf="(isMaintainInvoiceProcessing) && (pendingFeedSearchParam.property4[0] !== 'N' && pendingFeedSearchParam.property4[0] !== 'X')"
+                                        (click)="isChecked[feed?.feedId] = !isChecked[feed?.feedId];toggleFromList(feed)">
+                                </td>
+
+                                <td>{{feed?.feedId}}</td>
+                                <td>{{feed?.claimNumber}}</td>
+                                <td>{{feed?.awardNumber}}</td>
+                                <!-- <td>{{feed?.piName}}</td> -->
+                                <td>{{feed?.feedType}}</td>
+                                <td>{{feed?.updateUser ? feed?.updateUser : 'System'}}</td>
+                                <td><ng-container *ngIf="feed?.updateTimeStamp">{{feed?.updateTimeStamp |
+                                        dateFormatterWithTimeZone :'long'}}</ng-container>
+                                </td>
+                                <td>
+                                    <span class="d-flex">
+                                        <i aria-hidden="true" class="fa align-self-center mr-1"
+                                            [ngClass]="feed?.feedStatusCode == 'P' ? 'fa-clock-o text-warning' : (feed?.feedStatusCode == 'H' ? 'fa-pause-circle-o text-muted' : 'fa-ban text-secondary')"></i>
+                                        {{feed?.feedStatus}}
+                                        <ng-container
+                                            *ngIf="pendingFeedSearchParam.property4[0] === 'X' || pendingFeedSearchParam.property4[0] === 'P' || pendingFeedSearchParam.property4[0] === 'H'">
+                                            <div class="dropdown ml-3" *ngIf="feed?.userComment">
+                                                <a class="position-relative" id="dropdownMenuLink"
+                                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    <i class="fa fa-commenting-o hand-cursor hoverColor"
+                                                        aria-hidden="true" title="Comments"></i>
+                                                    <div class="dropdown-menu details-comment-patch dropdown-menu-right fs-14"
+                                                        aria-labelledby="dropdownMenuLink">
+                                                        <div>
+                                                            {{feed?.userComment}}
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </ng-container>
+                                    </span>
+                                </td>
+                                <td>
+                                    <ul class="actionButtonGroup d-inline">
+                                        <li>
+                                            <a title="View Claim #{{feed?.claimNumber}}" id="view-batch-btn"
+                                                class="pointer" tabindex="0" (click)="routeToClaimId(feed?.claimId);">
+                                                <i aria-hidden="true" class="fa fa-eye pointer"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </td>
+                            </tr>
+                    </tbody>
+                </table>
+            </div>
+        </ng-container>
+        <ng-template #noData>
+            <div class="no-data-container">
+                <span class="no-data-icon-outer">
+                  <div class="no-data-icon">
+                    <i class="fa fa-file-o" aria-hidden="true"></i>
+                    <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                  </div>
+                </span>
+                <h4>There is no information in this section.</h4>
+              </div>
+        </ng-template>
+        </div>
+        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 mt-4"
+            *ngIf="( pendingFeedData?.claimInvoiceFeedDtoList != null &&  pendingFeedData?.claimInvoiceFeedDtoList?.length != 0)">
+            <nav class="pagination justify-content-end">
+                <app-pagination [totalCount]="pendingFeedData?.totalCount"
+                    (pageChangeEvent)="actionsOnPageChange($event)">
+                </app-pagination>
+            </nav>
+        </div>
+    </div>
+</div>
+<div class="modal fade mySkinDialog" id="modal-sap-pending-feed">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <ng-container *ngIf="selectedFeeds?.length && selectedAction?.userActionCode === '5'">Generate Batch
+                        Files
+                    </ng-container>
+                    <ng-container *ngIf="selectedFeeds?.length && selectedAction?.userActionCode === '6'">Cancel Feed
+                    </ng-container>
+                    <ng-container *ngIf="selectedFeeds?.length && selectedAction?.userActionCode === '7'">Queue To Feed
+                    </ng-container>
+                    <ng-container *ngIf="selectedFeeds?.length && selectedAction?.userActionCode === '10'">Hold for Feed
+                    </ng-container>
+                    <ng-container *ngIf="!selectedFeeds?.length">Warning</ng-container>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div *ngIf="selectedAction?.invoiceDescription && selectedFeeds?.length"
+                class="success-banner px-3 m-2 d-flex justify-content-between align-items-center ng-star-inserted">
+                <div>
+                    <i aria-hidden="true" class="fa fa-info-circle mr-1 info-icon"></i>
+                    <em class="ng-star-inserted"> {{selectedAction?.invoiceDescription}}</em>
+                </div>
+                <button aria-label="Close" class="close close-button" type="button">
+                </button>
+            </div>
+            <div class="modal-body">
+                <ng-container *ngIf="selectedFeeds?.length && selectedAction?.userActionCode !== '5'">
+                    <label class="d-block"><span class="mandatory">*</span>Comments</label>
+                    <textarea class="form-control" [(ngModel)]="actionComment" placeholder="Comments"></textarea>
+                    <span class="mandatory" *ngIf="!isCommented">* Please provide comment for your action</span>
+                </ng-container>
+                <p *ngIf="!selectedFeeds?.length">Please select at least a Feed to perform the Action.</p>
+                <p *ngIf="selectedFeeds?.length && selectedAction?.userActionCode === '5'">Are you sure to generate
+                    batch files for selected feeds ?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn"
+                    [ngClass]="selectedFeeds?.length ? 'btn-secondary' : 'btn-primary-sub btn-sm'"
+                    data-dismiss="modal">{{selectedFeeds?.length ? 'Cancel' : 'OK'}}</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" *ngIf="selectedFeeds?.length"
+                    (click)="proceedAction()">Proceed</button>
+            </div>
+        </div>
+    </div>
+</div>

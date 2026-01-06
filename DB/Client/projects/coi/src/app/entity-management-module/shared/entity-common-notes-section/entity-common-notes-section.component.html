@@ -1,0 +1,53 @@
+<div class="p-3 coi-card-grey-border rounded-2" [id]="notesSectionInput?.sectionId">
+    <div class="row gap-2">
+        <div class="col-12 d-flex align-items-center gap-2 coloured-bg-header">
+            <div class="col d-flex align-items-center">
+                <span class="coi-entity-icon-bg me-2 coi-coloured-icons fs-14 d-inline-flex">
+                    <mat-icon class="coi-mat-icon-size" aria-hidden="true">description</mat-icon>
+                </span>
+                <span class="fs-16 fw-medium"
+                    id="coi-entity-note-{{notesSectionInput?.sectionName}}">{{notesSectionInput?.sectionName}}</span>
+                <app-common-help-text [subSectionId]="notesSectionInput?.sectionId" [elementId]="'coi-entity-notes-section-' + notesSectionInput?.sectionId"></app-common-help-text>
+            </div>
+            <!-- Header note button -->
+            <div *ngIf="notesList?.length && notesSectionInput?.isEditMode" class="col-auto">
+                <button id="add-note-button-{{notesSectionInput?.sectionId}}" class="btn btn-primary fs-14 d-inline-flex"
+                    title="Click here to add new note" aria-label="Click here to add new note"
+                    (click)="openEditorSlider()">
+                    <mat-icon aria-hidden="true">add</mat-icon>
+                    <span>Add New Note</span>
+                </button>
+            </div>
+            <!-- Comments -->
+            <div *ngIf="isShowCommentButton" class="col-auto">
+                <button class="d-flex gap-1 align-items-center btn btn-sm btn-tertiary mt-0 lh-1"
+                    (click)="openReviewComments()" id="entity-comment-notes-{{notesSectionInput?.sectionId}}" type="button"
+                    [disabled]="entityManagementService.reviewCommentsSliderConfig?.isOpenCommentSlider"
+                    title="Click here to open review comment" aria-label="Click here to open review comment">
+                    <mat-icon aria-hidden="true" class="flex-shrink-0 padding-3px">rate_review</mat-icon>
+                    <span>Comments<span *ngIf="commentCount > 0">({{commentCount}})</span></span>
+                </button>
+            </div>
+        </div>
+        <!-- no info card -->
+        <ng-container *ngIf="!notesList?.length && notesSectionInput?.isEditMode">
+            <app-no-information [isBorderNeeded]="false" [canShowAddButton]="notesSectionInput?.isEditMode"
+                [buttonName]="'Add New Note'" (buttonAction)="openEditorSlider()"></app-no-information>
+        </ng-container>
+        <ng-container *ngIf="!notesList?.length && !notesSectionInput?.isEditMode">
+            <app-no-information></app-no-information>
+        </ng-container>
+        <ng-container *ngIf="notesList?.length">
+            <div class="col-12">
+                <!-- Note list -->
+                <app-notes-list [gridClass]="gridClass" [notesAPICalls]="notesAPICallsForList" (emitDeletedList)="emitDeletedList($event)"></app-notes-list>
+            </div>
+        </ng-container>
+    </div>
+</div>
+
+<!-- Note Slider To Add-->
+<ng-container *ngIf="isShowAddNoteSlider">
+    <app-notes-edit-slider [sliderId]="'disclosure-add-note-slider'" (emitSliderAction)="updateAndCloseSlider($event)"
+        [notesAPICalls]="notesAPICallsForEditor"></app-notes-edit-slider>
+</ng-container>

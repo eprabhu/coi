@@ -1,0 +1,119 @@
+<div class="ml-2">
+  <div class="form-row">
+    <div class="col-lg-2 col-sm-6 col-12 no-hover-effect py-0">
+      <label class="d-sm-block">WBS Number</label>
+      <span *ngIf="manpowerCategory?.budgetReferenceTypeCode == '1'"
+        class="content-color">{{manpowerCategory?.budgetReferenceNumber}}</span>
+      <span *ngIf="manpowerCategory?.budgetReferenceTypeCode == '2'" class="noDataExists">No WBS Generated</span>
+    </div>
+    <div class="col-lg-2 col-sm-6 col-12 no-hover-effect py-0">
+      <label class="d-sm-block">Cost Element</label>
+      <span class="content-color">{{manpowerCategory?.costElement}}</span>
+    </div>
+    <div class="col-lg-4 col-sm-6 col-12 no-hover-effect py-0">
+      <label class="d-sm-block">Approved Head Count
+        <span class="d-inline-block icon-hover">
+          <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med"
+              aria-hidden="true"></i>
+            <div class="tooltiptext-left card card-inner p-15 text-left">
+              <span class="font-cv">{{helpText?.manpower?.approvedHeadCount?.helpTextInfo}}</span>
+            </div>
+          </a>
+        </span>
+      </label>
+      <span class="content-color ml-5 pl-5">{{manpowerCategory?.approvedHeadCount}}</span>
+    </div>
+    <div class="col-lg-2 col-sm-6 col-12 no-hover-effect py-0">
+      <label class="d-sm-block">Budget Amount (A)</label>
+      <span class="ml-5 content-color">
+        {{manpowerCategory?.budgetAmount | currency: _commonService.currencyFormat}}</span>
+    </div>
+    <div class="col-lg-2 col-sm-6 col-12 no-hover-effect py-0">
+      <label class="d-sm-block">Uncommitted Amount (E)</label>
+      <span class="ml-5 content-color">
+        {{manpowerCategory?.unCommittedAmount | currency:
+          _commonService.currencyFormat}}</span>
+    </div>
+    <span class="collapse-category">
+      <i *ngIf="!isShowAllDetails[componentIndex.split('-')[1]]" class="fa fa-chevron-down collapse-arrow" (click)="isShowAllDetails[componentIndex.split('-')[1]] = true; fetchManpowerResources()"
+        aria-hidden="true"></i>
+      <i *ngIf="isShowAllDetails[componentIndex.split('-')[1]]" class="fa fa-chevron-up collapse-arrow" (click)="isShowAllDetails[componentIndex.split('-')[1]] = false"
+        aria-hidden="true"></i>
+    </span>
+    <div *ngIf="isShowAllDetails[componentIndex.split('-')[1]]" class="col-8 py-0  no-hover-effect">
+      <label class="d-sm-block">Description</label>
+      <span class="content-color">{{manpowerCategory?.budgetCategory}}</span>
+    </div>
+    <div *ngIf="isManpowerEdit && isShowAllDetails[componentIndex.split('-')[1]]" class="col-4 text-right py-0 no-hover-effect pb-0">
+      <button class="btn btn-primary-sub btn-xs fs-14-nav my-3" id="manpower-add-person-btn" title="Add New Student"
+        type="button" (click)="addResource()">
+        <span><i class="fa fa-plus pr-2" aria-hidden="true"></i></span>Add New Student</button>
+    </div>
+  </div>
+  <div *ngIf="awardManpowerResources.length && isShowAllDetails[componentIndex.split('-')[1]]"
+    class="form-row m-0 p-0">
+    <div class="w-100 p-0 mt-2">
+      <table class="table tableSkin table-bordered grid2 mb-0">
+        <caption class="sr-only">Manpower Category Details</caption>
+        <thead class="text-center">
+          <th scope="col" width="12%">Name</th>
+          <th scope="col" width="11%">Charged Start Date</th>
+          <th scope="col" width="10%">Charged End Date</th>
+          <th scope="col" width="10%">Cost Allocation %</th>
+          <th scope="col" width="13%">Committed Amount<div class="f-13 content-color">(B)</div></th>
+          <th scope="col" width="9%">Expense<div class="f-13 content-color">(C)</div></th>
+          <th scope="col" width="9%">Committed Balance<div class="f-13 content-color">(D)=sum(B)-(C)</div></th>
+          <th scope="col" width="9%">Uncommitted Amount<div class="f-13 content-color">(E)=(A)-(D)</div></th>
+          <th scope="col" width="10%">Actions</th>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let resource of awardManpowerResources; let resourceIndex = index">
+            <tr>
+              <td>
+                <span *ngIf="resource?.fullName">{{resource?.fullName}}</span>
+                <span *ngIf="!resource?.fullName"><i>Unassigned</i></span>
+              </td>
+              <td><span>{{resource?.chargeStartDate | dateFormatter}}</span>
+              </td>
+              <td><span>{{resource?.chargeEndDate | dateFormatter}}</span>
+              </td>
+              <td><span>{{resource?.costAllocation}} %</span></td>
+              <td scope="col">
+                <span class="mr-3 float-right">{{resource?.committedCost | currency: _commonService.currencyFormat}}</span>
+              </td>
+              <td *ngIf="resourceIndex == 0" class="text-right vertical-align-middle"
+                [rowSpan]="manpowerCategory?.awardManpowerResource?.length">
+                <span>{{manpowerCategory?.expenseAmount | currency: _commonService.currencyFormat}}
+                </span>
+              </td>
+              <td *ngIf="resourceIndex == 0" class="text-right vertical-align-middle"
+                [rowSpan]="manpowerCategory?.awardManpowerResource?.length">
+                <span>{{manpowerCategory?.sapCommittedAmount | currency: _commonService.currencyFormat}}
+                </span>
+              </td>
+              <td *ngIf="resourceIndex == 0" class="text-right vertical-align-middle"
+                [rowSpan]="manpowerCategory?.awardManpowerResource?.length">
+                <span>{{manpowerCategory?.unCommittedAmount | currency:
+                  _commonService.currencyFormat}}
+                </span>
+              </td>
+              <td><span class="justify-content-around d-flex mt-2">
+                  <i class="fa fa-eye hand-cursor hoverColor action-icons" title="More Details" data-toggle="modal"
+                    data-target="#manpower-person-more-details-modal" aria-hidden="true"
+                    (click)="showDetailsModal(resource,true)"></i>
+                  <i *ngIf="isManpowerEdit"
+                    class="fa fa-trash hand-cursor hoverColor action-icons" title="Delete resouce" aria-hidden="true"
+                    (click)="deleteResource(resource.manpowerResourceId, manpowerCategory, resourceIndex)"></i>
+                  <i *ngIf="isManpowerEdit" class="fa fa-pencil hand-cursor hoverColor action-icons"
+                    title="Edit resouce" aria-hidden="true" (click)="addResource(resourceIndex, resource)"></i>
+                </span></td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div *ngIf="!awardManpowerResources.length && isShowAllDetails[componentIndex.split('-')[1]]" class="f-14 text-center">
+    <span class="noDataExists">No Resource Added</span>
+  </div>
+</div>

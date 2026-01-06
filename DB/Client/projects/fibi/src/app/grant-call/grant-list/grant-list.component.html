@@ -1,0 +1,394 @@
+<!-- last updated by Greeshma on 04-06-2020 -->
+<!-- Grant Call Details-->
+<div class="card card-table-box rounded-0 elastic-search-mt">
+  <div class="card-content">
+      <div class="card-header py-2">
+          <h4 class="card-title align-items-center d-flex">
+              <span *ngIf="!isSwitchCalendar" class="mr-auto">List of Grant Calls</span>
+              <span *ngIf="isSwitchCalendar" class="mr-auto">Grant Call Calendar</span>
+              <span>
+                  <a id="show-advcance-search-grantcall" class="btn btn-sm btn-tertiary float-right mt-0 mr-2"
+                      (click)="showAdvanceSearch($event)" data-toggle="collapse" href="#collapseGrantCall"
+                      role="button" aria-expanded="false" aria-controls="collapseGrantCall"> <i aria-hidden="true"
+                          class="fa fa-sliders"></i> Advanced Search
+                  </a>
+              </span>
+              <span *ngIf="isCreateGrantCall">
+                  <a class="btn btn-primary mr-3 mt-0 hand-cursor" id="create-grant-btn" tabindex="0"
+                      (click)="createGrant('create')">
+                      Create New Grant Call
+                  </a>
+              </span>
+              <span class="calendar-list">
+                  <a class="switch-view" [ngClass]="{'active':isSwitchCalendar}" >
+                      <i aria-hidden="true" class="fa fa-calendar mr-2" (click)="isSwitchCalendar = true;loadDashboard(1,_grantlistService.grantCallRequestServiceObject.advancedSearch)"
+                          aria-hidden="true" title="Grant Call Calendar View"></i>
+                  </a>
+                  <a class="switch-view" [ngClass]="{'active':!isSwitchCalendar}">
+                      <i aria-hidden="true" class="fa fa-list mr-2" (click)="isSwitchCalendar = false;loadDashboard(1,_grantlistService.grantCallRequestServiceObject.advancedSearch)"
+                          aria-hidden="true" title="Grant Call List"></i>
+                  </a>
+              </span>
+              <span *ngIf="serviceRequestList !== null && serviceRequestList?.length !== 0 && isSwitchCalendar == false">
+                <span class="exportIcon-margin">Export as :</span>
+                <a title="Export data to Excel sheet" class="exportIcon-margin  hand-cursor"
+                    id="export-prop-excel-btn" (click)="exportAsTypeDoc('excel')" tabindex="0">
+                    <i aria-hidden="true" class="fa fa-file-excel-o"></i>
+                </a>
+                <a class="exportIcon-margin">|</a>
+                <a title="Export data to PDF document" class="hand-cursor" id="export-prop-pdf-btn"
+                    (click)="exportAsTypeDoc('pdf')" tabindex="0">
+                    <i aria-hidden="true" class="fa fa-file-pdf-o"></i>
+                </a>
+            </span>
+          </h4>
+      </div>
+      <div class="card">
+          <!-- elastic search components -->
+          <div class="card-body">
+              <div class="form-row justify-content-center" *ngIf="!_commonService.isExternalUser">
+                  <div class="col-12 mb-0 searchBox">
+                      <app-elastic [options]="grantCallElasticSearchOptions" [clearField]="clearField" 
+                          [placeHolder]="'Search: Grant Call ID, Title of Grant Call, Type of Grant, Grant Call Status, Name of Funding Agency, Name of Funding Scheme'"
+                          (selectedResult)="selectGrantCallElasticResult($event)"></app-elastic>
+                  </div>
+              </div>
+              <div class="form-row mb-2 mt-3" *ngIf="!_commonService.isExternalUser">
+                  <div class="col-12 viewMode resultCard shadow" *ngIf="isShowGrantCallResultCard">
+                      <button class="closeResultCard" id="close-elastic-result-proposal"
+                          (click)="isShowGrantCallResultCard = false;">
+                          <i aria-hidden="true" class="fa fa-times"></i>
+                      </button>
+                      <!-- grantcall elastic search results-->
+                    <div class="row shadow py-3">
+                        <div class="col-xl-9 col-lg-9 col-md-6 col-sm-12 col-9">
+                            <label>Grant Call</label> <span>
+                                <a routerLink='/fibi/grant' [queryParams]="{grantId:grantCallElasticSearchObject.grant_header_id}"
+                                    class="anchor-link">#{{grantCallElasticSearchObject?.grant_header_id}} : {{
+                                    grantCallElasticSearchObject?.title }}</a>
+                                <i class="fa fa-external-link-square anchor-link ml-1" aria-hidden="true"></i>
+                            </span>
+                        </div>
+                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-3">
+                            <label>Status</label> <span>
+                                <a routerLink='/fibi/grant' [queryParams]="{grantId:grantCallElasticSearchObject.grant_header_id}">{{
+                                    grantCallElasticSearchObject?.status}}</a>
+                            </span>
+                        </div>
+                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-3">
+                            <label>Type of Grant</label> <span>
+                                <a routerLink='/fibi/grant' [queryParams]="{grantId:grantCallElasticSearchObject.grant_header_id}">{{
+                                    grantCallElasticSearchObject?.grant_type}}</a>
+                            </span>
+                        </div>
+                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-3">
+                            <label>
+                                <ng-container i18n="@@COMMON_FUNDING_AGENCY">Funding Agency</ng-container>
+                            </label> <span>
+                                <a routerLink='/fibi/grant' [queryParams]="{grantId:grantCallElasticSearchObject.grant_header_id}">{{
+                                    grantCallElasticSearchObject?.sponsor}}</a>
+                            </span>
+                        </div>
+                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-3">
+                            <label>Funding Scheme</label> <span>
+                                <a routerLink='/fibi/grant' [queryParams]="{grantId:grantCallElasticSearchObject.grant_header_id}">{{
+                                    grantCallElasticSearchObject?.funding_scheme}}</a>
+                            </span>
+                        </div>
+                    </div>
+                  </div>
+              </div>
+              <div class="collapse mt-4 form-row" id="collapseGrantCall">
+                  <!-- advance search options -->
+                  <div class="col-xl-2 col-lg-3 col-md-3 col-sm-6 col-12">
+                      <label class="d-block">Grant Call ID</label>
+                      <input type="text" id="adv-search-grant-id" placeholder="Grant Call ID" maxlength="60"
+                          autocomplete="off" [(ngModel)]="tempGrantCallRequestObject.property1" class="form-control"
+                          (keyup.enter)="setAdvanceSearchValuesToServiceObject();loadDashboard(1,'A')" />
+                  </div>
+                  <div class="col-xl-4 col-lg-6 col-md-9 col-sm-6 col-12">
+                      <label class="d-block">Title of Grant Call</label>
+                      <input type="text" id="adv-search-grant-title" placeholder="Title of Grant Call" maxlength="60"
+                          autocomplete="off" [(ngModel)]="tempGrantCallRequestObject.property2" class="form-control"
+                          (keyup.enter)="setAdvanceSearchValuesToServiceObject();loadDashboard(1,'A')" />
+                  </div>
+                  <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-12">
+                      <label class="d-block">Type of Grant</label>
+                      <app-look-up [options]='grantCallTypeOptions' [selectedLookUpList]="lookupValues['property3']"
+                          (selectedResult)="onLookupSelect($event, 'property3')" (keydown.enter)="setAdvanceSearchValuesToServiceObject();loadDashboard(1,'A')">
+                      </app-look-up>
+                  </div>
+                  <div class="col-xl-3 col-lg-3 col-md-5 col-sm-6 col-12">
+                      <label class="d-block"><ng-container i18n="@@COMMON_FUNDING_AGENCY">Funding Agency</ng-container></label>
+                      <input type="text" id="adv-search-grant-sponsor" placeholder="Funding Agency" maxlength="60"
+                          autocomplete="off" [(ngModel)]="tempGrantCallRequestObject.property4" class="form-control"
+                          (keyup.enter)="setAdvanceSearchValuesToServiceObject();loadDashboard(1,'A')" i18n-placeholder="@@COMMON_FUNDING_AGENCY_PLHDR" />
+                  </div>
+                  <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6 col-12">
+                      <label class="d-block">Grant Call Status</label>
+                      <app-look-up [options]='grantCallStatusOptions' [selectedLookUpList]="lookupValues['property5']"
+                          (selectedResult)="onLookupSelect($event, 'property5')" (keydown.enter)="setAdvanceSearchValuesToServiceObject();loadDashboard(1,'A')">
+                      </app-look-up>
+                  </div>
+                  <div class="col-xl-4 col-lg-3 col-md-5 col-sm-6 col-12">
+                      <label class="d-block">Funding Scheme</label>
+                      <input type="text" id="adv-search-grant-funding-scheme" placeholder="Funding scheme" maxlength="60"
+                          autocomplete="off" [(ngModel)]="tempGrantCallRequestObject.property7" class="form-control"
+                          (keyup.enter)="setAdvanceSearchValuesToServiceObject();loadDashboard(1,'A')" />
+                  </div>
+                  <div class="col-xl-3 col-lg-4 col-md-5 col-sm-6 col-12">
+                      <label class="d-block">Relevant Fields</label>
+                      <app-look-up [options]='relevantFieldOptions' [selectedLookUpList]="lookupValues['property6']"
+                          (selectedResult)="onLookupSelect($event, 'property6')" (keydown.enter)="setAdvanceSearchValuesToServiceObject();loadDashboard(1,'A')">
+                      </app-look-up>
+                  </div>
+                  <div
+                      class="col-md col-12 d-flex flex-column flex-sm-row justify-content-md-start align-items-end justify-content-sm-center">
+                      <button id="adv-search-clear-grant" class="btn btn-secondary btn-xs mr-2" title="Clear"
+                          (click)="clearAdvanceSearchField(); this.loadDashboard(1, 'L');">Clear</button>
+                      <button id="adv-search-grant" class="btn btn-primary btn-xs" title="Search"
+                          (click)="_grantlistService.grantCallRequestServiceObject.currentPage = 1;setAdvanceSearchValuesToServiceObject();loadDashboard(1,'A')">Search</button>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+      <div class="table-responsive" *ngIf="isSwitchCalendar == false;else calendarView">
+          <table class="table tableSkin mb-0" *ngIf="serviceRequestList !== null && serviceRequestList?.length !== 0">
+              <caption class="sr-only">Grant Call List</caption>
+              <thead>
+                  <tr class="header-border">
+                      <th style="width: 5%;" id="sortby-grant-id" (click)="sortResult('grantCallId')" tabindex="0" class="hand-cursor">
+                          <span title="Click to sort by Grant Id">ID</span>
+                          <i aria-hidden="true" *ngIf="!_grantlistService.grantCallRequestServiceObject.sort['grantCallId']"
+                              class="fa fa-sort-numeric-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_grantlistService.grantCallRequestServiceObject.sort['grantCallId'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_grantlistService.grantCallRequestServiceObject.sort['grantCallId'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"></i>
+                      </th>
+                      <th style="width: 15%;" id="sortby-grant-title" (click)="sortResult('grantCallName')" tabindex="0" class="hand-cursor">
+                          <span title="Click to sort by Title of Grant Call">Title of Grant
+                              Call</span>
+                          <i aria-hidden="true" *ngIf="!_grantlistService.grantCallRequestServiceObject.sort['grantCallName']"
+                              class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_grantlistService.grantCallRequestServiceObject.sort['grantCallName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_grantlistService.grantCallRequestServiceObject.sort['grantCallName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                      </th>
+                      <th style="width: 12%;" id="sortby-grant-sponsor" (click)="sortResult('sponsor.sponsorName')" tabindex="0" class="hand-cursor">
+                          <span title="Click to sort by Funding Agency" i18n-title="@@COMMON_FUNDING_AGENCY_TLP">
+                              <ng-container i18n="@@COMMON_FUNDING_AGENCY">Funding Agency</ng-container></span>
+                          <i aria-hidden="true" *ngIf="!_grantlistService.grantCallRequestServiceObject.sort['sponsor.sponsorName']"
+                              class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_grantlistService.grantCallRequestServiceObject.sort['sponsor.sponsorName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_grantlistService.grantCallRequestServiceObject.sort['sponsor.sponsorName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                      </th>
+                      <!-- <th scope="col" style="width: 10%;">Relevant Fields</th> -->
+                      <th style="width: 6%;" id="sortby-grant-type" (click)="sortResult('grantCallType.description')" tabindex="0" class="hand-cursor">
+                          <span title="Click to sort by Type">Type</span>
+                          <i aria-hidden="true" *ngIf="!_grantlistService.grantCallRequestServiceObject.sort['grantCallType.description']"
+                              class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_grantlistService.grantCallRequestServiceObject.sort['grantCallType.description'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_grantlistService.grantCallRequestServiceObject.sort['grantCallType.description'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                      </th>
+                      <th style="width: 12%;" id="sortby-grant-open-date" (click)="sortResult('openingDate')" tabindex="0" class="hand-cursor">
+                          <span  title="Click to sort by Opening Date">Opening Date </span>
+                          <i aria-hidden="true" *ngIf="!_grantlistService.grantCallRequestServiceObject.sort['openingDate']"
+                              class="fa fa-sort-numeric-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_grantlistService.grantCallRequestServiceObject.sort['openingDate'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_grantlistService.grantCallRequestServiceObject.sort['openingDate'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"></i>
+                      </th>
+                      <th style="width: 12%;" id="sortby-grant-close-date" (click)="sortResult('closingDate')" tabindex="0" class="hand-cursor">
+                          <span  title="Click to sort by Closing Date">Closing Date</span>
+                          <i aria-hidden="true" *ngIf="!_grantlistService.grantCallRequestServiceObject.sort['closingDate']"
+                              class="fa fa-sort-numeric-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_grantlistService.grantCallRequestServiceObject.sort['closingDate'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_grantlistService.grantCallRequestServiceObject.sort['closingDate'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"></i>
+                      </th>
+                      <th style="width: 12%;" id="sortby-grant-internal-date"
+                          (click)="sortResult('internalSubmissionDeadLineDate')" tabindex="0" class="hand-cursor">
+                          <span title="Click to sort by Internal Submission Deadline">Internal
+                              Submission Deadline</span>
+                          <i aria-hidden="true" *ngIf="!_grantlistService.grantCallRequestServiceObject.sort['internalSubmissionDeadLineDate']"
+                              class="fa fa-sort-numeric-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_grantlistService.grantCallRequestServiceObject.sort['internalSubmissionDeadLineDate'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_grantlistService.grantCallRequestServiceObject.sort['internalSubmissionDeadLineDate'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"></i>
+                      </th>
+                      <th style="width: 8%;" id="sortby-grant-status"
+                          (click)="sortResult('grantCallStatus.description')" tabindex="0" class="hand-cursor">
+                          <span title="Click to sort by Status">Status</span>
+                          <i aria-hidden="true" *ngIf="!_grantlistService.grantCallRequestServiceObject.sort['grantCallStatus.description']"
+                              class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_grantlistService.grantCallRequestServiceObject.sort['grantCallStatus.description'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_grantlistService.grantCallRequestServiceObject.sort['grantCallStatus.description'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                      </th>
+                      <th scope="col" style="width: 8%;" tabindex="0">
+                          <span>Actions</span>
+                      </th>
+                  </tr>
+              </thead>
+              <tbody>
+                  <tr class="pull-up" *ngFor="let grant of serviceRequestList; let i= index" [@itemAnim]>
+                      <td (click)="navigateToGrantCall(grant?.grantCallId)" tabindex="0">{{grant?.grantCallId}}</td>
+                      <td (click)="navigateToGrantCall(grant?.grantCallId)"
+                          [title]="(grant?.grantCallName)?.length>60 ? grant?.grantCallName: ''" tabindex="0">
+                          {{ (grant?.grantCallName)?.length>60 ? (grant?.grantCallName | slice:0:60)+'...' : grant?.grantCallName}}
+                      </td>
+                      <td (click)="navigateToGrantCall(grant?.grantCallId)" tabindex="0">
+                          {{grant?.sponsorName}}</td>
+                          <!-- <td (click)="viewGrantById(grant)">
+                            <span *ngFor="let relevantField of grant?.relevantFields" class="fileChips"
+                                style="word-break: break-all"><span>{{relevantField.length > 10 ?
+                                    (relevantField | slice:0:10 ) + '...' : relevantField}}</span>
+                                <p class="tooltiptext">{{relevantField}}</p>
+                            </span>
+                        </td> -->
+                      <td (click)="navigateToGrantCall(grant?.grantCallId)" tabindex="0">
+                          {{grant?.grantCallTypeDesc}}</td>
+                      <td (click)="navigateToGrantCall(grant?.grantCallId)" tabindex="0">
+                          {{grant?.openingDate | dateFormatter}}</td>
+                      <td (click)="navigateToGrantCall(grant?.grantCallId)" tabindex="0">
+                          {{grant?.closingDate | dateFormatter}}</td>
+                      <td (click)="navigateToGrantCall(grant?.grantCallId)" tabindex="0">
+                          {{grant?.internalSubmissionDeadLineDate === 0 ? null : grant?.internalSubmissionDeadLineDate | dateFormatter}}
+                      </td>
+                      <td (click)="navigateToGrantCall(grant?.grantCallId)" tabindex="0">
+                          {{grant?.grantCallStatusDesc}}
+                      </td>
+                      <td>
+                          <ul class="actionButtonGroup">
+                              <li><a title="Open Grant Call #{{grant?.grantCallId}}" 
+                                      id="open-grant-btn"
+                                      class="pointer" tabindex="0"
+                                      (click)="navigateToGrantCall(grant?.grantCallId)">
+                                      <i aria-hidden="true" class="fa fa-eye pointer"></i>
+                                  </a>
+                              </li>
+                              <li *ngIf="isCreateGrantCall"><a title="Copy Grant Call #{{grant?.grantCallId}}"
+                                      id="copy-grant-dashboard-btn" data-toggle="modal"
+                                      data-target="#dashboard-grant-warning-modal"
+                                      (click)="tempryCopyGrantCall(grant.grantCallId)" tabindex="0"><i aria-hidden="true"
+                                          class="fa fa-copy pointer"></i></a>
+                              </li>
+                              <li *ngIf="isDeleteGrantCall">
+                                  <a title="Delete Grant Call #{{grant?.grantCallId}}" id="delete-grantcall-dashbrd-btn"
+                                  (click)="checkDeleteGrantCallOrNot(grant, i)" tabindex="0"><i aria-hidden="true"
+                                          class="fa fa-trash pointer"></i></a>
+                              </li>
+                          </ul>
+                      </td>
+                  </tr>
+              </tbody>
+          </table>
+          <div class="no-data-container" *ngIf="serviceRequestList?.length == 0 || !serviceRequestList">
+              <span class="no-data-icon-outer">
+                  <div class="no-data-icon">
+                      <i class="fa fa-file-o" aria-hidden="true"></i>
+                      <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                  </div>
+              </span>
+              <h4>There is no information in this section.</h4>
+          </div>
+      </div>
+      <ng-template #calendarView>
+          <app-calendar-view [data]="this.serviceRequestList" [metaData]="metadataForCalendarView"
+              (viewGrantCallEvent)="viewGrantById($event)">
+          </app-calendar-view>
+      </ng-template>
+  </div>
+  <!-- Pagination -->
+  
+  <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12"
+      *ngIf="serviceRequestList != null && serviceRequestList?.length != 0 && !this.isSwitchCalendar">
+      <nav class="pagination justify-content-end">
+          <app-pagination [totalCount]="result.totalServiceRequest"
+                      (pageChangeEvent)="actionsOnPageChange($event)"></app-pagination>
+      </nav>
+  </div>
+</div>
+<!-- Copy Grant Call Modal -->
+<div class="modal fade show mySkinDialog" *ngIf="isShowCopyWarningModal" tabindex="-1"
+  id="dashboard-grant-warning-modal" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 *ngIf="isShowCopyWarningModal" class="modal-title">Copy Grant Call</h5>
+              <button type="button" class="close" data-dismiss="modal" (click)="clearGrantCallModalFlags()"
+                  aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+              </button>
+          </div>
+          <div *ngIf="isShowCopyWarningModal" class="modal-body">
+              <p>Are you sure you want to copy this Grant Call?</p>
+          </div>
+          <div class="modal-footer" *ngIf="isShowCopyWarningModal">
+              <button type="button" class="btn btn-secondary" (click)="isShowCopyWarningModal = false" title="No"
+                  data-dismiss="modal" data-toggle="modal">No</button>
+              <button type="button" class="btn btn-primary-sub btn-sm" title="Copy Grant Call"
+                  (click)="copyGrantCall()" data-dismiss="modal">Copy</button>
+          </div>
+      </div>
+  </div>
+</div>
+<!--Warning Modal for Delete Grant Call-->
+<div class="modal fade show mySkinDialog"  tabindex="-1" id="dashboard-grant-delete-warning-modal"
+  role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title">Warning</h5>
+              <button type="button" id="grant-delete-close-icon" class="close" data-dismiss="modal"
+                  aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+              </button>
+          </div>
+          <div class="modal-body">
+                  <p>Grant Calls in Draft / Tentative / Closed status and not linked to any proposal (s) or award (s) can only be deleted.</p>
+              </div>
+          <div class="modal-footer" >
+                  <button type="button" id="grant-delete-wrning-ok-btn" class="btnSkin btnSkinPrimary" data-dismiss="modal"
+                      data-toggle="modal">Ok</button>
+          </div>
+      </div>
+  </div>
+</div>
+<!--Delete Grant Call Modal-->
+<div class="modal fade show mySkinDialog"  tabindex="-1" id="dashboard-grant-delete-modal"
+  role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title">Delete Grant Call</h5>
+              <button id="grantcall-delete-close-btn" type="button" class="close" data-dismiss="modal" 
+                  aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+              </button>
+          </div>
+          <div class="modal-body">
+              <p>Are you sure you want to delete this Grant Call?</p>
+          </div>
+          <div class="modal-footer">
+              <button id="grantcall-delete-no-btn" type="button" class="btnSkin btn-secondary"  data-dismiss="modal"
+                  data-toggle="modal">No</button>
+              <button id="grantcall-delete-btn" type="button" class="btn btn-primary-sub btn-sm" (click)="deleteGrantCall();"
+                  data-dismiss="modal"  data-toggle="modal">Delete</button>
+          </div>
+      </div>
+  </div>
+</div>
+<button id="grantcall-delete-warning" [hidden]="true" data-toggle="modal" data-target="#dashboard-grant-delete-warning-modal"></button>
+<button id="grantcall-delete" [hidden]="true" data-toggle="modal" data-target="#dashboard-grant-delete-modal"></button>

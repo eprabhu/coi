@@ -1,0 +1,1 @@
+INSERT INTO `PARAMETER` (`PARAMETER_NAME`,`VALUE`,`DESCRIPTION`,`UPDATE_TIMESTAMP`,`UPDATE_USER`) VALUES ('ENABLE_COI_ACTION_LIST_SORTING','N','This parameter is used to enable priority-based sorting in the action list.',now(),'quickstart');

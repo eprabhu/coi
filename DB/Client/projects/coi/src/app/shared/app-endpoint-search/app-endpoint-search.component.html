@@ -1,0 +1,38 @@
+
+<div class="search-outer">
+  <label for="" class="d-none">hidden label to mislead chrome autocomplete</label>
+  <input #searchField type="text" placeholder="{{placeHolder}}" [disabled]="isDisabled"
+    (focus)="getEndpointSearchResultOnfocus()" [(ngModel)]="searchText" [id]="uniqueId" [name]="uniqueId+'-name'"
+    (keypress)="getEndpointSearchResult()" (keydown.backspace)="backSpaceEvent()"
+    class="app-endpoint-search form-control pe-4" autocomplete="off"
+    (keyup.enter)="controlSearchEmit(searchText)"
+    (paste)="getEndpointSearchResult()" [matAutocomplete]="endpoint" (blur)="emitText()"
+    [isShowLimiter]="searchLimiterOptions.isShowLimiter" appLengthValidator
+    [position]="searchLimiterOptions.position" [elementId]="searchLimiterOptions.elementId"
+    [limit]="searchLimiterOptions.limit" [styleList]="searchLimiterOptions.limiterStyle"/>
+  <a class="searchButton" [class.pe-4]="isError" *ngIf="!isDisabled" [class.pe-none]="searchText == ''">
+    <i aria-hidden="true" *ngIf="searchText == ''" class="fa fa-search fa-med" title="Click to search"></i>
+    <i aria-hidden="true" *ngIf="searchText != '' && !isDisabled" class="fa fa-times" title="Click to clear search"
+      (click)="emitSelectedObject(null);"></i>
+  </a>
+
+  <mat-autocomplete #endpoint="matAutocomplete" (closed)="getEndPointSearchValueOnFocusOut()"
+    (optionSelected)="controlSearchEmit($event)">
+    <mat-option *ngIf="addSearchText && newSearchText && !isAPIFailed"  id ='ADD_NEW_SEARCH_TEXT'>
+      <span class="fw-500 text-primary">Add </span>
+      "<span class="fw-700" [innerHTML]="newSearchText"></span>"
+    </mat-option>
+    <mat-option *ngIf="addSearchText && enableCommaSeparator && pipeSeparatedText && !isAPIFailed"  id="PIPE_SELECTED_VALUE">
+      <span class="fw-500 text-primary">Add </span>
+      "<span class="fw-700" [innerHTML]="pipeSeparatedText"></span>"
+    </mat-option>
+    <mat-option *ngFor="let result of results" [value]="result">
+      <span *ngIf="!isAPIFailed" [innerHTML]="result.label"></span>
+      <span *ngIf="isAPIFailed" class="d-flex align-items-center fw-600 gap-1 text-danger" role="alert">
+        <mat-icon class="coi-mat-icon-size mx-0" aria-hidden="true">error</mat-icon>
+        <span [innerHTML]="result.label"></span>
+      </span>
+    </mat-option>
+  </mat-autocomplete>
+</div>
+<div class="invalid-feedback d-block" *ngIf="isError && httpOptions.errorMessage">{{httpOptions.errorMessage}}</div>

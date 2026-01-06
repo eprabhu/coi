@@ -1,0 +1,319 @@
+<div class="card mt-3 mb-3">
+    <div class="card-content">
+        <div class="m-2 pl-3">
+            <h4 id="negotiation-dashboard-header" class="align-items-center card-title d-flex">
+                <span class="mr-auto">List of Active Awards</span>
+                <span class="col-5 text-right"><a id="show-advcance-search-award" class="btn btn-sm btn-tertiary mt-0"
+                        data-toggle="collapse" href="#collapseAward" role="button" aria-expanded="false"
+                        aria-controls="collapseAward" title="Advanced Search"> <i aria-hidden="true"
+                            class="fa fa-sliders"></i>
+                        Advanced Search
+                    </a> </span>
+            </h4>
+        </div>
+        <div id="collapseAward" class="collapse card mt-3">
+            <div class="card-body gridSkin ">
+                <div class="form-row">
+                    <!-- Title -->
+                    <div class="col-xl-4 col-lg-5 col-sm-6 col-12">
+                        <label class="d-block">Title</label>
+                        <input type="text" id="adv-search-award-title" placeholder="Title" maxlength="60"
+                            [(ngModel)]="awardTimesheetLoadObject.property3" class="form-control"
+                            (keyup.enter)="searchUsingAdvanceOptions(1)" />
+                    </div>
+                    <!-- Sponsor -->
+                    <div class="col-xl-4 col-lg-5 col-sm-6 col-12">
+                        <label class="d-block">
+                            <ng-container i18n="@@COMMON_SPONSOR">Sponsor</ng-container>
+                        </label>
+                        <app-endpoint-search [httpOptions]="fundingAgencySearchOptions"
+                            [clearField]="clearFieldFundingAgency" [placeHolder]="'Sponsor'"
+                            (onSelect)="awardTimesheetLoadObject.property5 =($event == null)? '' : $event.sponsorCode"
+                            (keydown.enter)="searchUsingAdvanceOptions(1)">
+                        </app-endpoint-search>
+                    </div>
+                    <!-- Award # -->
+                    <div class="col-xl-2 col-lg-2 col-md-3 col-sm-6 col-12">
+                        <label class="d-block">
+                            <ng-container i18n="@@AWARD_AWARD_#">Award #</ng-container>
+                        </label>
+                        <input type="text" id="adv-search-award-project-id" placeholder="Award #"
+                            i18n-placeholder="@@AWARD_AWARD_#_PLHDR" maxlength="60"
+                            [(ngModel)]="awardTimesheetLoadObject.property1" (keypress)="inputRestriction($event)"
+                            class="form-control" (keyup.enter)="searchUsingAdvanceOptions(1)" />
+                    </div>
+                    <div class="col-xl-2 col-lg-2 col-md-3 col-sm-6 col-12"><label class="d-block">
+                            Award Type
+                        </label>
+                        <app-look-up [options]='awardTypeOptions' [selectedLookUpList]="lookupValues['property6']"
+                            (selectedResult)="onLookupSelect($event, 'property6')"
+                            (keydown.enter)="searchUsingAdvanceOptions(1)">
+                        </app-look-up>
+                    </div>
+                    <!-- Lead Unit -->
+                    <div class="col-xl-4 col-lg-4 col-md-4 col-sm-6 col-12">
+                        <label class="d-block">Lead Unit</label>
+                        <app-endpoint-search [httpOptions]="leadUnitSearchOptions" [clearField]="clearFieldLeadUnit"
+                            [placeHolder]="'Type here for Lead Unit'" (onSelect)="leadUnitChangeFunction($event)">
+                        </app-endpoint-search>
+                    </div>
+                    <!-- Sponsor Award Number -->
+                    <div class="col-xl-2 col-lg-2 col-md-3 col-sm-6 col-12">
+                        <label class="d-block">
+                            <ng-container i18n="@@COMMON_SPONSOR_AWARD_NUMBER">Sponsor Award Number
+                            </ng-container>
+                        </label>
+                        <input type="text" id="adv-search-award-project-id" placeholder="Sponsor Award Number"
+                            maxlength="60" [(ngModel)]="awardTimesheetLoadObject.property2"
+                            i18n-placeholder="@@AWARD_SPONSOR_AWARD_NUMBER_PLHDR" class="form-control"
+                            (keyup.enter)="searchUsingAdvanceOptions(1)" />
+                    </div>
+
+                    <div
+                        class="col-md col-sm-6 col-6 flex-column flex-sm-row d-flex align-items-end justify-content-end">
+                        <button id="adv-search-clear-award"
+                            class="btn btn-secondary btn-xs mr-2 mb-2"(click)=" clear();getActiveAwardsByPersonId();">Clear</button>
+                        <button id="adv-search-award" class="btn btn-primary btn-xs mb-2"
+                            (click)="searchUsingAdvanceOptions(1);">Search</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div *ngIf="setAwardResponseObject?.awards?.length > 0 " class="table-responsive mt-3 px-2">
+            <table class="table tableSkin mb-0">
+                <thead class="header-border">
+                    <tr>
+                        <th style="width: 7%" (click)="isDesc = !isDesc; sortBy('awardNumber')" scope="col">
+                            <span class="hand-cursor" title="Click to sort by Award #">Award #</span>
+                            <i aria-hidden="true"
+                                [ngClass]="((awardTimesheetLoadObject.sortBy == 'awardNumber')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                        </th>
+                        <th (click)="isDesc = !isDesc; sortBy('sponsorAwardNumber')" scope="col">
+                            <span class="hand-cursor" title="Click to sort by Sponsor Award Number">Sponsor Award Number</span>
+                            <i aria-hidden="true"
+                                [ngClass]="((awardTimesheetLoadObject.sortBy == 'sponsorAwardNumber')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                        </th>
+                        <th style="width: 20%;" (click)="isDesc = !isDesc; sortBy('title')" scope="col">
+                            <span class="hand-cursor" title="Click to sort by Title">Title</span>
+                            <i aria-hidden="true"
+                                [ngClass]="((awardTimesheetLoadObject.sortBy == 'title')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                        </th>
+                        <th style="width: 10%;" (click)="isDesc = !isDesc; sortBy('principalInvestigator')" scope="col">
+                            <span class="hand-cursor" title="Click to sort by Principal Investigator">Principal Investigator</span>
+                            <i aria-hidden="true"
+                                [ngClass]="((awardTimesheetLoadObject.sortBy == 'principalInvestigator')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                        </th>
+                        <th (click)="isDesc = !isDesc; sortBy('leadUnit')" scope="col">
+                            <span class="hand-cursor" title="Click to sort by Lead Unit">Lead Unit</span>
+                            <i aria-hidden="true"
+                                [ngClass]="((awardTimesheetLoadObject.sortBy == 'leadUnit')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                        </th>
+                        <th (click)="isDesc = !isDesc; sortBy('role')" scope="col">
+                            <span class="hand-cursor" title="Click to sort by Role">Role</span>
+                            <i aria-hidden="true"
+                                [ngClass]="((awardTimesheetLoadObject.sortBy == 'role')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                        </th>
+                        <th (click)="isDesc = !isDesc; sortBy('sponsor')" scope="col">
+                            <span class="hand-cursor" title="Click to sort by Sponsor">Sponsor</span>
+                            <i aria-hidden="true"
+                                [ngClass]="((awardTimesheetLoadObject.sortBy == 'sponsor')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                        </th>
+                        <th style="width: 7%;" (click)="isDesc = !isDesc; sortBy('beginDate')" scope="col">
+                            <span class="hand-cursor" title="Click to sort by Award Effective Date">Award Effective Date</span>
+                            <i aria-hidden="true"
+                                [ngClass]="((awardTimesheetLoadObject.sortBy == 'beginDate')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                        </th>
+                        <th style="width: 7%;" (click)="isDesc = !isDesc; sortBy('finalExpirationDate')" scope="col">
+                            <span class="hand-cursor" title="Click to sort by Final Expiration Date">Final Expiration Date</span>
+                            <i aria-hidden="true"
+                                [ngClass]="((awardTimesheetLoadObject.sortBy == 'finalExpirationDate')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                        </th>
+                        <th (click)="isDesc = !isDesc; sortBy('awardType')" scope="col">
+                            <span class="hand-cursor" title="Click to sort by Award Type">Award Type</span>
+                            <i aria-hidden="true"
+                                [ngClass]="((awardTimesheetLoadObject.sortBy == 'awardType')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                        </th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <ng-container>
+                        <tr
+                            *ngFor="let eachAward of setAwardResponseObject?.awards; let i =index">
+                            <td>{{eachAward?.awardNumber}}</td>
+                            <td>{{eachAward?.sponsorAwardNumber}}</td>
+                            <td>{{eachAward?.title}}</td>
+                            <td>{{eachAward?.principalInvestigator}}</td>
+                            <td>{{eachAward?.leadUnit?.unitName}}</td>
+                            <td>{{eachAward?.personRoleName}}</td>
+                            <td>{{eachAward?.sponsor?.sponsorName}}</td>
+                            <td>{{eachAward?.beginDate | dateFormatter}}</td>
+                            <td>{{eachAward?.finalExpirationDate | dateFormatter}}</td>
+                            <td>{{eachAward?.awardType?.description}}</td>
+                            <td>
+                                <ul class=" actionButtonGroup d-flex">
+                                    <li><a title="Open {{eachAward.awardNumber}} " id="view-award-btn" class="pointer"
+                                            (click)="routeToAwardId(eachAward?.awardId)" tabindex="0">
+                                            <i aria-hidden="true" class="fa fa-eye pointer"></i>
+                                        </a>
+                                    </li>
+                                    <li><a *ngIf="eachAward.viewTimesheetRightExist||(awardTimesheetLoadObject.personId === loginPersonId)" 
+                                        id="award-key-timesheet-btn"
+                                            (click)="getAwardKeyPersonTimesheetDetails(eachAward)" data-toggle="modal"
+                                            data-target="#timesheet" tabindex="0">
+                                            <i class="fa fa-calendar-o" aria-hidden="true"
+                                                title="Click here to manage timesheet"></i>
+                                        </a></li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </ng-container>
+                    <ng-template #noData>
+                        <tr>
+                            <td colspan="6" class="text-center">
+                                <span class="noDataExists">No Active Awards</span>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </tbody>
+            </table>
+            <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                <nav class="pagination justify-content-end">
+                    <app-pagination [totalCount]="setAwardResponseObject?.totalRecords"
+                        (pageChangeEvent)="actionsOnPageChange($event)">
+                    </app-pagination>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <div *ngIf="setAwardResponseObject?.awards?.length == 0" class="mt-3 card">
+        <div class="no-data-container">
+            <span class="no-data-icon-outer">
+                <div class="no-data-icon">
+                    <i class="fa fa-file-o" aria-hidden="true"></i>
+                    <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                </div>
+            </span>
+            <h4>There is no information in this section.</h4>
+        </div>
+    </div>
+</div>
+<!-- TIMESHEET MODAL -->
+<div class="modal fade show mySkinDialog modal-opacity" tabindex="-1" id="timesheet" tabindex="-1" role="dialog"
+    aria-labelledby="skippedSchedulesTitle" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="skippedSchedulesLongTitle">Award Information for Time Commitment
+                    {{awardTimesheetDetails?.fullName}}</h5>
+                <button type="button" id="special-revw-close-btn" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body ">
+                <div class="p-2 border mx-0 grey-container">
+                    <div class="form-row">
+                        <div class="col-6">
+                            <label class="d-sm-block">Award</label>
+                            <span>#{{awardTimesheetDetails?.awardNumber}} : {{awardTimesheetDetails?.title}}</span>
+                        </div>
+                        <div class="col-3">
+                            <label class="d-sm-block">Account No</label>
+                            <span>{{awardTimesheetDetails?.accountNumber}}</span>
+                        </div>
+                        <div class="col-3">
+                            <label class="d-sm-block">{{roleName}}</label>
+                            <span>{{rolePersonName}}</span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-3">
+                            <label class="d-sm-block">Award Effective Date</label>
+                            <span>{{awardTimesheetDetails?.beginDate | dateFormatter}}</span>
+                        </div>
+                        <div class="col-3">
+                            <label class="d-sm-block">Final Expiration Date</label>
+                            <span>{{awardTimesheetDetails?.finalExpirationDate | dateFormatter}}</span>
+                        </div>
+                        <div class="col-3">
+                            <label class="d-sm-block">Title of Grant Call</label>
+                            <span [ngClass]="awardTimesheetDetails?.grantCallName ? '' : 'noDataExists'">
+                            {{awardTimesheetDetails?.grantCallName ? awardTimesheetDetails?.grantCallName : 'No Grant Call Specified'}}</span>
+                        </div>
+                        <div class="col-3">
+                            <label class="d-sm-block">Lead Unit</label>
+                            <span>{{awardTimesheetDetails?.leadUnit?.unitName}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="my-3 infobox-heading d-flex justify-content-between">
+                            <h4>
+                                Time Commitment
+                            </h4>
+                            <span class="exportButton">
+                                <span class="exportIcon-margin">Export as :</span>
+                                <a title="Export data to Excel sheet" class="exportIcon-margin hand-cursor"
+                                    id="export-award-excel-btn" (click)="exportAsTypeDoc('excel')" tabindex="0">
+                                    <i aria-hidden="true" class="fa fa-file-excel-o"></i>
+                                </a>
+                                <a class="exportIcon-margin">|</a>
+                                <a title="Export data to PDF document" class="hand-cursor" id="export-award-pdf-btn"
+                                    (click)="exportAsTypeDoc('pdf')" tabindex="0"><i aria-hidden="true"
+                                        class="fa fa-file-pdf-o"></i></a>
+                            </span>
+                        </div>
+                        <div class="fixed-header-table timesheet-table-Scroll">
+                            <table
+                                class="table table-inner tableSkin grid2 key-person-table table-vertical-align info-box">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th scope="col">Year</th>
+                                        <th scope="col">{{timesheetData?.awardKeyPersonTimesheetType == 'HALFYEARLY' ?
+                                            '1st Half (Jan - Jun)' :
+                                            (timesheetData?.awardKeyPersonTimesheetType == 'YEARLY' ? 'Yearly (Jan - Dec)' :
+                                             '1st Quarter  (Jan - Mar)')}} (%)
+                                        
+                                        </th>
+                                        <th scope="col" *ngIf="timesheetData?.awardKeyPersonTimesheetType == 'HALFYEARLY' ||
+                    timesheetData?.awardKeyPersonTimesheetType == 'QUARTERLY'">
+                                            {{timesheetData?.awardKeyPersonTimesheetType == 'HALFYEARLY' ?
+                                            '2nd Half (Jul - Dec)' : '2nd Quarter (Apr - Jun)'}} (%)</th>
+                                        <th scope="col"
+                                            *ngIf="timesheetData?.awardKeyPersonTimesheetType == 'QUARTERLY'">3rd
+                                            Quarter (Jul - Sep) (%)</th>
+                                        <th scope="col"
+                                            *ngIf="timesheetData?.awardKeyPersonTimesheetType == 'QUARTERLY'">4th
+                                            Quarter  (Oct - Dec) (%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let year of timeSheetList | keyvalue: sortNull">
+                                        <td>{{year.key}} </td>
+                                        <td *ngFor="let timeData of year.value;let position = index">
+                                            <input type="number" class="form-control" [(ngModel)]="timeData.value"
+                                                (ngModelChange)="isTimeDataChanged = true;"
+                                                (keyup)="validateTimeCommitmentPercentage(timeData.value, year.key, position)"
+                                                id="time-sheet-{{year.key}}-{{position}}"
+                                                [disabled]="(!isMaintainTimeSheet || (year.key == currentYear ? ((timeData.orderNumber > currentQuarter) ? true : false) : ((year.key > currentYear) ? true : false)))">
+                                            <div class="invalid-feedback d-block"
+                                                id="time-sheet-error-{{year.key}}-{{position}}"></div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="timesheet-cancel-btn" class="btn btn-secondary btn-sm"
+                    data-dismiss="modal" data-toggle="modal">Cancel</button>
+                <button type="button" id="timesheet-save-btn" class="btn btn-primary-sub btn-sm"
+                    (click)="saveOrUpdateAwardKeyPersonTimesheet()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- TIME SHEET MODAL ENDS -->

@@ -1,0 +1,230 @@
+<div class="card mb-3">
+  <div class="card-header px-4">
+      <h4 class="card-title" id="proposal-keyperson-details-view"><ng-container i18n="@@COMMON_KEY_PERSONNEL">Key Personnel</ng-container>
+          <span class="float-right font-weight-normal mr-5">
+              <i aria-hidden="true" class="fa fa-user-o mr-2 pl-sm-2"></i>Employee |
+              <i aria-hidden="true" class="fa fa-user-circle text-danger mr-2"></i>Non-Employee |
+              <i aria-hidden="true" class="fa fa-home text-primary mr-2"></i>Lead Unit |
+              <i aria-hidden="true" class="fa fa-home text-grey mr-2"></i>Department |
+              <img class="mr-2" src="{{deployMap}}assets/images/org-icon-4.svg" alt="Organization icon">Organization |
+              <i aria-hidden="true" class="fa fa-users text-primary mr-2"></i>Multi-PI
+          </span>
+          <button id="projectExpandBtn" class="updown-arrow"
+              (click)="dataVisibilityObj.isKeyPersonWidgetOpen = !dataVisibilityObj.isKeyPersonWidgetOpen">
+              <i aria-hidden="true"
+                  [ngClass]="dataVisibilityObj.isKeyPersonWidgetOpen?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                  class="fa-large"></i>
+          </button></h4>
+  </div>
+  <div class="card-content" *ngIf="dataVisibilityObj.isKeyPersonWidgetOpen">
+      <div class="card-body">
+          <div *ngIf="result?.proposalPersons?.length == 0" class="noDataExists px-2">
+            <ng-container i18n="@@COMMON_NO_KEY_PERSONNELS_ERR">There are no key personnels added in this proposal</ng-container></div>
+          <div class="table-responsive">
+              <table *ngIf="result?.proposalPersons?.length > 0 && dataVisibilityObj.isKeyPersonWidgetOpen"
+                  class="table tableSkin grid2" aria-describedby="proposal-keyperson-details-view">
+                  <thead>
+                      <th scope="col" style="width:15%">Name</th>
+                      <th scope="col">Role</th>
+                      <th scope="col" style="width:25%">Department(s) / Organization(s)</th>
+                      <th scope="col">Designation</th>
+                      <th scope="col">% of Effort
+                        <span *ngIf="helpText?.keyPersons && helpText?.keyPersons['percentOfEffort']?.helpTextInfo"
+                            class="d-inline-block icon-hover hand-cursor">
+                            <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med" aria-hidden="true"></i>
+                                <div class="tooltiptext-right card card-inner p-15 text-left">
+                                    <span class="font-cv">{{helpText?.keyPersons['percentOfEffort']?.helpTextInfo}}</span>
+                                </div>
+                            </a>
+                        </span>
+                    </th>
+                      <th scope="col" *ngIf="canShowTraining">Training</th>
+                      <th scope="col" *ngIf="canShowCertification">Certification</th>
+                      <th scope="col" style="width:7%">Action</th>
+                  </thead>
+                  <tbody>
+                      <tr *ngFor="let person of result?.proposalPersons; let i = index">
+                          <td><i class="mr-2"
+                                  [ngClass]="person.rolodexId ? 'fa fa-user-circle text-danger':'fa fa-user-o'"
+                                  aria-hidden="true"></i>
+                              <ng-container *ngIf="person?.isMultiPi"><i class="fa fa-users text-primary mr-2"
+                                      aria-hidden="true"></i></ng-container>{{person?.fullName}}
+                          </td>
+                          <td>{{(person?.proposalPersonRole?.description + 
+                                (person?.proposalPersonRole?.showProjectRole ?
+                                (person?.projectRole ? ' (' + person?.projectRole +')' :''):''))}}
+                          </td>
+                          <td>
+                              <ng-container *ngIf="person?.units?.length">
+                                  <ul class="p-0 list-none" *ngFor="let dept of person?.units">
+                                      <li ><i class="fa fa-home" aria-hidden="true"
+                                              [ngClass]="dept?.leadUnit ? 'text-primary' : 'text-grey'"></i>
+                                          <span>{{concatUnitNumberAndUnitName(dept?.unit?.unitNumber,dept?.unit?.unitName)}}</span></li>
+                                  </ul>
+                              </ng-container>
+                              <p><img *ngIf="person?.department" class="mr-1" src="{{deployMap}}assets/images/org-icon-4.svg" alt="Organization icon">
+                                {{person?.department}}
+                              </p>
+                          </td>
+                          <td><span
+                                  *ngIf="person?.designation != null else nodesignation">{{person?.designation}}</span>
+                              <ng-template #nodesignation>
+                                  <span class="noDataExists">No designation specified</span>
+                              </ng-template>
+                          </td>
+                          <td>{{person?.percentageOfEffort}}</td>
+                          <td class="f-16 text-nowrap" *ngIf="canShowTraining">
+                            <i *ngIf="person?.trainingStatus !== 'Not Applicable'" [ngClass]="person?.trainingStatus === 'Completed' ?
+                            'fa-check-circle text-success':'fa-exclamation-circle text-warning'" aria-hidden="true" class="fa"></i>
+                            <span class="badge font-weight-normal p-0" [class.text-black-50]="person?.trainingStatus == 'Not Applicable'">{{person?.trainingStatus}}</span>
+                          </td>
+                          <td class="f-16 text-nowrap" *ngIf="canShowCertification">
+                              <ng-container
+                                      *ngIf="(person?.proposalPersonRole?.certificationRequired === 'Y' && ( person?.rolodexId ? result.nonEmployeeCertification:true)) else noCertification">
+                                  <i [ngClass]="person?.personCertified ?
+                                   'fa-check-circle text-success':'fa-exclamation-circle text-warning'"
+                                     aria-hidden="true" class="fa"></i>
+                                  <span class="badge font-weight-normal p-0">
+                                      {{person?.personCertified ? 'Completed' : 'Incomplete'}}
+                                  </span>
+                              </ng-container>
+                              <ng-template #noCertification>
+                                  <span class="f-12 text-black-50">Not Applicable</span>
+                              </ng-template>
+                          </td>
+                          <td>
+                              <ul class="actionButtonGroup">
+                                  <li>
+                                      <a id="prop-project-team-view-btn" (click)="fetchKeyPersonDetails(person)">
+                                          <i class="fa fa-eye" aria-hidden="true"
+                                              title="Click here to view {{person?.fullName}}"></i>
+                                      </a>
+                                  </li>
+                                  <li>
+                                    <span class="d-inline-block dropdown">
+                                        <button class="btn btn-sm more-btn list-more-btn"
+                                            type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
+                                            title="More Actions" aria-expanded="false">
+                                            <i aria-hidden="true" class="fa fa-ellipsis-v" aria-hidden="true"></i>
+                                        </button>
+                                        <div aria-labelledby="dropdownMenuButton"
+                                             class="dropdown-menu action-dropdown-menu more-options-aligned moreActionBtnGroup">
+                                            <ul class="more-actions-menu">
+                                                <li>
+                                                  <a (click)="isShowMoreOptions = !isShowMoreOptions;getVersion(person.proposalPersonAttachment);
+                                                            selectedpersonDetails = person" class="dropdown-item text-left d-block pointer" data-target="#showAttachment"
+                                                     data-toggle="modal"
+                                                     href="#"><i aria-hidden="true"
+                                                                                               class="fa fa-link mr-2"></i>Attachments</a>
+                                                </li>
+                                                <!--<ng-container *ngIf="canShowCertification
+                                                                         && person.proposalPersonRole.certificationRequired === 'Y'">
+                                                     <li>
+                                                        <a class="dropdown-item text-left d-block pointer" (click)="navigateToCertification(person)"
+                                                           title="Goto person certification">
+                                                           <i class="fa fa-file-text mr-2" aria-hidden="true"></i> Certify
+                                                        </a>
+                                                    </li>
+                                                 </ng-container>-->
+                                                <li>
+                                                   <a (click)="notifyPersonCertification(person)"
+                                                      *ngIf="!person?.rolodexId"
+                                                      class="dropdown-item text-left d-block pointer"
+                                                      title="Certification reminder notification">
+                                                      <i aria-hidden="true" class="fa fa-bell"></i> Notify
+                                                   </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </span>
+                                </li>
+                              </ul>
+                          </td>
+                      </tr>
+                  </tbody>
+              </table>
+          </div>
+      </div>
+  </div>
+</div>
+
+<!-- Attachment View modal -->
+<div class="modal fade mySkinDialog" id="showAttachment" tabindex="-1" role="dialog" aria-labelledby="skippedSchedulesTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Key Personnel Attachment(s) <span *ngIf="selectedpersonDetails?.fullName">- {{selectedpersonDetails.fullName}}</span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" *ngIf="selectedpersonDetails?.proposalPersonAttachment?.length >0">
+                <table class="table tableSkin">
+                    <caption class="sr-only">CV details</caption>
+                    <thead class="header-border">
+                        <th (click)="sortResult('attachmentTypeCode')">Attachment Type
+                            <i [ngClass]="((sortListBy == 'attachmentTypeCode') ? (isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                    aria-hidden="true"></i>
+                        </th>
+                        <th style="width: 25%" (click)="sortResult('description')" scope="col" class="hand-cursor" id="sort-by-attach-desc"
+                            title="Click to sort by Description">
+                            <span>Description
+                                <i [ngClass]="((sortListBy == 'description') ? (isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                    aria-hidden="true"></i>
+                            </span>
+                        </th>
+                        <th class="table-border-bottom hand-icon" scope="col" (click)="sortResult('fileName')"
+                            title="Click to sort by File Name">File Name
+                            <i [ngClass]="((sortListBy == 'fileName') ? (!isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                aria-hidden="true"></i>
+                        </th>
+                        <th style="width: 18%" scope="col" (click)="sortResult('updateUserFullName')"
+                            class="table-border-bottom hand-icon">Updated By
+                            <i [ngClass]="((sortListBy == 'updateUserFullName') ? (!isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                aria-hidden="true"></i>
+                        </th>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let files of uploadedFiles | orderBy: {property: sortListBy , direction: direction}">
+                            <td>
+                                <span class="d-block">{{files.attachmentType.description}}</span>
+                                <span *ngIf="files?.attachmentType?.isPrivate" class="badge bg-danger text-white">Confidential</span>
+                            </td>
+                            <td>{{files.description}}</td>
+                            <td title="{{(files?.fileName?.length>10)?(files?.fileName):''}}">
+                                    <span *ngIf="files?.fileName?.length>0" title="{{files?.fileName}}" class="filechip-cv">
+                                        <span>{{(files?.fileName?.length > 30)?(files?.fileName|
+                                            slice:0:10)+'...':(files?.fileName)}} <i class="fa fa-download pointer"
+                                                aria-hidden="true"
+                                                title="Click here to download {{(files?.fileName > 10)?(files?.fileName | slice:0:10)+'...':(files?.fileName)}}"
+                                                (click)="downloadProposalPersonCV(files)"></i>
+                                        </span>
+                                    </span>
+                            </td>
+                            <td>{{files.lastUpdateUserFullName}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="no-data-container" *ngIf="selectedpersonDetails?.proposalPersonAttachment == 0">
+                <span class="no-data-icon-outer">
+                        <div class="no-data-icon">
+                            <i class="fa fa-file-o" aria-hidden="true"></i>
+                            <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                        </div>
+                    </span>
+                <h4>There is no information in this section.</h4>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal"
+                    data-toggle="modal">Close</button>
+        </div>
+    </div>
+</div>
+</div>
+<app-person-rolodex-view (personRolodexViewModal)="setPersonRolodexModalView($event)" *ngIf="isRolodexViewModal" 
+[personRolodexType]="type" [personRolodexId]="id" [personRolodexIsTraining]="isTraining" [personRolodexProposalPersonId]=" proposalPersonId" [personRolodexIsViewMode]="true"  [personRolodexIsDegree] = "true"
+[personRolodexPersonDescription]="personDescription" [personRolodexTrainingStatus]="trainingStatus"></app-person-rolodex-view>
+
+

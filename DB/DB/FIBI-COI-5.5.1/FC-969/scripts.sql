@@ -1,0 +1,1 @@
+INSERT INTO `parameter` (`PARAMETER_NAME`, `VALUE`, `DESCRIPTION`, `UPDATE_TIMESTAMP`, `UPDATE_USER`) VALUES ('ENABLE_ENTITY_DUNS_MATCH', 'Y', 'This Parameter determines to show ENTITY DUNS Match if Y', now(), 'fibi_admin');

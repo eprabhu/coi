@@ -1,0 +1,139 @@
+<div class="card mb-3">
+  <div class="card-header px-4 py-2 ">
+    <h4 class="card-title review-title">
+      <div class="justify-content-between row">
+        <div class="col-auto">Negotiation Activities
+          <span class="badge badge-pill badge-danger notverified">{{negotiationActivityArray?.length}}</span>
+        </div>
+        <div class="col-auto d-flex">
+          <label class="mt-2 text-nowrap">Review Location</label>
+          <select class="form-control select" [(ngModel)]="negotiationLocationId" (ngModelChange)="getActivities();">
+            <option value="">All</option>
+            <option value="general">General</option>
+              <option [value]="location.negotiationLocationId"
+              *ngFor="let location of negotiationLookUp.negotiationsLocations">
+                {{location?.negotiationsLocationType.description}}<span
+                  *ngIf="location?.description">({{location?.description}})</span></option>
+          </select>
+        </div>
+        <button class="updown-arrow mt-2" (click)="isShow = !isShow">
+          <i [ngClass]="!isShow?'fa-large fa fa-angle-double-down':'fa-large fa fa-angle-double-up'" class="fa-large"
+            aria-hidden="true"></i>
+        </button>
+      </div>
+    </h4>
+  </div>
+  <div class="card-body" *ngIf="isShow">
+    <div class="row">
+      <div class="col-12">
+        <div>
+          <div *ngIf="!negotiationActivityArray?.length">
+            <div class="noDataExists p-2">
+              <div class="no-data-container">
+                <span class="no-data-icon-outer">
+                  <div class="no-data-icon">
+                    <i aria-hidden="true" class="fa fa-file-o"></i>
+                    <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                  </div>
+                </span>
+                <h4>There is no information in this section.</h4>
+              </div>
+            </div>
+          </div>
+          <div *ngFor="let negotiation of negotiationActivityArray;let i = index" class="mb-3">
+            <div class="card activity-list-card">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-12">
+                    <p class="negotiation-comment p-2" *ngIf="negotiation?.description">
+                      <q>{{negotiation?.description}}</q>
+                    </p>
+                  </div>
+                  <div class="col-11">
+                    <span class="bolder-font">{{negotiation?.negotiationsActivityType.description}}</span>
+                    <label *ngIf="negotiation?.negotiationsLocationType?.description && negotiation?.negotiationLocationId"> at</label>
+                    <span class="bolder-font" 
+                    *ngIf="negotiation?.negotiationsLocation?.negotiationsLocationType?.description && negotiation?.negotiationLocationId">
+                      {{negotiation?.negotiationsLocation?.negotiationsLocationType?.description}}</span>
+                    <span class="bolder-font" 
+                    *ngIf="negotiation?.negotiationsLocation?.description && negotiation?.negotiationLocationId">
+                      ({{negotiation?.negotiationsLocation?.description}})
+                    </span>
+                    <span *ngIf="negotiation?.startDate">
+                      <label>Start : </label>
+                      <span class= "bolder-font">{{negotiation?.startDate | dateFormatter}}</span>
+                    </span>
+                    <span *ngIf="negotiation?.endDate">
+                      <label>End :</label>
+                      <span class="bolder-font">{{negotiation?.endDate | dateFormatter}}</span>
+                    </span>
+                    <span *ngIf="negotiation?.followupDate">
+                      <label>Follow Up :</label>
+                      <span class="bolder-font"> {{negotiation?.followupDate | dateFormatter}}</span>
+                    </span>
+                      by
+                    <span>{{negotiation?.updateUserFullName}}</span>
+                    <i aria-hidden="true" class="fa fa-clock-o mx-2"></i><span class="time-font">{{negotiation?.updateTimestamp |
+                      dateFormatterWithTimeZone: 'long'}}</span>
+                  </div>
+                  <div class="col-1 text-right">
+                    <a id="edit-location-btn" data-toggle="modal" data-target="#edit-activity-modal"
+                    *ngIf="getActivityEditPermission(negotiation?.updateUser)" (click) = "isShowModal =true;editActivity(negotiation);currentAttachmentIndex = i">
+                      <i class="fa fa-pencil pointer mr-3" aria-hidden="true" title="Click here to edit "></i>
+                    </a>
+                    <a data-toggle="modal" *ngIf="getActivityEditPermission(negotiation?.updateUser)"
+                      data-target="#modaldelete" (click)="deleteIndex = i"><i class="fa fa-trash-o ct-pointer"
+                        title="Click here to delete" aria-hidden="true"></i></a>
+                  </div>
+                </div>
+                <div class="row" *ngIf="negotiation?.attachmentDataList.length !== 0">
+                    <div class="ml-4">
+                      <label>Attachments:</label>
+                    </div>
+                    <div class="fileChips ml-2">
+                      <span *ngFor="let item of negotiation?.attachmentDataList; let i=index" class="mr-3">
+                        {{(item?.fileName.length > 30)?(item?.fileName | slice:0:30)+'...':(item?.fileName)}}
+                        <i class="fa fa-download pointer" (click)="downloadAttachment(item)" aria-hidden="true"
+                          title="Download attachment"></i>
+                        <i class="fa fa-close pointer" title="Remove Attachment" aria-hidden="true"
+                          (click)="deleteAttachment(item.negotiationAttachmentId, i, negotiation.negotiationsActivityId)"></i>
+                      </span>
+                    </div>
+                  </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade mySkinDialog modal-opacity" tabindex="-1" id="modaldelete" tabindex="-1" role="dialog"
+  aria-labelledby="deleteModalTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete</h5>
+        <button id="prop-dlt-member-dismiss" type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this activity?</p>
+      </div>
+      <div class="modal-footer">
+        <button id="coi-general-comments-modal-cancel-btn" type="button" class=" btn-secondary btn-sm" data-dismiss="modal"
+          data-toggle="modal">Cancel</button>
+        <button id="coi-general-comments-modal-delete-btn" type="button" class="btn btn-primary-sub btn-sm"
+          (click)="deleteActivity(deleteIndex)" data-dismiss="modal">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<app-negotiationActivity *ngIf="negotiationLookUp && isShowModal" 
+[negotiationLookUp]= 'negotiationLookUp' 
+(updatedActivities)="updateNegotiationActivity($event)"
+[tempActivity]="tempNegotiationsActivity">
+</app-negotiationActivity>

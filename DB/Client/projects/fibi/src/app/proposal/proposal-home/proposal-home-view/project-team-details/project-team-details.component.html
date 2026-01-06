@@ -1,0 +1,62 @@
+<div class="card mb-3">
+  <div class="card-header px-4">
+      <h4 class="card-title" id="proposal-project-team-view"><ng-container i18n="@@AWARD_PROJECT_TEAM">Project Team</ng-container>
+          <span class="float-right font-weight-normal mr-5">
+              <i aria-hidden="true" class="fa fa-user-o mr-2"></i>Employee |
+              <i aria-hidden="true" class="fa fa-user-circle text-danger mr-2"></i>Non-Employee
+          </span>
+          <button id="projectExpandBtn" class="updown-arrow"
+              (click)="dataVisibilityObj.isPersonData = !dataVisibilityObj.isPersonData">
+              <i [ngClass]="dataVisibilityObj.isPersonData?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                  aria-hidden="true" class="fa-large"></i>
+          </button></h4>
+  </div>
+  <div class="card-content" *ngIf="dataVisibilityObj.isPersonData">
+      <div class="card-body">
+          <div *ngIf="result?.proposalProjectTeams?.length == 0" class="noDataExists px-2">
+            <ng-container i18n="@@AWARD_PROJECT_TEAM_NO_MEMBER_ADDED">There are no project team
+              members added in this proposal</ng-container></div>
+          <div class="table-responsive">
+              <table class="table tableSkin grid2" aria-describedby="proposal-project-team-view"
+                  *ngIf="result?.proposalProjectTeams?.length > 0 && dataVisibilityObj.isPersonData">
+                  <thead>
+                      <th scope="col">Name</th>
+                      <th scope="col">Role</th>
+                      <th scope="col">Period of Active</th>
+                      <th scope="col">% Charged</th>
+                      <th scope="col">Active</th>
+                      <th scope="col">Action</th>
+                  </thead>
+                  <tbody>
+                      <tr *ngFor="let person of result?.proposalProjectTeams; let i = index">
+                          <td><i class="mr-2" aria-hidden="true"
+                                  [ngClass]="person.nonEmployeeFlag == 'Y'?'fa fa-user-circle text-danger':'fa fa-user-o'"></i>
+                              {{person?.fullName}}
+                          </td>
+                          <td>{{person?.projectRole}}</td>
+                          <td>{{person?.startDate | dateFormatter}} to {{person?.endDate | dateFormatter}}</td>
+                          <td>{{person?.percentageCharged}}</td>
+                          <td *ngIf="person.isActive =='Y'">Yes</td>
+                          <td *ngIf="person.isActive =='N'">No</td>
+                          <td>
+                              <ul class="actionButtonGroup">
+                                  <li>
+                                      <a id="prop-project-team-view-btn"
+                                          (click)="fetchProjectTeamMemberDetails(person)" data-toggle="modal">
+                                          <i class="fa fa-eye" aria-hidden="true"
+                                              title="Click here to view {{person.fullName}}"></i>
+                                      </a>
+                                  </li>
+                              </ul>
+                          </td>
+                      </tr>
+                  </tbody>
+              </table>
+          </div>
+      </div>
+  </div>
+</div>
+
+<app-person-rolodex-view (personRolodexViewModal)="setPersonRolodexModalView($event)" *ngIf="isRolodexViewModal" 
+[personRolodexType]="type" [personRolodexId]="id" [personRolodexIsTraining]="isTraining" 
+[personRolodexPersonDescription]="personDescription" ></app-person-rolodex-view>

@@ -1,0 +1,504 @@
+<ng-container>
+    <div class="d-flex justify-content-between align-items-center gap-2 custom-sticky-top"
+        id="reviewer-dashboard-header">
+        <h3>
+            <span class="fs-18 fw-500 coi-text-dark">{{ disclosureReviewStatDetails.moduleName }} list for </span>
+            <span class="fs-18 coi-text-darker">{{ disclosureReviewStatDetails.unitDisplayName || 'All Departments'
+                }}</span>
+        </h3>
+        <div class="d-flex justify-content-end align-items-center col gap-2" id="coi-rev-dash-action-btns">
+            <ng-container>
+                <button role="button"
+                    class="btn btn-tertiary d-flex fs-14 align-items-center mt-0 text-nowrap position-relative"
+                    tabindex="0" id="coi-admindash-adv-search" aria-controls="collapseExample" aria-expanded="false"
+                    (click)="toggleAdvanceSearch();" (keyup.enter)="toggleAdvanceSearch()"
+                    (keyup.space)="toggleAdvanceSearch()" aria-label="Toggle Advanced Search"
+                    title="Click here to expand / collapse Advanced Search fields">
+                    <span
+                        *ngIf="(reviewerDashboardService.isAdvanceSearchMade && !isShowAdvanceSearch) || advancedSearchCriteriaCount > 0"
+                        class="position-absolute translate-middle adv-search-count-top bg-danger" [ngClass]="{
+                                        'badge rounded-pill': advancedSearchCriteriaCount > 0,
+                                        'p-2 border border-light rounded-circle': advancedSearchCriteriaCount === 0
+                                    }">{{ advancedSearchCriteriaCount > 0 ? advancedSearchCriteriaCount : '' }}</span>
+                    <mat-icon aria-hidden="true" class="me-1 flex-shrink-0">tune</mat-icon>Advanced Search
+                </button>
+                <button id="rev-dash-export-button" title="Click here to export dashboard details"
+                    aria-label="Click here to export dashboard details"
+                    class="btn btn-outline-secondary d-flex align-items-center fs-14 gap-2"
+                    (click)="exportReviewDetails()">
+                    <mat-icon aria-hidden="true" class="flex-shrink-0">file_copy</mat-icon>
+                    <span>Export</span>
+                </button>
+            </ng-container>
+            <button id="rev-dash-back-button" (click)="navigateToDashboard()" title="Click here to go back to overview"
+                aria-label="Click here to go back to overview"
+                class="btn btn-outline-secondary d-flex align-items-center fs-14 gap-2">
+                <mat-icon aria-hidden="true" class="flex-shrink-0">reply</mat-icon>
+                <span class="text-nowrap">Back To Dashboard</span>
+            </button>
+        </div>
+    </div>
+    <ng-container *ngIf="isShowAdvanceSearch">
+        <section class="section-advanced-search custom-sticky-top" id="rev-dash-advance-search">
+            <div class="coi-admin-dash py-3 px-3" id="collapseExample" [@topSlideInOut]>
+                <div class="row g-3">
+                    <!-- Person Name -->
+                    <div class="col-xl-3 col-lg-3 col-sm-6 col-12" title="Click here to search by person name"
+                        tabindex="-1" aria-label="Person search field" role="searchbox">
+                        <label class="d-block" for="rev-dash-person-name">Person</label>
+                        <app-elastic (selectedResult)="selectedPersonName($event)" [clearField]="advSearchClearField"
+                            [options]="elasticPersonSearchOptions" [placeHolder]="'Search by Person'"
+                            [uniqueId]="'rev-dash-person-name'" (keyup.enter)="performAdvanceSearch()"
+                            [canEmitSearchText]="true">
+                        </app-elastic>
+                    </div>
+                    <!-- Department Name -->
+                    <div *ngIf="disclosureType === REVIEWER_DASHBOARD_DISCLOSURE_TYPE.OPA"
+                        class="col-xl-3 col-lg-3 col-sm-6 col-12" title="Click here to search by Department Name"
+                        aria-label="Department search field" i18n-title="@@ADV_SEARCH_DEPT_TITLE"
+                        i18n-aria-label="@@ADV_SEARCH_DEPT_ARIA_LABEL" role="searchbox">
+                        <label class="d-block mb-1" for="rev-dash-department-name">
+                            <ng-container i18n="@@COMMON_DEPARTMENT">Department</ng-container>
+                        </label>
+                        <app-endpoint-search (onSelect)="selectedDeptDetails($event)" [clearField]="advSearchClearField"
+                            [httpOptions]="leadUnitSearchOptions" [placeHolder]="advSearchDepartmentPlaceholder"
+                            [uniqueId]="'rev-dash-department-name'" (keyup.enter)="performAdvanceSearch()"
+                            [canEmitSearchText]="true">
+                        </app-endpoint-search>
+                    </div>
+                    <!-- Entity Name -->
+                    <div class="col-xl-3 col-lg-3 col-sm-6 col-12" title="Click here to search by entity Name"
+                        tabindex="-1" aria-label="Entity search field" role="searchbox">
+                        <label class="d-block" for="rev-dash-entity-name">Entity</label>
+                        <app-elastic [options]="entitySearchOptions" [placeHolder]="'Search by Entity'"
+                            class="w-100 mt-4" [clearField]="entityNameClearField" [uniqueId]="'rev-dash-entity-name'"
+                            (selectedResult)="selectedEntityName($event)" (keyup.enter)="performAdvanceSearch()"
+                            [canEmitSearchText]="true">
+                        </app-elastic>
+                    </div>
+                    <!-- Disclosure Status -->
+                    <div *ngIf="disclosureType === REVIEWER_DASHBOARD_DISCLOSURE_TYPE.FCOI"
+                        class="col-xl-3 col-lg-3 col-sm-6 col-12" tabindex="-1" role="listbox"
+                        aria-label="{{ reviewerLocalize.TERM_DISCLOSURE_STATUS }} dropdown"
+                        title="Click here to search by {{ reviewerLocalize.TERM_DISCLOSURE_STATUS }}">
+                        <label class="d-block" for="rev-dash-disclosure-status">{{
+                            reviewerLocalize.TERM_DISCLOSURE_STATUS }}</label>
+                        <app-look-up (selectedResult)="onLookupSelect($event, 'CONFLICT_STATUS_CODE')"
+                            [options]="disclosureStatusOptions"
+                            [selectedLookUpList]="selectedLookUpList['CONFLICT_STATUS_CODE']"
+                            [uniqueId]="'rev-dash-disclosure-status'" [needResultOnEachSelection]="true"
+                            (keyup.enter)="performAdvanceSearch()">
+                        </app-look-up>
+                    </div>
+                    <!-- Disposition Status -->
+                    <div *ngIf="disclosureType !== REVIEWER_DASHBOARD_DISCLOSURE_TYPE.TRAVEL"
+                        class="col-xl-3 col-lg-3 col-sm-6 col-12" tabindex="-1" role="listbox"
+                        aria-label="{{reviewerLocalize.TERM_DISPOSITION_STATUS}} dropdown"
+                        title="Click here to search by {{reviewerLocalize.TERM_DISPOSITION_STATUS}}">
+                        <label class="d-block"
+                            for="rev-dash-disposition-status">{{reviewerLocalize.TERM_DISPOSITION_STATUS}}</label>
+                        <app-look-up (selectedResult)="onLookupSelect($event, 'DISPOSITION_STATUS_CODE')"
+                            [options]="disclosureType === REVIEWER_DASHBOARD_DISCLOSURE_TYPE.OPA ? opaDispositionStatusOption : coiDisPositionOptions"
+                            [selectedLookUpList]="selectedLookUpList['DISPOSITION_STATUS_CODE']"
+                            [uniqueId]="'rev-dash-disposition-status'" [needResultOnEachSelection]="true"
+                            (keyup.enter)="performAdvanceSearch()">
+                        </app-look-up>
+                    </div>
+                    <!-- Review Status -->
+                    <div class="col-xl-3 col-lg-3 col-sm-6 col-12" [title]="localizedTexts.reviewStatus.title"
+                        [attr.aria-label]="localizedTexts.reviewStatus.aria-label" role="listbox">
+                        <label class="d-block" for="rev-dash-{{disclosureType}}-review-status">{{
+                            localizedTexts.reviewStatus.label }}
+                        </label>
+                        <ng-container>
+                            <app-look-up (selectedResult)="onLookupSelect($event, 'REVIEW_STATUS_CODE')"
+                                [options]="reviewStatusOptions"
+                                [selectedLookUpList]="selectedLookUpList['REVIEW_STATUS_CODE']"
+                                [uniqueId]="'rev-dash-{{disclosureType}}-review-status'"
+                                [needResultOnEachSelection]="true" (keyup.enter)="performAdvanceSearch()">
+                            </app-look-up>
+                        </ng-container>
+                    </div>
+                    <!-- Submission status -->
+                    <div class="col-xl-3 col-lg-3 col-sm-6 col-12" [title]="localizedTexts.certificationDate.title"
+                        [attr.aria-label]="localizedTexts.certificationDate.aria-label">
+                        <label class="d-block pb-1" for="rev-dash-certify-date">
+                            {{ localizedTexts.certificationDate.label }}
+                        </label>
+                        <span class="dateField">
+                            <!-- Submission date picker input -->
+                            <input #certificationDateInput id="rev-dash-certify-date"
+                                class="form-control d-inline-block" matInput [matDatepicker]="CERTIFIED_AT"
+                                (click)="CERTIFIED_AT.open()" (keyup.enter)="performAdvanceSearch()"
+                                [(ngModel)]="reviewerDashboardLocalRo.dashboardData.CERTIFIED_AT"
+                                (ngModelChange)="validateDateFormat('CERTIFIED_AT')"
+                                (blur)="validateDateFormat('CERTIFIED_AT')"
+                                (dateChange)="validateDateFormat('CERTIFIED_AT')"
+                                (keypress)="commonService._keyPress($event, 'date')" placeholder="{{datePlaceHolder}}">
+                            <!-- Submission date picker icon btn -->
+                            <button id="rev-dash-certify-date-btn" class="btn-none insidePicker"
+                                (click)="CERTIFIED_AT.open()"
+                                title="Click here to open date picker for {{ localizedTexts.certificationDate.label }}"
+                                attr.aria-label="Click here to open date picker for {{ localizedTexts.certificationDate.label }}">
+                                <mat-icon aria-hidden="true"
+                                    class="coi-mat-icon-size coi-text-light">calendar_month</mat-icon>
+                            </button>
+                            <!-- Submission date picker -->
+                            <mat-datepicker #CERTIFIED_AT></mat-datepicker>
+                        </span>
+                        <!-- Submission error -->
+                        <span *ngIf="dateValidationMap.has('CERTIFIED_AT')"
+                            class="d-block fs-13 invalid-feedback ps-1">{{ dateValidationMap.get('CERTIFIED_AT')
+                            }}</span>
+                    </div>
+
+                    <!-- Expiration Date -->
+                    <div *ngIf="disclosureType !== REVIEWER_DASHBOARD_DISCLOSURE_TYPE.TRAVEL"
+                        class="col-xl-3 col-lg-3 col-sm-6 col-12" [title]="localizedTexts.expirationDate.title"
+                        [attr.aria-label]="localizedTexts.expirationDate.aria-label">
+                        <label class="d-block pb-1" for="rev-dash-adv-exp-date">
+                            {{ localizedTexts.expirationDate.label }}
+                        </label>
+                        <span class="dateField">
+                            <!-- expiration date picker input -->
+                            <input #expirationDateInput id="rev-dash-adv-exp-date" class="form-control d-inline-block"
+                                matInput [matDatepicker]="EXPIRATION_DATE" (click)="EXPIRATION_DATE.open()"
+                                (keyup.enter)="performAdvanceSearch()"
+                                [(ngModel)]="reviewerDashboardLocalRo.dashboardData.EXPIRATION_DATE"
+                                (ngModelChange)="validateDateFormat('EXPIRATION_DATE')"
+                                (blur)="validateDateFormat('EXPIRATION_DATE')"
+                                (dateChange)="validateDateFormat('EXPIRATION_DATE')"
+                                (keypress)="commonService._keyPress($event, 'date')" placeholder="{{datePlaceHolder}}">
+                            <!-- expiration date picker icon btn -->
+                            <button id="rev-dash-exp-date-btn" class="btn-none insidePicker"
+                                (click)="EXPIRATION_DATE.open()"
+                                title="Click here to open date picker for {{ localizedTexts.expirationDate.label }}"
+                                attr.aria-label="Click here to open date picker for {{ localizedTexts.expirationDate.label }}">
+                                <mat-icon aria-hidden="true"
+                                    class="coi-mat-icon-size coi-text-light">calendar_month</mat-icon>
+                            </button>
+                            <!-- expiration date picker -->
+                            <mat-datepicker #EXPIRATION_DATE></mat-datepicker>
+                        </span>
+                        <!-- expiration error -->
+                        <span *ngIf="dateValidationMap.has('EXPIRATION_DATE')"
+                            class="d-block fs-13 invalid-feedback ps-1">{{ dateValidationMap.get('EXPIRATION_DATE')
+                            }}</span>
+                    </div>
+
+                    <!-- Disclosure Type -->
+                    <div *ngIf="![REVIEWER_DASHBOARD_DISCLOSURE_TYPE.TRAVEL, REVIEWER_DASHBOARD_DISCLOSURE_TYPE.CONSULTING].includes(disclosureType)"
+                        class="col-xl-3 col-lg-3 col-sm-6 col-12"
+                        title="Click here to search by {{ COMMON_DISCL_LOCALIZE.TERM_DISCLOSURE_TYPE }}"
+                        aria-label="{{ COMMON_DISCL_LOCALIZE.TERM_DISCLOSURE_TYPE }} dropdown" role="listbox">
+                        <label class="d-block" for="rev-dash-disclosure-type">
+                            {{ COMMON_DISCL_LOCALIZE.TERM_DISCLOSURE_TYPE }}
+                        </label>
+                        <ng-container *ngIf="disclosureType === REVIEWER_DASHBOARD_DISCLOSURE_TYPE.OPA">
+                            <app-look-up (selectedResult)="onLookupSelect($event,'OPA_DISCLOSURE_TYPES')"
+                                [options]="disclosureTypeOptionsForOPA"
+                                [externalArray]="lookupArrayForDisclosureTypeForOPA" [isExternalArray]="true"
+                                [selectedLookUpList]="selectedLookUpList['OPA_DISCLOSURE_TYPES']"
+                                [uniqueId]="'rev-dash-disclosure-type'" [needResultOnEachSelection]="true"
+                                (keyup.enter)="performAdvanceSearch()">
+                            </app-look-up>
+                        </ng-container>
+                        <ng-container *ngIf="disclosureType === REVIEWER_DASHBOARD_DISCLOSURE_TYPE.FCOI">
+                            <app-look-up (selectedResult)="onLookupSelect($event,'DISCLOSURE_CATEGORY_TYPE')"
+                                [options]="disclosureTypeOptionsForFCOI"
+                                [selectedLookUpList]="selectedLookUpList['DISCLOSURE_CATEGORY_TYPE']"
+                                [uniqueId]="'rev-dash-disclosure-type'" [needResultOnEachSelection]="true"
+                                (keyup.enter)="performAdvanceSearch()">
+                            </app-look-up>
+                        </ng-container>
+                    </div>
+                    <!-- Administrator -->
+                    <div *ngIf="[REVIEWER_DASHBOARD_DISCLOSURE_TYPE.TRAVEL, REVIEWER_DASHBOARD_DISCLOSURE_TYPE.OPA].includes(disclosureType)"
+                        class="col-xl-3 col-lg-3 col-sm-6 col-12" title="Click here to search by Administrator"
+                        aria-label="Administrator dropdown" role="listbox">
+                        <label class="d-block" for="rev-dash-adv-administrator">
+                            Administrator
+                        </label>
+                        <app-look-up (selectedResult)="onLookupSelect($event, 'ADMINISTRATOR')"
+                            [options]="reviewerDashAdministratorOptions" [externalArray]="lookupArrayForAdministrator"
+                            [isExternalArray]="true" [selectedLookUpList]="selectedLookUpList['ADMINISTRATOR']"
+                            [uniqueId]="'rev-dash-adv-administrator'" [needResultOnEachSelection]="true"
+                            (keyup.enter)="performAdvanceSearch()">
+                        </app-look-up>
+                    </div>
+                    <ng-container *ngIf="disclosureType === REVIEWER_DASHBOARD_DISCLOSURE_TYPE.FCOI">
+                        <!-- Project number -->
+                        <div class="col-xl-3 col-lg-3 col-sm-6 col-12">
+                            <label class="d-block" for="rev-dash-project-number"><ng-container
+                                    i18n="@@ADV_SEARCH_PROJECT_NUMBER_LABEL">Project Number</ng-container></label>
+                            <input type="text" id="rev-dash-project-number"
+                                [(ngModel)]="reviewerDashboardLocalRo.dashboardData.PROJECT_NUMBER"
+                                [placeholder]="advSearchProjectNumberPH" title="Click here to search by Project number"
+                                aria-label="Project number search field" i18n-title="@@ADV_SEARCH_PROJECT_NUMBER_TITLE"
+                                i18n-aria-label="@@ADV_SEARCH_PROJECT_NUMBER_ARIA_LABEL" maxlength="60"
+                                autocomplete="off" class="form-control" (keyup.enter)="performAdvanceSearch()" />
+                        </div>
+                        <!-- Project title -->
+                        <div class="col-xl-3 col-lg-3 col-sm-6 col-12">
+                            <label class="d-block" for="rev-dash-project-title"><ng-container
+                                    i18n="@@ADV_SEARCH_PROJECT_TITLE_LABEL">Project Title</ng-container></label>
+                            <input type="text" id="rev-dash-project-title" [placeholder]="advSearchProjectTitlePH"
+                                i18n-title="@@ADV_SEARCH_PROJECT_TITLE"
+                                i18n-aria-label="@@ADV_SEARCH_PROJECT_TITLE_ARIA_LABEL"
+                                title="Click here to search by Project Title" aria-label="Project Title search field"
+                                maxlength="60" autocomplete="off" class="form-control"
+                                [(ngModel)]="reviewerDashboardLocalRo.dashboardData.PROJECT_TITLE"
+                                (keyup.enter)="performAdvanceSearch()" />
+                        </div>
+                    </ng-container>
+                    <ng-container *ngIf="disclosureType === REVIEWER_DASHBOARD_DISCLOSURE_TYPE.TRAVEL">
+                        <!-- Travel Date -->
+                        <div class="position-relative col-xxxl-3 col-xl-6 col-lg-6 col-sm-12 col-12">
+                            <label class="d-block" for="rev-dash-adv-start-date">
+                                Travel Date
+                            </label>
+                            <div class="d-flex align-items-center gap-2">
+                                <!-- Start Date -->
+                                <span class="dateField flex-fill">
+                                    <input #travelStartDateInput matInput [matDatepicker]="travelStartDate"
+                                        id="rev-dash-adv-start-date" (click)="travelStartDate.open()"
+                                        (keyup.enter)="performAdvanceSearch()" class="form-control"
+                                        [(ngModel)]="reviewerDashboardLocalRo.dashboardData.TRAVEL_START_DATE"
+                                        placeholder="Start Date ({{datePlaceHolder}})"
+                                        (blur)="validateDateFormat('TRAVEL_DATE')"
+                                        (ngModelChange)="validateDateFormat('TRAVEL_DATE')"
+                                        (dateChange)="validateDateFormat('TRAVEL_DATE')"
+                                        (keypress)="commonService._keyPress($event, 'date')">
+                                    <button class="btn-none insidePicker" (click)="travelStartDate.open()"
+                                        title="Click here to open date picker"
+                                        aria-label="Click here to open date picker for travel start date">
+                                        <mat-icon class="coi-mat-icon-size coi-text-light"
+                                            aria-hidden="true">calendar_month</mat-icon>
+                                    </button>
+                                    <mat-datepicker #travelStartDate></mat-datepicker>
+                                </span>
+                                <!-- Divider -->
+                                <span class="coi-text-darker mx-1">-</span>
+                                <!-- End date -->
+                                <span class="dateField flex-fill">
+                                    <input #travelEndDateInput matInput [matDatepicker]="travelEndDate"
+                                        id="rev-dash-travel-end-date" (click)="travelEndDate.open()"
+                                        (keyup.enter)="performAdvanceSearch()" class="form-control"
+                                        [(ngModel)]="reviewerDashboardLocalRo.dashboardData.TRAVEL_END_DATE"
+                                        placeholder="End Date ({{datePlaceHolder}})"
+                                        (blur)="validateDateFormat('TRAVEL_DATE')"
+                                        (ngModelChange)="validateDateFormat('TRAVEL_DATE')"
+                                        (dateChange)="validateDateFormat('TRAVEL_DATE')"
+                                        (keypress)="commonService._keyPress($event, 'date')">
+                                    <button class="btn-none insidePicker" (click)="travelEndDate.open()"
+                                        title="Click here to open date picker"
+                                        aria-label="Click here to open date picker for travel end date">
+                                        <mat-icon class="coi-mat-icon-size coi-text-light"
+                                            aria-hidden="true">calendar_month</mat-icon>
+                                    </button>
+                                    <mat-datepicker #travelEndDate></mat-datepicker>
+                                </span>
+                            </div>
+                            <span *ngIf="dateValidationMap.get('TRAVEL_DATE')"
+                                class="d-block fs-13 invalid-feedback ps-1">{{
+                                dateValidationMap.get('TRAVEL_DATE') }}</span>
+                        </div>
+                        <!-- Travel Document Status -->
+                        <div class="col-xl-3 col-lg-3 col-sm-6 col-12" role="listbox"
+                            title="Click here to search by document status" i18n-title="@@ADV_SEARCH_DOCUMENT_TITLE"
+                            aria-label="Document Status dropdown" i18n-aria-label="@@ADV_SEARCH_DOCUMENT_ARIA_LABEL">
+                            <label class="d-block" for="rev-dash-document-status">
+                                <ng-container i18n="@@COMMON_DOCUMENT_STATUS">Document Status</ng-container>
+                            </label>
+                            <app-look-up (selectedResult)="onLookupSelect($event, 'DOCUMENT_STATUS_CODE')"
+                                [options]="travelDocumentStatusOptions"
+                                [selectedLookUpList]="selectedLookUpList['DOCUMENT_STATUS_CODE']"
+                                [uniqueId]="'rev-dash-document-status'" [needResultOnEachSelection]="true"
+                                (keyup.enter)="performAdvanceSearch()">
+                            </app-look-up>
+                        </div>
+                        <!-- Travel Country -->
+                        <div class="col-xl-3 col-lg-3 col-sm-6 col-12" aria-label="Click here to search by Country Name"
+                            title="Click here to search by Country Name">
+                            <label class="d-block" for="rev-dash-country-name">Country</label>
+                            <app-endpoint-search (onSelect)="selectedCountryEvent($event)"
+                                [clearField]="countryClearField" [httpOptions]="countrySearchOptions"
+                                [placeHolder]="'Search by Country'" class="w-100 mt-4"
+                                [uniqueId]="'rev-dash-country-name'" (keyup.enter)="performAdvanceSearch()"
+                                [canEmitSearchText]="true">
+                            </app-endpoint-search>
+                        </div>
+                        <!-- Trip title -->
+                        <div class="col-xl-3 col-lg-3 col-sm-6 col-12">
+                            <label class="d-block" for="rev-dash-discl-trip-title">Trip Title</label>
+                            <input type="text" id="rev-dash-discl-trip-title" placeholder="Type the Trip Title here"
+                                title="Click here to search by Trip Title"
+                                aria-label="Click here to search by Trip Title" maxlength="200" autocomplete="off"
+                                class="form-control" [(ngModel)]="reviewerDashboardLocalRo.dashboardData.TRIP_TITLE"
+                                (keyup.enter)="performAdvanceSearch()" />
+                        </div>
+                    </ng-container>
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-end align-items-end gap-2 col mt-4">
+                        <!-- Clear -->
+                        <button class="btn btn-outline-secondary fs-14" id="rev-dash-clear-btn"
+                            (click)="clearAdvancedSearch()" aria-label="Click here to clear all the fields"
+                            title="Click here to clear all the fields">
+                            Clear
+                        </button>
+                        <!-- Search  -->
+                        <button class="btn btn-primary fs-14" id="rev-dash-search-btn" (click)="performAdvanceSearch()"
+                            aria-label="Click here to get the search results"
+                            title="Click here to get the search results">
+                            Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </ng-container>
+    <!-- sorting for all disclosures-->
+    <div class="d-flex justify-content-between align-items-center sort-div border mt-2 px-3">
+        <div class="d-flex align-items-center flex-wrap gap-2 col">
+            <span class="fs-14 fw-medium text-secondary">Sort By :</span>
+            <ng-container *ngFor="let sortSection of sortSectionsList; let sortIndex = index">
+                <button title="Click here to sort by {{sortSection?.fieldName}}"
+                    (click)="sortResult(sortSection?.variableName)" attr.aria-labelledby="rev-dash-sort-{{sortIndex}}"
+                    class="shadow-sm fw-medium py-2 px-3 fs-13 border rounded-5 bg-white coi-sort-filter-btn" [ngClass]="{
+                        'ms-1': sortIndex === 0,
+                        'mx-0': sortIndex !== 0,
+                        'coi-px-8px': !reviewerDashboardService.sortType[sortSection?.variableName],
+                        'filter-active': reviewerDashboardService.sortType[sortSection?.variableName]
+                    }">
+                    <div class="d-inline-flex align-items-center">
+                        <!-- screen reader only -->
+                        <span class="visually-hidden" id="rev-dash-sort-{{sortIndex}}">
+                            Click here to sort by {{ sortSection?.fieldName }} in
+                            {{
+                            reviewerDashboardService.sortType[sortSection?.variableName] === 'ASC' ? 'descending order'
+                            :
+                            reviewerDashboardService.sortType[sortSection?.variableName] === 'DESC' ? 'normal order' :
+                            'ascending order'
+                            }}
+                        </span>
+                        <!-- sort field name -->
+                        <span>{{sortSection?.fieldName}}</span>
+                        <!-- up arrow -->
+                        <mat-icon *ngIf="reviewerDashboardService.sortType[sortSection?.variableName] === 'DESC'"
+                            aria-hidden="true" class="arrow selected-arrow flex-shrink-0" [@slideUp]
+                            [@scaleOut]>arrow_upward</mat-icon>
+                        <!-- down arrow -->
+                        <mat-icon *ngIf="reviewerDashboardService.sortType[sortSection?.variableName] === 'ASC'"
+                            aria-hidden="true" class="arrow selected-arrow flex-shrink-0"
+                            [@slideDown]>arrow_downward</mat-icon>
+                    </div>
+                </button>
+            </ng-container>
+        </div>
+        <!-- Disclosure Filters -->
+        <div class="d-inline-flex align-items-center mx-1 py-2 pe-2 dropdown col-auto">
+            <button #dropdownToggle id="rev-dash-filter-btn" title="Click here to open filter options"
+                aria-label="Click here to open filter options"
+                class="d-inline-flex align-items-center justify-content-center btn btn-outline-grey fs-14 text-nowrap dropdown-toggle position-relative"
+                type="button" data-bs-toggle="dropdown" aria-expanded="false" (click)="onDropdownToggle()">
+                <span *ngIf="selectedFilterCount > 0"
+                    class="d-inline-flex align-items-center justify-content-center top-0 start-100 translate-middle count-badge badge rounded-pill rounded-circle position-absolute">
+                    {{ selectedFilterCount }}
+                </span>
+                <mat-icon aria-hidden="true" class="flex-shrink-0">tune</mat-icon>
+                <span class="ms-2">Filter</span>
+            </button>
+
+            <div class="custom-class-test"></div>
+            <div #dropdownMenu class="dropdown-menu p-3 dropdown-custom-style">
+                <div class="mb-3 custom-height-dropdown">
+                    <div class="form-check m-1 border-bottom pb-2 mb-2">
+                        <input class="form-check-input" type="checkbox" id="coi-rev-dash-select-all"
+                            [checked]="isAllSelected" (change)="toggleSelectAll($event)">
+                        <label class="fs-14 small fw-bold" for="coi-rev-dash-select-all"
+                            (click)="preventDropdownClose($event)">
+                            Select All
+                        </label>
+                    </div>
+                    <div *ngFor="let status of statusFilters; let filterIndex = index" class="form-check m-1">
+                        <input class="form-check-input" type="checkbox"
+                            [id]="'coi-filter_dropdown_status_' + filterIndex"
+                            [(ngModel)]="selectedStatusCodes[status.code]" (change)="updateFilterOptions()">
+                        <label class="fs-14 small" [for]="'coi-filter_dropdown_status_' + filterIndex"
+                            (click)="preventDropdownClose($event)">
+                            {{ status.description }}
+                        </label>
+                    </div>
+                </div>
+                <div
+                    class="d-flex justify-content-between gap-2 mt-3 p-3 custom-bottom position-sticky bg-white border-top">
+                    <button class="btn btn-sm btn-outline-secondary flex-fill" id="rev-dash-filter-clear-btn"
+                        title="Click here to clear all filters" aria-label="Click here to clear all filters"
+                        (click)="clearAllFilters()">
+                        Clear All
+                    </button>
+                    <button class="btn btn-sm btn-primary flex-fill" id="rev-dash-apply-filter-btn"
+                        title="Click here to apply filters" aria-label="Click here to apply filters"
+                        (click)="performFilteredSearch()">
+                        Apply Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <ng-container *ngIf="isShowDisclosureList && !isLoading">
+        <div *ngIf="reviewerDashboardList.dashboardData.length > 0; else noData"
+            [@listAnimation]="reviewerDashboardList.dashboardData.length">
+            <ng-container *ngFor="let disclosureDetails of reviewerDashboardList.dashboardData; let ListIndex = index;">
+                <ng-container *ngIf="disclosureDetails">
+                    <app-coi-disclosure-dashboard-card [disclosureDetails]="disclosureDetails"
+                        [isShowCommentButton]="disclosureDetails.isShowCommentBtn" [isShowCollapseButton]="true"
+                        [isShowAssignAdminBtn]="disclosureDetails.isShowAssignAdminBtn"
+                        [expandCollapseBtnType]="'COLLAPSE_CONTENT'" (cardActions)="cardActions($event)"
+                        [cardType]="disclosureDetails.cardType">
+                    </app-coi-disclosure-dashboard-card>
+                </ng-container>
+            </ng-container>
+        </div>
+        <ng-template #noData>
+            <app-no-information>
+                <span *ngIf="reviewerDashboardService.isAdvanceSearchMade">{{ noDataMessage?.['ADVANCE_SEARCH_NO_INFO']
+                    }}</span>
+            </app-no-information>
+        </ng-template>
+    </ng-container>
+
+    <!-- Pagination -->
+    <div *ngIf="(dashboardTotalCount > 0) && isShowDisclosureList"
+        class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 mt-3" [hidden]="isLoading">
+        <nav aria-label="pagination section" class="pagination justify-content-end">
+            <app-pagination (pageChangeEvent)="actionsOnPageChange($event)" [totalCount]="dashboardTotalCount"
+                [pageCount]="reviewerDashboardService.reviewerDashboardServiceRo.dashboardData.LIMIT"
+                [defaultCurrentPage]="(reviewerDashboardService.reviewerDashboardServiceRo.dashboardData.PAGED + 1)">
+            </app-pagination>
+        </nav>
+    </div>
+
+    <!-- Assign Administrator Modal starts -->
+    <app-assign-administrator-modal *ngIf="isAssignAdminModalOpen" (closeModal)="closeAssignAdminModal($event)"
+        [disclosureId]="disclosureDetailsForAssignAdmin.disclosureId" [path]="assignAdminPath" [actionType]="'A'">
+    </app-assign-administrator-modal>
+    <!-- Assign Administrator Modal ends -->
+
+    <!-- count modal starts -->
+    <ng-container *ngIf="coiCountModal?.isOpenCountModal">
+        <app-coi-count-modal [(coiCountModal)]="coiCountModal" (viewSlider)="viewSlider($event)"></app-coi-count-modal>
+    </ng-container>
+
+    <ng-container *ngIf="reviewerDashboardService.engagementSliderConfig.showEngagementSlider">
+        <app-coi-slider (closeSlider)="validateSliderClose()"
+            [elementId]="reviewerDashboardService.engagementSliderConfig.sliderElementId" [isHeaderNeeded]="true">
+            <!-- modal content -->
+            <ng-container content>
+                <app-entity-details
+                    [entityId]="reviewerDashboardService.engagementSliderConfig.entityId"></app-entity-details>
+            </ng-container>
+        </app-coi-slider>
+    </ng-container>
+    <!-- count modal ends -->
+</ng-container>

@@ -1,0 +1,271 @@
+<div class="card rounded-0 p-3" [id]="corporateFamilyObj?.sectionId">
+    <!-- info -->
+    <div class="col-12 pb-3">
+        <div *ngIf="infoText && canManageCorporateFamily && !isEditMode" class="d-flex align-items-center alert alert-primary mb-0 py-2">
+            <!-- icon -->
+            <mat-icon class="mat-icon material-icons flex-shrink-0" aria-hidden="true">info</mat-icon>
+            <!-- text -->
+            <p class="d-inline-flex align-items-center fs-14 mb-0 ms-2 col">
+                <span [innerHTML]="infoText" class="pe-1"></span>
+                <button *ngIf="activeEntityVersion?.entityId !== entityDetails?.entityId" id="corp-info-view-btn"
+                    class="d-inline-flex gap-1 align-items-center btn btn-sm btn-primary fs-14 ms-auto text-nowrap"
+                    title="Click here to view active version" aria-label="Click here to view active version" (click)="viewActiveEntity()">
+                    View Active Version
+                </button>
+            </p>
+        </div>
+    </div>
+    <!-- section details -->
+    <div class="p-3 coi-card-grey-border rounded-2">
+        <div class="row mb-2">
+            <div class="col-12 d-flex align-items-center">
+                <div class="col d-flex align-items-center">
+                    <span class="coi-entity-icon-bg me-2 coi-coloured-icons fs-14 d-inline-flex">
+                        <mat-icon class="coi-mat-icon-size" aria-hidden="true">account_tree</mat-icon>
+                    </span>
+                    <span class="fs-16 fw-medium" id="entity-basic-details">{{corporateFamilyObj?.sectionName}}</span>
+                </div>
+                <!-- Comments -->
+                <div *ngIf="isShowCommentButton" class="col-auto">
+                    <button class="d-flex gap-1 align-items-center btn btn-sm btn-tertiary mt-0 lh-1"
+                        (click)="openReviewComments()" id="entity-comment-corporate-family" type="button"
+                        [disabled]="entityManagementService.reviewCommentsSliderConfig?.isOpenCommentSlider"
+                        title="Click here to open review comment" aria-label="Click here to open review comment">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0 padding-3px">rate_review</mat-icon>
+                        <span>Comments<span *ngIf="commentCount > 0">({{commentCount}})</span></span>
+                    </button>
+                </div>
+            </div>
+            <!-- no info card -->
+            <ng-container *ngIf="isTreeEmpty">
+                <app-no-information [isBorderNeeded]="false" [canShowAddButton]="isEditMode"
+                    [buttonName]="'Add Relation'" (buttonAction)="openAddRelationModal()"></app-no-information>
+            </ng-container>
+
+            <!-- family tree -->
+            <ng-container *ngIf="!isTreeEmpty">
+                <div class="col-lg d-flex align-items-center position-relative pt-3 px-3">
+                    <mat-icon aria-hidden="true" class="coi-mat-icon-size searchButton">search</mat-icon>
+                    <input class="form-control pe-5 searchTextBox" type="text" id="searchText" [(ngModel)]="searchText"
+                        (ngModelChange)="searchForEntity()" placeholder="Search by Entity Name, DUNS Number.">
+                    <span *ngIf="searchText" aria-label="Clear Search Text" class="d-flex align-items-center coi-mat-icon-size"
+                         (click)="searchText = '';searchForEntity();"
+                        (keypress.enter)="searchText = '';searchForEntity();">
+                        <mat-icon class="closeButton coi-mat-icon-size"
+                            id="coi-user-disclosure-dashboard-filterby-close-btn">close</mat-icon>
+                    </span>
+                </div>
+                <div class="col-12">
+                    <div class="row mt-3 px-3">
+                        <div class="col-auto px-0 border-start border-bottom border-top tree-container">
+                            <div class="row data-row mx-0 fs-14 header-row fw-bold border-bottom">
+                                <div class="col-12 pt-2">Entity Name</div>
+                            </div>
+                            <div>
+                                <app-corporate-family-tree></app-corporate-family-tree>
+                            </div>
+                        </div>
+                        <div class="col border-top border-end">
+                            <div class="row data-row border-bottom fs-14 header-row fw-bold">
+                                <div class="pt-2" [ngClass]="isEditMode ? 'col-3': 'col-4'"><span
+                                        class="text-slice">DUNS Number</span></div>
+                                <div class="pt-2" [ngClass]="isEditMode ? 'col-3': 'col-4'"><span
+                                        class="text-slice">Ownership Type</span></div>
+                                <div class="pt-2" [ngClass]="isEditMode ? 'col-3': 'col-4'"><span
+                                        class="text-slice">Country</span></div>
+                                <div *ngIf="isEditMode" class="col-3 pt-2 text-end"><span
+                                        class="text-slice">Actions</span></div>
+                            </div>
+                            <ng-container
+                                *ngTemplateOutlet="corporateTree; context: { entityNode: _entityCorporateFamilyService.coporateFamilyTree , level: 0 }"></ng-container>
+
+                            <ng-template #corporateTree let-entityNode="entityNode" let-level="level">
+                                <div class="row data-row fs-14 nodes"
+                                    [ngClass]="{'odd-row': level % 2 === 0, 'even-row': level % 2 !== 0, 'selected-row': _entityCorporateFamilyService?.foundEntitiesId?.includes(entityNode?.entityId)}">
+                                    <div class="pt-2" [ngClass]="isEditMode ? 'col-3': 'col-4'">
+                                        <app-no-data-label [classesToApply]="'fs-14'"
+                                            [valueToShow]="entityNode?.dunsNumber">
+                                            <span class="fs-14 text-slice"
+                                                [title]="entityNode?.dunsNumber">{{entityNode?.dunsNumber}}</span>
+                                        </app-no-data-label>
+                                    </div>
+                                    <div class="pt-2" [ngClass]="isEditMode ? 'col-3': 'col-4'">
+                                        <app-no-data-label [classesToApply]="'fs-14'"
+                                            [valueToShow]="entityNode?.entityType">
+                                            <span class="fs-14 text-slice"
+                                                [title]="entityNode?.entityType">{{entityNode?.entityType}}</span>
+                                        </app-no-data-label>
+                                    </div>
+                                    <div class="pt-2" [ngClass]="isEditMode ? 'col-3': 'col-4'">
+                                        <app-no-data-label [classesToApply]="'fs-14'"
+                                            [valueToShow]="entityNode?.country">
+                                            <div class="fs-14 text-slice" [title]="entityNode?.country">
+                                                {{entityNode?.country}}</div>
+                                        </app-no-data-label>
+                                    </div>
+                                    <div *ngIf="isEditMode" class="col-3 pt-1 text-end px-0">
+                                        <ng-container *ngIf="!(isSmallScreen || entityNode?.isSystemCreated)">
+                                            <button *ngIf="entityNode?.parentEntityId"  class="btn coi-node-btn-link coi-coloured-icons px-1"
+                                                id="coi-GE-corp-edit-btn-{{entityNode?.entityId}}"
+                                                title="Click here to edit relation of {{entityNode?.entityName}}"
+                                                [attr.aria-label]="'Edit Relation of ' + entityNode?.entityName"
+                                                (click)="editEntityNode(entityNode)">
+                                                <mat-icon class="coi-mat-icon-size coi-entity-icon-bg coi-entity-icon-sm-bg"
+                                                    aria-hidden="true">edit</mat-icon>
+                                            </button>
+                                            <button *ngIf="entityNode?.parentEntityId" class="btn coi-node-btn-link coi-coloured-icons px-1"
+                                                id="coi-GE-corp-unlink-btn-{{entityNode?.entityId}}"
+                                                title="Click here to unlink node of {{entityNode?.entityName}}"
+                                                attr.aria-label="Click here to unlink node of {{entityNode?.entityName}}"
+                                                (click)="openUnlinkModal(entityNode)">
+                                                <mat-icon class="coi-mat-icon-size coi-entity-icon-bg coi-entity-icon-sm-bg"
+                                                    aria-hidden="true">link_off</mat-icon>
+                                            </button>
+                                        </ng-container>
+                                        <button *ngIf="!isSmallScreen" class="btn coi-node-btn-link coi-coloured-icons ps-1"
+                                            id="coi-GE-corp-add-btn-{{entityNode?.entityId}}"
+                                            title="Click here to add relation for {{entityNode?.entityName}}"
+                                            attr.aria-label="Click here to add relation for {{entityNode?.entityName}}"
+                                            (click)="openEntityAddModal(entityNode)">
+                                            <mat-icon class="coi-mat-icon-size coi-entity-icon-bg coi-entity-icon-sm-bg"
+                                                aria-hidden="true">add</mat-icon>
+                                        </button>
+                                        <!-- responsive icon -->
+                                        <button *ngIf="isSmallScreen" [matMenuTriggerFor]="moreMenu"
+                                            class="btn coi-node-btn-link coi-coloured-icons px-1"
+                                            id="coi-GE-corp-more-actions-btn-{{entityNode?.entityId}}"
+                                            [attr.aria-label]="'More Action of ' + entityNode?.entityName" type="button"
+                                            title="More Action of {{entityNode?.entityName}}">
+                                            <mat-icon class="coi-entity-icon-bg coi-entity-icon-sm-bg" aria-hidden="true">more_vert</mat-icon>
+                                        </button>
+                                        <mat-menu #moreMenu="matMenu" xPosition="before">
+                                            <button
+                                                class="text-nowrap border-0 rounded-0 btn fs-14 d-flex justify-content-start w-100 align-items-center py-2 px-3"
+                                                id="coi-GE-corp-sm-add-btn-{{entityNode?.entityId}}" mat-menu-item tabindex="0"
+                                                title="Add Relation of {{entityNode?.entityName}}" [attr.aria-label]="'Add Relation for ' + entityNode?.entityName"
+                                                (click)="openEntityAddModal(entityNode)">
+                                                <mat-icon class="me-2 coi-scale-9" aria-hidden="true">add</mat-icon>
+                                                <span>Add Node</span>
+                                            </button>
+                                            <button *ngIf="entityNode?.parentEntityId && !entityNode?.isSystemCreated"
+                                                class="text-nowrap border-0 rounded-0 btn fs-14 d-flex justify-content-start w-100 align-items-center py-2 px-3"
+                                                id="coi-GE-corp-sm-edit-btn-{{entityNode?.entityId}}" mat-menu-item tabindex="0"
+                                                title="Edit Relation of {{entityNode?.entityName}}" [attr.aria-label]="'Edit Relation for ' + entityNode?.entityName"
+                                                (click)="editEntityNode(entityNode)">
+                                                <mat-icon class="me-2 coi-scale-9" aria-hidden="true">edit</mat-icon>
+                                                <span>Edit Node</span>
+                                            </button>
+                                            <button *ngIf="entityNode?.parentEntityId && !entityNode?.isSystemCreated"
+                                                class="text-nowrap border-0 rounded-0 btn fs-14 d-flex justify-content-start w-100 align-items-center py-2 px-3"
+                                                id="coi-GE-corp-sm-unlink-btn-{{entityNode?.entityId}}" mat-menu-item tabindex="0"
+                                                title="Unlink node of {{entityNode?.entityName}}" [attr.aria-label]="'Unlink node of ' + entityNode?.entityName"
+                                                (click)="openUnlinkModal(entityNode)">
+                                                <mat-icon class="me-2 coi-scale-9" aria-hidden="true">link_off</mat-icon>
+                                                <span>Unlink Node</span>
+                                            </button>
+                                        </mat-menu>
+                                    </div>
+                                </div>
+                                <div *ngFor="let child of entityNode?.child; let i = index"
+                                    [ngClass]="{'d-none': !entityNode?.visible}">
+                                    <ng-container
+                                        *ngTemplateOutlet="corporateTree; context: { entityNode: child, level: level + i + 1 }"></ng-container>
+                                </div>
+                            </ng-template>
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+</div>
+
+<app-common-modal [modalConfig]="addRelationModalConfig" (modalAction)="addRelationModalActions($event)">
+    <!-- header -->
+    <ng-container modal-header>
+        <span *ngIf="modalAction !== 'EDIT'">Add Relation for {{modalAction === 'ADD' ? currentEntity?.entityName : entityDetails?.entityName}}<app-common-help-text [subSectionId]="2642" [elementId]="'coi-entity-corporate-fam-add'"></app-common-help-text>
+        </span>
+        <span *ngIf="modalAction === 'EDIT'">Update Relation for {{currentEntity?.entityName}}<app-common-help-text [subSectionId]="2642" [elementId]="'coi-entity-corporate-fam-edit'"></app-common-help-text>
+        </span>
+    </ng-container>
+    <!-- body -->
+    <ng-container modal-body>
+        <div class="row row-gap-2">
+            <div class="col-md-12 col-lg-6">
+                <label class="d-block coi-text-dark" for="coi-add-related-entity">
+                    <span><span class="mandatory me-1">*</span>Entity Name<app-common-help-text [subSectionId]="2642" [elementId]="'coi-corporate-fam-entity-name'"></app-common-help-text></span>
+                </label>
+                <app-elastic [uniqueId]="'coi-add-related-entity'" class="w-100 mt-4" [options]="entitySearchOptions"
+                    [placeHolder]="'Type here to search an Entity Name'" [clearField]="entityClearField"
+                    [isError]="mandatoryList?.has('entityName') || mandatoryList?.has('sameEntity')"
+                    (selectedResult)="entitySelectedEvent($event)">
+                </app-elastic>
+                <span *ngIf="mandatoryList?.has('entityName')" class="invalid-feedback d-inline fs-13">
+                    {{mandatoryList?.get('entityName')}}
+                </span>
+                <span *ngIf="mandatoryList?.has('sameEntity')" class="invalid-feedback d-inline fs-13">
+                    {{mandatoryList?.get('sameEntity')}}
+                </span>
+            </div>
+            <div class="col-md-12 col-lg-6">
+                <label class="d-block coi-text-dark" for="coi-add-related-entity-relation">
+                    <span><span class="mandatory me-1">*</span>Relationship Type<app-common-help-text [subSectionId]="2642" [elementId]="'coi-corporate-fam-rltn-type'"></app-common-help-text></span>
+                </label>
+                <select [(ngModel)]="relationsObj.selectedRelation" class="form-control wd-100"
+                    (ngModelChange)="resetErrorMsg()"
+                    [ngClass]="(mandatoryList?.has('relation')) ? 'is-invalid d-block' : ''"
+                    id="coi-add-related-entity-relation"
+                    [disabled]="(this.modalAction === 'EDIT' || currentEntity?.parentEntityId || currentEntity?.isSystemCreated)">
+                    <option [ngValue]=null>--Select--</option>
+                    <option [ngValue]="type" *ngFor="let type of relationshipTypeList">
+                        {{type.description}}</option>
+                </select>
+                <span *ngIf="mandatoryList?.has('relation')" class="invalid-feedback d-inline fs-13">
+                    {{mandatoryList?.get('relation')}}
+                </span>
+            </div>
+            <div class="col-12"
+                *ngIf="(relationsObj?.selectedEntity?.entityId && relationsObj?.selectedRelation && !parentExistErrorMsg && !mandatoryList?.has('sameEntity'))">
+                <div class="d-flex alert alert-primary mb-0 p-2 mt-2">
+                    <mat-icon class="mat-icon material-icons flex-shrink-0" aria-hidden="true">info</mat-icon>
+                    <p class="fs-14 mb-0 ms-2">
+                        <span class="d-flex algin-items-start">Add<span
+                                class="fw-bold mx-1">{{relationsObj?.selectedEntity?.entityName}}</span>
+                            as <span class="fw-bold mx-1">{{relationsObj?.selectedRelation?.description}}</span> of
+                            <span class="fw-bold mx-1">{{currentEntity?.entityName ? currentEntity?.entityName :
+                                entityDetails?.entityName}}.</span></span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-12" *ngIf="parentExistErrorMsg">
+                <div class="d-flex alert alert-danger mb-0 p-2 mt-2">
+                    <mat-icon class="mat-icon material-icons flex-shrink-0" aria-hidden="true">info</mat-icon>
+                    <p class="fs-14 mb-0 ms-2">
+                       {{parentExistErrorMsg}}
+                        <a class="fs-14 fw-normal ms-1 mt-1 link-primary"
+                            title="Click here to view the entity {{relationsObj?.selectedEntity?.entityName}}"
+                            aria-label="Click here to view the entity {{relationsObj?.selectedEntity?.entityName}}"
+                            (click)="openEntityInNewTab(relationsObj?.selectedEntity?.entityId)">
+                            View {{relationsObj?.selectedEntity?.entityName}}
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+</app-common-modal>
+
+<app-common-modal [modalConfig]="unLinkConfirmationModalConfig" (modalAction)="unLinkConfirmationModalAction($event)">
+    <!-- header -->
+    <ng-container modal-header>
+        <span>Confirmation<app-common-help-text [subSectionId]="2642" [elementId]="'coi-corporate-fam-unlink'"></app-common-help-text></span>
+    </ng-container>
+
+    <!-- body -->
+    <ng-container modal-body>
+        <p class="coi-text-light">Are you sure you want to unlink <span
+                class="fw-bold me-1">{{currentEntity?.entityName}}</span><span *ngIf="currentEntity?.child?.length"
+                class="me-1">and its children</span>from this tree?</p>
+    </ng-container>
+</app-common-modal>

@@ -1,0 +1,1126 @@
+<!-- PROPOSAL/ APPLICATIONS -->
+<div class="row">
+    <div class="col-lg col-sm col-12">
+        <ul class="subTabs mb-0">
+            <li role="presentation"
+                [ngClass]="{'active': _proposalService.proposalRequestServiceObject.tabName == 'MY_PROPOSAL'}">
+                <a class="subTabLink fs-14" title="View my proposals" id="my-prop-tab"
+                    (click)="isAssignAll = false;setCurrentDashboardTab('MY_PROPOSAL')"
+                    tabindex="0">
+                    My Proposals</a>
+            </li>
+            <li role="presentation"
+                [ngClass]="{'active': _proposalService.proposalRequestServiceObject.tabName  == 'ALL_PROPOSALS'}">
+                <a class="subTabLink fs-14" title="View all proposals" id="all-prop-tab"
+                    (click)="isAssignAll = false;setCurrentDashboardTab('ALL_PROPOSALS')"
+                    tabindex="0">
+                    <span><ng-container i18n="@@ALL_PROPOSALS">All Proposals</ng-container></span></a>  
+            </li>
+            <li *ngIf="isViewReviewInProgressTab" role="presentation"
+                [ngClass]="{'active': _proposalService.proposalRequestServiceObject.tabName  == 'INPROGRESS_PROPOSAL'}">
+                <a class="subTabLink fs-14" title="View review in progress proposals" id="pending-review-prop-tab"
+                    (click)=" setCurrentDashboardTab('INPROGRESS_PROPOSAL')"
+                    tabindex="0">
+                    Review In Progress</a>
+            </li>
+            <li role="presentation"
+                [ngClass]="{'active': _proposalService.proposalRequestServiceObject.tabName  == 'MY_REVIEW_PENDING_PROPOSAL'}">
+                <a class="subTabLink fs-14" title="View proposals pending my review" id="my-pending-review-prop-tab"
+                    (click)="setCurrentDashboardTab('MY_REVIEW_PENDING_PROPOSAL')"
+                    tabindex="0">
+                    Proposals Pending My Review</a>
+            </li>
+            <li role="presentation"
+                [ngClass]="{'active': _proposalService.proposalRequestServiceObject.tabName  == 'REVIEW_COMPLETED_PROPOSALS'}"
+                *ngIf="isViewReviewCompletedTab && (_commonService.isEvaluation || _commonService.isEvaluationAndMapRouting)">
+                <a class="subTabLink fs-14" title="View review completed proposals" id="review-completed-prop-tab"
+                    (click)=" isAssignAll = false; setCurrentDashboardTab('REVIEW_COMPLETED_PROPOSALS')"
+                    tabindex="0">
+                    Review Completed</a>
+            </li>
+        </ul>
+    </div>
+    <div class="col-5 text-right mb-1">
+        <div>
+            <a id="show-advcance-search-proposal" class="btn btn-sm btn-tertiary mt-0" title="Advanced Search"
+                href="#collapseProposal" data-toggle="collapse" role="button" aria-expanded="false"
+                aria-controls="collapseProposal" tabindex="0">
+                <i aria-hidden="true" class="fa fa-sliders"></i> Advanced Search
+            </a>
+            <a *ngIf="isCreateProposal && !_commonService.isExternalUser" title="Create New Proposal" class="btn btn-primary mt-0 mr-2 hand-cursor"
+                id="create-proposal-btn" (click)="gotoProposal()" tabindex="0"><span class="d-none d-sm-inline-block">
+                    Create</span> New Proposal</a>
+            <a title="Request New Review"
+                *ngIf="(_commonService.isEvaluation || _commonService.isEvaluationAndMapRouting) && (serviceRequestList !== null && serviceRequestList?.length !== 0 && _proposalService.proposalRequestServiceObject.tabName  == 'INPROGRESS_PROPOSAL'&& isViewReviewInProgressTab && isAssignReview )"
+                class="btn btn-sm btn-primary mt-0 mr-2" id="dashboard-req-review"
+                (click)="actionName = 'Assign Review'; checkAssignReviewValidation();"><span
+                    class="d-none d-sm-inline-block"> Request</span> New Review</a>
+            <a title="Endorse"
+                *ngIf="(_commonService.isEvaluation || _commonService.isEvaluationAndMapRouting) && (serviceRequestList !== null && serviceRequestList?.length !== 0 && _proposalService.proposalRequestServiceObject.tabName  == 'MY_REVIEW_PENDING_PROPOSAL' && isBatchEndorsement)"
+                class="btn btn-sm btn-primary mt-0 mr-2" id="dashboard-req-review"
+                (click)="actionName = 'Endorse';checkEndorseValidation();endorseRequest.proposalStatusCode = null;">Endorse</a>
+        </div>
+    </div>
+</div>
+<!-- PROPOSAL  ELASTIC SEARCH-->
+<div id="elasticProposal" class="card"
+    *ngIf="_proposalService.proposalRequestServiceObject.tabName  == 'ALL_PROPOSALS' && !_commonService.isExternalUser">
+    <div class="card-body gridSkin pb-0">
+        <div class="form-row justify-content-center">
+            <div class="col-12 searchBox mb-2">
+                <app-elastic *ngIf="!isShowGrantCallElasticSearch" [clearField]="clearField"
+                    [options]="elasticSearchOptions"
+                    [placeHolder]="'Search: Proposal ID, Title, Principal Investigator, Category, Proposal Type, Status of Proposal, Sponsor, Proposal Lead Unit'"
+                    (selectedResult)="selectProposalElasticResult($event)"></app-elastic>
+                <app-elastic *ngIf="isShowGrantCallElasticSearch" [clearField]="clearField"
+                    [options]="grantCallElasticSearchOptions"
+                    [placeHolder]="'Search: Grant Call ID, Title of Grant Call, Type, Status, Sponsor, Name of Funding Scheme'"
+                    (selectedResult)="selectGrantCallElasticResult($event)"></app-elastic>
+            </div>
+            <div class="col-auto mb-0">
+                <!-- <a *ngIf="!isShowGrantCallElasticSearch" id="show-filter-search-grant" href="#" class="linkButton grant-filter-padding" (click)="showGrantCallElasticSearch($event)">
+                  <i aria-hidden="true" class="fa fa-filter"></i> Filter Proposals Based on Grant Call
+              </a> -->
+                <!-- <a *ngIf="isShowGrantCallElasticSearch" id="show-filter-search-proposal" href="#"
+          class="linkButton grant-filter-padding" (click)="showGrantCallElasticSearch($event)">
+          <i aria-hidden="true" class="fa fa-search font-size fa-med"></i> Search Proposals Using Elastic
+          Search
+      </a> -->
+            </div>
+        </div>
+        <div *ngIf="(isShowResultCard == true)" class="form-row pb-0 mt-2">
+            <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 viewMode resultCard">
+                <button class="closeResultCard" id="close-elastic-result-proposal" (click)="isShowResultCard = false;">
+                    <i aria-hidden="true" class="fa fa-times"></i>
+                </button>
+                <!-- proposal elastic search results-->
+                <div class="row shadow py-3">
+                    <div class="col-xl-6 col-lg-9 col-md-9 col-sm-9 col-9">
+                        <label>Title</label>
+                        <span>
+                            <a (click)="setCurrentProposalTab()" routerLink='/fibi/proposal/overview' class="anchor-link"
+                                [queryParams]="{proposalId:elasticResultObject.proposal_id}">#{{
+                                elasticResultObject?.proposal_id }} : {{
+                                elasticResultObject?.title }}
+                                <i class="fa fa-external-link-square anchor-link ml-1" aria-hidden="true"></i>
+                            </a>
+                        </span>
+                    </div>
+                    <div class="col-xl-3 col-lg-3 col-md-3 col-sm-3 col-3">
+                        <label>Proposal Lead Unit</label>
+                        <span>
+                            <a (click)="setCurrentProposalTab()" routerLink='/fibi/proposal/overview'
+                                [queryParams]="{proposalId:elasticResultObject.proposal_id}">{{
+                                elasticResultObject?.lead_unit_name}}
+                            </a>
+                        </span>
+                    </div>
+                    <div class="col-xl-3 col-lg-3 col-md-3 col-sm-3 col-3">
+                        <label>Status</label>
+                        <span>
+                            <a (click)="setCurrentProposalTab()" routerLink='/fibi/proposal/overview'
+                                [queryParams]="{proposalId:elasticResultObject.proposal_id}">{{
+                                elasticResultObject?.status}}
+                            </a>
+                        </span>
+                    </div>
+                    <div class="col-xl-3 col-lg-3 col-md-3 col-sm-3 col-3">
+                        <label> Principal Investigator</label>
+                        <span>
+                            <a (click)="setCurrentProposalTab()" routerLink='/fibi/proposal/overview'
+                                [queryParams]="{proposalId:elasticResultObject.proposal_id}">{{
+                                elasticResultObject?.full_name}}
+                            </a>
+                        </span>
+                    </div>
+                    <div class="col-xl-3 col-lg-3 col-md-3 col-sm-3 col-3">
+                        <label>
+                            <ng-container i18n="@@COMMON_CATEGORY_PROPOSAL">Category</ng-container>
+                        </label>
+                        <span>
+                            <a (click)="setCurrentProposalTab()" routerLink='/fibi/proposal/overview'
+                                [queryParams]="{proposalId:elasticResultObject.proposal_id}">{{
+                                elasticResultObject?.category}}
+                            </a>
+                        </span>
+                    </div>
+                    <div class="col-xl-3 col-lg-3 col-md-3 col-sm-3 col-3">
+                        <label> Proposal Type </label>
+                        <span>
+                            <a (click)="setCurrentProposalTab()" routerLink='/fibi/proposal/overview'
+                                [queryParams]="{proposalId:elasticResultObject.proposal_id}">{{
+                                elasticResultObject?.type}}
+                            </a>
+                        </span>
+                    </div>
+                    <div class="col-xl-3 col-lg-3 col-md-3 col-sm-3 col-3">
+                        <label>
+                            <ng-container i18n="@@COMMON_SPONSOR">Sponsor</ng-container>
+                        </label>
+                        <span>
+                            <a (click)="setCurrentProposalTab()" routerLink='/fibi/proposal/overview'
+                                [queryParams]="{proposalId:elasticResultObject.proposal_id}">{{
+                                elasticResultObject?.sponsor}}
+                            </a>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="collapseProposal" class="card mb-3 collapse">
+    <div class="card-body gridSkin">
+        <!-- advance search options -->
+        <div class="form-row">
+            <!-- Title -->
+            <div class="col-xl-4 col-lg-5 col-sm-6 col-12">
+                <label class="d-block">Title</label>
+                <input type="text" id="adv-search-proposal-title" placeholder="Title" maxlength="60" autocomplete="off"
+                    [(ngModel)]="tempProposalRequestObject.property2" class="form-control"
+                    (keyup.enter)="searchProposal()" />
+            </div>
+            <!-- Sponsor -->
+            <div class="col-xl-4 col-lg-5 col-sm-6 col-12">
+                <label class="d-block">
+                    <ng-container i18n="@@COMMON_SPONSOR">Sponsor</ng-container>
+                </label>
+                <app-endpoint-search [httpOptions]="fundingAgencySearchOptions" [clearField]="clearFieldFundingAgency"
+                    [placeHolder]="'Sponsor'" (onSelect)="setFundingAgencyForAdvancedSearch($event)"
+                    (keydown.enter)="searchProposal()">
+                </app-endpoint-search>
+            </div>
+            <!-- Proposal Type -->
+            <div class="col-xl-2 col-lg-2 col-md-3 col-sm-6 col-12">
+                <label class="d-block">Proposal Type</label>
+                <app-look-up [options]='proposalTypeOptions' [selectedLookUpList]="lookupValues['property6']"
+                    (selectedResult)="onLookupSelect($event, 'property6')"
+                    (keydown.enter)="searchProposal()">
+                </app-look-up>
+            </div>
+            <!-- Status of Proposal -->
+            <div class="col-xl-2 col-lg-2 col-md-3 col-sm-6 col-12">
+                <label class="d-block">Status of Proposal</label>
+                <app-look-up [options]='proposalStatusOptions' [selectedLookUpList]="lookupValues['property3']"
+                    (selectedResult)="onLookupSelect($event, 'property3')"
+                    (keydown.enter)="searchProposal()">
+                </app-look-up>
+            </div>
+            <!-- Researcher Role -->
+            <div class="col-xl-4 col-lg-5 col-md-6 col-12">
+                <label>Researcher Role</label>
+                <app-look-up [options]='researchRoleOptions' [selectedLookUpList]="lookupValues['property13']"
+                    (selectedResult)="onLookupSelect($event, 'property13')"
+                    (keydown.enter)="searchProposal()">
+                </app-look-up>
+            </div>
+            <!-- Researcher Name -->
+            <div class="col-xl-4 col-lg-5 col-md-6 col-12">
+                <!-- <input type="text" id="adv-search-proposal-pi" placeholder="PI" maxlength="60" [(ngModel)]="_proposalService.proposalRequestServiceObject.property5" class="form-control" /> -->
+                <label class="d-none d-sm-inline-block">Researcher Name</label>
+                <label class="d-sm-none">Researcher</label>
+                <span class="float-right">
+                    <input id="employee" type="radio" name='employee_nonemployee' [value]='true'
+                        [(ngModel)]="isEmployeeFlag" checked="true" (change)="changeMemberType()">
+                    <label for="employee" class="fs-14">
+                        Employee
+                    </label>
+                    <input id="non-employee" type="radio" name='employee_nonemployee' [value]='false'
+                        [(ngModel)]="isEmployeeFlag" (change)="changeMemberType()">
+                    <label for="non-employee" class="fs-14">
+                        Non-Employee
+                    </label>
+                </span>
+                <app-elastic [placeHolder]="isEmployeeFlag ? 'Search an employee': 'Search a non-employee' "
+                    (selectedResult)="selectedFilter($event)" (keyup)="emptyValidationKeyup($event)"
+                    [options]="elasticPersonSearchOptions" [clearField]="advSearchClearField">
+                </app-elastic>
+            </div>
+
+            <!-- Title of Grant Call -->
+            <div *ngIf="proposalSectionConfig && proposalSectionConfig['353']?.isActive" class="col-xl-4 col-lg-5 col-md-8 col-12">
+                <label>Title of Grant Call</label>
+                <app-elastic [options]="grantCallElasticSearchOptions" [clearField]="clearField" 
+                    [placeHolder]="'Search: Grant Call ID , Title of Grant Call'"
+                    (selectedResult)="setGrantCallForAdvancedSearch($event)" (keydown.enter)="searchProposal();"></app-elastic>
+            </div>
+            <!-- Proposal Lead Unit -->
+            <div class="col-xl-4 col-lg-4 col-md-4 col-sm-6 col-12">
+                <label class="d-block">Proposal Lead Unit</label>
+                <app-endpoint-search [httpOptions]="proposalLeadUnitSearchOptions"
+                    [clearField]="clearFieldProposalLeadUnit" [placeHolder]="'Proposal Lead Unit'"
+                    (onSelect)="setLeadUnitForAdvancedSearch($event)"
+                    (keydown.enter)="searchProposal()">
+                </app-endpoint-search>
+            </div>
+            <!-- Category -->
+            <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6 col-12">
+                <label class="d-block">
+                    <ng-container i18n="@@COMMON_CATEGORY_PROPOSAL">Category</ng-container>
+                </label>
+                <app-look-up [options]='proposalCategoryTypeOptions' [selectedLookUpList]="lookupValues['property4']"
+                    (selectedResult)="onLookupSelect($event, 'property4')"
+                    (keydown.enter)="searchProposal()">
+                </app-look-up>
+            </div>
+            <!-- Proposal ID -->
+            <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6 col-12">
+                <label class="d-block">Proposal ID</label>
+                <input type="text" id="adv-search-proposal-no" placeholder="Proposal ID" maxlength="60"
+                    autocomplete="off" [(ngModel)]="tempProposalRequestObject.property1" class="form-control"
+                    (keyup.enter)="searchProposal()" />
+            </div>
+            <!-- <div class="col-xl-2 col-lg-4 col-md-4 col-sm-4 col-6">
+              <input type="text" id="adv-search-proposal-duedate" placeholder="Due Date" maxlength="60" [(ngModel)]="_proposalService.proposalRequestServiceObject.property9"
+                class="form-control" />
+            </div> -->
+            <!-- Sponsor Proposal ID -->
+            <div class="col-xl-2 col-lg-2 col-md-3 col-sm-6 col-12">
+                <label class="d-block">
+                    <ng-container i18n="@@COMMON_SPONSOR_PROPOSAL_ID">Sponsor Proposal ID</ng-container>
+                </label>
+                <input type="text" id="adv-search-proposal-external-proposal-id" placeholder="Sponsor Proposal ID"
+                    i18n-placeholder="@@COMMON_SPONSOR_PROPOSAL_ID_PLHDR" maxlength="60" autocomplete="off"
+                    [(ngModel)]="tempProposalRequestObject.property10" class="form-control"
+                    (keyup.enter)="searchProposal()" />
+            </div>
+            <!-- Grant Call Abbreviation -->
+            <!-- <div class="col-xl-2 col-lg-2 col-md-3 col-sm-6 col-12">
+                <label class="d-block">Grant Call Abbreviation</label>
+                <input type="text" id="adv-search-proposal-abbreviation" placeholder="Grant Call Abbreviation"
+                    maxlength="60" autocomplete="off" [(ngModel)]="tempProposalRequestObject.property15"
+                    class="form-control" (keyup.enter)="setAdvanceSearchValuesToServiceObject();$proposalList.next()" />
+            </div> -->
+            <!-- Internal Deadline Date -->
+            <div class="col-xl-2 col-lg-2 col-md-3 col-sm-6 col-12">
+                <label class="d-block">Internal Deadline Date</label>
+                <span class="dateField">
+                    <input matInput [matDatepicker]="intrnlDt" id="adv-search-proposal-internal-deadline"
+                        [(ngModel)]="tempProposalRequestObject.property14" class="form-control d-inline-block"
+                        autocomplete="off" (click)="intrnlDt.open()" placeholder="{{datePlaceHolder}}"
+                        (keypress)="_commonService._keyPress($event, 'date')"
+                        (keyup.enter)="searchProposal()" />
+                    <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor" title="open calendar"
+                        (click)="intrnlDt.open()"></span>
+                    <mat-datepicker #intrnlDt (opened)="setFocusToElement('adv-search-proposal-internal-deadline')"
+                        (keyup.enter)="searchProposal()">
+                    </mat-datepicker>
+                </span>
+            </div>
+            <!-- Keywords of Research -->
+            <div class="col-xl-4 col-lg-4 col-md-4 col-sm-6 col-12">
+                <label class="d-block">Keywords of Research</label>
+                <input type="text" id="adv-search-proposal-keyword" placeholder="Keywords of Research" maxlength="60"
+                    autocomplete="off" [(ngModel)]="tempProposalRequestObject.property11" class="form-control"
+                    (keyup.enter)="searchProposal()" />
+            </div> 
+            <!-- Sponsor Deadline Date -->
+            <div class="col-xl-2 col-lg-2 col-md-3 col-sm-6 col-12">
+                <label class="d-block">Sponsor Deadline Date</label>
+                <span class="dateField">
+                    <input matInput [matDatepicker]="spnsrDdlneDt" id="adv-search-proposal-sponsor-deadline"
+                        [(ngModel)]="tempProposalRequestObject.property15" class="form-control d-inline-block" autocomplete="off"
+                        (click)="spnsrDdlneDt.open()" placeholder="{{datePlaceHolder}}"
+                        (keypress)="_commonService._keyPress($event, 'date')" (keyup.enter)="searchProposal()" />
+                    <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor" title="open calendar"
+                        (click)="spnsrDdlneDt.open()"></span>
+                    <mat-datepicker #spnsrDdlneDt (opened)="setFocusToElement('adv-search-proposal-sponsor-deadline')"
+                        (keyup.enter)="searchProposal()">
+                    </mat-datepicker>
+                </span>
+            </div>
+            <!-- Funding Opportunity Number  -->
+             <!--<div class="col-xl-4 col-lg-4 col-md-4 col-sm-6 col-12">
+                <label class="d-block">Funding Opportunity Number </label>
+                <input type="text" id="adv-search-proposal-funding-opportunity-number" placeholder="Funding Opportunity Number" 
+                       autocomplete="off" [(ngModel)]="tempProposalRequestObject.property16" class="form-control"
+                       (keyup.enter)="searchProposal()" />
+            </div>-->
+            <div class="col-sm col-12 d-flex flex-sm-row flex-column justify-content-end align-items-end">
+                <button id="adv-search-clear-proposal" title="Clear" class="btn btn-secondary btn-xs mr-sm-2"
+                    (click)="clearAdvanceSearchField();$proposalList.next();">Clear</button>
+                <button class="btn btn-primary btn-xs" title="Search" id="adv-search-proposal"
+                    (click)="searchProposal()">Search</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- <div class="row">
+  <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 viewMode resultCard"
+      *ngIf="(isShowGrantCallResultCard == true)">
+      <button class="closeResultCard" id="close-elastic-result-grantcall"
+          (click)="clearGrantCallElasticResults();$proposalList.next();">
+          <i aria-hidden="true" class="fa fa-times"></i>
+      </button>
+      <div class="row elastic-search-mt">
+          <div class="col-xl-2 col-lg-2 col-md-6 col-sm-12 col-2">
+              <label> Grant Call ID </label>
+              <span>
+                  <a routerLink='/fibi/grant' [queryParams]="{grantId:grantCallElasticSearchObject.grant_header_id}">{{
+          grantCallElasticSearchObject?.grant_header_id}}
+                  </a>
+              </span>
+          </div>
+          <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-3">
+              <label>Title of Grant Call</label>
+              <span>
+                  <a routerLink='/fibi/grant' [queryParams]="{grantId:grantCallElasticSearchObject.grant_header_id}">{{
+          grantCallElasticSearchObject?.title }}</a>
+              </span>
+          </div>
+          <div class="col-xl-2 col-lg-2 col-md-6 col-sm-12 col-2">
+              <label> Type of Grant</label>
+              <span>
+                  <a routerLink='/fibi/grant' [queryParams]="{grantId:grantCallElasticSearchObject.grant_header_id}">{{
+          grantCallElasticSearchObject?.grant_type}}
+                  </a>
+              </span>
+          </div>
+          <div class="col-xl-2 col-lg-2 col-md-6 col-sm-12 col-2">
+              <label>Status</label>
+              <span>
+                  <a routerLink='/fibi/grant' [queryParams]="{grantId:grantCallElasticSearchObject.grant_header_id}">{{
+          grantCallElasticSearchObject?.status}}</a>
+              </span>
+          </div>
+          <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-3">
+              <label>Sponsor</label>
+              <span>
+                  <a routerLink='/fibi/grant' [queryParams]="{grantId:grantCallElasticSearchObject.grant_header_id}">{{
+          grantCallElasticSearchObject?.sponsor}}
+                  </a>
+              </span>
+          </div>
+      </div>
+      <div class="row">
+          <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-3">
+              <label>Funding Scheme</label>
+              <span>
+                  <a routerLink='/fibi/grant' [queryParams]="{grantId:grantCallElasticSearchObject.grant_header_id}">{{
+          grantCallElasticSearchObject?.funding_scheme}}</a>
+              </span>
+          </div>
+      </div>
+  </div>
+</div> -->
+<div class="card card-table-box rounded-0" *ngIf="isShowAllProposalList">
+    <div class="card-content">
+        <div class="card-header px-4">
+            <p class="card-title align-items-center d-flex">
+                <span *ngIf=" _proposalService.proposalRequestServiceObject.tabName == 'MY_PROPOSAL'" class="mr-auto">
+                    List of all my proposals
+                </span>
+                <span *ngIf=" _proposalService.proposalRequestServiceObject.tabName == 'ALL_PROPOSALS'" class="mr-auto">
+                    List of all proposals
+                    in my department</span>
+                <span *ngIf=" _proposalService.proposalRequestServiceObject.tabName == 'INPROGRESS_PROPOSAL'"
+                    class="mr-auto">List of all
+                    proposals are in review</span>
+                <span *ngIf=" _proposalService.proposalRequestServiceObject.tabName == 'MY_REVIEW_PENDING_PROPOSAL'"
+                    class="mr-auto">List of all
+                    proposals that are pending for my review</span>
+                <span *ngIf=" _proposalService.proposalRequestServiceObject.tabName == 'REVIEW_COMPLETED_PROPOSALS'"
+                    class="mr-auto">List of all
+                    proposals where review is completed</span>
+                <span class="col-lg-3 col-sm-auto col-12 exportButton text-right mb-3 mb-md-0 "
+                    *ngIf="serviceRequestList !== null && serviceRequestList?.length !== 0">
+                    <span class="exportIcon-margin fs-14">Export as:</span>
+                    <a title="Export data to Excel sheet" class="exportIcon-margin  hand-cursor"
+                        id="export-prop-excel-btn" (click)="exportAsTypeDoc('excel')" tabindex="0">
+                        <i aria-hidden="true" class="fa fa-file-excel-o f-16"></i>
+                    </a>
+                    <a class="exportIcon-margin">|</a>
+                    <a title="Export data to PDF document" class="hand-cursor" id="export-prop-pdf-btn"
+                        (click)="exportAsTypeDoc('pdf')" tabindex="0"><i aria-hidden="true"
+                            class="fa fa-file-pdf-o f-16"></i></a>
+                    <a *ngIf="_proposalService.proposalRequestServiceObject.tabName  == 'INPROGRESS_PROPOSAL' && isViewReviewInProgressTab"
+                        class="exportIcon-margin">|</a>
+                    <a title="Export Proposals as Zip"
+                        *ngIf="_proposalService.proposalRequestServiceObject.tabName  == 'INPROGRESS_PROPOSAL' && isViewReviewInProgressTab"
+                        class="hand-cursor" id="export-prop-zip-btn" data-toggle="modal"
+                        data-target="#denyPermissionModal" (click)="exportProposalsAsZip()">
+                        <i aria-hidden="true" class="fa fa-file-zip-o f-16"></i>
+                    </a>
+                </span>
+            </p>
+        </div>
+        <div class="table-responsive" *ngIf="(serviceRequestList != null && serviceRequestList?.length != 0)">
+            <table class="table tableSkin mb-0">
+                <caption class="sr-only">Proposal List</caption>
+                <thead>
+                    <tr class="header-border">
+                        <th class="text-center" scope="col" style="width: 2%;"
+                            *ngIf="(_proposalService.proposalRequestServiceObject.tabName == 'INPROGRESS_PROPOSAL' && isViewReviewInProgressTab) || (_proposalService.proposalRequestServiceObject.tabName  == 'MY_REVIEW_PENDING_PROPOSAL' && isBatchEndorsement)"
+                            tabindex="0">
+                            <input type="checkbox" [(ngModel)]="isAssignAll" (ngModelChange)="selectAllProposals()" />
+                        </th>
+                        <th scope="col" style="width: 3%;" id="sortby-proposal-id" (click)="sortResult('proposalId')"
+                            tabindex="0" class="hand-cursor">
+                            <span title="Click to sort by Proposal Id">ID</span>
+                            <i aria-hidden="true"
+                                *ngIf="!_proposalService.proposalRequestServiceObject.sort['proposalId']"
+                                class="fa fa-sort-numeric-asc blrcolor"></i>
+                            <i aria-hidden="true"
+                                [ngClass]="_proposalService.proposalRequestServiceObject.sort['proposalId'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"></i>
+                            <i aria-hidden="true"
+                                [ngClass]="_proposalService.proposalRequestServiceObject.sort['proposalId'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"></i>
+                        </th>
+                        <th scope="col" style="width: 15%;" (click)="sortResult('title')" tabindex="0" class="hand-cursor">
+                            <span title="Click to sort by Proposal Title">Title</span>
+                            <i aria-hidden="true" *ngIf="!_proposalService.proposalRequestServiceObject.sort['title']"
+                                class="fa fa-sort-alpha-asc blrcolor"></i>
+                            <i aria-hidden="true"
+                                [ngClass]="_proposalService.proposalRequestServiceObject.sort['title'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                            <i aria-hidden="true"
+                                [ngClass]="_proposalService.proposalRequestServiceObject.sort['title'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                        </th>
+                        <th scope="col" style="width: 13%;" id="sortby-proposal-PI"
+                            (click)="sortResult('proposalPersons.fullName')" tabindex="0" class="hand-cursor">
+                            <span title="Click to sort by Principal Investigator">Principal
+                                Investigator</span>
+                            <i aria-hidden="true"
+                                *ngIf="!_proposalService.proposalRequestServiceObject.sort['proposalPersons.fullName']"
+                                class="fa fa-sort-alpha-asc blrcolor"></i>
+                            <i aria-hidden="true"
+                                [ngClass]="_proposalService.proposalRequestServiceObject.sort['proposalPersons.fullName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                            <i aria-hidden="true"
+                                [ngClass]="_proposalService.proposalRequestServiceObject.sort['proposalPersons.fullName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                        </th>
+                        <th scope="col" style="width: 12%;" id="sortby-proposal-unit"
+                            (click)="sortResult('homeUnitName')" tabindex="0" class="hand-cursor" >
+                            <span  title="Click to sort by Proposal Lead Unit">Lead Unit</span>
+                            <i aria-hidden="true"
+                                *ngIf="!_proposalService.proposalRequestServiceObject.sort['homeUnitName']"
+                                class="fa fa-sort-alpha-asc blrcolor"></i>
+                            <i aria-hidden="true"
+                                [ngClass]="_proposalService.proposalRequestServiceObject.sort['homeUnitName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                            <i aria-hidden="true"
+                                [ngClass]="_proposalService.proposalRequestServiceObject.sort['homeUnitName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                        </th>
+                        <th *ngIf="result?.isGrantcallAbbrevationRequired" scope="col" style="width: 12%;"
+                            id="sortby-proposal-unit" (click)="sortResult('abbreviation')" tabindex="0">
+                            <span class="hand-cursor" title="Click to sort by Grant Call Abbreviation">Grant Call
+                                Abbreviation</span>
+                            <i aria-hidden="true"
+                                *ngIf="!_proposalService.proposalRequestServiceObject.sort['abbreviation']"
+                                class="fa fa-sort-alpha-asc blrcolor"></i>
+                            <i aria-hidden="true"
+                                [ngClass]="_proposalService.proposalRequestServiceObject.sort['abbreviation'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                            <i aria-hidden="true"
+                                [ngClass]="_proposalService.proposalRequestServiceObject.sort['abbreviation'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                        </th>
+                        <!-- <th scope="col" style="width: 10%;" id="sortby-proposal-category" (click)="sortResult('activityType.description')">
+                            <span class="hand-cursor" title="Click to sort by category">Category</span>
+                            <i aria-hidden="true" *ngIf="!_proposalService.proposalRequestServiceObject.sort['activityType.description']"
+                            class="fa fa-sort-alpha-asc blrcolor"></i>
+                            <i aria-hidden="true"
+                            [ngClass]="_proposalService.proposalRequestServiceObject.sort['activityType.description'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                            <i aria-hidden="true"
+                            [ngClass]="_proposalService.proposalRequestServiceObject.sort['activityType.description'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                        </th> -->
+                        <th scope="col" style="width: 10%;" id="sortby-proposal-type"
+                            (click)="sortResult('proposalType.description')" tabindex="0" class="hand-cursor">
+                            <span  title="Click to sort by proposal type">Proposal Type</span>
+                            <i aria-hidden="true"
+                                *ngIf="!_proposalService.proposalRequestServiceObject.sort['proposalType.description']"
+                                class="fa fa-sort-alpha-asc blrcolor"></i>
+                            <i aria-hidden="true"
+                                [ngClass]="_proposalService.proposalRequestServiceObject.sort['proposalType.description'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                            <i aria-hidden="true"
+                                [ngClass]="_proposalService.proposalRequestServiceObject.sort['proposalType.description'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                        </th>
+                        <th scope="col" style="width: 10%;" id="sortby-proposal-status"
+                            (click)="sortResult('proposalStatus.description')" tabindex="0" class="hand-cursor">
+                            <span  title="Click to sort by status">Status</span>
+                            <i aria-hidden="true"
+                                *ngIf="!_proposalService.proposalRequestServiceObject.sort['proposalStatus.description']"
+                                class="fa fa-sort-alpha-asc blrcolor"></i>
+                            <i aria-hidden="true"
+                                [ngClass]="_proposalService.proposalRequestServiceObject.sort['proposalStatus.description'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                            <i aria-hidden="true"
+                                [ngClass]="_proposalService.proposalRequestServiceObject.sort['proposalStatus.description'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                        </th>
+                        <th scope="col" style="width: 10%;" id="sortby-proposal-sponsor"
+                            (click)="sortResult('sponsorName')" tabindex="0" class="hand-cursor">
+                            <span title="Click to sort by Sponsor"
+                                i18n-title="@@COMMON_CLICK_TO_SORT_BY_SPONSOR_TLP">
+                                <ng-container i18n="@@COMMON_SPONSOR">Sponsor</ng-container>
+                            </span>
+                            <i aria-hidden="true"
+                                *ngIf="!_proposalService.proposalRequestServiceObject.sort['sponsorName']"
+                                class="fa fa-sort-alpha-asc blrcolor"></i>
+                            <i aria-hidden="true"
+                                [ngClass]="_proposalService.proposalRequestServiceObject.sort['sponsorName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                            <i aria-hidden="true"
+                                [ngClass]="_proposalService.proposalRequestServiceObject.sort['sponsorName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+                        </th>
+                        <th scope="col" style="width: 8%;" id="sortby-proposal-internal-deadline-date"
+                            (click)="sortResult('internalDeadlineDate')" tabindex="0" class="hand-cursor">
+                            <span  title="Click to sort by Internal Deadline Date">
+                                Internal Deadline</span>
+                            <i aria-hidden="true"
+                                *ngIf="!_proposalService.proposalRequestServiceObject.sort['internalDeadlineDate']"
+                                class="fa fa-sort-numeric-asc blrcolor"></i>
+                            <i aria-hidden="true"
+                                [ngClass]="_proposalService.proposalRequestServiceObject.sort['internalDeadlineDate'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"></i>
+                            <i aria-hidden="true"
+                                [ngClass]="_proposalService.proposalRequestServiceObject.sort['internalDeadlineDate'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"></i>
+                        </th>
+                        <th scope="col" style="width: 8%;" id="sortby-proposal-sponsor-deadline-date"
+                            (click)="sortResult('sponsorDeadlineDate')" tabindex="0" class="hand-cursor">
+                            <span  title="Click to sort by Sponsor Deadline Date">Sponsor
+                                Deadline</span>
+                            <i aria-hidden="true"
+                                *ngIf="!_proposalService.proposalRequestServiceObject.sort['sponsorDeadlineDate']"
+                                class="fa fa-sort-numeric-asc blrcolor"></i>
+                            <i aria-hidden="true"
+                                [ngClass]="_proposalService.proposalRequestServiceObject.sort['sponsorDeadlineDate'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"></i>
+                            <i aria-hidden="true"
+                                [ngClass]="_proposalService.proposalRequestServiceObject.sort['sponsorDeadlineDate'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"></i>
+                        </th>
+                        <!-- <th scope="col" style="width: 15%;" id="sortby-proposal-grant-name" (click)="sortResult('grantCallName')">
+                          <span class="hand-cursor" title="Click to sort by Title of Grant Call">Grant Call</span>
+                          <i aria-hidden="true" *ngIf="!_proposalService.proposalRequestServiceObject.sort['grantCallName']" class="fa fa-sort-alpha-asc blrcolor"></i>
+                          <i aria-hidden="true" [ngClass]="_proposalService.proposalRequestServiceObject.sort['grantCallName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true" [ngClass]="_proposalService.proposalRequestServiceObject.sort['grantCallName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"></i>
+
+                      </th>
+                      <th scope="col" style="width: 13%;" id="sortby-proposal-grant-closing-date" (click)="sortResult('grantCallClosingDate')">
+                          <span class="hand-cursor" title="Click to sort by Title of Grant Call Closing Date">Grant Call Closing
+                            Date</span>
+                          <i aria-hidden="true" *ngIf="!_proposalService.proposalRequestServiceObject.sort['grantCallClosingDate']" class="fa fa-sort-numeric-asc blrcolor"></i>
+                          <i aria-hidden="true" [ngClass]="_proposalService.proposalRequestServiceObject.sort['grantCallClosingDate'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true" [ngClass]="_proposalService.proposalRequestServiceObject.sort['grantCallClosingDate'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"></i>
+                      </th> -->
+                        <!-- SMU SPECIFIC -- SERVICES ARE COMMENTED IN BACKEND -->
+                        <!-- <th scope="col" style="width: 10%;"
+                          *ngIf="(_proposalService.proposalRequestServiceObject.tabName  == 'INPROGRESS_PROPOSAL' && isViewReviewInProgressTab) && (_commonService.isEvaluation || _commonService.isEvaluationAndMapRouting)">
+                          Manager</th>
+                      <th scope="col" style="width: 10%;"
+                          *ngIf="(_proposalService.proposalRequestServiceObject.tabName  == 'INPROGRESS_PROPOSAL' && isViewReviewInProgressTab) && (_commonService.isEvaluation || _commonService.isEvaluationAndMapRouting)"
+                          id="sortby-proposal-rank" (click)="sortResult('proposalRank')">
+                          <span class="hand-cursor" title="Click to sort by Proposal Rank">Rank</span>
+                          <i aria-hidden="true" *ngIf="!_proposalService.proposalRequestServiceObject.sort['proposalRank']"
+                              class="fa fa-sort-numeric-asc blrcolor"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_proposalService.proposalRequestServiceObject.sort['proposalRank'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"></i>
+                          <i aria-hidden="true"
+                              [ngClass]="_proposalService.proposalRequestServiceObject.sort['proposalRank'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"></i>
+                      </th> -->
+                        <th scope="col" style="width: 3%;" tabindex="0">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let proposal of serviceRequestList; let i =index" class="pull-up" [@itemAnim]>
+                        <td class="text-center"
+                            *ngIf="(_proposalService.proposalRequestServiceObject.tabName =='INPROGRESS_PROPOSAL' && isViewReviewInProgressTab) || (_proposalService.proposalRequestServiceObject.tabName  == 'MY_REVIEW_PENDING_PROPOSAL' && isBatchEndorsement)"
+                            tabindex="0">
+                            <input type="checkbox" [(ngModel)]="proposal.isAssigned"
+                                (ngModelChange)="checkOrUnCheckSelectAll(proposal?.isAssigned)" />
+                        </td>
+                        <td (click)="viewProposalById(proposal)" tabindex="0">{{proposal?.proposalId}}</td>
+                        <!-- <td>{{proposal?.externalFundingAgencyId}}</td> -->
+                        <td (click)="viewProposalById(proposal)"
+                            [title]="(proposal?.title?.length)>40 ? proposal?.title: ''" tabindex="0">
+                            {{ (proposal?.title?.length)>40 ? (proposal?.title | slice:0:60)+'...' : proposal?.title}}
+                        </td>
+                        <td (click)="viewProposalById(proposal)" tabindex="0">{{proposal?.investigator?.fullName}}
+                        </td>
+                        <td (click)="viewProposalById(proposal)" tabindex="0">{{concatUnitNumberAndUnitName(proposal?.homeUnitNumber, proposal?.homeUnitName)}}</td>
+                        <td *ngIf="result?.isGrantcallAbbrevationRequired" (click)="viewProposalById(proposal)"
+                            tabindex="0">{{proposal?.abbreviation}}</td>
+                        <!-- <td (click)="viewProposalById(proposal)">{{proposal?.applicationActivityType}}</td> -->
+                        <td (click)="viewProposalById(proposal)" tabindex="0">{{proposal?.applicationType}}</td>
+                        <td (click)="viewProposalById(proposal)" tabindex="0">{{proposal?.applicationStatus}}</td>
+                        <td (click)="viewProposalById(proposal)" tabindex="0">{{proposal?.sponsorName}}</td>
+                        <!-- <td  (click)="viewProposalById(proposal)" [title]="(proposal?.grantCallName)?.length>40 ? proposal?.grantCallName: ''">
+                          {{ (proposal?.grantCallName)?.length>40 ? (proposal?.grantCallName | slice:0:60)+'...' : proposal?.grantCallName}}
+                      </td>
+                      <td >{{proposal?.grantCallClosingDate  | dateFormatter}}</td> -->
+                        <!-- SMU SPECIFIC -- SERVICES ARE COMMENTED IN BACKEND -->
+                        <!-- <td (click)="viewProposalById(proposal)"
+                          *ngIf="(_proposalService.proposalRequestServiceObject.tabName  == 'INPROGRESS_PROPOSAL' && isViewReviewInProgressTab) && (_commonService.isEvaluation || _commonService.isEvaluationAndMapRouting)">
+                          <span class="chips-block"
+                              *ngFor="let manager of proposal?.grantORTTManagers">{{manager}}</span></td>
+                      <td
+                          *ngIf="(_proposalService.proposalRequestServiceObject.tabName  == 'INPROGRESS_PROPOSAL' && isViewReviewInProgressTab) && (_commonService.isEvaluation || _commonService.isEvaluationAndMapRouting)">
+                          {{proposal?.proposalRank}}</td> -->
+                        <!-- <td>{{proposal?.createUser}}</td> -->
+                        <td (click)="viewProposalById(proposal)" tabindex="0">{{proposal?.internalDeadLineDate |
+                            dateFormatter}}</td>
+                        <td (click)="viewProposalById(proposal)" tabindex="0">{{proposal?.sponsorDeadlineDate |
+                            dateFormatter}}</td>
+                        <td class="p-0">
+                            <ul class="actionButtonGroup d-inline-block">
+                                <li>
+                                    <a title="Open proposal {{proposal?.proposalId}}" class="pointer"
+                                        id="open-proposal-btn" (click)="viewProposalById(proposal)" tabindex="0">
+                                        <i aria-hidden="true" class="fa fa-eye pointer"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                            <span class="d-inline-block dropdown">
+                                <button class="btn btn-sm dropdown-toggle icons-toggle more-btn list-more-btn ml-1"
+                                    type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
+                                    title="More Actions" aria-expanded="false">
+                                    <i aria-hidden="true" class="fa fa-ellipsis-v" aria-hidden="true"></i>
+                                </button>
+                                <div class="dropdown-menu action-dropdown-menu more-options-aligned"
+                                    aria-labelledby="dropdownMenuButton">
+                                    <a *ngIf="_proposalService.proposalRequestServiceObject.tabName !== 'MY_REVIEW_PENDING_PROPOSAL' && isCreateProposal"
+                                        title="Copy proposal {{proposal?.proposalId}}" class="dropdown-item"
+                                        id="copy-proposal-dashboard-btn" data-toggle="modal"
+                                        data-target="#denyPermissionModal"
+                                        (click)="temporaryCopyProposal(proposal.proposalId, proposal.title)">
+                                        <i aria-hidden="true" class="fa fa-copy"></i>
+                                    </a>
+                                    <a *ngIf="proposal?.proposalId" title="Export Proposal" class="dropdown-item font"
+                                        href=""
+                                        (click)="printProposal($event,proposal?.proposalId,proposal?.investigator?.fullName)">
+                                        <i aria-hidden="true" class="fa fa-file-zip-o" aria-hidden="true"></i>
+                                    </a>
+                                    <a *ngIf="proposal?.statusCode == 1"
+                                        title="Delete proposal {{proposal?.proposalId}}" class="dropdown-item"
+                                        id="delete-proposal-dashbrd-btn"
+                                        (click)="canDeleteProposalDetail(proposal,i);">
+                                        <i aria-hidden="true" class="fa fa-trash"></i>
+                                    </a>
+                                    <!-- SMU SPECIFIC CHANGE COMMENTED DUE TO PERFORMANCE ISSUE , BCZ BACKEND CODES COMMENTED -->
+                                    <!-- <a *ngIf="(_commonService.isEvaluation || _commonService.isEvaluationAndMapRouting) && (!proposal?.isRcbfProposal && (proposal?.hasRank || proposal?.hasRecommendation))"
+                                      title="Rank proposal {{proposal?.proposalId}}" class="dropdown-item"
+                                      id="rank-proposal-dashbrd-btn"
+                                      (click)="performActionBasedOnRight(proposal?.proposalId,'MAINTAIN_RANK', i);">
+                                      <img alt="Rank" src="{{deployMap}}assets/images/award-2.png"></a> -->
+                                </div>
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="no-data-container" *ngIf="serviceRequestList?.length == 0">
+            <span class="no-data-icon-outer">
+                <div class="no-data-icon">
+                    <i class="fa fa-file-o" aria-hidden="true"></i>
+                    <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                </div>
+            </span>
+            <h4>There is no information in this section.</h4>
+        </div>
+        <!-- Pagination -->
+        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12"
+            *ngIf="serviceRequestList !== null && serviceRequestList?.length !== 0">
+            <div>
+                <nav class="pagination justify-content-end">
+                    <app-pagination [totalCount]="result.totalServiceRequest"
+                        (pageChangeEvent)="actionsOnPageChange($event)">
+                    </app-pagination>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- NO CREATE PERMISSION MODAL -->
+<div class="modal fade show mySkinDialog" *ngIf="isShowCopyWarningModal || isShowExportProposalsWarningModal"
+    tabindex="-1" id="denyPermissionModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" *ngIf="isShowExportProposalsWarningModal">Warning...!
+                </h5>
+                <h5 class="modal-title" *ngIf="isShowCopyWarningModal">Copy Proposal #{{proposalId}} - {{proposalTitle}}
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" (click)="clearModalFlags()" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="success-banner px-2 my-1 mx-2 d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i>
+                    <em>All other sections of the proposal will be copied to the new proposal by default
+                    </em>
+                </div>
+            </div>
+            <div class="modal-body">
+                <ng-container *ngIf="isShowCopyWarningModal">
+
+                    <label class="mb-2 text-muted">
+                        Check the boxes below to copy the corresponding sections to the new proposal.
+                    </label>
+                    <div class="ml-4">
+                        <div class="form-check" *ngIf="result.isBudgetVersionEnabled">
+                            <input class="form-check-input mt-2" type="checkbox" id="copyAllBudgetVersion"
+                                [(ngModel)]="copyAllBudgetVersion">
+                            <label class="form-check-label ml-2" for="copyAllBudgetVersion">
+                                Budget - All Versions
+                            </label>
+
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input mt-2" type="checkbox" id="copyFinalBudgetVersion"
+                                [(ngModel)]="copyFinalBudgetVersion">
+                            <label class="form-check-label ml-2" for="copyFinalBudgetVersion">
+                                Budget - Final Only
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input mt-2" type="checkbox" id="copyQuestionnaire"
+                                [(ngModel)]="copyQuestionnaire">
+                            <label class="form-check-label ml-2" for="copyQuestionnaire">
+                                Questionnaire
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input mt-2" type="checkbox" id="copyOtherInformation"
+                                [(ngModel)]="copyOtherInformation">
+                            <label class="form-check-label ml-2" for="copyOtherInformation">
+                                Other Information
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input mt-2" type="checkbox" id="copyAttachment"
+                                [(ngModel)]="copyAttachment">
+                            <label class="form-check-label ml-2" for="copyAttachment">
+                                Attachment
+                            </label>
+
+                        </div>
+                    </div>
+                </ng-container>
+                <p *ngIf="isShowExportProposalsWarningModal">Please select at least one proposal to export.</p>
+            </div>
+            <div class="modal-footer" *ngIf="isShowExportProposalsWarningModal">
+                <button type="button" title="Close" class="btn btn-secondary" data-dismiss="modal" data-toggle="modal"
+                    id="no-create-permsn-btn" (click)="clearModalFlags()">Close</button>
+            </div>
+            <div class="modal-footer" *ngIf="isShowCopyWarningModal">
+                <button type="button" class="btn btn-secondary" title="No" (click)="clearModalFlags()"
+                    data-dismiss="modal" data-toggle="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" title="Copy" (click)="copyProposal()"
+                    data-dismiss="modal">Copy</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ASSIGN REVIEWER MODAL-->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="assignReviewModal" role="dialog" aria-hidden="true"
+    data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" *ngIf="selectedProposalsWarning == null">Request new Review for the selected
+                    proposal(s)</h5>
+                <h5 class="modal-title" *ngIf="selectedProposalsWarning != null">Cannot {{actionName}}</h5>
+                <button type="button" class="close" data-dismiss="modal" id="assign-reviewer-dissmiss-btn"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p *ngIf="selectedProposalsWarning != null" [innerHTML]="selectedProposalsWarning"></p>
+                <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12" *ngIf="selectedProposalsWarning == null">
+                    <div class="form-row">
+                        <div class="form-group col">
+                            <label class="comments-font font-weight-bold"><span class="mandatory">*</span>Review
+                                Stop</label>
+                            <select class="form-control dateBox selectbox-size" id="assign-reviewer-type"
+                                [(ngModel)]="reviewRequest.evaluationStop" (ngModelChange)="setPlaceHolder()"
+                                [ngClass]="mandatoryList.has('reviewStop') ? 'is-invalid d-block' : ''">
+                                <option [value]=null>--Select--</option>
+                                <option *ngFor="let evaluationStop of result.evaluationReviewStop"
+                                    [ngValue]="evaluationStop">
+                                    {{evaluationStop?.description}}</option>
+                            </select>
+                            <div *ngIf="mandatoryList.has('reviewStop')" class="invalid-feedback d-block">
+                                {{mandatoryList.get('reviewStop')}}</div>
+                        </div>
+                        <div class="form-group col">
+                            <label class="comments-font font-weight-bold">Review Deadline</label>
+                            <span class="dateField"> <input matInput [matDatepicker]="deadlineDate" placeholder="{{datePlaceHolder}}"
+                                    id="dashboard-reviewer-deadline"
+                                    class="form-control dateBox regularFont"
+                                    [ngClass]="mandatoryList.has('reviewdeadline') ? 'is-invalid d-block' : ''"
+                                    [(ngModel)]="reviewRequest.reviewDeadLineDate"
+                                    (ngModelChange)="dateValidation(reviewRequest.reviewDeadLineDate)"
+                                    (keypress)="keyPress($event, 'date');" (click)="deadlineDate.open()" />
+                                <i aria-hidden="true" class="fa fa-calendar fa-large hand-cursor insidePicker"
+                                    id="dashboard-reviewer-deadline-date-icon" (click)="deadlineDate.open()"></i>
+                                <mat-datepicker #deadlineDate (opened)="setFocusToElement('dashboard-reviewer-deadline')"
+                                    (closed)="dateValidation(reviewRequest.reviewDeadLineDate)">
+                                </mat-datepicker>
+                            </span>
+                            <div *ngIf="mandatoryList.has('reviewdeadline')" class="invalid-feedback d-block">
+                                {{mandatoryList.get('reviewdeadline')}}</div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col">
+                            <label class="comments-font font-weight-bold">Reviewer</label>
+                            <app-elastic [options]="userElasticSearchOptions" [clearField]="clearField"
+                                (selectedResult)="selectedReviewer($event)" [placeHolder]="placeholder"></app-elastic>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button *ngIf="selectedProposalsWarning != null" type="button" id="assign-reviewer-close-btn" title="Ok"
+                    class="btn btn-primary-sub" data-dismiss="modal">Ok </button>
+                <button *ngIf="selectedProposalsWarning == null" type="button" id="assign-reviewer-btn" title="Add"
+                    class="btn btn-primary-sub" (click)="addReviewer()">Add </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- RANK PROPOSAL MODAL -->
+<!-- SMU SPECIFIC CHANGE COMMENTED DUE TO PERFORMANCE & BACKEND CODE COMMENTED & BUUTONS HIDE -->
+<!-- <div class="modal fade show mySkinDialog" tabindex="-1" id="rankProposalModal" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title">
+                  <ng-container
+                      *ngIf="proposalReviewDetails?.proposal?.hasRank && proposalReviewDetails?.proposal?.hasRecommendation">
+                      Save Proposal Rank and Recommendation </ng-container>
+                  <ng-container
+                      *ngIf="!proposalReviewDetails?.proposal?.hasRank && proposalReviewDetails?.proposal?.hasRecommendation">
+                      Save Proposal Recommendation </ng-container>
+                  #{{proposalReviewDetails?.proposal?.proposalId}} -
+                  <span
+                      title="{{(proposalReviewDetails?.proposal?.title?.length > 45)?(proposalReviewDetails?.proposal?.title):''}}">
+                      {{ proposalReviewDetails?.proposal?.title?.length>60 ? (proposalReviewDetails?.proposal?.title | slice:0:60)+'...' : proposalReviewDetails?.proposal?.title}}
+                  </span>
+              </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                  id="rank-proposal-dismiss-btn">
+                  <span aria-hidden="true">&times;</span>
+              </button>
+          </div>
+          <div class="modal-body">
+              <div class="card mb-3">
+                  <div class="card-content">
+                      <div class="card-body">
+                          <div class="form-row">
+                              <div class="form-group col-4">
+                                  <label>Status</label> <span
+                                      class="d-block">{{proposalReviewDetails?.proposal?.proposalStatus?.description}}</span>
+                              </div>
+                              <div class="form-group col-3">
+                                  <label><ng-container i18n="@@COMMON_CATEGORY_PROPOSAL">Category</ng-container></label> <span
+                                      class="d-block">{{proposalReviewDetails?.proposal?.activityType?.description}}</span>
+                              </div>
+                              <div class="form-group col-2">
+                                  <label>Submitted By</label> <span class="d-block">{{proposalReviewDetails?.proposal?.submitUserFullName}}</span>
+                              </div>
+                              <div class="form-group col-3">
+                                  <label>Start Date</label> <span
+                                      class="d-block">{{proposalReviewDetails?.proposal?.startDate | dateFormatter}}</span>
+                              </div>
+                              <div class="form-group col-2">
+                                  <label>End Date</label> <span
+                                      class="d-block">{{proposalReviewDetails?.proposal?.endDate | dateFormatter}}</span>
+                              </div>
+                          </div>
+                          <div class="form-row">
+                              <div class="form-group col-4">
+                                  <label class="d-block">Recommendation</label>
+                                  <select class="form-control dateBox" id="prop-recommendation"
+                                      [disabled]="(!proposalReviewDetails?.proposal?.hasRecommendation)"
+                                      [(ngModel)]="recommendationCode" (ngModelChange)="setRankValue()"
+                                      [ngClass]="mandatoryList?.has('recommendation') ? 'is-invalid d-block' : ''">
+                                      <option [value]=null>--Select--</option>
+                                      <option *ngFor="let support of evaluationRecommendation"
+                                          [ngValue]="support.evaluationRecommendationStatusCode">
+                                          {{support?.description}}</option>
+                                  </select>
+                                  <div *ngIf="mandatoryList?.has('recommendation')" class="invalid-feedback d-block">
+                                      {{mandatoryList?.get('recommendation')}}</div>
+                              </div>
+                              <div class="form-group col-4"
+                                  *ngIf="proposalReviewDetails?.proposal?.grantCallType?.grantCallCategory?.categoryCode == 1">
+                                  <label class="d-block">Proposal Rank</label>
+                                  <span><input class="form-control dateBox rank-textbox inline-block-display"
+                                          [(ngModel)]="proposalRank" type="number"
+                                          [disabled]="(!proposalReviewDetails?.proposal?.hasRank || recommendationCode === 2)"
+                                          [ngClass]="mandatoryList?.has('rank') ? 'is-invalid d-block' : ''"
+                                          type="number">
+                                  </span>
+                                  <div *ngIf="mandatoryList?.has('rank')" class="invalid-feedback d-block">
+                                      {{mandatoryList?.get('rank')}}</div>
+                              </div>
+                              <div class="flex-center ml-2"
+                                  [ngClass]="mandatoryList?.has('recommendation') || mandatoryList?.has('rank') ? '' : 'mb-0 mt-3'"
+                                  *ngIf="proposalReviewDetails?.proposal?.hasRecommendation || proposalReviewDetails?.proposal?.hasRank">
+                                  <button class="btn btn-primary-sub btn-sm" title="Save" id="proposal-save-rank-btn"
+                                      (click)="checkRankValidation()">Save</button>
+                                  <div></div>
+                              </div>
+                              <div class="form-row">
+                                  <div class="form-group col" *ngIf="mandatoryList?.has('endorseWarning')"
+                                      class="invalid-feedback d-block">{{mandatoryList?.get('endorseWarning')}}</div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+              <div class="card mb-3">
+                  <div class="card-header">
+                      <h4 class="card-title">Review Summary</h4>
+                  </div>
+                  <div class="card-content">
+                      <div class="card-body">
+                          <div class="gridSkin block-display-span">
+                              <div class="no-data-container"
+                                  *ngIf="proposalReviewDetails?.proposalReviews?.length == 0 || proposalReviewDetails?.proposalReviews == null">
+                                  <span class="no-data-icon-outer">
+                                      <div class="no-data-icon">
+                                          <i class="fa fa-file-o" aria-hidden="true"></i>
+                                          <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                                      </div>
+                                  </span>
+                                  <h4>There is no information in this section.</h4>
+                              </div>
+                              <ng-container *ngIf="(proposalReviewDetails?.proposalReviews?.length > 0)">
+                                  <div>
+                                      <table class="table tableSkin grid2">
+                                          <caption class="sr-only">Review Summary</caption>
+                                          <tbody>
+                                              <tr>
+                                                  <th scope="col">Type</th>
+                                                  <th scope="col">Name</th>
+                                                  <th scope="col">Status</th>
+                                                  <th scope="col">Start Date</th>
+                                                  <th scope="col">Deadline Date</th>
+                                                  <th scope="col">Completion Date</th>
+                                              </tr>
+                                              <tr
+                                                  *ngFor="let review of proposalReviewDetails?.proposalReviews;let i = index">
+                                                  <td>{{review?.evaluationStop?.description}}</td>
+                                                  <td>{{review?.reviewerFullName}}</td>
+                                                  <td>{{review?.reviewStatus?.description}}</td>
+                                                  <td>{{review?.reviewStartDate | dateFormatter}}</td>
+                                                  <td>{{review?.reviewDeadLineDate | dateFormatter}}</td>
+                                                  <td> {{review?.reviewEndDate | dateFormatter}}</td>
+                                              </tr>
+                                          </tbody>
+                                      </table>
+                                  </div>
+                              </ng-container>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" title="Close" data-dismiss="modal"
+                      data-toggle="modal" id="close-rank-modal-dashboard">Close</button>
+              </div>
+          </div>
+      </div>
+  </div>
+</div> -->
+<!-- CHECK PERMISSION MODAL -->
+<div class="modal fade show mySkinDialog modal-opacity" tabindex="-1" id="permissionCheckingModal" role="dialog"
+    data-backdrop="static" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 *ngIf="canDeleteProposal" class="modal-title">Delete Proposal #{{proposalId}}</h5>
+                <h5 *ngIf="!canDeleteProposal" class="modal-title">Unable to delete Proposal #{{proposalId}}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    (click)="clearPermissionCheckingModalFlags();">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ul class="list pl-0" *ngIf="!canDeleteProposal">
+                    <li>
+                        <div class="alert alert-danger fs-12">
+                            <i aria-hidden="true" class="fa fa-exclamation-circle icon text-danger mr-3"></i>
+                            You don't have the right to delete this proposal.
+                        </div>
+                    </li>
+                </ul>
+                <p *ngIf="canDeleteProposal">Are you sure you want to delete this Proposal?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" *ngIf="canDeleteProposal" data-dismiss="modal"
+                    data-toggle="modal" (click)="clearPermissionCheckingModalFlags();">No</button>
+                <button type="button" *ngIf="canDeleteProposal" class="btn btn-primary-sub btn-sm"
+                    (click)="deleteProposal(); clearPermissionCheckingModalFlags();">Delete</button>
+                <button type="button" *ngIf="!canDeleteProposal" class="btn btn-primary-sub btn-sm mr-2"
+                    data-dismiss="modal" data-toggle="modal" (click)="clearPermissionCheckingModalFlags();">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
+<button id="triggerModalOnSuccessBtn" hidden data-toggle="modal"
+    data-target="#rankProposalModal">success</button>
+<!-- Add comments and attachments modal -->
+<div class="modal fade mySkinDialog" id="endorse-modal" tabindex="-1" data-backdrop="static" data-keyboard="false"
+    role="dialog" aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><span>Approve/Return Proposals</span></h5>
+                <button type="button" id="dashboard-prop-addReview-dismiss-btn" class="close" data-dismiss="modal"
+                    (click)="clearFields()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <label><span class="mandatory">*</span>Comments</label>
+                                <textarea id="dashboard-prop-review-comments" placeholder="Write your comments"
+                                    class="col-12 col-lg-12 commentBox comments-box" rows="2" cols="20"
+                                    [ngClass]="mandatoryList.has('comment') != null ? 'is-invalid d-block' : ''"
+                                    [(ngModel)]="reviewRequest.reviewComment" appLengthValidator [isShowLimiter]='true'
+                                    [limit]=4000></textarea>
+                                <div *ngIf="mandatoryList.has('comment')"><span
+                                        class="mandatory font">{{mandatoryList.get('comment')}}</span></div>
+                            </div>
+                            <app-file-drop [multiple]="true" (filesDropEvent)="fileDrop($event)"></app-file-drop>
+                            <div class="fileChips regularFont">
+                                <span *ngFor="let item of uploadedFile; let i=index">{{item.name}}
+                                    <i aria-hidden="true" class="fa fa-close hand-cursor" title="Remove File"
+                                        id="dashboard-prop-review-attach-remove"
+                                        (click)="deleteFromUploadedFileList(item)"></i></span>
+                            </div>
+                            <ng-container>
+                                <div class="form-row" *ngIf="selectedProposalStatus === 18">
+                                    <div class="form-group col-5">
+                                        <label class="comments-font font-weight-bold">Proposal Status</label>
+                                        <select class="form-control dateBox selectbox-size" id="prop-status-type"
+                                            [(ngModel)]="endorseRequest.proposalStatusCode"
+                                            [ngClass]="mandatoryList?.has('status') ? 'is-invalid d-block' : ''">
+                                            <option [value]=null>--Select--</option>
+                                            <option *ngFor="let status of result?.finalEvaluationStatus"
+                                                [ngValue]="status?.statusCode">{{status?.proposalStatus?.description}}
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div *ngIf="mandatoryList?.has('status')" class="ml-2 invalid-feedback d-block">
+                                        {{mandatoryList?.get('status')}}</div>
+                                </div>
+                            </ng-container>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-6"><span><input type="checkbox"
+                            [(ngModel)]='reviewRequest.isPrivateComment' /></span><label><span class="font pl-1">Check
+                            here to make
+                            review comment private</span></label></div>
+                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-6 text-right">
+                    <button type="button" id="prop-completePreReview-cancel-btn" class="btn btn-secondary btn-sm"
+                        (click)="reviewRequest = {};uploadedFile=[];" data-dismiss="modal">Close</button>
+                    <button type="button" id="prop-completeReview-btn" class="btn btn-primary-sub btn-sm"
+                        (click)="completeReturnReview()">Endorse</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

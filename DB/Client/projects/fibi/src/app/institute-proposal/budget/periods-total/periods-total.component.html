@@ -1,0 +1,177 @@
+<div class="card-widget-container mb-3" *ngIf="budgetData?.instituteProposalBudgetHeader">
+  <div class="card h-90">
+    <div class="card-content">
+      <div class="card-body pt-0">
+        <div id="proposal-periods-total">
+
+          <div class="row my-md-3 my-2">
+            <div class="col-lg-6 col-md-6 col-sm-6 col-6 colorBlack">
+              <h4 class="card-title" id="Proposal-period-summary">
+                <ng-container i18n="@@COMMON_PERIODS_AND_TOTAL"> Budget Periods & Total </ng-container>
+                <span *ngIf="budgetData.isBudgetVersionEnabled"> Version {{budgetData?.instituteProposalBudgetHeader?.versionNumber}}
+                </span>
+              </h4>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="tableStyle" aria-describedby="proposal-periods-total">
+              <thead class="th-border">
+                <tr>
+                  <th scope="col" width="4%">Period#</th>
+                  <th scope="col" width="9%">Start Date</th>
+                  <th scope="col" width="9%">End Date</th>
+                  <th scope="col" width="8.5%">Direct Cost</th>
+                  <!-- <th scope="col" width="10%" *ngIf="budgetData?.isShowModifiedDirectCost">Modified Direct Cost</th> -->
+                  <th scope="col" width="9.5%">Indirect Cost</th>
+                  <th scope="col" width="8%" *ngIf="budgetData?.isShowCostShareAndUnderRecovery">Cost Share</th>
+                  <th scope="col" width="8%" *ngIf="budgetData?.isShowCostShareAndUnderRecovery">Under Recovery</th>
+                  <!-- <th scope="col" width="11%" *ngIf="budgetData?.isShowInKind">Total Requested Cost</th> -->
+                  <!-- <th scope="col" width="8.5%" *ngIf="budgetData?.isShowInKind">Total In-Kind</th> -->
+                  <th scope="col" width="11.5%">Total Cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let period of budgetData?.instituteProposalBudgetHeader?.budgetPeriods; let index= index">
+                  <td class="px-1">
+                    <input type="text" class="form-control" id="period-number" disabled
+                      [value]="period?.budgetPeriod" />
+                  </td>
+                  <td class="px-1">
+                    <span class="dateField">
+                      <input matInput [matDatepicker]="periodstart" placeholder="{{datePlaceHolder}}"
+                        id="{{'period-start-date' + period?.budgetPeriod}}"
+                        (keypress)="_commonService._keyPress($event, 'date')"
+                        class="form-control" [(ngModel)]="period.startDate"
+                        [ngClass]="{'is-invalid': startDatesWarningMap[period.budgetPeriod]?.startErrorMessage}"
+                        (ngModelChange)="validatePeriodDates(period, 'STARTDATE');_budgetDataService.budgetDataChanged = true;"
+                        [disabled]="isViewMode" (click)="periodstart.open()" />
+                      <i class="fa fa-calendar fa-large insidePicker hand-cursor" (click)="periodstart.open()"
+                        aria-hidden="true"></i>
+                      <mat-datepicker #periodstart (opened)="setFocusToElement('period-start-date' + period?.budgetPeriod)"
+                        [disabled]="isViewMode"></mat-datepicker>
+                    </span>
+                    <span *ngIf="startDatesWarningMap[period.budgetPeriod]" class="invalid-feedback block-display">
+                      {{startDatesWarningMap[period.budgetPeriod]?.startErrorMessage}}
+                    </span>
+                  </td>
+                  <td class="px-1">
+                    <span class="dateField">
+                      <input matInput [matDatepicker]="periodend" placeholder="{{datePlaceHolder}}"
+                        id="{{'period-end-date' + period?.budgetPeriod}}"
+                        (keypress)="_commonService._keyPress($event, 'date')"
+                        class="form-control" [(ngModel)]="period.endDate" [disabled]="isViewMode"
+                        [ngClass]="{'is-invalid': endDatesWarningMap[period.budgetPeriod]?.endErrorMessage}"
+                        (ngModelChange)="validatePeriodDates(period, 'ENDDATE');_budgetDataService.budgetDataChanged = true;"
+                        (click)="periodend.open()" />
+                      <i class="fa fa-calendar fa-large insidePicker hand-cursor" aria-hidden="true"
+                        (click)="periodend.open()"></i>
+                      <mat-datepicker #periodend
+                        (opened)="setFocusToElement('period-end-date' + period?.budgetPeriod)"
+                        [disabled]="isViewMode"></mat-datepicker>
+                    </span>
+                    <span *ngIf="endDatesWarningMap[period.budgetPeriod]" class="invalid-feedback block-display">
+                      {{endDatesWarningMap[period.budgetPeriod]?.endErrorMessage}}
+                    </span>
+                  </td>
+                  <td class="px-1">
+                    <input appCurrencyFormat type="text" class="form-control text-right"
+                      [(ngModel)]="period.totalDirectCost" (ngModelChange)="calculatePeriodTotalCost(period, budgetData);inputDigitRestriction(period.totalDirectCost, 'directCost', index);
+                    _budgetDataService.budgetDataChanged = true;" [initialValue]="period.totalDirectCost"
+                      [disabled]="isPeriodsAndTotalEditable || period?.budgetDetails?.length > 0"
+                      (keypress)="inputRestriction($event)" autocomplete="off"
+                      [ngClass]="(map.get('directCost'+index)) ? 'is-invalid d-block' : ''" />
+                    <div *ngIf="(map.get('directCost'+index))" class="invalid-feedback d-block">
+                      {{map.get('directCost'+index)}}</div>
+                  </td>
+                  <!-- <td class="px-1" *ngIf="budgetData?.isShowModifiedDirectCost">
+                    <input appCurrencyFormat type="text" class="form-control text-right"
+                      [(ngModel)]="period.totalModifiedDirectCost" (ngModelChange)="calculatePeriodTotalCost(period, budgetData);inputDigitRestriction(period.totalModifiedDirectCost, 'modifiedDirectCost', index);
+                    _budgetDataService.budgetDataChanged = true;" [initialValue]="period.totalModifiedDirectCost"
+                      [disabled]="isPeriodsAndTotalEditable || period?.budgetDetails?.length > 0"
+                      (keypress)="inputRestriction($event)" autocomplete="off"
+                      [ngClass]="(map.get('modifiedDirectCost'+index)) ? 'is-invalid d-block' : ''" />
+                    <div *ngIf="(map.get('modifiedDirectCost'+index))" class="invalid-feedback d-block">
+                      {{map.get('modifiedDirectCost'+index)}}</div>
+                  </td> -->
+                  <td class="px-1">
+                    <input appCurrencyFormat type="text" class="form-control text-right"
+                      [(ngModel)]="period.totalIndirectCost" (ngModelChange)="calculatePeriodTotalCost(period, budgetData);inputDigitRestriction(period.totalIndirectCost, 'inDirectCost', index);
+                    _budgetDataService.budgetDataChanged = true;" [initialValue]="period.totalIndirectCost"
+                      [disabled]="period?.budgetDetails?.length > 0 || isPeriodsAndTotalEditable"
+                      (keypress)="inputRestriction($event)" autocomplete="off"
+                      [ngClass]="(map.get('inDirectCost'+index)) ? 'is-invalid d-block' : ''" />
+                    <div *ngIf="(map.get('inDirectCost'+index))" class="invalid-feedback d-block">
+                      {{map.get('inDirectCost'+index)}}</div>
+                  </td>
+                  <td class="px-1" *ngIf="budgetData?.isShowCostShareAndUnderRecovery">
+                    <input appCurrencyFormat type="text" class="form-control text-right"
+                      [(ngModel)]="period.costSharingAmount" [initialValue]="period.costSharingAmount"
+                      (ngModelChange)="calculatePeriodTotalCost(period, budgetData);_budgetDataService.budgetDataChanged = true;inputDigitRestriction(period.costSharingAmount, 'costSharingAmount', index);"
+                      [disabled]="period?.budgetDetails?.length > 0 || isPeriodsAndTotalEditable"
+                      (keypress)="inputRestriction($event)" autocomplete="off"
+                      [ngClass]="(map.get('costSharingAmount'+index)) ? 'is-invalid d-block' : ''" />
+                    <div *ngIf="(map.get('costSharingAmount'+index))" class="invalid-feedback d-block">
+                      {{map.get('costSharingAmount'+index)}}</div>
+                  </td>
+                  <td class="px-1" *ngIf="budgetData?.isShowCostShareAndUnderRecovery">
+                    <input appCurrencyFormat type="text" class="form-control text-right"
+                      [(ngModel)]="period.underrecoveryAmount" [initialValue]="period.underrecoveryAmount"
+                      (ngModelChange)="calculatePeriodTotalCost(period, budgetData);_budgetDataService.budgetDataChanged = true;inputDigitRestriction(period.underrecoveryAmount, 'underRecoveryAmount', index);"
+                      [disabled]="period?.budgetDetails?.length > 0 || isPeriodsAndTotalEditable"
+                      (keypress)="inputRestriction($event)" autocomplete="off"
+                      [ngClass]="(map.get('underRecoveryAmount'+index)) ? 'is-invalid d-block' : ''" />
+                    <div *ngIf="(map.get('underRecoveryAmount'+index))" class="invalid-feedback d-block">
+                      {{map.get('underRecoveryAmount'+index)}}</div>
+                  </td>
+                  <!-- <td class="px-1" *ngIf="budgetData?.isShowInKind">
+                    <input appCurrencyFormat type="text" class="dateBox form-control text-right"
+                      [(ngModel)]="period.totalCost" disabled [initialValue]="period.totalCost" />
+                  </td> -->
+                  <!-- <td class="px-1" *ngIf="budgetData?.isShowInKind">
+                    <input appCurrencyFormat type="text" class="form-control text-right"
+                      [(ngModel)]="period.totalInKind" [initialValue]="period.totalInKind"
+                      (ngModelChange)="calculatePeriodTotalCost(period, budgetData);_budgetDataService.budgetDataChanged = true;inputDigitRestriction(period.totalInKind, 'totalInKind', index);"
+                      [disabled]="(budgetData?.isShowInKind && budgetData?.isShowCostShareAndUnderRecovery) || period?.budgetDetails?.length > 0 || isPeriodsAndTotalEditable"
+                      (keypress)="inputRestriction($event)" autocomplete="off"
+                      [ngClass]="(map.get('totalInKind'+index)) ? 'is-invalid d-block' : ''" />
+                    <div *ngIf="(map.get('totalInKind'+index))" class="invalid-feedback d-block">
+                      {{map.get('totalInKind'+index)}}</div>
+                  </td> -->
+                  <td class="px-1">
+                    <input appCurrencyFormat type="text" class="dateBox form-control text-right"
+                      [(ngModel)]="period.totalCost" disabled [initialValue]="period.totalCost" />
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="2"></td>
+                  <td class="font-weight-bold text-right px-1">Total</td>
+                  <td class="font-weight-bold text-right px-1">{{budgetData?.instituteProposalBudgetHeader?.totalDirectCost|
+                    customCurrency}}</td>
+                  <!-- <td class="font-weight-bold text-right px-1" *ngIf="budgetData?.isShowModifiedDirectCost">
+                    {{budgetData?.instituteProposalBudgetHeader?.totalModifiedDirectCost| customCurrency}}</td> -->
+                  <td class="font-weight-bold text-right px-1">{{budgetData?.instituteProposalBudgetHeader?.totalIndirectCost|
+                    customCurrency}}</td>
+                  <td class="font-weight-bold text-right px-1" *ngIf="budgetData?.isShowCostShareAndUnderRecovery">
+                    {{budgetData?.instituteProposalBudgetHeader?.costSharingAmount| customCurrency}}</td>
+                  <td class="font-weight-bold text-right px-1" *ngIf="budgetData?.isShowCostShareAndUnderRecovery">
+                    {{budgetData?.instituteProposalBudgetHeader?.underRecoveryAmount| customCurrency}}</td>
+                  <!-- <td class="font-weight-bold text-right px-1" *ngIf="budgetData?.isShowInKind">
+                    {{budgetData?.instituteProposalBudgetHeader?.totalCost| customCurrency}}</td> -->
+                  <!-- <td class="font-weight-bold text-right px-1" *ngIf="budgetData?.isShowInKind">
+                    {{budgetData?.instituteProposalBudgetHeader?.totalInKind| customCurrency}}</td> -->
+                  <td class="font-weight-bold text-right px-1">{{budgetData?.instituteProposalBudgetHeader?.totalCost|
+                    customCurrency}}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div *ngIf="!isViewMode">
+              <button class="btn btn-primary-sub btn-sm float-right my-3"
+                (click)="saveOrUpdateProposalBudget()">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

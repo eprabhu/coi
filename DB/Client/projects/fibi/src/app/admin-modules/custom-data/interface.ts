@@ -1,0 +1,15 @@
+export interface CustomDataAuditLog {
+    'columnLabel'?: string,
+    'usageModules'?: Array<string>,
+    'customDataTypes'?: string,
+    'customElementName'?: string,
+    'dataType'?: string,
+    'isActive'?: string,
+    'isLatestVersion'?: string,
+    'lookupArgument'?: string,
+    'hasLookup'?: string,
+    'defaultValue'?: string,
+    'dataLength'?: string,
+    'radioButtonOptions'?: Array<string>,
+    'checkBoxOptions'?: Array<string>,
+}

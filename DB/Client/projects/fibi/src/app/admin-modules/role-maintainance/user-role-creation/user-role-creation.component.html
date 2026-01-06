@@ -1,0 +1,342 @@
+<div class="card rounded-0 mt-3">
+    <div class="card-content">
+        <div class="card-header p-2 pl-4 pr-4">
+            <h4 class="card-title d-flex justify-content-between align-items-center">
+                <span *ngIf="!isShowPersonCard">Assign roles</span>
+                <span *ngIf="isShowPersonCard">Assign roles
+                    to {{personDetails?.personName}}</span>
+                <button class="btn more-btn float-right"
+              [routerLink]="['/fibi/role-maintainance/userRolesList']"
+                    title="Back to role maintenance List">
+                    <i aria-hidden="true" class="fa fa-reply"></i>
+                </button>
+            </h4>
+        </div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col-sm-6 col-12">
+                    <label class="block-display">Person Name</label>
+                    <div class="searchBox">
+                        <app-elastic [options]="elasticSearchOptions" [options]="elasticSearchOptions"
+                        [isDisabled]="isPersonFieldDisabled"
+                            [placeHolder]="'Type full name, user id ,person id'" [clearField]="clearField"
+                            (selectedResult)="selectUserElasticResult($event)">
+                        </app-elastic>
+                    </div>
+                </div>
+                <div class="form-group col-md col-12 col-sm-6">
+                    <label class="block-display">Unit Name</label>
+                    <div class="searchBox" appKeyboardListener>
+                        <app-endpoint-search [httpOptions]="unitSearchOptions"
+                        [isDisabled]="isRoleUnitDisable"
+                            [placeHolder]="'Type here for Unit'" (onSelect)="selectUnitSearchValues($event)">
+                        </app-endpoint-search>
+                    </div>
+                </div>
+            </div>
+            <!-- resultCard -->
+            <div class="card card-inner resultCard viewMode" *ngIf="isShowPersonCard">
+                <div class="card-body gridSkin">
+                    <div class="row">
+                        <div class="col">
+                            <label class="block-display">Person ID</label>
+                            <span>{{personDetails?.personId}}</span>
+                        </div>
+                        <div class="col">
+                            <label class="block-display">User Name</label>
+                            <span>{{personDetails?.user_name}}</span>
+                        </div>
+                        <div class="col">
+                            <label class="block-display">Full Name</label>
+                            <span>{{personDetails?.personName}}
+                                <span *ngIf="personDetails?.isExternalUser === 'Y'" class="badge badge-warning ml-2">External</span>
+                            </span>
+                        </div>
+                        <div class="col">
+                            <label class="block-display">Email Address</label>
+                            <span>{{personDetails?.email_id}}</span>
+                        </div>
+                        <div class="col">
+                            <label class="block-display">Home Unit</label>
+                            <span>{{personDetails?.unit_name}}</span>
+                        </div>
+                        <div class="col">
+                            <label class="block-display">Directory Title</label>
+                            <span>{{personDetails?.directoryTitle}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body" *ngIf="isAssignedAndUnassignedWidget && isShowPersonCard">
+            <div class="row">
+                <div class="dual-list list-left col">
+                    <div class="card card-inner h-100">
+                        <div class="card-header">
+                            <label class="card-title col-12">Assigned Roles</label>
+                        </div>
+                        <ng-container>
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-1 pl-0">
+                                        <div *ngIf="tempAssignedList?.length > 0">
+                                            <label class="custom-checkbox">
+                                                <input title="Select All" type="checkbox" class="select-all"
+                                                    [(ngModel)]="checkall"
+                                                    (ngModelChange)="selectAllAssigned(checkall)">
+                                                <span class="checkmark"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-11">
+                                        <div class="searchBox">
+                                            <input [(ngModel)]="searchText"
+                                                (ngModelChange)="filterAssignedUnits(searchText)" type="text"
+                                                placeholder="Type here for a role with role name "
+                                                class="ng-pristine ng-valid ng-touched form-control">
+                                            <a *ngIf="!searchText" class="searchButton">
+                                                <i class="fa fa-search fa-med pt-2" aria-hidden="true"></i>
+                                            </a>
+                                            <a *ngIf="searchText" class="searchButton"
+                                                (click)="searchText = '';filterAssignedUnits(searchText)">
+                                                <i class="fa fa-close fa-med pt-2" aria-hidden="true"></i>
+                                            </a>
+
+                                        </div>
+                                    </div>
+                                </div>
+                                <ul *ngIf="tempAssignedList?.length;else noData" id="drop-container" class="list-group">
+                                    <li *ngFor="let list of tempAssignedList;let index=index"
+                                        class="drop-child list-group-item">
+                                        <div draggable="false">
+                                            <span class="inline-block-display">
+                                                <label class="custom-checkbox custom-alt">
+                                                    <input type="checkbox" [checked]="list.selected"
+                                                        (change)="list.selected = !list.selected">
+                                                    <span class="checkmark alt-check"></span>
+                                                </label>
+                                            </span>
+                                            <span class="inline-block-display">
+                                                <img *ngIf="list.descentFlag == 'Y' "
+                                                    alt="To set descent flag to Yes"
+                                                    (click)="setDescentType(list)" class="pointer"
+                                                    src="{{deployMap}}assets/images/tree1.png" aria-hidden="true">
+                                                <img *ngIf="list.descentFlag == 'N'"
+                                                    alt="To set descent flag to No"
+                                                    (click)="setDescentType(list)" class="pointer"
+                                                    src="{{deployMap}}assets/images/tree.png" aria-hidden="true">
+                                            </span>
+                                            <span (click)="list.selected = !list.selected"
+                                                class="inline-block-display">
+                                                <div id="visibleOrderId" draggable="false">
+                                                    {{list?.roleName}}
+                                                </div>
+                                            </span>
+                                            <span class="float-right u-icons">
+                                                <a>
+                                                    <i class="fa fa-eye icon"
+                                                        (click)="viewRoleDetails(list.roleId)"></i>
+                                                </a>
+                                            </span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </ng-container>
+                    <ng-template #noData>
+                        <div class="no-data-container">
+                          <span class="no-data-icon-outer">
+                            <div class="no-data-icon">
+                              <i class="fa fa-file-o" aria-hidden="true"></i>
+                              <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                            </div>
+                          </span>
+                          <h4>There is no information in this section.</h4>
+                        </div>
+                      </ng-template>
+                    </div>
+                </div>
+                <div class="list-arrows" [ngClass]="(isViewMode)?'col-lg-1':'col-lg-1'">
+                    <button class="btn btn-default btn-sml move-left " title="Add roles"
+                    (click)="noUnassignedData()">
+                        <span class="fa fa-angle-double-left"></span>
+                    </button>
+                    <button class="btn btn-default btn-sml move-right" title="Remove roles"
+                    (click)="noAssignedData()">
+                        <span class="fa fa-angle-double-right"></span>
+                    </button>
+                </div>
+                <div class="dual-list list-right col">
+                    <div class="card card-inner h-100">
+                        <div class="card-header">
+                            <label class="card-title col-12">Unassigned Roles</label>
+                        </div>
+                        <ng-container >
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-1 pl-0">
+                                        <div *ngIf="tempUnAssignedList?.length > 0" class="btn-group">
+                                            <label class="custom-checkbox">
+                                                <input title="Select All" type="checkbox" class="select-all"
+                                                    [(ngModel)]="allcheck"
+                                                    (ngModelChange)="selectAllUnAssigned(allcheck)">
+                                                <span class="checkmark"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-11">
+                                        <div class="searchBox">
+                                            <input [(ngModel)]="search"
+                                                (ngModelChange)="filterUnassignedUnits(search)" type="text"
+                                                placeholder="Type here for a role with role name"
+                                                class="ng-pristine ng-valid ng-touched form-control">
+
+                                            <a *ngIf="!search" class="searchButton">
+                                                <i class="fa fa-search fa-med pt-2" aria-hidden="true"></i>
+                                            </a>
+                                            <a *ngIf="search" class="searchButton"
+                                                (click)="search='';filterUnassignedUnits(search)">
+                                                <i class="fa fa-close fa-med pt-2" aria-hidden="true"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <ul *ngIf="tempUnAssignedList?.length;else noData" id="drop-container" class="list-group">
+                                    <li *ngFor="let list of tempUnAssignedList;let index=index"
+                                        class="drop-child list-group-item">
+                                        <div>
+                                            <span class="inline-block-display">
+                                                <label class="custom-checkbox custom-alt">
+                                                    <input type="checkbox" [checked]="list.selected"
+                                                        (change)="list.selected = !list.selected">
+                                                    <span class="checkmark alt-check"></span>
+                                                </label>
+                                            </span>
+                                            <span class="inline-block-display"
+                                                (click)="list.selected = !list.selected">
+                                                <div id="visibleOrderId"> {{list?.roleName}}</div>
+                                            </span>
+                                            <span class="float-right u-icons">
+                                                <a>
+                                                    <i class="fa fa-eye icon"
+                                                        (click)="viewRoleDetails(list.roleId)"></i>
+                                                </a>
+                                            </span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </ng-container>
+                    <ng-template #noData>
+                        <div class="no-data-container">
+                          <span class="no-data-icon-outer">
+                            <div class="no-data-icon">
+                              <i class="fa fa-file-o" aria-hidden="true"></i>
+                              <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                            </div>
+                          </span>
+                          <h4>There is no information in this section.</h4>
+                        </div>
+                      </ng-template>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade show mySkinDialog" tabindex="-1" id="UnassignedRoleModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Assign Role(s)
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ng-container *ngIf="tempModalDataList?.length;else noUnassigned">
+                    <p>Following Role(s) will be assigned to {{ personDetails.personName}}</p>
+                    <div class="fileChips d-inline-block mb-2" style="word-break: break-all;">
+                        <ng-container *ngFor="let list of tempModalDataList">
+                            <span>
+                                {{list.roleName}}
+                            </span>
+                        </ng-container>
+                    </div>
+                </ng-container>
+                <ng-template #noUnassigned>
+                    <div class="no-data-container">
+                        <span class="no-data-icon-outer">
+                            <div class="no-data-icon">
+                                <i class="fa fa-file-o" aria-hidden="true"></i>
+                                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                            </div>
+                        </span>
+                        <h4>No roles are selected to assign to {{ personDetails.personName}}.</h4>
+                    </div>
+                </ng-template>
+            </div>
+            <div *ngIf="tempModalDataList?.length" class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" data-dismiss="modal"
+                    (click)="moveUnAssignedList()">Proceed</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade show mySkinDialog" tabindex="-1" id="assignedRoleModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Unassign Role(s)
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ng-container *ngIf="tempModalDataList?.length;else noAssigned">
+                    <p> Following Role(s) will be removed from {{ personDetails.personName}}</p>
+                    <div class="fileChips d-inline-block mb-2 " style="word-break: break-all;">
+                        <ng-container *ngFor="let list of tempModalDataList">
+                            <span>
+                                {{list.roleName}}
+                            </span>
+                        </ng-container>
+                    </div>
+                </ng-container>
+                <ng-template #noAssigned>
+                    <div class="no-data-container">
+                        <span class="no-data-icon-outer">
+                            <div class="no-data-icon">
+                                <i class="fa fa-file-o" aria-hidden="true"></i>
+                                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                            </div>
+                        </span>
+                        <h4>No roles are selected to remove from {{ personDetails.personName}}.</h4>
+                    </div>
+                </ng-template>
+            </div>
+            <div *ngIf="tempModalDataList?.length" class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" data-dismiss="modal"
+                    (click)="moveAssignedList()">Proceed</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<app-view-rights-modal *ngIf="isShowRightsModal" 
+[roleId]="viewRoleId" (closeModal)="closeModal()">
+</app-view-rights-modal>

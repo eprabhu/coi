@@ -1,0 +1,271 @@
+<!-- Last updated by Jobin -->
+<div class="overlay" #awardNavOverlay (click)="hideTaskNavBar()"></div>
+<div *ngIf="_commonData.isShowtaskNavBar" class="task-right-div d-flex align-items-center" id="task-nav-bar">
+  <div class="tool-kit-body">
+    <div class="row m-0 pt-2 pb-2 border-bottom">
+      <div class="col-6">
+        <span><b>My Tasks</b>
+          <span *ngIf="_commonData.taskCount">[{{_commonData?.taskCount}}]</span>
+        </span>
+      </div>
+      <div class="col-5">
+        <select id="task_nav-bar-filter" class="custom-select txt-medium" [(ngModel)]="filterStatusCode"
+          (ngModelChange)="filterTaskByStatus(filterStatusCode)">
+          <option [ngValue]="null">Filter by</option>
+          <option [value]="filterValue.taskStatusCode" *ngFor="let filterValue of taskFilterValues">
+            {{filterValue.description}}</option>
+        </select>
+      </div>
+      <div class="col-1 pl-0 pr-2">
+        <button class="btn-close-task-nav" (click)="hideTaskNavBar()">
+          <i class="fa fa-times" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+    <div *ngIf="taskList?.length" class="task-list-scroll">
+      <div *ngFor="let task of taskList">
+        <div class="row task-list border-bottom pt-4 pb-4">
+          <div class="col-12"><b>{{task?.taskType?.description}}</b>
+            <span class="status-badge-{{getBadgeByStatusCode(task?.taskStatus?.taskStatusCode)}} rounded-icon fs-12">
+              {{task?.taskStatus?.description}}</span>
+          </div>
+          <div class="col-12 noDataExists fs-12">{{task?.description}}</div>
+          <div *ngIf="task?.sectionTypeCodes?.length && isAssigneeCheck(task)" class="col-12 ml-0 ">
+            <span aria-hidden="true" class="noDataExists fs-12 pt-3">Please make the necessary changes to the relevant
+              field(s) in the following Section
+              <a class="anchor-link fs-12" *ngFor="let item of getEditableSections(task?.sectionTypeCodes)">
+                <span *ngIf="item.variableType === 'T'" class="ml-2 hand-cursor" (mousedown)="navigateToSection(item)">
+                  {{item.name}}</span></a></span>
+          </div>
+          <div id="task-nav-toast-{{task?.taskId}}" class="toast-invisible">
+            <div class="success-banner p-2 mb-3 d-flex align-items-center">
+              <i *ngIf="task?.toastContent" class="pl-2 fa mr-2" [ngClass]="isSuccesToast ? 'fa-check-circle' : 'fa-times-circle'" aria-hidden="true"></i>
+              <em>{{task?.toastContent}}</em>
+            </div>
+          </div>
+          <div class="col-12 text-right">
+            <button title="View task" class="btn btn-outline-secondary" id="nav-to-task-btn"
+              [routerLink]="['/fibi/award/task/details']" [queryParams]={taskId:task.taskId} queryParamsHandling='merge'
+              (click)="hideTaskNavBar()">
+              View Task
+            </button>
+            <button *ngIf="isMaintainTask && (task?.taskStatus?.taskStatusCode === '1' ||
+              task?.taskStatus?.taskStatusCode === '4') && (awardData.award.awardId == task.moduleItemId || task.taskType?.isReviewTask == 'Y' )" class="btn btn-outline-danger" data-toggle="modal"
+              data-target="#cancelTaskFromNavBar" (click)="setTaskDetailsForDisplay(task)">Reject <span
+                class="d-none d-md-inline-block"> Task</span></button>
+            <button *ngIf="(task?.taskStatus?.taskStatusCode === '1' || task?.taskStatus?.taskStatusCode === '4') && (awardData.award.awardId == task.moduleItemId || task.taskType?.isReviewTask == 'Y' )
+              && isAssigneeCheck(task)" class="btn btn-primary" data-toggle="modal" data-target="#startTaskFromNavBar"
+              (click)="setTaskDetailsForDisplay(task)">Start
+              <span class="d-none d-md-inline-block"> Task</span></button>
+            <button *ngIf="isAssigneeCheck(task) && task?.taskStatus?.taskStatusCode === '2' && (awardData.award.awardId == task.moduleItemId || task.taskType?.isReviewTask == 'Y' )" class="btn btn-success"
+              (click)="triggerCompleteModal(task)">Complete <span class="d-none d-md-inline-block">
+                Task</span></button>
+            <button *ngIf="task?.taskStatus?.taskStatusCode === '3' && task?.canApproveRouting === '1'"
+              class="btn btn-outline-danger" data-toggle="modal" (click)="approveReturnTaskItem('R', task)"
+              data-target="#approveRejectTaskModalFromNavBar"><ng-container i18n="@@COMMON_RETURN">Return</ng-container> <span class="d-none d-md-inline-block">
+                Task</span></button>
+            <button *ngIf="task?.taskStatus?.taskStatusCode === '3' && task?.canApproveRouting === '1'"
+              class="btn btn-primary" data-toggle="modal" (click)="approveReturnTaskItem('A', task)"
+              data-target="#approveRejectTaskModalFromNavBar"><ng-container i18n="@@COMMON_APPROVE">Approve</ng-container> <span class="d-none d-md-inline-block">
+                Task</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="d-flex align-items-center justify-content-center task-list-scroll task-list-scroll"
+      *ngIf="!taskList?.length">
+      <div class="no-data-container">
+        <span class="no-data-icon-outer">
+          <div class="no-data-icon">
+            <i class="fa fa-file-o" aria-hidden="true"></i>
+            <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+          </div>
+        </span>
+        <h4>There is no information in this section.</h4>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Start Task -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="startTaskFromNavBar" data-backdrop="static" data-keyboard="false" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Start Task : #{{operatinOnTask?.taskId}} - {{operatinOnTask?.taskType?.description}}
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to start the task?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" data-dismiss="modal" data-toggle="modal">Cancel</button>
+        <button type="button" class="btn btn-primary-sub" (click)="startTask()" data-dismiss="modal">Start
+          Task</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!--  Complete Task -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="completeTaskModalFromNavBar" role="dialog"
+data-backdrop="static" data-keyboard="false" aria-hidden="true">
+  <div class="modal-dialog" [ngClass]='validationObject?.validationMsg?.length ? "modal-lg" : ""' role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" *ngIf="validationObject?.validationMsg?.length == 0">Complete Task</h5>
+        <h5 class="modal-title" *ngIf="validationObject?.validationMsg?.length != 0">Validation</h5>
+        <h5 class="modal-title">: #{{operatinOnTask?.taskId}} - {{operatinOnTask?.taskType?.description}}</h5> <button
+          type="button" class="close" data-dismiss="modal" (click)="isSaving = false" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-12">
+            <p *ngIf="validationObject?.validationMsg?.length == 0">Are you sure you want to complete the
+              task?</p>
+            <div *ngIf="validationObject?.validationMsg?.length != 0">
+              <ng-container *ngFor="let msg of validationObject?.errorList">
+                <div class="alert alert-danger p-2" role="alert">
+                  <i class="fa fa-exclamation-circle icon text-danger" aria-hidden="true"></i>
+                  <strong>Error:</strong>
+                  {{msg.validationMessage}}
+                </div>
+              </ng-container>
+              <ng-container *ngFor="let msg of validationObject?.warningList">
+                <div class="alert alert-warning p-2" role="alert">
+                  <i class="fa fa-exclamation-triangle icon text-warning" aria-hidden="true"></i>
+                  <strong> Warning: </strong>{{msg.validationMessage}}
+                </div>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <ng-container *ngIf="validationObject?.validationMsg?.length == 0">
+          <button type="button" class="btn-secondary" data-dismiss="modal" data-toggle="modal" (click)="isSaving = false">Cancel</button>
+          <button type="button" class="btn btn-primary-sub" (click)="completeTask()" data-dismiss="modal">Complete
+            Task</button>
+        </ng-container>
+        <ng-container
+          *ngIf="(validationObject?.warningList?.length > 0 && validationObject?.errorList?.length > 0) ||
+                                                              (validationObject?.warningList?.length == 0 && validationObject?.errorList?.length > 0)">
+          <button class="btn btn-secondary" data-dismiss="modal" (click)="isSaving = false">Close</button>
+        </ng-container>
+        <ng-container *ngIf="(validationObject?.warningList?.length > 0 && validationObject?.errorList?.length == 0)">
+          <button class="btn btn-secondary" data-dismiss="modal" (click)="isSaving = false">Cancel</button>
+          <button (click)="validationObject = {};validationObject.validationMsg = []"
+            class="btn btn-primary-sub">Continue to Complete</button>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- APPROVE-REJECT MODAL -->
+<div class="modal fade mySkinDialog" id="approveRejectTaskModalFromNavBar" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog"
+  aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          {{modalAproveHeading}} <span>Task
+            #{{operatinOnTask?.taskId}}</span>
+        </h5>
+        <button type="button" id="task-approve-reject-btn" class="close" data-dismiss="modal" aria-label="Close"
+          (click)="closeApproveDisapproveModal();">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body modal-inner-scroll">
+        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 viewMode resultCard">
+          <div class="row">
+            <div class="col-xl-4 col-lg-2 col-md-6 col-sm-6 col-6">
+              <label>Task ID</label>
+              <span>{{operatinOnTask?.taskId}}</span>
+            </div>
+            <div class="col-xl-4 col-lg-3 col-md-6 col-sm-6 col-6">
+              <label>Assignee</label>
+              <span class="d-block">{{operatinOnTask?.assigneeFullName}}</span>
+            </div>
+            <div class="col-xl-4 col-lg-7 col-md-4 col-sm-4 col-4">
+              <label>Task Type</label>
+              <span class="d-block">{{operatinOnTask?.taskType?.description}}</span>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <label class="mySkinDialog ">
+              <p class="m-0">
+                <strong>Comments</strong>
+              </p>
+            </label>
+            <textarea appAutoGrow id="task-approve-comments" placeholder=""
+              class="col-12 col-lg-12 commentBox form-control auto-grow-height" rows="2"
+              [ngClass]="isEmptyCommentArea ? 'is-invalid d-block' : ''" cols="20" appLengthValidator
+              [isShowLimiter]='true' [limit]=2000 [(ngModel)]="requestObject.approveComment"></textarea>
+            <span class="invalid-feedback d-block" *ngIf="isEmptyCommentArea">*Please add a
+              comment.</span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <label class="mySkinDialog">
+              <p class="m-0">
+                <strong>Add files</strong>
+              </p>
+            </label>
+            <app-file-drop [multiple]="true" (filesDropEvent)="fileDrop($event)"></app-file-drop>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <div class="fileChips regularFont">
+              <span *ngFor="let item of approveModalUploadedFile; let index=index">{{
+                      item?.name }} <i id="task-approve-attach-delete" class="fa fa-close hand-cursor"
+                  aria-hidden="true" title="Remove File" (click)="deleteFromUploadedFileList(item)"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="taskAttachmentWarningMsg != null">
+          <span class="mandatory font">{{taskAttachmentWarningMsg}}</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="task-approve-close" class="btn btn-secondary" data-dismiss="modal"
+          (click)="closeApproveDisapproveModal()">Close</button>
+        <button type="button" id="task-approve-reject-btn" class="btn btn-primary-sub"
+          (click)="maintainTaskWorkFlow()">{{modalAproveHeading}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<button type="button" id="confirm-btn-task_nav" [hidden]="true" data-toggle="modal"
+  data-target="#completeTaskModalFromNavBar"></button>
+<!-- Cancel Task -->
+<div class="modal fade show mySkinDialog" tabindex="-1" data-backdrop="static" data-keyboard="false" id="cancelTaskFromNavBar" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Reject Task : #{{operatinOnTask?.taskId}} - {{operatinOnTask?.taskType?.description}}
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to reject the task?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" data-dismiss="modal" data-toggle="modal">Cancel</button>
+        <button type="button" class="btn btn-primary-sub" (click)="cancelTask()" data-dismiss="modal">Reject
+          Task</button>
+      </div>
+    </div>
+  </div>
+</div>

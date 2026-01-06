@@ -1,0 +1,1 @@
+\. ./FIBI-COI-5.7.2.P1/FC-1388/Functions/FN_CHK_ACTIVE_PROJECTS.sql

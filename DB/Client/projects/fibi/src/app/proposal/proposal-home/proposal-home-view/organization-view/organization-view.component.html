@@ -1,0 +1,196 @@
+<!-- Last Updated by Arun Raj on 18-03-2021(Thursday) -->
+<div class="card mb-3" *ngIf="_commonService?.isProposalOrganizationEnabled">
+  <div class="card-header px-4">
+    <h4 class="card-title" id="proposal-organization-view">Organization     
+      <button id="organizationViewExpandBtn" class="updown-arrow" (click)="isCollapse = !isCollapse">
+        <i [ngClass]="isCollapse?'fa fa-angle-double-up':'fa fa-angle-double-down'" aria-hidden="true"
+          class="fa-large"></i>
+      </button>
+    </h4>
+  </div>
+  <div class="card-content" *ngIf="isCollapse">
+    <div class="card-body">
+      <div *ngIf="result?.proposalOrganizations?.length == 0" class="noDataExists px-2">There are no Organizations added
+        in this proposal</div>
+      <div class="table-responsive" *ngIf="result?.proposalOrganizations?.length > 0">
+        <table class="table tableSkin grid2" aria-describedby="organization-view">
+          <thead>
+            <th scope="col">Organization Type</th>
+            <th scope="col">Organization Name/Non-Employee</th>
+            <th scope="col">Point of Contact</th>
+            <th scope="col" *ngIf="result.enableOrganizationLocation">Location</th>
+            <th scope="col">Congressional District</th>
+          </thead>
+          <tbody>
+            <tr *ngFor="let org of result?.proposalOrganizations; let index = index">
+              <td>{{org?.organizationType? org?.organizationType?.description : 'No data'}}</td>
+              <td>
+                <a *ngIf="org?.rolodex && !org?.rolodex.organizations" class="anchor-link" data-toggle="modal" 
+                    (click)="getContactDetails(org?.rolodex?.rolodexId)">
+                    {{org?.rolodex? org?.rolodex?.organizationName : ''}}
+                </a>
+                <a *ngIf="org?.rolodex && org?.rolodex.organizations" class="anchor-link" data-toggle="modal" 
+                (click)="getContactDetails(org?.rolodex?.rolodexId)">
+                {{org?.rolodex? org?.rolodex?.organizations.organizationName : ''}}
+            </a>
+                <a *ngIf="org?.organization" class="anchor-link" data-toggle="modal" data-target="#organizationDetailsModal"
+                    (click)="getOrganizationDetails(index)">                               
+                    {{org?.organization? org?.organization?.organizationName : ''}}
+                </a>
+                <br>
+                <span  class="f-12" [innerHtml]="getOrganizationAddress(org)"> </span>  
+            </td>
+              <td>
+                <span *ngIf="isDefaultOrganizationType(org?.organizationTypeCode)">
+                  <a class="anchor-link" *ngIf="org?.organization?.contactPersonName; else noContact" data-toggle="modal" 
+                    (click)="getContactDetails(org?.organization?.contactAddressId)">
+                    <i aria-hidden="true"></i>
+                    {{org?.organization?.contactPersonName}}
+                  </a>
+                </span>
+                <span *ngIf="!isDefaultOrganizationType(org?.organizationTypeCode)" class="noDataExists">Not Applicable</span>
+                <ng-template #noContact>
+                  <span class="noDataExists">No Data</span>
+                </ng-template>
+              </td>
+              <td *ngIf="result.enableOrganizationLocation">
+                <span *ngIf="isDefaultOrganizationType(org?.organizationTypeCode)" class="noDataExists">Not Applicable</span>
+                <span *ngIf="!isDefaultOrganizationType(org?.organizationTypeCode)" [class.noDataExists]="!org?.location">
+                    {{org?.location ? org?.location : 'No Data'}}
+                </span>
+              </td>
+              <td>
+                <ng-container *ngIf="org?.proposalCongDistricts?.length > 0; else noDistrict">
+                  <span class="d-block" *ngFor="let dist of org?.proposalCongDistricts;">
+                    {{dist.congressionalDistrict ? dist.congressionalDistrict.description : 'No data'}}
+                  </span>
+                </ng-container>
+                <ng-template #noDistrict>
+                  <span class="noDataExists">No Data</span>
+                </ng-template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- View Organization details -->
+<div class="modal fade mySkinDialog" data-backdrop="static" data-keyboard="false" id="organizationDetailsModal"
+  role="dialog">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Organization Details</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body title-descriptions">
+        <div class="row mb-5">
+          <div class="col-lg-3 col-sm-6 col-12">
+            <label class="d-block">Organization ID</label>
+            <p [ngClass]="viewOrganizationDetails?.organization?.organizationId !== null ? '' : 'noDataExists'">
+              {{viewOrganizationDetails?.organization?.organizationId !== null ?
+              viewOrganizationDetails?.organization?.organizationId : 'No Data'}}
+            </p>
+          </div>
+          <div class="col-lg-3 col-sm-6 col-12">
+            <label class="d-block">Organization Name</label>
+            <p [ngClass]="viewOrganizationDetails?.organization?.organizationName !== null ? '' : 'noDataExists'">
+              {{viewOrganizationDetails?.organization?.organizationName !== null ?
+              viewOrganizationDetails?.organization?.organizationName : 'No Data'}}
+            </p>
+          </div>
+          <div class="col-lg-3 col-sm-6 col-12">
+            <label class="d-block">Country</label>
+            <p [ngClass]="viewOrganizationDetails?.organization?.country !== null ? '' : 'noDataExists'">
+              {{viewOrganizationDetails?.organization?.country !== null ?
+              viewOrganizationDetails?.organization?.country?.countryName
+              : 'No Data'}}
+            </p>
+          </div>
+          <div class="col-lg-3 col-sm-6 col-12">
+            <label class="d-block">Address</label>
+            <p [ngClass]="viewOrganizationDetails?.organization?.address !== null ? '' : 'noDataExists'">
+              {{viewOrganizationDetails?.organization?.address !== null ?
+              viewOrganizationDetails?.organization?.address
+              : 'No Data'}}
+            </p>
+          </div>
+        </div>
+        <div class="row mb-5">
+          <div class="col-lg-3 col-sm-6 col-12">
+            <label class="d-block">Telex Number</label>
+            <p [ngClass]="viewOrganizationDetails?.organization?.telexNumber !== null ? '' : 'noDataExists'">
+              {{viewOrganizationDetails?.organization?.telexNumber !== null ?
+              viewOrganizationDetails?.organization?.telexNumber : 'No Data'}}
+            </p>
+          </div>
+          <div class="col-lg-3 col-sm-6 col-12">
+            <label class="d-block">Congressional District</label>
+            <p [ngClass]="viewOrganizationDetails?.organization?.congressionalDistrict !== null ? '' : 'noDataExists'">
+              {{viewOrganizationDetails?.organization?.congressionalDistrict !== null ?
+              viewOrganizationDetails?.organization?.congressionalDistrict : 'No Data'}}
+            </p>
+          </div>
+          <div class="col-lg-3 col-sm-6 col-12">
+            <label class="d-block">Point of Contact</label>
+            <p [ngClass]="viewOrganizationDetails?.organization?.contactPersonName !== null ? '' : 'noDataExists'">
+              {{viewOrganizationDetails?.organization?.contactPersonName !== null ?
+              viewOrganizationDetails?.organization?.contactPersonName : 'No Data'}}
+            </p>
+          </div>
+          <div class="col-lg-3 col-sm-6 col-12">
+            <label class="d-block">Cable Address</label>
+            <p [ngClass]="viewOrganizationDetails?.organization?.cableAddress !== null ? '' : 'noDataExists'">
+              {{viewOrganizationDetails?.organization?.cableAddress !== null ?
+              viewOrganizationDetails?.organization?.cableAddress : 'No Data'}}
+            </p>
+          </div>
+        </div>
+        <div class="row mb-5">
+          <div class="col-lg-3 col-sm-6 col-12">
+            <label class="d-block">Vendor Code</label>
+            <p [ngClass]="viewOrganizationDetails?.organization?.vendorCode !== null ? '' : 'noDataExists'">
+              {{viewOrganizationDetails?.organization?.vendorCode !== null ?
+              viewOrganizationDetails?.organization?.vendorCode : 'No Data'}}
+            </p>
+          </div>
+          <div class="col-lg-3 col-sm-6 col-12">
+            <label class="d-block">DUNS Number</label>
+            <p [ngClass]="viewOrganizationDetails?.organization?.dunsNumber !== null ? '' : 'noDataExists'">
+              {{viewOrganizationDetails?.organization?.dunsNumber !== null ?
+              viewOrganizationDetails?.organization?.dunsNumber : 'No Data'}}
+            </p>
+          </div>
+          <div class="col-lg-3 col-sm-6 col-12">
+            <label class="d-block">DODAC Number</label>
+            <p [ngClass]="viewOrganizationDetails?.organization?.dodacNumber !== null ? '' : 'noDataExists'">
+              {{viewOrganizationDetails?.organization?.dodacNumber !== null ?
+              viewOrganizationDetails?.organization?.dodacNumber : 'No Data'}}
+            </p>
+          </div>
+          <div class="col-lg-3 col-sm-6 col-12">
+            <label class="d-block">CAGE Number</label>
+            <p [ngClass]="viewOrganizationDetails?.organization?.cageNumber !== null ? '' : 'noDataExists'">
+              {{viewOrganizationDetails?.organization?.cageNumber !== null ?
+              viewOrganizationDetails?.organization?.cageNumber : 'No Data'}}
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<app-person-rolodex-view (personRolodexViewModal)="setPersonRolodexModalView($event)" *ngIf="isRolodexViewModal" 
+[personRolodexType]="type" [personRolodexId]="id" [personRolodexIsTraining]="isTraining" 
+[personRolodexPersonDescription]="personDescription" ></app-person-rolodex-view>
+

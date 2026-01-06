@@ -1,0 +1,69 @@
+<div *ngIf="!isLoading">
+    <!-- selected engagement card -->
+    <app-migrated-engagements-card [engagementDetails]="engagementDetails" [isShowFooter]="isShowFooter"
+        [customClass]="'matching-card'" (cardActions)="engagementCardActions($event)">
+    </app-migrated-engagements-card>
+
+    <div class="coi-entity-list mt-3 rounded">
+        <!-- screen header and action buttons -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center p-3 fw-bold coi-entity-list-header">
+            <span>{{ customHeader }}</span>
+            <div class="d-flex flex-wrap gap-2">
+                <button *ngIf="currentStep !== 3" class="btn btn-primary d-flex align-items-center fs-14"
+                    title="Click here to {{ currentStep === 1 ? 'create new entity' : 'add new entity' }}"
+                    attr.aria-label="Click here to {{ currentStep === 1 ? 'create new entity' : 'add new entity' }}"
+                    (click)="handleCreateOrMatch()">
+                    <mat-icon aria-hidden="true" class="me-1">add</mat-icon>
+                    <span>{{ currentStep === 1 ? 'Create New Entity' : 'Add New Entity' }}</span>
+                </button>
+                <button id="coi-entity-batch-back-btn" name="coi-entity-batch-back-btn" (click)="navigateToBack()"
+                    class="btn btn-outline-grey fs-14 d-flex align-items-center btn-sm"
+                    title="Click here to navigate to previous step"
+                    aria-label="Click here to navigate to previous step">
+                    <mat-icon aria-hidden="true" class="flex-shrink-0">reply</mat-icon>
+                </button>
+            </div>
+        </div>
+        <!-- entity cards -->
+        <div *ngIf="cardDetails?.length && !isCreateEntity" class="col-12 p-3 pb-0">
+            <div class="d-flex flex-wrap align-items-center alert alert-primary mb-0 py-2">
+                <mat-icon class="mat-icon material-icons flex-shrink-0" aria-hidden="true">info</mat-icon>
+                <p class="d-inline-flex align-items-center fs-14 mb-0 ms-2 col">
+                    <span class="pe-1">{{ helpText }}</span>
+                </p>
+            </div>
+            <div class="col-12 pb-3 mt-1">
+                <ng-container *ngFor="let item of cardDetails">
+                    <app-migrated-entity-details-card [entityCardConfig]="item" [selectedEntityId]="selectedEntityId"
+                        [isDunsEntity]="hasDunsMatches" (cardActions)="entityCardActions($event)">
+                    </app-migrated-entity-details-card>
+                </ng-container>
+            </div>
+        </div>
+        <!-- entity creation -->
+        <div *ngIf="isCreateEntity && !cardDetails?.length && engagementDetails?.engagementId">
+            <div class="p-3">
+                <app-entity-creation [$performAction]="$performAction" [entityCreationConfig]="entityCreationConfig"
+                    (emitEntityDetails)="getNewEntityDetails($event)">
+                </app-entity-creation>
+                <!-- action buttons -->
+                <div class="row pb-1 pt-3">
+                    <div class="col d-flex flex-wrap justify-content-end align-items-center gap-2">
+                        <button (click)="navigateToBack()" id="coi-entity-cancel-btn"
+                            class="btn btn-outline-secondary fs-14"
+                            title="Click here to cancel entity creation"
+                            aria-label="Click here to cancel entity creation">
+                            Cancel
+                        </button>
+                        <button id="coi-entity-proceed-btn" (click)="createNewEntity()"
+                            class="btn btn-primary fs-14"
+                            title="Click here to proceed with entity creation"
+                            aria-label="Click here to proceed with entity creation">
+                            Create Entity
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,71 @@
+<div class="text-right fs-12 p-1" *ngIf="questionnaireUpdateDetail != null">
+    <span [innerHTML]="questionnaireUpdateDetail | customTagRemover: currentMethod"></span>
+</div>
+<div class="col-md-12 users-list-tbl mb-3 px-0"
+    *ngIf="comparedQuestionnaire.questions != undefined && comparedQuestionnaire.questions != null">
+    <div class="qst-list-padding">
+        <ng-container *ngFor='let question of comparedQuestionnaire.questions; let indexQuestion = index'>
+            <div  [ngClass]="{ 'delete-background': question.status == -1,
+            'add-background': question.status == 1}"
+             class="card questionnaire-card mb-4 p-4" *ngIf="question.SHOW_QUESTION == true">
+                <ul class="qst-list m-0 p-0">
+                    <li id="ques_{{question.QUESTION_ID}}">
+                        <div *ngIf="question?.ANSWER_TYPE !== 'Table'; else QUESTIONNAIRE_TABLE" class="">
+                            <p class="question-font mb-2" [innerHTML]='question?.QUESTION | customTagRemover: currentMethod'>
+                            </p>
+                            <ng-container *ngIf="question?.ANSWERS?.length > 0" >
+                            <div *ngFor = "let answer of question.ANSWERS">
+                              <label class="new-line-property" [innerHTML]="answer | customTagRemover: currentMethod"></label>
+                            </div>
+                            </ng-container>
+                            <div *ngIf="question?.ANSWERS?.length === 0">
+                            <h4 class="noDataExists">Not answered.</h4>
+                            </div>
+                        </div>
+                        <ng-template #QUESTIONNAIRE_TABLE>
+                            <div class="">
+                                <p class="question-font mb-2" [innerHTML]='question.QUESTION | customTagRemover: currentMethod'>
+                                </p>
+                                <div class="overflow-auto">
+                                    <table class="table tableSkin table-bordered table-question mb-0">
+                                        <thead>
+                                            <tr>
+                                                <ng-container *ngFor=" let option of questionnaire.options">
+                                                    <ng-container *ngIf="question.QUESTION_ID == option.QUESTION_ID">
+                                                        <th class="table-min-width" scope="col">{{option.OPTION_LABEL}}</th>
+                                                    </ng-container>
+                                                </ng-container>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <ng-container *ngIf="question.ANSWERS && question.ANSWERS">
+                                                <tr *ngFor="let answer of question.ANSWERS;let answerIndex = index;"
+                                                [ngClass]="{'delete-background': answer.status == -1, 'add-background': answer.status == 1}">
+                                                    <ng-container *ngIf="answer.AC_TYPE!== 'D'">
+                                                        <ng-container
+                                                            *ngFor=" let option of question.HEADERS; let columnHeaderIndex = index">
+                                                            <td class="p-0 align-top">
+                                                                <p class="mb-0 p-2 new-line-property"
+                                                                    [innerHTML]="answer['COLUMN_' + (columnHeaderIndex + 1)] | customTagRemover: currentMethod">
+                                                                </p>
+                                                            </td>
+                                                        </ng-container>
+                                                    </ng-container>
+                                                </tr>
+                                            </ng-container>
+                                            <tr *ngIf="question.IS_NO_VISIBLE_ANSWERS
+                                                || !(question.ANSWERS && question.ANSWERS)
+                                                || question.ANSWERS.length === 0">
+                                                <td class="text-center f-13" colspan="100%">No Answers Found</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </ng-template>
+                    </li>
+                </ul>
+            </div>
+        </ng-container>
+    </div>
+</div>

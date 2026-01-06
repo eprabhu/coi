@@ -1,0 +1,193 @@
+<div class="push4slideMenu pageMinHeight">
+    <div class="container-fluid pushFixedHeaderFooter">
+        <div class="headerPush"></div>
+        <div class="card rounded-0 mt-4">
+            <div class="card-content">
+                <div class="card-header py-3">
+                    <h4 class="card-title d-flex mr-3">
+                        <span class="pl-0 col-8">User Activity Log</span>
+                        <span *ngIf="activityList !== null && activityList?.length !== 0"
+                            class="col-4 exportButton text-right">
+                            <!-- <span class="anchor-link mr-3" [routerLink]="['/fibi/user-authentication']" title="Click here to view the list of external users">
+                View external users list
+              </span> -->
+                            <span class="exportIcon-margin">Export as :</span>
+                            <a title="Export data to Excel sheet" class="exportIcon-margin  hand-cursor"
+                                id="export-prop-excel-btn" (click)="printAsExcel()">
+                                <i aria-hidden="true" class="fa fa-file-excel-o"></i>
+                            </a>
+                        </span>
+                        <a class="tooltip-helptext"><i
+                                class="fa fa-info-circle ct-icon-right float-right hand-cursor mt-2" aria-hidden="true"
+                                (click)="helpInfo = !helpInfo"></i></a>
+
+                    </h4>
+                </div>
+
+                <div *ngIf="helpInfo" class="mx-4 mt-3">
+                    <div class="col-12">
+                        <div class="p-2 row success-banner">
+                            <div class="col-auto pl-2 pr-3">
+                                <i aria-hidden="true" class="fa fa-info-circle mr-1 info-icon"></i>
+                            </div>
+                            <div class="col px-0"><em>This module lists the User Activity Log. The Log includes Login
+                                    and Logout activity of each person.
+                                    It is possible to export the log as well.</em>
+                            </div>
+                            <div class="col-auto pr-2">
+                                <button aria-label="Close" class="close close-button " data-dismiss="modal"
+                                    id="modal-close" type="button" (click)="helpInfo = false">
+                                    <span aria-hidden="true" class="d-block">×</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="col-xl-2 col-lg-2 col-sm-6 col-12">
+                                    <label class="d-block">Date</label>
+                                    <label class="d-sm-block">{{userActivity?.startDate | dateFormatterWithTimeZone}}
+                                        <label *ngIf="isEndDateValid && userActivity.endDate"> to
+                                            {{userActivity?.endDate | dateFormatterWithTimeZone}}</label></label>
+                                </div>
+                                <div class="col-lg-2 col-sm-6 col-12">
+                                    <label class="d-block">Home Unit</label>
+                                    <app-look-up [options]='homeUnitOptions' [selectedLookUpList]="selectedUnit"
+                                        (selectedResult)="onLookupSelect($event)" [externalArray]="homeUnitList"
+                                        [isExternalArray]="true">
+                                    </app-look-up>
+                                </div>
+                                <div class="col-lg-2 col-sm-6 col-12">
+                                    <label class="d-block">Person Name</label>
+                                    <app-elastic [options]="elasticSearchOptionsPerson" placeHolder="Person Name"
+                                        id="user-activity-log-searchBox" (selectedResult)="selectPerson($event)">
+                                    </app-elastic>
+                                </div>
+                                <div class="col-lg-2 col-sm-6 col-12">
+                                    <label class="d-block">Activity Type</label>
+                                    <select class="form-control" [(ngModel)]="userActivity.loginStatus"
+                                        id="user-activity-log-activitytype">
+                                        <option class="drop" value="">--Select--</option>
+                                        <option class="drop" value="IN">IN</option>
+                                        <option class="drop" value="OUT">OUT</option>
+                                    </select>
+                                </div>
+                                <div class="col-lg col-sm-6 col-12 dropdown">
+                                    <label class="d-block">From</label>
+                                    <span class="dateField">
+                                        <input matInput [matDatepicker]="dueFromDt" id="user-activity-start-date" 
+                                            [(ngModel)]="userActivity.startDate" class="form-control d-inline-block"
+                                            autocomplete="off" (click)="dueFromDt.open()"
+                                            (keypress)="_commonService._keyPress($event, 'date')"
+                                            (ngModelChange)="dateValidation()"
+                                            [ngClass]="(warningMessage.get('dueDateWarningText')) ? 'is-invalid d-block' : ''" />
+                                        <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor"
+                                            title="open calendar" (click)="dueFromDt.open()"></span>
+                                        <mat-datepicker #dueFromDt (opened)="setFocusToElement('user-activity-start-date')"
+                                            (ngModelChange)="dateValidation()">
+                                        </mat-datepicker>
+                                    </span>
+                                    <div class="invalid-feedback block-display" *ngIf="warningMessage">
+                                        {{warningMessage.get('dueDateWarningText')}}
+                                    </div>
+                                </div>
+                                <label class="d-none d-sm-inline-block p-2 mt-4 pt-3">-</label>
+                                <div class="col-lg col-sm-6 col-12">
+                                    <label class="d-block">To</label>
+                                    <span class="dateField">
+                                        <input matInput [matDatepicker]="dueToDt" id="user-activity-end-date"
+                                            [(ngModel)]="userActivity.endDate" class="form-control d-inline-block"
+                                            autocomplete="off" (click)="dueToDt.open()"
+                                            (keypress)="_commonService._keyPress($event, 'date')"
+                                            (ngModelChange)="dateValidation()">
+                                        <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor"
+                                            title="open calendar" (click)="dueToDt.open()"></span>
+                                        <mat-datepicker #dueToDt (opened)="setFocusToElement('user-activity-end-date')"
+                                            (ngModelChange)="dateValidation()">
+                                        </mat-datepicker>
+                                    </span>
+                                </div>
+                                <div class="col-lg-auto col-md-6 col-12 mt-22">
+                                    <button id="search-user-activity" title="Search" class="btn btn-primary btn-xs"
+                                        (click)="validateSearch()">Search</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card card-table-box rounded-0">
+                        <div class="table-responsive">
+                            <table class="table tableSkin mb-0" aria-describedby="user-activity-list">
+                                <tr class="header-border">
+                                    <th id="sortby-person-id" (click)="sortClick('personId',isDesc)">
+                                        <span class="hand-cursor" title="Click to sort by Person Id">Person ID</span>
+                                        <i aria-hidden="true"
+                                            [ngClass]="((column == 'personId')  ? (isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')">
+                                        </i>
+                                    </th>
+                                    <th id="sortby-Person-name" (click)="sortClick('person.fullName',isDesc)">
+                                        <span class="hand-cursor" title="Click to sort by Person name">Person
+                                            Name</span>
+                                        <i aria-hidden="true"
+                                            [ngClass]="((column == 'person.fullName')  ? (isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                                    </th>
+                                    <th scope="col" id="sortby-Unit" (click)="sortClick('unit.unitName',isDesc)">
+                                        <span class="hand-cursor" title="Click to sort by Unit">Unit</span>
+                                        <i aria-hidden="true"
+                                            [ngClass]="((column == 'unit.unitName')  ? (isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')">
+                                        </i>
+                                    </th>
+                                    <th scope="col" id="sortby-Activity-Type" (click)="sortClick('loginStatus',isDesc)" class="text-center">
+                                        <span class="hand-cursor" title="Click to sort by Activity Type">Activity Type</span>
+                                        <i aria-hidden="true"
+                                            [ngClass]="((column == 'loginStatus')  ? (isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')">
+                                        </i>
+                                    </th>
+                                    <th id="sortby-updateTimestamp" (click)="sortClick('dateAndTime',isDesc)">
+                                        <span class="hand-cursor" title="Click to sort by Date and Time">Date and
+                                            Time</span>
+                                        <i aria-hidden="true"
+                                            [ngClass]="((column == 'dateAndTime')  ? (isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')">
+                                        </i>
+                                    </th>
+                                </tr>
+                                <tr *ngFor="let log of activityList?.personLoginDetails">
+                                    <td>{{log?.personId}}</td>
+                                    <td>{{log?.fullName}}</td>
+                                    <td>{{concatUnitNumberAndUnitName(log?.unit?.unitNumber,log?.unit?.unitName)}}</td>
+                                    <td class="text-center">
+                                        <span class="badge-box"
+                                            [ngClass]="log.loginStatus == 'IN' ? 'badge-primary' : 'badge-danger'">{{log.loginStatus}}</span>
+                                    </td>
+                                    <td>{{log?.updateTimestamp | dateFormatterWithTimeZone: 'long'}}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="no-data-container" *ngIf="activityList?.personLoginDetails?.length == 0">
+                            <span class="no-data-icon-outer">
+                                <div class="no-data-icon">
+                                    <i class="fa fa-file-o" aria-hidden="true"></i>
+                                    <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                                </div>
+                            </span>
+                            <h4>There is no information in this section.</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Pagination -->
+            <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12"
+                *ngIf="activityList?.personLoginDetails?.length">
+                <div>
+                    <nav class="pagination justify-content-end">
+                        <app-pagination [totalCount]="activityList?.userActivityCount"
+                            (pageChangeEvent)="actionsOnPageChange($event)">
+                        </app-pagination>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>

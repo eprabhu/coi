@@ -1,0 +1,116 @@
+<!-- project create modal -->
+<app-common-modal [modalConfig]="modalConfig" (modalAction)="postConfirmation($event)">
+    <ng-container modal-header>
+        <span>Create {{ activeProjectsTypes?.length === 1 ? projectType : 'Project' }} Disclosure</span>
+        <app-common-help-text [helpTextHardCoded]="'You are about to create '+ (activeProjectsTypes?.length === 1 ? projectType?.toLowerCase() : 'project')+' disclosure.'"></app-common-help-text>
+    </ng-container>
+    <ng-container modal-content-sticky>
+        <div class="row row-gap-2 pt-1">
+            <!-- financial engagement created validation message -->
+            <ng-container *ngIf="(isShowErrorMessage && (userProjectList?.length || !isShowAllProjects || activeProjectsTypes?.length > 1))">
+                <div class="col-12">
+                    <div class="alert alert-danger fs-14 shadow-sm m-0 gap-2" role="alert" attr.aria-label="Error: {{ errorMessage }}">
+                        <div class="d-flex align-items-start alert-heading flex-column">
+                            <div class="d-flex align-items-center gap-1">
+                                <mat-icon class="fs-4 text-danger flex-shrink-0 mb-auto" aria-hidden="true">error</mat-icon>
+                                <span class="me-1">{{ errorMessage }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+    </ng-container>
+    <ng-container modal-body>
+        <div class="row">
+            <!-- Home Unit -->
+            <div *ngIf="(activeProjectsTypes?.length > 1) || !isShowAllProjects || (activeProjectsTypes?.length === 1 && userProjectList?.length)">
+                <ng-container *ngTemplateOutlet="showUnit"></ng-container>
+            </div>
+            <ng-container *ngIf="!isShowAllProjects">
+                <!-- selected project card -->
+                <div class="col-12" [class.mt-2]="canEditDisclosureUnit">
+                    <app-shared-project-details-card [projectDetails]="projDisclCreateConfig?.selectedProject"
+                        customClass="card-header-border-none overflow-hidden"
+                        columnClass="col-12 col-sm-6 col-md-6 col-lg-4 col-xl-4 col-xxl-4"
+                        [needReporterRole]="true" [isOpenSlider]="true"
+                        [uniqueId]="'coi-project-create-modal-' + projDisclCreateConfig?.selectedProject?.projectId">
+                    </app-shared-project-details-card>
+                </div>
+            </ng-container>
+            <!-- all projects list with search -->
+            <div *ngIf="isShowAllProjects" class="col-12">
+                <!-- Project Type -->
+                <ng-container *ngIf="activeProjectsTypes?.length > 1">
+                    <div class="d-flex flex-column gap-1">
+                        <div class="coi-text-dark">
+                            <span class="mandatory fs-14 fw-600 me-1">*</span>
+                            <span>Project Type</span>
+                            <app-common-help-text [helpTextHardCoded]="projectTypeHelpText"></app-common-help-text>
+                        </div>
+                        <div class="d-flex">
+                            <ul class="fs-14">
+                                <ng-container *ngFor="let type of activeProjectsTypes">
+                                    <li class="d-flex align-items-center">
+                                        <input [(ngModel)]="projectListConfiguration.projectTypeCode" (ngModelChange)="changeProjectType(type?.coiProjectTypeCode)"
+                                            [value]="type?.coiProjectTypeCode" class="me-2 cursor-pointer" type="radio"
+                                            id="coi-discl-proj-{{type?.coiProjectTypeCode}}" name="coi-discl-proj-name-{{type?.coiProjectTypeCode}}">
+                                        <label class="coi-text-dark cursor-pointer fw-normal" for="coi-discl-proj-{{type?.coiProjectTypeCode}}">{{type?.description}}</label>
+                                    </li>
+                                </ng-container>
+                            </ul>
+                        </div>
+                    </div>
+                </ng-container>
+                <app-configurable-project-list *ngIf="!isLoading" [projectListConfiguration]="projectListConfiguration"
+                    (projectListChanged)="cardApiActions($event)" (inputActions)="cardInputActions($event)">
+                    <!-- home unit for all projects -->
+                    <ng-container sticky-content>
+                        <div class="d-flex align-items-center gap-1 col-12">
+                            <span class="coi-text-dark">{{projectType}}s</span>
+                            <span class="d-inline-flex align-items-center justify-content-center fs-12 count-badge badge rounded-pill rounded-circle">{{userProjectList?.length}}</span>
+                        </div>
+                    </ng-container>
+                </app-configurable-project-list>
+            </div>
+        </div>
+    </ng-container>
+    <!-- home unit edit template -->
+    <ng-template #showUnit>
+        <ng-container *ngIf="canEditDisclosureUnit">
+            <div class="col-12 mb-2">
+                <label for="coi-project-create-modal-home-unit" class="coi-text-dark"><span class="mandatory fs-14 fw-600 me-1">*</span>
+                    <span>Disclose at Unit</span>
+                    <app-common-help-text [helpTextHardCoded]="DISCLOSURE_CREATE_UNIT_HELP_TEXT"></app-common-help-text>
+                </label>
+                <!-- home unit with edit btn -->
+                <button *ngIf="!isShowUnitSearch" class="d-flex align-items-center gap-1 btn-none fs-14 ms-2"
+                    aria-label="Click here to edit unit" (click)="isShowUnitSearch = true" id="coi-project-create-modal-edit-home-unit">
+                    <span class="coi-text-light">{{ currentHomeUnit.homeUnit }}</span>
+                    <!-- A title is provided because the icon is displayed as a button. As a feature, clicking on the unit also triggers the edit action. -->
+                    <span class="d-flex align-items-center justify-content-center btn btn-primary-icon rounded-circle p-1 m-0"
+                        id="close-edit-home-unit" title="Click here to edit unit">
+                        <mat-icon aria-hidden="true" class="coi-mat-icon-size">edit</mat-icon>
+                    </span>
+                </button>
+                <!-- home unit endpoint search with reset btn -->
+                <div *ngIf="isShowUnitSearch" class="d-flex mt-2 gap-2">
+                    <!-- home unit endpoint search -->
+                    <app-endpoint-search (onSelect)="selectedUnitEvent($event)" [clearField]="clearField"
+                        [httpOptions]="unitSearchOptions" placeHolder="Search by Unit"
+                        [uniqueId]="'coi-project-create-modal-home-unit'" autocomplete="off"
+                        [isError]="(mandatoryList?.has('homeUnit'))" class="w-100">
+                    </app-endpoint-search>
+                    <!-- reset btn -->
+                    <button class="d-flex justify-content-center align-items-center btn btn-primary-icon btn-sm mt-0 border fw-normal px-3"
+                        (click)="resetHomeUnit()" id="coi-project-create-modal-reset-home-unit"
+                        title="Click here to reset unit" aria-label="Click here to reset unit" [class.reset-highlight]="!currentHomeUnit.unitNumber">
+                        <span class="fa fa-rotate-left" aria-hidden="true"></span>
+                        <span class="ms-2">Reset</span>
+                    </button>
+                </div>
+                <span *ngIf="mandatoryList?.has('homeUnit')" class="d-block fs-13 invalid-feedback">{{ mandatoryList?.get('homeUnit') }}</span>
+            </div>
+        </ng-container>
+    </ng-template>
+</app-common-modal>

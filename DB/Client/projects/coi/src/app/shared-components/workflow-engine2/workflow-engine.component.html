@@ -1,0 +1,689 @@
+<!-- MAP LIST -START -->
+<div id="route-log-header-container" *ngIf="this.workFlowResult?.workflowList"
+    class="flex-sm-wrap flex-lg-nowrap flex-sm-row-reverse flex-lg-row justify-content-lg-between mx-0 mb-2 shadow-sm border bg-white"
+    [class.d-flex]="this.workFlowResult?.workflowList?.length && selectedMap"
+    >
+        <div id="route-log-map-container" class="d-flex map-list ps-0">
+            <div id="route-log-map-container-tab-{{index}}" *ngFor="let map of mapWorkFlow;  let index = index ; let last = last; let first = first;" tabindex="0"
+                [attr.aria-label]="'map number' + map?.mapNumber + map?.mapName + 'is' + workFlowStatus.get(mapStatusList[index]) +'.' +' press enter to select'"
+                class="d-flex align-content-center position-relative py-1 arrow-container all-maps {{ 'border-top-0 border-start-0 border-end-0 ' + statusBadgeStyleMapping.get(mapStatusList[index])}}"
+                (click)="switchMap(index)" (keyup.enter)="switchMap(index)"
+                [class.selected-map]="selectedMap?.mapNumber == map?.mapNumber"
+                [class.map-options]="selectedMap?.mapNumber != map?.mapNumber" [class.completed-map]="map?.isMapCompleted">
+                <div class="d-flex align-items-center" [class.ms-4]="!first">
+                    <div class="d-flex align-items-center ms-5">
+                        <div *ngIf="mapStatusList[index]" class=" text-center me-3">
+                            <app-icon-map [id]="'-route-log-'+map?.mapNumber+ index" [iconCode]="mapStatusList[index]"
+                                [size]="30"></app-icon-map>
+                        </div>
+                        <div>
+                            <div class="d-flex align-items-center">
+                                <span class="map-label text-dark fw-600 fs-15 mb-0"
+                                    [title]="map?.mapName">{{map?.mapNumber}}-{{map?.mapName}}</span>
+                            </div>
+                            <div class="fw-500  fs-12 "> {{workFlowStatus.get(mapStatusList[index])}}</div>
+                        </div>
+                        <div class="{{statusBadgeStyleMapping.get(mapStatusList[index])}} right-arrow " aria-hidden="true"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <div id="route-log-verson-container" class="d-flex align-items-center me-4"
+    [class.justify-content-end]="!selectedMap && this.workFlowResult?.workflowList?.length"
+    [class.justify-content-center]="this.workFlowResult?.workflowList && selectedMap"
+    [class.mt-4]="!selectedMap && this.workFlowResult?.workflowList?.length"
+    >
+        <div class="dropdown"
+        [class.mt-1]="!this.workFlowResult?.workflowList || (!selectedMap && this.workFlowResult?.workflowList?.length)"
+        >
+            <button id="route-log-version-button"
+                class="d-flex justify-content-around align-items-center btn btn-tertiary my-0 calendar-button ms-2 fs-16"
+                [attr.aria-label]="'Current Version is' + versionHistorySelected+'.' + 'press enter to change version.'"
+                title="Workflow Versions" style="width: 8.75rem;" data-bs-toggle="dropdown">
+                <i class="fa fa-code-fork " aria-hidden="true"></i>
+                <span>Version {{versionHistorySelected}}</span>
+                <i aria-hidden="true" class="fa fa-chevron-down fs-14 "></i>
+            </button>
+            <div class="dropdown-menu">
+                <span tabindex="0" *ngFor="let version of workFlowResult?.workflowList" class="dropdown-item fs-15"
+                    (keyup.enter)="routeLogVersionChange(version?.workflowSequence);focusVersionButton()"
+                    (click)="routeLogVersionChange(version?.workflowSequence)">
+                    <span>Version
+                        {{version?.workflowSequence}}</span>
+                </span>
+            </div>
+        </div>
+        <span id="route-log-general-detail" class="d-inline-block float-right icon-hover ms-2"
+        [class.invisible]="!selectedMap && this.workFlowResult?.workflowList?.length"
+        [class.mt-1]="!selectedMap && this.workFlowResult?.workflowList?.length">
+            <a class="tooltip "><i class="fa fa-info-circle fa-med hand-cursor" aria-hidden="true"></i>
+                <div class="tooltiptext-right card card-inner p-15 text-start">
+                    <span class="font-cv">Workflow Start Date: </span>
+                    <span class="font-cv font-weight-bold">{{workflowStartDate |
+                        dateFormatterWithTimeZone:'long'}}</span>
+                    <ng-container *ngIf="workflowEndDate">
+                        <span class="font-cv">Workflow End Date: </span>
+                        <span class="font-cv font-weight-bold">{{workflowEndDate |
+                            dateFormatterWithTimeZone:'long'}}</span>
+                    </ng-container>
+                    <ng-container *ngIf="moduleDetails?.submitUserFullName">
+                        <span class="font-cv">Submitted By: </span>
+                        <span class="font-cv font-weight-bold">{{workflowCreatedBy}}</span>
+                    </ng-container>
+
+                </div>
+            </a>
+        </span>
+    </div>
+
+    <ng-container *ngIf="!selectedMap && this.workFlowResult?.workflowList?.length > 0">
+        <div id="route-log-nodata-container" class="no-data-container bg-white" >
+            <span class="no-data-icon-outer mb-3">
+                <div class="no-data-icon">
+                    <img src="{{deployMap}}assets/images/workflow-no-approval-stops.png" alt="No approval stops">
+                </div>
+            </span>
+            <ng-container  >
+                <h3>No approval stops have been generated for this submission.</h3>
+            </ng-container>
+        </div>
+    </ng-container>
+</div>
+
+<ng-container *ngIf="!this.workFlowResult?.workflowList">
+    <div id="route-log-nodata-container" class="no-data-container" >
+        <span class="no-data-icon-outer">
+            <div class="no-data-icon">
+                <i class="fa fa-file-o" aria-hidden="true"></i>
+                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+            </div>
+        </span>
+        <h4>There is no information in this section.</h4>
+    </div>
+</ng-container>
+<!-- MAP LIST -END -->
+
+<div id="route-log-body-container" class="mySkinDialog card">
+   <div id="route-log-map-header-container" *ngIf="this.workFlowResult?.workflowList && selectedMap " tabindex="0" 
+        [attr.aria-label]="'map number ' + selectedMap?.mapNumber + '. '+ selectedMap?.mapName + ' have ' + selectedMap?.sequentialStops.length + ' stops. '+ stopNames"
+        class="d-flex justify-content-between align-items-center m-4 p-3 selected-map-header">
+        <div>
+            <span class="ms-2 fs-15 fw-600">{{selectedMap?.mapId}} - {{selectedMap?.mapName}} -
+                {{selectedMap?.mapDescription}}</span>
+            <span class="ms-2 p-2 fs-12 text-white  badge badge-success "
+                *ngIf="versionHistorySelected == latestVersion && selectedMap?.mapType=='E' && selectedMap?.isScoringPanel">Scoring
+                Panel</span>
+            <span
+                *ngIf="versionHistorySelected == latestVersion && selectedMap?.mapType=='E' && !selectedMap?.isScoringPanel"
+                class="p-2 ms-2 fs-12 badge badge-secondary text-white">Non-Scoring Panel
+            </span>
+        </div>
+        <button id="route-log-add-seq-stop-btn"
+            *ngIf="versionHistorySelected == latestVersion && addApproverRight && selectedMap?.mapType!='E' && isStopActive(getMapListBasedOnMapNumber(selectedMap?.mapNumber))"
+            class="btn btn-outline-grey action-button btn-small me-4 fw-500"
+            [attr.aria-label]="'press enter to '+ WORKFLOW_NEW_SEQUENTIAL_STOP_BUTTON +' to this map.'"
+            [attr.title]="WORKFLOW_NEW_SEQUENTIAL_STOP_BUTTON"
+            (click)=" openWorkFlowActionModal(selectedMap ,'NEW_SEQUENTIAL_STOP', [])">
+            <i class="fa fa-dot-circle-o me-2 fs-15" aria-hidden="true"></i>
+            {{WORKFLOW_NEW_SEQUENTIAL_STOP_BUTTON}}</button>
+    </div>
+
+
+    <!-- SEQUENTIAL STOP TREE -START -->
+    <div id="route-log-primary-approver-container" class="animate-tree" [class.animate-tree]="isAnimate">
+        <ng-container
+            *ngIf="selectedMap?.mapType!='E' ||(selectedMap?.mapType=='E' && (selectedMap?.isLoginPerson || isShowEvaluationMap))">
+            <div *ngFor="let sequentialStop of selectedMap?.sequentialStops; let stopIndex = index; let isLastStop = last"
+                class=" mx-5" tabindex="0"
+                [attr.aria-label]="'Stop name.'+ sequentialStop.stopName + ' have ' + sequentialStop.primaryApprovers.length + ' primary approvers.'">
+
+                <!-- STOP_HEADER_START -->
+                <div id="route-log-stop-container-{{stopIndex}}"
+                    class=" stop-header py-2 border ps-3 d-flex justify-content-between align-items-center">
+                    <div id="route-log-stop-container-{{stopIndex}}">
+                        <span id="route-log-stopname-stopnumber-{{stopIndex}}">
+                            <span id="route-log-stop-name-{{stopIndex}}"
+                                class="fw-600 fs-16 p-1 stop-number">{{sequentialStop.stopNumber}}</span>
+                            <label id="route-log-stop-number-{{stopIndex}}" class="ms-2">{{sequentialStop.stopName ?
+                                sequentialStop.stopName : DEFAULT_STOP_NAME + sequentialStop.stopNumber}}</label>
+                        </span>
+                        <span id="route-log-adhoc-badge-{{stopIndex}}" *ngIf="sequentialStop?.note"
+                            class="person-badge adhoc-badge ms-2"><i class="fa fa-exclamation-circle me-1"
+                                aria-hidden="true"></i> Adhoc </span>
+                    </div>
+                    <div id="route-log-add-approver-container-{{stopIndex}}">
+                        <button id="route-log-add-approver-button-{{stopIndex}}"
+                            [title]="WORKFLOW_ADD_NEW_APPROVER_BUTTON"
+                            class="btn btn-tertiary btn-sm me-3 btn-small action-button fw-500" id="add-approver-btn"
+                            [attr.aria-label]="'press enter to ' + WORKFLOW_ADD_NEW_APPROVER_BUTTON + ' to this stop.'"
+                            *ngIf="selectedMap?.mapType!='E' && isStopActive(sequentialStop.allApprovers) && addApproverRight && (versionHistorySelected == latestVersion)"
+                            (click)="openWorkFlowActionModal(sequentialStop.primaryApprovers[0] ,'NEW_APPROVER', sequentialStop.allApprovers)">
+                            <i aria-hidden="true" class="fa fa-user-plus me-1"></i>
+                            {{WORKFLOW_ADD_NEW_APPROVER_BUTTON}}
+                        </button>
+                    </div>
+                </div>
+                <!-- STOP_HEADER_END -->
+
+                <!-- APPROVER_TREE_START -->
+                <div id="route-log-approvers-container-{{stopIndex}}" class="card-body approvers-list  me-0 pe-0">
+                    <div id="route-log-approver-container-{{stopIndex}}-{{primaryApproverIndex}}"
+                        *ngFor="let primaryApprover of sequentialStop.primaryApprovers ;let first=first; let isLastPrimaryApprover = last let primaryApproverIndex = index"
+                        class="vertical-line-top primary-approver-card border d-flex justify-content-md-between justify-content-lg-between align-items-md-center align-items-md-center ps-3 me-0 py-3 
+                        flex-sm-wrap flex-lg-nowrap"
+                        [class.mb-3]="!isLastPrimaryApprover"
+                        [class.vertical-line-bottom]="!isLastStop || !isLastPrimaryApprover">
+                        <!-- STATUS_MARKER_BADGE_START -->
+                        <div id="route-log-status-marker-container-{{stopIndex}}-{{primaryApproverIndex}}"
+                            class="d-flex align-items-center p-2 status-indicator rounded-pill {{statusBadgeStyleMapping.get(primaryApprover?.approvalStatusCode)}} tree-mode">
+                            <span id="route-log-stop-status-icon-{{stopIndex}}-{{primaryApproverIndex}}">
+                                <app-icon-map [id]="'-route-log-'+ primaryApproverIndex +'-'+ stopIndex"
+                                    [iconCode]="primaryApprover?.approvalStatusCode" [size]="30"></app-icon-map>
+                            </span>
+                            <div id="route-log-stop-status-{{stopIndex}}-{{primaryApproverIndex}}" class="text-center"
+                                style="width:9.5rem">
+                                <span class="me-2 fs-14 fw-600 ">{{ selectedMap?.mapType =='E' &&
+                                    primaryApprover?.approvalStatusCode == 'W' ? 'Waiting for evaluation' :
+                                    workFlowStatus.get(primaryApprover?.approvalStatusCode)}}</span>
+                            </div>
+                        </div>
+                        <!-- STATUS_MARKER_BADGE_END -->
+
+                        <!-- PRIMARY_APPROVER_TREE_START -->
+                        <div id="route-log-primaryApprover-container-{{stopIndex}}-{{primaryApproverIndex}}"
+                            class="person-tree px-0 "
+                            [class.d-flex]="primaryApprover.alternateApprovers.length == 0"
+                            [class.w-100]="['T','W'].includes(primaryApprover?.approvalStatusCode) || (selectedMap?.mapType=='E' && !primaryApprover.approvalComment)"
+                            tabindex="0" [attr.aria-label]="getApproverScreenReaderLabel(primaryApprover)">
+                            <div class="w-100">
+
+
+                                <!-- PRIMARY_APPROVER_START -->
+                                <div id="route-log-primaryApprover-{{stopIndex}}-{{primaryApproverIndex}}"
+                                    class="d-flex justify-content-between  align-items-lg-center align-items-md-stretch flex-lg-row flex-md-column-reverse w-100">
+                                    <div id="route-log-primaryApprover-detail-{{stopIndex}}-{{primaryApproverIndex}}"
+                                        class="d-flex align-items-center me-2">
+                                        <label class="ms-1 text-nowrap"> <span class="primary-approver-icon me-2 "> <i
+                                                    class="fa fa-user" aria-hidden="true"></i></span>
+                                            {{primaryApprover.approverPersonName}}
+                                        </label>
+                                        <span class="ms-2"
+                                            *ngIf="['A','R'].includes(primaryApprover?.approvalStatusCode)">
+                                            <app-icon-map [id]="'-route-log-'+ primaryApprover.workflowDetailId"
+                                                [iconCode]="primaryApprover?.approvalStatusCode"
+                                                [size]="15"></app-icon-map>
+                                        </span>
+                                        <span class="badge badge-light text-black-50 ms-2 secondary-background-color"
+                                            *ngIf="primaryApprover.delegatedPersonName">
+                                            <i aria-hidden="true" class="fa fa-user" aria-hidden="true"></i> Delegate of
+                                            {{primaryApprover.delegatedPersonName}}
+                                        </span>
+                                        <ng-container 
+                                            *ngIf="primaryApprover?.workflowDetailExt?.feedbackTypeCode">
+                                            <span  id="route-log-alternateApprover-feedback-type-{{stopIndex}}-{{primaryApproverIndex}}"
+                                                class="ms-2 text-white badge badge-{{getBadgeByStatusCode(primaryApprover?.workflowDetailExt?.feedbackTypeCode)}}">
+                                                {{primaryApprover?.workflowDetailExt?.workflowFeedbackType?.description}}</span>
+                                        </ng-container>
+                                        <span *ngIf="primaryApprover?.note" class="person-badge adhoc-badge ms-2"><i
+                                                class="fa fa-exclamation-circle me-1" aria-hidden="true"></i> Adhoc
+                                        </span>
+                                        <span>
+                                            <app-adhoc-comment *ngIf="primaryApprover?.note"
+                                                [id]="primaryApprover.workflowDetailId"
+                                                [commentDetail]="primaryApprover">
+                                            </app-adhoc-comment>
+                                        </span>
+                                    </div>
+                                    <!-- VIEW RATTING ,BYPASS, ADD ALTERNATIVE BUTTON -START -->
+                                    <ng-container *ngIf="(selectedMap?.mapType=='E' && (primaryApprover?.approvalStatusCode == 'A' || primaryApprover?.approvalStatusCode == 'W')) ||
+                                                                          (primaryApprover.primaryApproverFlag 
+                                                                          && (versionHistorySelected == latestVersion) 
+                                                                          &&((primaryApprover?.approvalStatusCode == 'W' || primaryApprover?.approvalStatusCode == 'T') && primaryApprover?.approvalStatusCode !== 'B') 
+                                                                          && bypassReviewerRight && isStopActive(sequentialStop.allApprovers)) ||
+                                                                          (primaryApprover.primaryApproverFlag && primaryApprover?.workflowStatus?.approveStatusCode !== 'B' 
+                                                                          && primaryApprover?.workflowStatus?.approveStatusCode !== 'K' &&  primaryApprover?.workflowStatus?.approveStatusCode !== 'A' 
+                                                                          && primaryApprover?.workflowStatus?.approveStatusCode !== 'O' &&(versionHistorySelected == latestVersion) 
+                                                                          && isStopActive(sequentialStop.allApprovers) && addApproverRight)
+                                                                          ">
+
+                                        <div class="mb-md-4 mb-lg-0 me-3">
+                                            <div id="route-log-primary-approver-actions-{{stopIndex}}-{{primaryApproverIndex}}"
+                                                class="d-flex align-items-center gap-2 justify-content-end flex-wrap">
+                                                <button
+                                                    id="route-log-primaryApprover-view-rating-button-{{stopIndex}}-{{primaryApproverIndex}}"
+                                                    *ngIf="(selectedMap?.mapType=='E' && (primaryApprover?.approvalStatusCode == 'A' || primaryApprover?.approvalStatusCode == 'W'))"
+                                                    class="btn btn-sm btn-tertiary btn-small fs-14"
+                                                    data-bs-toggle="modal" data-bs-target="#addEvaluationScoringModalView"
+                                                    title="Score"
+                                                    (click)="fetchScoringCriterias(primaryApprover.approverPersonId, primaryApprover.workflowDetailId); approverName = primaryApprover.approverPersonName;">
+                                                    <i aria-hidden="true" class="fa fa-star me-2"></i>View Ratings
+                                                </button>
+                                                <button
+                                                    id="route-log-bypass-button-{{stopIndex}}-{{primaryApproverIndex}}"
+                                                    *ngIf="primaryApprover.primaryApproverFlag 
+                                              && (versionHistorySelected == latestVersion) 
+                                              &&((primaryApprover?.approvalStatusCode == 'W' || primaryApprover?.approvalStatusCode == 'T') && primaryApprover?.approvalStatusCode !== 'B') 
+                                              && bypassReviewerRight && isStopActive(sequentialStop.allApprovers)"
+                                                    class="btn btn-sm btn-tertiary btn-small fs-14"
+                                                    (click)="workflowDetail = primaryApprover; openWorkFlowActionModal(primaryApprover ,'BYPASS_STOP',sequentialStop.allApprovers)"
+                                                    id="bypass_button" [title]="WORKFLOW_BYPASS_BUTTON" ii>
+                                                    <i aria-hidden="true"
+                                                        class="fa fa-random me-2"></i>{{WORKFLOW_BYPASS_BUTTON}}
+                                                </button>
+                                                <button
+                                                    id="route-log-add-alternate-approver-button-{{stopIndex}}-{{primaryApproverIndex}}"
+                                                    *ngIf="primaryApprover.primaryApproverFlag && primaryApprover?.workflowStatus?.approveStatusCode !== 'B' 
+                                              && primaryApprover?.workflowStatus?.approveStatusCode !== 'K' &&  primaryApprover?.workflowStatus?.approveStatusCode !== 'A' 
+                                              && primaryApprover?.workflowStatus?.approveStatusCode !== 'O' &&(versionHistorySelected == latestVersion) 
+                                              && isStopActive(sequentialStop.allApprovers) && addApproverRight"
+                                                    class="btn btn-sm btn-tertiary btn-small fs-14"
+                                                    (click)=" openWorkFlowActionModal(primaryApprover ,'ALTERNATE_APPROVER',sequentialStop.allApprovers)"
+                                                    [attr.aria-label]="'press enter to ' + WORKFLOW_ADD_ALTERNATE_APPROVER_BUTTON + ' to this primary approver.'"
+                                                    [title]="WORKFLOW_ADD_ALTERNATE_APPROVER_BUTTON">
+                                                    <i aria-hidden="true" class="fa fa-user-plus me-1"></i>
+                                                    {{WORKFLOW_ADD_ALTERNATE_APPROVER_BUTTON}}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </ng-container>
+                                    <!-- VIEW RATTING ,BYPASS, ADD ALTERNATIVE BUTTON -END -->
+                                </div>
+                                <!-- PRIMARY_APPROVER_END -->
+
+                                <!-- ALTERNATE_APPROVER_TREE_START -->
+                                <ng-container *ngIf="primaryApprover.alternateApprovers.length">
+                                    <div id="route-log-alternateApprover-container-{{stopIndex}}-{{primaryApproverIndex}}"
+                                        class="border-start ms-3 mb-3">
+                                        <div id="route-log-alternateApprover-{{stopIndex}}-{{primaryApproverIndex}}-{{alternateApproverIndex}}"
+                                            class="alternate-approver-card d-flex align-items-center justify-content-between"
+                                            *ngFor="let alternateApprover of primaryApprover.alternateApprovers ; let firstAlternateApprover = first; let alternateApproverIndex=index;"
+                                            [class.mt-3]="!firstAlternateApprover">
+                                            <span
+                                                id="route-log-alternateApprover-tree-connection-element-{{stopIndex}}-{{primaryApproverIndex}}-{{alternateApproverIndex}}"
+                                                class="alternate-approver-connection "></span>
+                                            <div id="route-log-alternateApprover-detail-{{stopIndex}}-{{primaryApproverIndex}}-{{alternateApproverIndex}}"
+                                                class="d-flex align-items-center text-nowrap">
+
+                                                <span
+                                                    id="route-log-alternateApprover-name-container-{{stopIndex}}-{{primaryApproverIndex}}-{{alternateApproverIndex}}"
+                                                    class="alternate-approver-branch position-relative">
+                                                    <span
+                                                        id="route-log-alternateApprover-person-icon-{{stopIndex}}-{{primaryApproverIndex}}-{{alternateApproverIndex}}"
+                                                        class="alternate-approver-icon me-2 fs-12 ">
+                                                        <i class="fa fa-user" aria-hidden="true"></i>
+                                                    </span>
+                                                    <label
+                                                        id="route-log-alternateApprover-name-{{stopIndex}}-{{primaryApproverIndex}}-{{alternateApproverIndex}}">{{alternateApprover.approverPersonName}}</label>
+                                                </span>
+                                                <span
+                                                    id="route-log-alternateApprover-action-status-icon-{{stopIndex}}-{{primaryApproverIndex}}-{{alternateApproverIndex}}"
+                                                    class="ms-2"
+                                                    *ngIf="['A','R'].includes(alternateApprover?.approvalStatusCode)">
+                                                    <app-icon-map
+                                                        [id]="'-route-log-'+ alternateApprover.workflowDetailId"
+                                                        [iconCode]="alternateApprover?.approvalStatusCode"
+                                                        [size]="15"></app-icon-map>
+                                                </span>
+                                                <span
+                                                    id="route-log-alternateApprover-delegate-{{stopIndex}}-{{primaryApproverIndex}}-{{alternateApproverIndex}}"
+                                                    *ngIf="alternateApprover.delegatedPersonName"
+                                                    class="badge badge-light text-black-50 ms-2 secondary-background-color">
+                                                    <i aria-hidden="true" class="fa fa-user" aria-hidden="true"></i>
+                                                    Delegate of {{alternateApprover.delegatedPersonName}}
+                                                </span>
+                                                <ng-container
+                                                    *ngIf="alternateApprover?.workflowDetailExt?.feedbackTypeCode">
+                                                    <span
+                                                        id="route-log-alternateApprover-feedback-type-{{stopIndex}}-{{primaryApproverIndex}}-{{alternateApproverIndex}}"
+                                                        class="ms-2 badge badge-{{getBadgeByStatusCode(alternateApprover?.workflowDetailExt?.feedbackTypeCode)}}">
+                                                        {{alternateApprover?.workflowDetailExt?.workflowFeedbackType?.description}}</span>
+                                                </ng-container>
+
+                                                <span
+                                                    id="route-log-alternateApprover-adhoc-badge-{{stopIndex}}-{{primaryApproverIndex}}-{{alternateApproverIndex}}"
+                                                    *ngIf="alternateApprover?.note"
+                                                    class="person-badge adhoc-badge ms-2"> <i
+                                                        class="fa fa-exclamation-circle me-1" aria-hidden="true"></i>
+                                                    Adhoc
+                                                </span>
+                                                <app-adhoc-comment *ngIf="alternateApprover?.note"
+                                                    [id]="alternateApprover.workflowDetailId"
+                                                    [commentDetail]="alternateApprover"></app-adhoc-comment>
+                                            </div>
+                                            <div id="route-log-alternateApprover-view-rating-container-{{stopIndex}}-{{primaryApproverIndex}}-{{alternateApproverIndex}}"
+                                                *ngIf="(selectedMap?.mapType=='E' && (alternateApprover?.approvalStatusCode == 'A' || alternateApprover?.approvalStatusCode == 'W'))"
+                                                class="text-right   me-3">
+                                                <a id="route-log-alternateApprover-view-rating-button-{{stopIndex}}-{{primaryApproverIndex}}-{{alternateApproverIndex}}"
+                                                    class="btn btn-sm btn-tertiary btn-small fs-14 " data-bs-toggle="modal"
+                                                    data-bs-target="#addEvaluationScoringModalView" title="Score"
+                                                    (click)="fetchScoringCriterias(alternateApprover.approverPersonId, alternateApprover.workflowDetailId); approverName = alternateApprover.approverPersonName;">
+                                                    <i aria-hidden="true" class="fa fa-star me-2"></i>View Ratings
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                                <!-- ALTERNATE_APPROVER_TREE_END -->
+                            </div>
+
+                        </div>
+                        <!-- PRIMARY_APPROVER_TREE_END -->
+
+                        <!-- COMMENT_BOX_START -->
+                        <ng-container
+                            *ngIf="!['T','W'].includes(primaryApprover?.approvalStatusCode) && (primaryApprover?.approvalStatusCode != 'B' || (primaryApprover?.approvalStatusCode == 'B' && primaryApprover?.primaryApproverFlag))">
+                            <div id="route-log-commentbox--container-{{stopIndex}}-{{primaryApproverIndex}}"
+                                class="d-flex justify-content-end ms-auto me-3">
+                                <div id="route-log-comment-box-container-{{stopIndex}}-{{primaryApproverIndex}}"
+                                    *ngIf="!['T','W'].includes(primaryApprover?.approvalStatusCode)" tabindex="0"
+                                    [attr.aria-label]="getCommentScreenReaderLabel(primaryApprover)"
+                                    class="comment-box shadow-sm border p-3 d-inline-block">
+                                    <div id="route-log-comment-person-time-{{stopIndex}}-{{primaryApproverIndex}}">
+                                        <span id="route-log-comment-person-{{stopIndex}}-{{primaryApproverIndex}}"
+                                            class="fs-13 fw-700 me-3">
+                                            <i class="fa fa-user me-1" aria-hidden="true"></i>
+                                            {{primaryApprover.updateUserFullName}}
+                                        </span>
+                                        <span
+                                            id="route-log-comment-date-container-{{stopIndex}}-{{primaryApproverIndex}}"
+                                            class="fs-12 text-secondary">
+                                            <span id="route-log-comment-date-{{stopIndex}}-{{primaryApproverIndex}}"
+                                                class="fs-12 fw-600 "><i class="fa fa-calendar me-1"
+                                                    aria-hidden="true"></i>{{primaryApprover.updateTimeStamp |
+                                                dateFormatterWithTimeZone : 'short'}}
+                                            </span>
+                                            <span
+                                                id="route-log-comment-time-container-{{stopIndex}}-{{primaryApproverIndex}}"
+                                                class="fs-12 fw-600"><i class="fa fa-clock-o me-1"
+                                                    aria-hidden="true"></i>{{primaryApprover.updateTimeStamp |
+                                                dateFormatterWithTimeZone : 'time'}}
+                                            </span>
+                                        </span>
+                                    </div>
+                                    <div id="route-log-comment-container-{{stopIndex}}-{{primaryApproverIndex}}">
+                                        <div id="route-log-comment-{{stopIndex}}-{{primaryApproverIndex}}"
+                                            class="data-exist comment-overflow" *ngIf="primaryApprover.approvalComment">
+                                            <i aria-hidden="true" class="fa fa-quote-left me-2 fs-12"></i>
+                                            <span
+                                                id="route-log-comment-collapsed-{{stopIndex}}-{{primaryApproverIndex}}"
+                                                class="fs-13 italian word-break-all"
+                                                *ngIf="!isExpandComment.get(primaryApprover.workflowDetailId)">{{primaryApprover.approvalComment.length>250
+                                                &&
+                                                !isExpandComment.get(primaryApprover.workflowDetailId) ?
+                                                (primaryApprover.approvalComment |
+                                                slice:0:250) : primaryApprover.approvalComment}}
+                                            </span>
+                                            <span id="route-log-comment-expanded-{{stopIndex}}-{{primaryApproverIndex}}"
+                                                class="fs-15 fs-13 italian"
+                                                *ngIf="isExpandComment.get(primaryApprover.workflowDetailId)">
+                                                {{primaryApprover.approvalComment}}</span>
+                                            <span id="route-log-comment-control-{{stopIndex}}-{{primaryApproverIndex}}"
+                                                *ngIf="primaryApprover.approvalComment.length>250"
+                                                
+                                                class="hand-cursor italian black-medium fw-600 fs-13"
+                                                (click)="expandComment(primaryApprover.workflowDetailId)">{{isExpandComment.get(primaryApprover.workflowDetailId)
+                                                ? ' Read less' : '...Read more'}}
+                                            </span>
+                                            <i aria-hidden="true" class="fa fa-quote-right ms-2 fs-12"></i>
+                                        </div>
+                                        <div id="route-log-attchment-container-{{stopIndex}}-{{primaryApproverIndex}}">
+                                            <ng-container>
+                                                <div id="route-log-attchments-{{stopIndex}}-{{primaryApproverIndex}}"
+                                                   class="d-flex flex-wrap" tabindex="0"
+                                                    [attr.aria-label]="getScreenReaderLabelForCommentAttachments(primaryApprover)">
+                                                    <span
+                                                        id="route-log-attchment-{{stopIndex}}-{{primaryApproverIndex}}"
+                                                        class="fileChip-temp m-1 text-nowrap" tabindex="0"
+                                                        [attr.aria-label]="'attachment. ' + attachment.fileName +'.'"
+                                                        *ngFor="let attachment of primaryApprover?.workflowAttachments; let attachIndex = index"
+                                                        (keyup.enter)="downloadRouteAttachment(attachment)"
+                                                        [title]="attachment.fileName">
+                                                        {{attachment.fileName.length >15 ? (attachment.fileName |
+                                                        slice:0:15)+'...' :
+                                                        attachment.fileName}}
+                                                        <i aria-hidden="true"
+                                                            class="fa fa-download hand-cursor font-color"
+                                                            id="prop-review-attach-dwnld" title="Download File"
+                                                            (click)="downloadRouteAttachment(attachment)"></i>
+                                                    </span>
+                                                </div>
+                                            </ng-container>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </ng-container>
+                        <!-- COMMENT_BOX_END -->
+                    </div>
+                </div>
+                <!-- APPROVER_TREE_END -->
+            </div>
+        </ng-container>
+    </div>
+    <!-- SEQUENTIAL STOP TREE -END -->
+
+    <div id="route-log-panel-no-permision"
+        *ngIf="(selectedMap?.mapType=='E' && !isShowEvaluationMap && !selectedMap.isLoginPerson)">
+        <div class="noDataOnChart noDataExists">
+            You have no permission to view this panel
+        </div>
+    </div>
+
+</div>
+
+
+<!-- scoring criteria modal -->
+<div id="addEvaluationScoringModalView" class="modal fade mySkinDialog" tabindex="-1" role="dialog"
+    aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header position-relative">
+                <h5 class="modal-title">Scoring Criteria: {{approverName}} </h5>
+                <span class="out-line" *ngIf="isViewExpand">
+                    <button class="btn btn-tertiary mt-0 btn-small pointer" title="Expand All"
+                        (click)="toggleComments()">{{!isExpandall ? "Expand All" : "Collapse All"}}</button>
+                </span>
+                <button type="button" class="btn-close" id="closeViewModal" data-bs-dismiss="modal" aria-label="Close">
+                    <!-- <span aria-hidden="true">&times;</span> -->
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="no-data-container" *ngIf="scoringCriteriaList?.length == 0">
+                    <span class="no-data-icon-outer">
+                        <div class="no-data-icon">
+                            <i class="fa fa-file-o" aria-hidden="true"></i>
+                            <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                        </div>
+                    </span>
+                    <h4>There is no information in this section.</h4>
+                </div>
+                <section *ngIf="scoringCriteriaList.length " class="mb-3 scoring-header-shadow">
+                    <div class="p-2 table-scroll">
+                        <div class="card questionnaire-card mb-3 p-2"
+                            *ngFor="let criteria of scoringCriteriaList; let criteriaIndex = index">
+                            <div class="row pb-2 align-items-center">
+                                <div class="col">
+                                    <label>{{criteriaIndex + 1}}: {{criteria.scoringCriteria?.description}}</label>
+                                </div>
+                                <div class="col-4 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <ng-container *ngIf="criteria.score || criteria.score == 0">
+                                            <span class="badge text-center score-box p-0 ms-5">
+                                                <span class="d-block p-1 score-label">Score</span>
+                                                <span
+                                                    class="d-block text-center text-white score-text">{{criteria?.score}}</span>
+                                            </span>
+                                        </ng-container>
+                                    </div>
+                                    <div *ngIf="criteria?.workflowReviewerComments.length">
+                                        <span class="anchor-link fs-1" id="{{'comment' + criteriaIndex}}"
+                                            (click)="criteria.isOpen = !criteria.isOpen; scrollToComments(criteriaIndex);checkConditionArray()"
+                                            title="Click here to view comments or atatchments">
+                                            <a>
+                                                <i aria-hidden="true" class="fa fa-paperclip rounded-icon me-1"
+                                                    tabindex="0"></i>
+                                                Comments &amp; Attachments</a>
+                                        </span>
+                                    </div>
+                                    <div *ngIf="!criteria?.workflowReviewerComments.length">
+                                        <span class="noDataExists regularFont fw-500 mb-0">#No comments added</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <ng-container *ngIf="criteria.isOpen">
+                                <div class="mt-2 bg-color-cmnt p-15" *ngIf="criteria?.workflowReviewerComments?.length">
+                                    <div *ngFor="let comment of scoringCriteriaList[criteriaIndex].workflowReviewerComments; let commentIndex = index"
+                                        class="comment-message">
+                                        <div class="comment-message-logo pe-2">
+                                            <i class="fa fa-user-circle fa-2x txt-big me-1 text-secondary"
+                                                aria-hidden="true"></i>
+                                        </div>
+                                        <div class="comment-message-body pt-1">
+                                            <div class="comment-inner-head">
+                                                <div class="comment-inner-head-left">
+                                                    <span
+                                                        class="text-black font-weight-bold txt-medium">{{scoringCriteriaList[criteriaIndex].updatedUserFullName}}</span>
+                                                    &nbsp;&nbsp;
+                                                    <span class="fw-700 text-primary txt-medium"
+                                                        *ngIf="comment.isPrivate">Private</span>
+                                                    <p
+                                                        class="d-inline ml-10 txt-medium text-secondary font-weight-light">
+                                                        {{comment.updateTimeStamp | dateFormatterWithTimeZone : 'long'}}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="comment-inner-body pt-1">
+                                                <div>
+                                                    <i aria-hidden="true" class="fa fa-quote-left comment-icon"></i>
+                                                    <sub> <span class="f-13  text-content-color new-line-property"
+                                                            [innerHTML]="comment.comment"></span>
+                                                    </sub>
+                                                </div>
+                                                <div class="fileChips" style="word-break: break-all;"
+                                                    *ngFor="let file of comment.workflowReviewerAttachments; let fileIndex = index">
+                                                    <span><strong>{{file.fileName}}</strong>
+                                                        <i class="fa fa-download hand-cursor font-color"
+                                                            aria-hidden="true" title="Download attachment"
+                                                            (click)="downloadAttachments(file)"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <hr
+                                                *ngIf="(criteria?.workflowReviewerComments?.length - 1) != commentIndex">
+                                        </div>
+                                    </div>
+                                </div>
+                            </ng-container>
+                        </div>
+                    </div>
+                </section>
+                <div *ngIf="scoringCriteriaList.length" class="row pt-3">
+                    <div class="col-12 text-right">
+                        <button class="btn btn-outline-grey" title="Close" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- workflow action modal start-->
+<div id="route-log-workflow-action-modal-container" class="modal fade mySkinDialog" tabindex="-1" role="dialog"
+    [attr.aria-label]="actionLabelMap.get(routeLogAction) " data-bs-backdrop="static" data-bs-keyboard="false">
+    <div id="route-log-workflow-action-modal" class="modal-dialog modal-lg modal-dialog-centered">
+        <div id="route-log-workflow-action-modal-content" class="modal-content">
+            <div id="route-log-workflow-action-modal-header-container" class="modal-header">
+                <h5 id="route-log-workflow-action-modal-header" class="modal-title">
+                    {{actionLabelMap.get(routeLogAction)}}</h5>
+                <button id="route-log-workflow-action-modal-close-button" title="Close" (click)="clearWorkFlowAction()" type="button"
+                    class="btn-close" data-bs-dismiss="modal" #closeModal aria-label="press enter to close modal.">
+                    <!-- <span aria-hidden="true">&times;</span> -->
+                </button>
+            </div>
+                <div id="route-log-workflow-action-modal-body" class="modal-body">
+                <ng-content select="[modalHeader]"></ng-content>
+                <div id="route-log-workflow-action-modal-body-content"
+                    *ngIf="['NEW_SEQUENTIAL_STOP', 'NEW_APPROVER', 'ALTERNATE_APPROVER'].includes(routeLogAction)"
+                    class="form-row">
+                    <label id="route-log-workflow-action-modal-person" class="d-block"><span
+                            class="mandatory">*</span>Person</label>
+                    <div id="route-log-workflow-action-modal-person-search" class="w-100">
+                        <app-elastic [options]="elasticSearchOptions" [placeHolder]="'Search Person'" 
+                            [uniqueId]="'alternative-approver-person-search'"
+                            (selectedResult)="selectedWorkFlowPerson($event)" [clearField]="clearField"
+                            [isError]="validationMap.has('approver')">
+                        </app-elastic>
+                        <span id="route-log-workflow-action-modal-approver-validation" class="text-danger small"
+                            *ngIf="validationMap.has('approver')">{{validationMap.get('approver')}}</span>
+                    </div>
+                    <div id="route-log-workflow-action-modal-person-detail-container" *ngIf="showPersonCard"
+                        class="row my-3 mx-1 p-2 shadow bg-light person-card">
+                        <div id="route-log-workflow-action-person-detail-name-container" class="col-3">
+                            <label id="route-log-workflow-action-person-detail-name" class="d-block">Name</label><span>
+                                {{workFlowPerson?.name}}
+                                <span *ngIf="workFlowPerson?.isExternalUser"
+                                    class="badge badge-warning ms-2">External</span>
+                            </span>
+                        </div>
+                        <div id="route-log-workflow-action-person-detail-designation-container" class="col-3">
+                            <label id="route-log-workflow-action-person-detail-designation"
+                                class="d-block">Designation</label> <span>
+                                {{workFlowPerson?.primaryTitle ? workFlowPerson?.primaryTitle : '--'}}
+                            </span>
+                        </div>
+                        <div id="route-log-workflow-action-person-detail-homeunit-container" class="col-6">
+                            <label id="route-log-workflow-action-person-detail-homeunit" class="d-block">Home
+                                Unit</label> <span>
+                                {{workFlowPerson?.homeUnit ? workFlowPerson?.homeUnit : '--'}}
+                            </span>
+                        </div>
+                        <div id="route-log-workflow-action-person-detail-phonenumber-container" class="col-3">
+                            <label id="route-log-workflow-action-person-detail-phonenumber" class="d-block">Phone
+                                Number</label> <span>
+                                {{workFlowPerson?.phoneNumber ? workFlowPerson?.phoneNumber : '--'}}
+                            </span>
+                        </div>
+                        <div id="route-log-workflow-action-person-detail-email-container" class="col-6">
+                            <label id="route-log-workflow-action-person-detail-email" class="d-block">Email
+                                Address</label> <span>
+                                {{ workFlowPerson?.emailAddress ? workFlowPerson?.emailAddress : '--' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div id="route-log-workflow-action-comment-container" class="form-row">
+                    <div id="route-log-workflow-action-comment" class="col-12">
+                        <label id="route-log-workflow-action-comment-label"><span class="mandatory"
+                                aria-hidden="true">*</span>Comments</label>
+                        <textarea id="route-log-workflow-action-comment-textarea" tabindex="0"
+                            [attr.aria-label]="setScreenReaderForCommentContent()" appTailingSpaceRemover
+                            class="form-control action-comment-input" rows="2"
+                            [ngClass]="validationMap.has('actionComment') ? 'is-invalid d-block' : ''"
+                            [(ngModel)]="comment" appLengthValidator [isShowLimiter]='true' [limit]=2000></textarea>
+                        <span id="route-log-workflow-action-comment-validation" class="text-danger small"
+                            *ngIf="validationMap.has('actionComment')">{{validationMap.get('actionComment')}}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div id="route-log-workflow-action-container" class="modal-footer">
+                <button id="route-log-workflow-action-close-modal" type="button" title="Close"
+                    aria-label="press enter to close modal." class="btn btn-outline-grey btn-sm"
+                    (click)="clearWorkFlowAction()" data-bs-dismiss="modal">Close</button>
+                <button id="route-log-workflow-action-add"
+                    *ngIf="['NEW_SEQUENTIAL_STOP', 'NEW_APPROVER', 'ALTERNATE_APPROVER'].includes(routeLogAction)"
+                    [attr.aria-label]="'press enter to ' + actionLabelMap.get(routeLogAction)"
+                    [title]="actionLabelMap.get(routeLogAction)" type="button" class="btn btn-primary btn-sm"
+                    (click)="workFlowAction(routeLogAction)">
+                    {{actionLabelMap.get(routeLogAction)}}
+                </button>
+                <button id="route-log-workflow-action-bypass" *ngIf="routeLogAction =='BYPASS_STOP'" type="button"
+                    class="btn btn-primary btn-sm" [title]="actionLabelMap.get(routeLogAction)"
+                    [attr.aria-label]="'press enter to ' + actionLabelMap.get(routeLogAction)"
+                    (click)="workFlowAction(routeLogAction)">
+                    {{actionLabelMap.get(routeLogAction)}}
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- workflow action modal end-->

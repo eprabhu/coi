@@ -1,0 +1,218 @@
+<div class="card rounded-0">
+  <div class="card-content">
+      <div class="card-header py-2">
+          <h4 class="card-title d-flex justify-content-end align-items-center">
+              <span class="header-btn-with-info">
+                  <button class="btn btn-sm btn-primary m-0" (click)="createRule()">
+                      Create New Rule
+                  </button>
+              </span>
+          </h4>
+      </div>
+      <div class="card-body">
+          <div class="form-row">
+              <div class="form-group col">
+                  <label class="block-display"> <span class="mandatory">*</span>Business rule at</label>
+                  <div class="searchBox inline-block" id="">
+                      <app-autocompleter [completerOptions]="ruleService.completerUnitListOptions"
+                          [clearField]="clearField" [placeHolder]="'Search department'"
+                          [isError]="(map.get('unit')) ? true : false"
+                          (onSelect)="onValueSelect($event, 'unit')"></app-autocompleter>
+                      <div *ngIf="map.has('unit')">
+                            <span class="mandatory">{{map.get('unit')}}</span>
+                       </div>
+                  </div>
+              </div>
+              <div class="form-group col">
+                  <label class="block-display"> <span class="mandatory">*</span>Rule applies to</label>
+                  <div class="searchBox inline-block">
+                      <app-autocompleter [completerOptions]="ruleService.completerModuleListOptions"
+                          [clearField]="clearField" [placeHolder]="'Search Module/Sub Module'"
+                          [isError]="(map.get('module')) ? true : false"
+                          (onSelect)="onValueSelect($event, 'module')"></app-autocompleter>
+                      <div *ngIf="map.has('module')">
+                        <span class="mandatory">{{map.get('module')}}</span>
+                      </div>
+                  </div>
+              </div>
+              <div class="form-group col">
+                  <label class="block-display"> <span class="mandatory">*</span>Rule is used for</label>
+                  <div class="searchBox inline-block">
+                      <app-autocompleter [completerOptions]="ruleService.completerRuleListOptions"
+                          [clearField]="clearField" [placeHolder]="'Search Rule'"
+                          [isError]="(map.get('rule')) ? true : false"
+                          (onSelect)="onValueSelect($event, 'condition')"
+                          [isDisabled] = "false"></app-autocompleter>
+                    <div *ngIf="map.has('rule')">
+                        <span class="mandatory">{{map.get('rule')}}</span>
+                    </div>
+                  </div>
+              </div>
+              <div class=" col-2">
+                <label for="showingBusinessRule" class="block-display" > Show </label>
+                <div class="form-check form-check-inline">
+                  <input type="radio" class="form-check-input" id="radioAll" name="optradio" value="O" [(ngModel)]="showAll" >
+                  <label class="form-check-label" for="radioAll">All</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input type="radio" class="form-check-input" id="radioActive" name="optradio" value="Y" [(ngModel)]="showAll"  checked>
+                  <label class="form-check-label" for="radioActive">Active</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input type="radio" class="form-check-input"  id="radioInActive" name="optradio" value="N" [(ngModel)]="showAll">
+                  <label class="form-check-label" for="radioInActive">Inactive</label>
+                </div>
+            </div> 
+              <div class="form-group col-1 mt-3 ml-0">
+                  <button class="btn btn-primary btn-sm mt-3 form-control" aria-expanded="false"
+                      id="search-person-role" (click)="getFilteredRuleList()">Search</button>
+              </div>
+          </div>
+          <div *ngIf="NoResultFound" class="borderBox noDataOnChart noDataExists">
+            <p>{{warningMessage}}</p>
+          </div>
+          <section class="accordion" *ngIf="businessRuleList.length > 0">
+              <div class="table-responsive">
+                  <table class="table tableSkin mb-0">
+                      <caption class="sr-only">Business Rule</caption>
+                      <thead>
+                          <tr class="header-border">
+                              <th style="width: 70%;"scope="col" class="table-border-bottom hand-icon" (click)="sortBy( 'DESCRIPTION')">
+                                  Description<i aria-hidden="true" class="hand-icon"
+                                      [ngClass]="((column=='DESCRIPTION' )? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                              </th>
+                              <!-- <th scope="col" class="table-border-bottom hand-icon"
+                                  (click)="sortBy( 'RULE_APPLIED_TO')"> Applies To<i aria-hidden="true"
+                                      class="hand-icon"
+                                      [ngClass]="((column=='RULE_APPLIED_TO' )? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                              </th>
+                              <th scope="col" class="table-border-bottom hand-icon" (click)="sortBy( 'UNIT_NAME')">
+                                  Department<i aria-hidden="true" class="hand-icon"
+                                      [ngClass]="((column=='UNIT_NAME' )? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                              </th>
+                              <th scope="col" (click)="sortBy( 'RULE_TYPE')"> Used For<i aria-hidden="true"
+                                      class="hand-icon"
+                                      [ngClass]="((column=='RULE_TYPE' )? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+
+                              </th> -->
+                              <th style="width: 10%;"*ngIf="isMapName" scope="col" (click)="sortBy( 'MAP_ID')">Map ID<i aria-hidden="true"
+                                      class="hand-icon"
+                                      [ngClass]="((column=='MAP_ID' )? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                              </th>
+                              <th style="width: 20%;"*ngIf="isMapName" scope="col" (click)="sortBy( 'MAP_NAME')">Map Name<i aria-hidden="true"
+                                class="hand-icon"
+                                [ngClass]="((column=='MAP_NAME' )? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                              </th>
+                              <th style="width: 20%;" scope="col" *ngIf="!isMapName">Active</th>
+                              <th style="width: 20%;" class="text-right" scope="col">Action</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          <tr
+                              *ngFor="let rule of businessRuleList
+                              | SearchFilter : searchText : ['DESCRIPTION', 'RULE_APPLIED_TO', 'UNIT_NAME', 'UNIT_NUMBER','RULE_TYPE', 'MAP_NAME', 'IS_ACTIVE']
+                              | orderBy: {property: column, direction: direction} ; let index=index">
+                              <td style="width: 70%;">{{rule.DESCRIPTION}}</td>
+                              <!-- <td>{{rule.RULE_APPLIED_TO}}</td>
+                              <td>{{rule.UNIT_NAME}}</td>
+                              <td>{{rule.RULE_TYPE}}</td> -->
+                              <td style="width: 10%;"*ngIf="isMapName">{{rule.MAP_ID}}</td>
+                              <td style="width: 20%;"*ngIf="isMapName">{{rule.MAP_NAME}}</td>
+                              <td style="width: 20%;" *ngIf="!isMapName">
+                                <a *ngIf="rule.IS_ACTIVE == 'N'">
+                                    <label class="switch">
+                                        <input type="checkbox" id="{{rule.RULE_ID}}"
+                                            (click)="inActivateRule(rule.RULE_ID,rule.IS_ACTIVE,rule.UPDATE_USER,rule.DESCRIPTION)"
+                                            data-toggle="modal" data-target="#myModal">
+                                        <span class="slider round"><small
+                                                class="deactivate-text">No</small></span>
+                                    </label>
+                                </a>
+                                <a *ngIf="rule.IS_ACTIVE == 'Y'">
+                                    <label class="switch">
+                                        <input type="checkbox" id="{{rule.RULE_ID}}"
+                                            (click)="inActivateRule(rule.RULE_ID,rule.IS_ACTIVE,rule.UPDATE_USER,rule.DESCRIPTION)"
+                                            data-toggle="modal" data-target="#myModal" checked>
+                                        <span class="slider round"><small>Yes</small></span>
+                                    </label>
+                                </a>
+                            </td>
+                              <td style="width: 20%;" class="text-right">
+                                  <ul class="actionButtonGroup">
+                                      <li class="text-nowrap">
+                                        <a *ngIf="(rule.RULE_TYPE === 'R' && rule.IS_RULE_ADDED == 'FALSE') || (rule.RULE_TYPE !== 'R' && rule.IS_ACTIVE == 'N')" title="Delete {{rule.DESCRIPTION}}"
+                                        (click) = "deleteRuleId = rule.RULE_ID;"
+                                        data-toggle="modal" data-target="#deleteModal">
+                                        <i class="fa fa-trash mr-2" aria-hidden="true"></i>
+                                        </a>
+                                          <a title="View {{rule.DESCRIPTION}}" class="mr-2"
+                                             (click)= "viewRule(rule)">
+                                              <i class="fa fa-eye pointer"
+                                                   aria-hidden="true"></i></a>
+                                          <a title="Edit {{rule.DESCRIPTION}}" (click)="editRule(rule.RULE_ID)"><i class="fa fa-pencil"
+                                                          aria-hidden="true"></i></a>
+                                      </li>
+                                  </ul>
+                              </td>
+                             
+                          </tr>
+                      </tbody>
+                  </table>
+              </div>
+          </section>
+      </div>
+  </div>
+</div>
+
+<div class="modal fade mySkinDialog" tabindex="-1" id="deleteModal" tabindex="-1" role="dialog"
+data-backdrop="static" data-keyboard="false" aria-labelledby="AgreementCopy" aria-hidden="true">
+<div class="modal-dialog" role="document">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Delete Business Rule</h5>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to delete this rule?</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" id="cancel-approve-without-save" class="btn btn-secondary btn-sm"
+      data-dismiss="modal">No</button>
+    <button type="button" id="confirm-approve-without-save" class="btn btn-primary-sub btn-sm"
+      (click)="deleteBusinessRule()" data-dismiss="modal">Delete</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="modal fade mySkinDialog" data-backdrop="static" data-keyboard="false" id="myModal" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{isInactive ? 'Activate Rule' : 'Deactivate Rule'}}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                    (click)="isActivateCancelled()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body title-descriptions">
+                <p *ngIf="isInactive === false">Do you want to deactivate <span>{{currentRuleName}}</span>?</p>
+                <p *ngIf="isInactive === true">Do you want to activate <span>{{currentRuleName}}</span>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" (click)="isActivateCancelled()"
+                    class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button *ngIf="isInactive === true" (click)="inActivate(inactiveRuleId,isActive,user)"
+                    type="button" class="btn btn-primary-sub"
+                    data-dismiss="modal">Activate</button>
+                <button *ngIf="isInactive === false" (click)="inActivate(inactiveRuleId,isActive,user)"
+                    type="button" class="btn btn-primary-sub"
+                    data-dismiss="modal">Deactivate</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<app-rule-view *ngIf="showRule" [ruleId]="currentRuleId" (emitCloseModal)= "closeModal($event)"></app-rule-view>

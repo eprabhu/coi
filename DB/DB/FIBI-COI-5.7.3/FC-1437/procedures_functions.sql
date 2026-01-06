@@ -1,0 +1,2 @@
+\. ./FIBI-COI-5.7.3/FC-1437/Procedures/GET_APPROVERS_FOR_ROLE_TYPE.sql
+\. ./FIBI-COI-5.7.3/FC-1437/Procedures/GET_OPA_DETAILS.sql

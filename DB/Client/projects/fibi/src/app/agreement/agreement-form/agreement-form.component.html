@@ -1,0 +1,195 @@
+<h4 id="contract-document"
+    *ngIf="result?.agreementAttachments?.length && 
+    ((result?.agreementHeader?.agreementStatusCode != '4' && isGenerateAgreement) || result?.agreementHeader?.agreementStatusCode == '4')"
+    class="border-left-line card px-4 py-3 d-inline-block w-100 mb-3 mt-2">
+    <div class="row">
+        <div class="col-9">
+            <div class="external-link"> <span>{{latestVersion?.fileName}}</span>
+                <span class="f-12 fw-400 created-by ml-2 user-details">Created by <span class="font-weight-bold">{{latestVersion?.updateUserFullName}}</span> on
+                    {{latestVersion?.updateTimestamp |dateFormatterWithTimeZone: 'long'}} 
+                </span>
+            </div>
+            <div *ngIf="result?.agreementHeader?.agreementStatusCode == '3' || result?.agreementHeader?.agreementStatusCode == '4' || result?.agreementHeader?.agreementStatusCode == '2'"
+                class="form-group form-check mt-3">
+                <input type="checkbox" class="form-check-input"
+                    [disabled]="result?.agreementHeader?.agreementStatusCode == '4'"
+                    [checked]="latestVersion.agreementAttachStatusCode =='C'" (change)="makeAsFinal(latestVersion)"
+                    id="exampleCheck1">
+                <label class="form-check-label ml-2" for="exampleCheck1">Final contract document</label>
+            </div>
+        </div>
+        <div class="col-3 text-right">
+            <span class="f-14 fw-500">
+                <ng-container *ngIf="!checkFileTypeForPdf(result.agreementAttachments[0].contentType)">
+                    <a class="pr-2 pt-2 hand-cursor hover-effect download-icons" (click)="downloadAgreementTemplate(latestVersion, 'docx')">
+                        <i class="fa fa-file-word-o pr-2 document-header-icons" aria-hidden="true" title="Download document as .docx"></i>
+                    </a>
+                    <a class="p-2 hand-cursor hover-effect download-icons" (click)="downloadAgreementTemplate(latestVersion, 'pdf')">
+                        <i class="fa fa-file-pdf-o pr-2 document-header-icons" aria-hidden="true" title="Download document as .pdf"></i>
+                    </a>
+                </ng-container>
+                <a *ngIf="checkFileTypeForPdf(result.agreementAttachments[0].contentType)"
+                    class="pr-2 pt-2 hand-cursor hover-effect download-icons" (click)="downloadAgreementTemplate(latestVersion, 'pdf')">
+                    <i class="fa fa-file-pdf-o pr-2 document-header-icons" aria-hidden="true" title="Download document as .pdf"></i>
+                </a>
+                <a class="pr-2 pt-2 hand-cursor hover-effect download-icons" 
+                    *ngIf="checkForReplaceButton()"
+                    id="doc-replace-btn" data-toggle="modal" data-target="#replace-agreement-attachment"
+                    title="Click here to replace file ">
+                    <i class="fa fa-retweet pr-2 document-header-icons replace-icon" aria-hidden="true"></i>
+                </a>
+                <a class="anchor-link pr-2 hand-cursor hover-effect" id="doc-history" data-toggle="modal"
+                    data-target="#documentHistoryModal" title="Click here to view file history">Version History
+                </a>
+            </span>
+        </div>
+    </div>
+    <div class="row mt-2 ml-0" *ngIf="latestVersion?.description">
+        <div class="col-lg col-12 pl-0">
+            <label>Comments:</label><span class="ml-2"><q>{{latestVersion?.description}}</q></span>
+        </div>
+    </div>
+</h4>
+<h4 id="contract-document"
+    *ngIf=" isGenerateAgreement && result?.agreementAttachments?.length == 0 && result?.agreementHeader?.agreementStatusCode != '1'
+    && result?.agreementHeader?.agreementStatusCode !== '7' && result?.agreementHeader?.adminPersonId"
+    class="border-left-line card px-4 py-3 d-inline-block w-100 mb-3 mt-2">
+    <div class="row">
+        <div class="col-9">
+            <div class="external-link"> <span>No document generated yet</span>
+            </div>
+        </div>
+        <div class="col-3 text-right">
+            <span class="f-14 fw-500">
+               <a class="pl-2 pt-2 hand-cursor hover-effect download-icons"
+                    id="doc-upload-btn" data-toggle="modal" data-target="#replace-agreement-attachment" *ngIf="checkForReplaceButton()" 
+                    title="Click here to upload file" (click) = "isAgreementCreatedOnce = true">
+                    <i class="fa fa-upload pr-2 document-header-icons replace-icon" aria-hidden="true"></i>
+                </a>
+            </span>
+        </div>
+    </div>
+</h4>
+<app-general-details></app-general-details>
+<app-other-information></app-other-information>
+<app-person *ngIf="result.agreementHeader.agreementRequestId"></app-person>
+<app-organisation *ngIf="result.agreementHeader.agreementRequestId"></app-organisation>
+<app-questionnaire *ngIf="result.agreementHeader.agreementRequestId" [result]='result'></app-questionnaire>
+<app-agreement-clauses *ngIf="result?.agreementHeader?.agreementRequestId && (isAgreementAdministrator || isGroupAdministrator)"></app-agreement-clauses>
+<div class="modal fade mySkinDialog" tabindex="-1" id="documentHistoryModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="documentHistoryModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="status-history" class="modal-title">Document History</h5>
+                <button type="button" class="close" data-dismiss="modal" id="status-history-dismiss-btn"
+                    aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body document-history-modal">
+                <table id="ratesTable" class="table tableSkin" aria-describedby="status-history">
+                    <thead>
+                        <tr>
+                            <th scope="col" style="width: 10%">Version</th>
+                            <th scope="col">Document Name</th>
+                            <th scope="col">Description</th>
+                            <th scope="col">Created By</th>
+                            <th scope="col" style="width: 10%">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let history of result.agreementAttachments">
+                            <td>{{history.versionNumber}}</td>
+                            <td>{{history.fileName}}</td>
+                            <td>{{history.description}}</td>
+                            <td>{{history.updateUserFullName}} on
+                                {{history.updateTimestamp |dateFormatterWithTimeZone : 'long'}}</td>
+                            <td>
+                                <ul class="actionButtonGroup">
+                                    <li>
+                                        <ng-container *ngIf="!checkFileTypeForPdf(history.contentType)">
+                                            <a class="hand-cursor" (click)="downloadAgreementTemplate(history, 'docx')">
+                                                <i class="fa fa-file-word-o" aria-hidden="true"
+                                                    title="Download document in .docx format"></i>
+                                            </a>
+                                            <a class="hand-cursorm ml-1"
+                                                (click)="downloadAgreementTemplate(history, 'pdf')">
+                                                <i class="fa fa-file-pdf-o" aria-hidden="true"
+                                                    title="Download document in .pdf format"></i>
+                                            </a>
+                                        </ng-container>
+                                        <a class="hand-cursorm ml-1" *ngIf="checkFileTypeForPdf(history.contentType)"
+                                            (click)="downloadAgreementTemplate(history, 'pdf')">
+                                            <i class="fa fa-file-pdf-o" aria-hidden="true"
+                                                title="Download document in .pdf format"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ADD ATTACHMENT MODAL -->
+<div class="modal fade mySkinDialog" id="replace-agreement-attachment" tabindex="-1" role="dialog"
+    aria-labelledby="replaceAgreementAttachmentModal" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{result?.agreementAttachments?.length ? 'Replace Document' : 'Upload Document'}}</h5>
+                <button type="button" class="close" data-dismiss="modal" id="agreement-doc-popup-dismiss-btn"
+                    aria-label="Close" (click)="clearAttachmentDetails()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <app-file-drop [multiple]="false"  [fileAccept]="_commonService.cvFileType" (filesDropEvent)="fileDrop($event)"></app-file-drop>
+                </div>
+                <div *ngIf="uploadedFile?.length > 0">
+                    <div class="gridSkin">
+                        <div class="card shadow pt-2" *ngFor="let item of uploadedFile; let i=index">
+                            <div class="row mb-2">
+                                <div class="col-lg-11 col-12 fileChips regularFont">
+                                    <label>{{result?.agreementAttachments?.length ? 'Replace with:' : 'Upload:'}}</label>
+                                    <span class="replaced-file pl-2 pr-2">{{(item?.name?.length > 30)?(item?.name | slice:0:30)+'...':(item?.name)}}</span>
+                                </div>
+                                <div class="col-lg-1 col text-right">
+                                   <div class="ml-4">
+                                    <ul class="actionButtonGroup delete-attachment">
+                                        <li>
+                                            <a id="agreement-doc-popup-dlt-btn" class="fa fa-trash-o hand-cursor mr-2"
+                                                title="Remove File" (click)="deleteFromUploadedFileList(i)"></a>
+                                        </li>
+                                    </ul>
+                                   </div>
+                                </div>
+                                <div class="col-lg-12 col-12 mt-3">
+                                    <textarea  appLengthValidator [isShowLimiter]='true' [limit]=2000 id="desc" cols="2" rows="3" id="agreement-doc-popup-desc"
+                                        [(ngModel)]="selectedAttachmentDescription" placeholder=""
+                                        class="form-control dateBox mb-2">
+                                   </textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="attachmentWarningMsg != null">
+                    <span class="mandatory font">{{attachmentWarningMsg}}</span>
+                </div>
+            </div>
+            <div class="modal-footer" *ngIf="uploadedFile?.length > 0">
+                <button type="button" class="btn btn-secondary" id="agreement-doc-popup-close-btn" data-dismiss="modal"
+                    (click)="clearAttachmentDetails()">Close</button>
+                <button type="button" class="btn btn-primary-sub" data-dismiss="modal" id="agreement-doc-popup-add-btn"
+                    (click)="replaceAttachments()">{{result?.agreementAttachments?.length ? 'Replace' : 'Upload'}}</button>
+            </div>
+        </div>
+    </div>
+</div>

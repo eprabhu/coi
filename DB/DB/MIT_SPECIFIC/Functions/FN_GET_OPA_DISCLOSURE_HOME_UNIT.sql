@@ -1,0 +1,61 @@
+DELIMITER //
+CREATE FUNCTION FN_GET_OPA_DISCLOSURE_HOME_UNIT(
+    AV_PERSON_ID VARCHAR(40)
+) RETURNS VARCHAR(8) 
+    NOT DETERMINISTIC
+    READS SQL DATA
+BEGIN
+ DECLARE LS_HOME_UNIT VARCHAR(8);   
+   SELECT 
+    CASE 
+        WHEN P.HR_ORG_UNIT_ID IS NULL OR P.HR_ORG_UNIT_ID = '' THEN NULL
+        WHEN T1.HR_DEPARTMENT_ID IS NULL OR T1.HR_DEPARTMENT_ID = '' THEN NULL
+        WHEN T1.HR_ORG_UNIT_ID = T1.HR_DEPARTMENT_ID THEN T1.HR_DEPARTMENT_CODE_OLD
+        ELSE (
+            WITH RECURSIVE DEPT_HIERARCHY AS (
+                SELECT 
+                    T1.HR_DEPARTMENT_ID AS CURRENT_DEPT_ID,
+                    1 AS LEVEL,
+                    FALSE AS EXCEEDED_MAX_LEVEL
+                FROM OPA_HR_ORG_UNIT_MAPPING T1 
+                WHERE T1.HR_ORG_UNIT_ID = P.HR_ORG_UNIT_ID
+                
+                UNION ALL
+                
+                SELECT 
+                    T2.HR_DEPARTMENT_ID AS CURRENT_DEPT_ID,
+                    DH.LEVEL + 1,
+                    (DH.LEVEL + 1 >= 10) AS EXCEEDED_MAX_LEVEL
+                FROM DEPT_HIERARCHY DH
+                JOIN OPA_HR_ORG_UNIT_MAPPING T2 ON T2.HR_ORG_UNIT_ID = DH.CURRENT_DEPT_ID
+                WHERE DH.CURRENT_DEPT_ID IS NOT NULL 
+                  AND DH.CURRENT_DEPT_ID != ''
+                  AND T2.HR_ORG_UNIT_ID != T2.HR_DEPARTMENT_ID
+                  AND DH.LEVEL < 10
+            )
+            SELECT 
+                CASE 
+                    WHEN EXISTS (SELECT 1 FROM DEPT_HIERARCHY WHERE EXCEEDED_MAX_LEVEL = TRUE) 
+                    THEN NULL
+                    ELSE T3.HR_DEPARTMENT_CODE_OLD
+                END
+            FROM (
+                SELECT CURRENT_DEPT_ID 
+                FROM DEPT_HIERARCHY 
+                WHERE EXCEEDED_MAX_LEVEL = FALSE
+                ORDER BY LEVEL DESC 
+                LIMIT 1
+            ) T4
+            JOIN OPA_HR_ORG_UNIT_MAPPING T3 
+                ON T3.HR_ORG_UNIT_ID = T4.CURRENT_DEPT_ID
+            WHERE T3.HR_DEPARTMENT_ID IS NOT NULL
+        )
+    END 
+    INTO LS_HOME_UNIT
+FROM OPA_PERSON P 
+JOIN OPA_HR_ORG_UNIT_MAPPING T1 ON P.HR_ORG_UNIT_ID = T1.HR_ORG_UNIT_ID 
+WHERE P.PERSON_ID = AV_PERSON_ID;
+   
+RETURN LS_HOME_UNIT;
+END;
+//

@@ -1,0 +1,432 @@
+<div class="card coi-card-regular mt-0 overflow-hidden {{entityCardConfig?.customClass}}"
+    [class.coi-selected-border]="entityCardConfig?.inputOptions?.CHECK_BOX?.defaultValue">
+    <div class="card-body" id="coi-entity-batch-card-body">
+        <div class="d-flex align-items-center">
+            <!-- select check box -->
+            <div *ngIf="entityCardConfig?.inputOptions?.CHECK_BOX?.visible" class="d-flex align-items-center width-32px">
+                <input id="coi-{{uniqueId}}-select-input" type="checkbox"
+                    [disabled]="entityCardConfig?.inputOptions?.CHECK_BOX?.disable"
+                    [title]="entityCardConfig?.inputOptions?.CHECK_BOX?.disable ? '' : ('Click here to ' + (entityCardConfig.inputOptions.CHECK_BOX.defaultValue ? 'deselect' : 'select'))"
+                    [attr.aria-label]="entityCardConfig?.inputOptions?.CHECK_BOX?.disable ? '' : ('Click here to ' + (entityCardConfig.inputOptions.CHECK_BOX.defaultValue ? 'deselect' : 'select'))"
+                    [(ngModel)]="entityCardConfig.inputOptions.CHECK_BOX.defaultValue" (ngModelChange)="emitActions('CHECK_BOX', $event)">
+            </div>
+            <div class="row row-gap-2 col">
+                <div class="d-flex col-12 gap-5" [class.mb-2]="entityCardConfig?.cardOrder[entityCardConfig?.cardType]?.length">
+                    <!-- Batch Entity Name -->
+                    <h4 *ngIf="entityCardConfig?.cardType === 'BATCH_ENTITY'" class="d-flex align-items-center col mb-0 coi-text-darker fs-6 pe-5">
+                        <span class="coi-icon-bg me-2 fs-14 d-inline-flex"><mat-icon aria-hidden="true"
+                            class="coi-entity-icon-size coi-coloured-icons">domain</mat-icon>
+                        </span>
+                        <div class="d-flex align-items-center">
+                            <span class="text-slice" [title]="entityCardConfig?.sharedEntityDetails?.entityName">{{ entityCardConfig?.sharedEntityDetails?.entityName }}</span>
+                            <ng-container *ngIf="entityCardConfig?.sharedEntityDetails?.isForeign">
+                                <app-common-foreign-flag [entityName]="entityCardConfig?.sharedEntityDetails?.entityName"></app-common-foreign-flag>
+                            </ng-container>
+                        </div>
+                    </h4>
+                    <!-- System Entity Name -->
+                    <h4 *ngIf="entityCardConfig?.cardType === 'DB_ENTITY'" class="d-flex align-items-center col mb-0 coi-text-darker fs-6 pe-5">
+                        <!-- icon -->
+                        <span class="coi-icon-bg me-2 fs-14 d-inline-flex"><mat-icon aria-hidden="true" class="coi-entity-icon-size coi-coloured-icons">domain</mat-icon></span>
+                        <!-- Entity Name -->
+                        <div class="d-flex flex-column">
+                            <div class="d-flex align-items-center">
+                                <span class="text-slice fs-6" [title]="entityCardConfig?.sharedEntityDetails?.entityName">{{ entityCardConfig?.sharedEntityDetails?.entityName }}</span>
+                                <ng-container *ngIf="entityCardConfig?.sharedEntityDetails?.isForeign">
+                                    <app-common-foreign-flag [entityName]="entityCardConfig?.sharedEntityDetails?.entityName"></app-common-foreign-flag>
+                                </ng-container>
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <!-- Ownership Type -->
+                                <div class="d-flex align-items-center gap-1">
+                                    <label for="coi-{{uniqueId}}-ownership-type" class="coi-text-dark fs-13 text-nowrap">Ownership Type:</label>
+                                    <div id="coi-{{uniqueId}}-ownership-type" class="text-slice coi-text-light fs-13 coi-min-width-25px">
+                                        <app-no-data-label [valueToShow]="entityCardConfig?.sharedEntityDetails?.ownershipType">
+                                            <span [title]="entityCardConfig?.sharedEntityDetails?.ownershipType"
+                                                class="coi-text-light fs-13">{{ entityCardConfig?.sharedEntityDetails?.ownershipType }}</span>
+                                        </app-no-data-label>
+                                    </div>
+                                </div>
+                                <span class="coi-text-lighter">|</span>
+                                <!-- Business Type -->
+                                <div class="d-flex align-items-center gap-1">
+                                    <label for="coi-{{uniqueId}}-ownership-type" class="coi-text-dark fs-13 text-nowrap">Business Type:</label>
+                                    <div id="coi-{{uniqueId}}-ownership-type" class="text-slice coi-text-light fs-13 coi-min-width-25px">
+                                        <app-no-data-label [valueToShow]="entityCardConfig?.sharedEntityDetails?.businessEntityType?.description">
+                                            <span [title]="entityCardConfig?.sharedEntityDetails?.businessEntityType?.description"
+                                                class="coi-text-light fs-13">{{ entityCardConfig?.sharedEntityDetails?.businessEntityType?.description }}</span>
+                                        </app-no-data-label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- corporate linkage -->
+                            <div *ngIf="entityCardConfig?.sharedEntityDetails?.entityFamilyTreeRoles?.length" class="d-flex align-items-center gap-1">
+                                <mat-icon aria-hidden="true" class="flex-shrink-0 coi-text-lighter coi-scale-7 coi-ms-n3px">mediation</mat-icon>
+                                <ng-container *ngFor="let role of entityCardConfig?.sharedEntityDetails?.entityFamilyTreeRoles; let lastLinkage = last">
+                                    <div class="coi-text-light fs-13">{{ role?.description }}</div>
+                                    <!-- divider -->
+                                    <span *ngIf="!lastLinkage" class="coi-text-lighter">|</span>
+                                </ng-container>
+                            </div>
+                        </div>
+                    </h4>
+                    <!-- D&B Match Entity Name -->
+                    <h4 *ngIf="entityCardConfig?.cardType === 'DUNS_MATCH_ENTITY'" class="d-flex align-items-center col mb-0 coi-text-darker fs-6 pe-5">
+                        <!-- icon -->
+                        <span class="coi-icon-bg me-2 fs-14 d-inline-flex"><mat-icon aria-hidden="true" class="coi-entity-icon-size coi-coloured-icons">domain</mat-icon></span>
+                        <!-- Entity Name -->
+                        <div class="d-flex flex-column">
+                            <div class="d-flex align-items-center">
+                                <span [title]="entityCardConfig?.sharedEntityDetails?.entityName" class="text-slice fs-6">{{ entityCardConfig?.sharedEntityDetails?.entityName }}</span>
+                                <span class="coi-text-light fs-13 ps-1">(Confidence Score: <span class="coi-text-dark">{{ entityCardConfig?.sharedEntityDetails?.confidenceScore }}</span>)</span>
+                                <ng-container *ngIf="entityCardConfig?.sharedEntityDetails?.isForeign">
+                                    <app-common-foreign-flag [entityName]="entityCardConfig?.sharedEntityDetails?.entityName"></app-common-foreign-flag>
+                                </ng-container>
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <!-- Ownership Type -->
+                                <div class="d-flex align-items-center gap-1">
+                                    <label for="coi-{{uniqueId}}-ownership-type" class="coi-text-dark fs-13 text-nowrap">Ownership Type:</label>
+                                    <div id="coi-{{uniqueId}}-ownership-type" class="text-slice coi-text-light fs-13 coi-min-width-25px">
+                                        <app-no-data-label [valueToShow]="entityCardConfig?.sharedEntityDetails?.ownershipType">
+                                            <span [title]="entityCardConfig?.sharedEntityDetails?.ownershipType"
+                                                class="coi-text-light fs-13">{{ entityCardConfig?.sharedEntityDetails?.ownershipType }}</span>
+                                        </app-no-data-label>
+                                    </div>
+                                </div>
+                                <!-- divider -->
+                                <span class="coi-text-lighter">|</span>
+                                <!-- Business Type -->
+                                <div class="d-flex align-items-center gap-1">
+                                    <label for="coi-{{uniqueId}}-ownership-type" class="coi-text-dark fs-13 text-nowrap">Business Type:</label>
+                                    <div id="coi-{{uniqueId}}-ownership-type" class="text-slice coi-text-light fs-13 coi-min-width-25px">
+                                        <app-no-data-label [valueToShow]="entityCardConfig?.sharedEntityDetails?.businessEntityType?.description">
+                                            <span [title]="entityCardConfig?.sharedEntityDetails?.businessEntityType?.description"
+                                                class="coi-text-light fs-13">{{ entityCardConfig?.sharedEntityDetails?.businessEntityType?.description }}</span>
+                                        </app-no-data-label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- corporate linkage -->
+                            <div *ngIf="entityCardConfig?.sharedEntityDetails?.entityFamilyTreeRoles?.length" class="d-flex align-items-center gap-1">
+                                <mat-icon aria-hidden="true" class="flex-shrink-0 coi-text-lighter coi-scale-7 coi-ms-n3px">mediation</mat-icon>
+                                <ng-container *ngFor="let role of entityCardConfig?.sharedEntityDetails?.entityFamilyTreeRoles; let lastLinkage = last">
+                                    <div class="coi-text-light fs-13">{{ role?.description }}</div>
+                                    <!-- divider -->
+                                    <span *ngIf="!lastLinkage" class="coi-text-lighter">|</span>
+                                </ng-container>
+                            </div>
+                        </div>
+                    </h4>
+                    <!-- match type -->
+                    <div *ngIf="entityCardConfig?.displaySections?.includes('MATCH_TYPE')" class="d-inline-flex align-items-center gap-2">
+                        <ng-container *ngFor="let matchType of matchTypeList">
+                            <span *ngIf="matchType" class="coi-filter-pills coi-text-light">{{ matchType }}</span>
+                        </ng-container>
+                    </div>
+                    <!-- buttons -->
+                    <div *ngIf="entityCardConfig?.inputOptions?.SET_AS_ORIGINAL?.visible || entityCardConfig?.inputOptions?.USE_THIS?.visible
+                        || (!entityCardConfig?.displaySections?.includes('FOOTER') && (entityCardConfig?.inputOptions?.VIEW?.visible) || entityCardConfig?.inputOptions?.SELECT?.visible)"
+                        class="d-inline-flex align-items-center gap-3">
+                        <!-- Set as Original -->
+                        <div *ngIf="entityCardConfig?.inputOptions?.SET_AS_ORIGINAL?.visible" class="d-inline-flex align-items-center gap-2">
+                            <!-- type - toggle -->
+                            <ng-container *ngIf="entityCardConfig?.inputOptions?.SET_AS_ORIGINAL?.inputType === 'TOGGLE'">
+                                <span class="coi-text-dark">Set as Original</span>
+                                <app-toggle-checkbox [isToggled]="entityCardConfig.inputOptions.SET_AS_ORIGINAL.defaultValue"
+                                    [isDisabled]="entityCardConfig.inputOptions.SET_AS_ORIGINAL.disable" [toggleValue]="['No', 'Yes']"
+                                    (toggleClick)="emitActions('SET_AS_ORIGINAL', $event)" label="Set as Original"></app-toggle-checkbox>
+                            </ng-container>
+                            <!-- type - button -->
+                            <button *ngIf="entityCardConfig?.inputOptions?.SET_AS_ORIGINAL?.inputType !== 'TOGGLE'"
+                                id="coi-{{uniqueId}}-origin-btn" (click)="emitActions('SET_AS_ORIGINAL')"
+                                class="d-flex align-items-center btn btn-primary fs-14 gap-1"
+                                [disabled]="entityCardConfig?.inputOptions?.SET_AS_ORIGINAL?.disable"
+                                aria-label="Click here to set as original"
+                                title="Click here to set as original">
+                                Set as Original
+                            </button>
+                        </div>
+                        <!-- Use this -->
+                        <div *ngIf="entityCardConfig?.inputOptions?.USE_THIS?.visible" class="d-inline-flex align-items-center gap-2">
+                            <!-- type - toggle -->
+                            <ng-container *ngIf="entityCardConfig?.inputOptions?.USE_THIS?.inputType === 'TOGGLE'">
+                                <span class="coi-text-dark">Use this</span>
+                                <app-toggle-checkbox [isToggled]="entityCardConfig.inputOptions.USE_THIS.defaultValue"
+                                    [isDisabled]="entityCardConfig.inputOptions.USE_THIS.disable" [toggleValue]="['No', 'Yes']"
+                                    (toggleClick)="emitActions('USE_THIS', $event)" label="Use this"></app-toggle-checkbox>
+                            </ng-container>
+                            <!-- type - button -->
+                            <button *ngIf="entityCardConfig?.inputOptions?.USE_THIS?.inputType !== 'TOGGLE'"
+                                id="coi-{{uniqueId}}-use-this-btn" (click)="emitActions('USE_THIS')"
+                                class="d-flex align-items-center btn btn-primary fs-14 gap-1"
+                                [disabled]="entityCardConfig?.inputOptions?.USE_THIS?.disable"
+                                aria-label="Click here to use this entity"
+                                title="Click here to use this entity">
+                                Use this
+                            </button>
+                        </div>
+                        <!-- View -->
+                        <button *ngIf="!entityCardConfig?.displaySections?.includes('FOOTER') && entityCardConfig?.inputOptions?.VIEW?.visible"
+                            id="coi-{{uniqueId}}-view-btn" (click)="emitActions('VIEW')"
+                            class="d-flex align-items-center btn btn-outline-secondary fs-14 gap-1"
+                            [disabled]="entityCardConfig?.inputOptions?.VIEW?.disable"
+                            aria-label="Click here to view entity details"
+                            title="Click here to view entity details">
+                            <mat-icon aria-hidden="true">visibility</mat-icon>
+                            View
+                        </button>
+                        <!-- View -->
+                        <button *ngIf="!entityCardConfig?.displaySections?.includes('FOOTER') && entityCardConfig?.inputOptions?.SELECT?.visible"
+                            id="coi-{{uniqueId}}-select-btn" (click)="emitActions('SELECT')"
+                            class="d-flex align-items-center btn btn-outline-secondary fs-14 gap-1"
+                            [disabled]="entityCardConfig?.inputOptions?.SELECT?.disable"
+                            aria-label="Click here to select entity"
+                            title="Click here to select entity">
+                            Select
+                        </button>
+                    </div>
+                </div>
+                <ng-container *ngFor="let fieldOrder of entityCardConfig?.cardOrder[entityCardConfig?.cardType]">
+                    <!-- Address -->
+                    <div *ngIf="fieldOrder === 'ADDRESS'" tabindex="-1" class="{{entityCardConfig?.individualColumnClass?.['ADDRESS'] || entityCardConfig?.columnClass}}"
+                        [attr.aria-label]="'Address is ' + (primaryAddress ? primaryAddress : 'empty')">
+                        <label for="coi-{{uniqueId}}-address" class="coi-text-dark d-block">{{ entityCardConfig?.cardType === 'DUNS_MATCH_ENTITY' ? 'Primary Address' : 'Address' }}</label>
+                        <div id="coi-{{uniqueId}}-address" class="text-slice">
+                            <app-no-data-label [valueToShow]="primaryAddress">
+                                <span [title]="primaryAddress"
+                                    class="coi-text-light">{{primaryAddress}}</span>
+                            </app-no-data-label>
+                        </div>
+                    </div>
+                    <!-- City -->
+                    <div *ngIf="fieldOrder === 'CITY'" tabindex="-1" class="{{entityCardConfig?.individualColumnClass?.['CITY'] || entityCardConfig?.columnClass}}"
+                        [attr.aria-label]="'City is ' + (entityCardConfig?.sharedEntityDetails?.city ? entityCardConfig?.sharedEntityDetails?.city : 'empty')">
+                        <label for="coi-{{uniqueId}}-city" class="coi-text-dark d-block">City</label>
+                        <div id="coi-{{uniqueId}}-city" class="text-slice">
+                            <app-no-data-label [valueToShow]="entityCardConfig?.sharedEntityDetails?.city">
+                                <span [title]="entityCardConfig?.sharedEntityDetails?.city"
+                                    class="coi-text-light">{{entityCardConfig?.sharedEntityDetails?.city}}</span>
+                            </app-no-data-label>
+                        </div>
+                    </div>
+                    <!-- State/Province/Region -->
+                    <div *ngIf="fieldOrder === 'STATE'" tabindex="-1" class="{{entityCardConfig?.individualColumnClass?.['STATE'] || entityCardConfig?.columnClass}}"
+                        [attr.aria-label]="'State/Province/Region is ' + (entityCardConfig?.sharedEntityDetails?.stateDetails?.stateName || entityCardConfig?.sharedEntityDetails?.state || 'empty')">
+                        <label for="coi-{{uniqueId}}-state" class="coi-text-dark d-block">State/Province/Region</label>
+                        <div id="coi-{{uniqueId}}-state" class="text-slice">
+                            <app-no-data-label [valueToShow]="entityCardConfig?.sharedEntityDetails?.stateDetails?.stateName ? entityCardConfig?.sharedEntityDetails?.stateDetails?.stateName : entityCardConfig?.sharedEntityDetails?.state">
+                                <span [title]="entityCardConfig?.sharedEntityDetails?.stateDetails?.stateName ? entityCardConfig?.sharedEntityDetails?.stateDetails?.stateName : entityCardConfig?.sharedEntityDetails?.state"
+                                    class="coi-text-light">{{ entityCardConfig?.sharedEntityDetails?.stateDetails?.stateName ? entityCardConfig?.sharedEntityDetails?.stateDetails?.stateName : entityCardConfig?.sharedEntityDetails?.state }}</span>
+                            </app-no-data-label>
+                        </div>
+                    </div>
+                    <!-- Country -->
+                    <div *ngIf="fieldOrder === 'COUNTRY'" tabindex="-1" class="{{entityCardConfig?.individualColumnClass?.['COUNTRY'] || entityCardConfig?.columnClass}}"
+                        [attr.aria-label]="'Country is ' + (entityCardConfig?.sharedEntityDetails?.country?.countryName ? entityCardConfig?.sharedEntityDetails?.country?.countryName : 'empty')">
+                        <label for="coi-{{uniqueId}}-country" class="coi-text-dark d-block">Country</label>
+                        <div id="coi-{{uniqueId}}-country" class="text-slice">
+                            <app-no-data-label [valueToShow]="entityCardConfig?.sharedEntityDetails?.country?.countryName">
+                                <span [title]="entityCardConfig?.sharedEntityDetails?.country?.countryName"
+                                    class="coi-text-light">{{ entityCardConfig?.sharedEntityDetails?.country?.countryName }}</span>
+                            </app-no-data-label>
+                        </div>
+                    </div>
+                    <!-- DUNS Number -->
+                    <div *ngIf="fieldOrder === 'DUNS_NUMBER'" tabindex="-1" class="{{entityCardConfig?.individualColumnClass?.['DUNS_NUMBER'] || entityCardConfig?.columnClass}}"
+                        [attr.aria-label]="'DUNS number is ' + (entityCardConfig?.sharedEntityDetails?.dunsNumber ? entityCardConfig?.sharedEntityDetails?.dunsNumber : 'empty')">
+                        <label for="coi-{{uniqueId}}-duns-number" class="coi-text-dark d-block">DUNS Number</label>
+                        <div id="coi-{{uniqueId}}-duns-number" class="text-slice">
+                            <app-no-data-label [valueToShow]="entityCardConfig?.sharedEntityDetails?.dunsNumber">
+                                <span [title]="entityCardConfig?.sharedEntityDetails?.dunsNumber"
+                                    class="coi-text-light">{{entityCardConfig?.sharedEntityDetails?.dunsNumber}}</span>
+                            </app-no-data-label>
+                        </div>
+                    </div>
+                    <!-- UEI Number -->
+                    <div *ngIf="fieldOrder === 'UEI_NUMBER'" tabindex="-1" class="{{entityCardConfig?.individualColumnClass?.['UEI_NUMBER'] || entityCardConfig?.columnClass}}"
+                        [attr.aria-label]="'UEI number is ' + (entityCardConfig?.sharedEntityDetails?.ueiNumber ? entityCardConfig?.sharedEntityDetails?.ueiNumber : 'empty')">
+                        <label for="coi-{{uniqueId}}-uei-number" class="coi-text-dark d-block">UEI Number</label>
+                        <div id="coi-{{uniqueId}}-uei-number" class="text-slice">
+                            <app-no-data-label [valueToShow]="entityCardConfig?.sharedEntityDetails?.ueiNumber">
+                                <span [title]="entityCardConfig?.sharedEntityDetails?.ueiNumber"
+                                    class="coi-text-light">{{entityCardConfig?.sharedEntityDetails?.ueiNumber}}</span>
+                            </app-no-data-label>
+                        </div>
+                    </div>
+                    <!-- ZIP/Postal Code -->
+                    <div *ngIf="fieldOrder === 'ZIP_CODE'" tabindex="-1" class="{{entityCardConfig?.individualColumnClass?.['ZIP_CODE'] || entityCardConfig?.columnClass}}"
+                        [attr.aria-label]="'ZIP/Postal code is ' + (entityCardConfig?.sharedEntityDetails?.postCode ? entityCardConfig?.sharedEntityDetails?.postCode : 'empty')">
+                        <label for="coi-{{uniqueId}}-zip-code" class="coi-text-dark d-block">ZIP/Postal Code</label>
+                        <div id="coi-{{uniqueId}}-zip-code" class="text-slice">
+                            <app-no-data-label [valueToShow]="entityCardConfig?.sharedEntityDetails?.postCode">
+                                <span [title]="entityCardConfig?.sharedEntityDetails?.postCode"
+                                    class="coi-text-light">{{entityCardConfig?.sharedEntityDetails?.postCode}}</span>
+                            </app-no-data-label>
+                        </div>
+                    </div>
+                    <!-- CAGE Number -->
+                    <div *ngIf="fieldOrder === 'CAGE_NUMBER'" tabindex="-1" class="{{entityCardConfig?.individualColumnClass?.['CAGE_NUMBER'] || entityCardConfig?.columnClass}}"
+                        [attr.aria-label]="'CAGE number is ' + (entityCardConfig?.sharedEntityDetails?.cageNumber ? entityCardConfig?.sharedEntityDetails?.cageNumber : 'empty')">
+                        <label for="coi-{{uniqueId}}-cage-number" class="coi-text-dark d-block">CAGE Number</label>
+                        <div id="coi-{{uniqueId}}-cage-number" class="text-slice">
+                            <app-no-data-label [valueToShow]="entityCardConfig?.sharedEntityDetails?.cageNumber">
+                                <span [title]="entityCardConfig?.sharedEntityDetails?.cageNumber"
+                                    class="coi-text-light">{{entityCardConfig?.sharedEntityDetails?.cageNumber}}</span>
+                            </app-no-data-label>
+                        </div>
+                    </div>
+                    <!-- Website -->
+                    <div *ngIf="fieldOrder === 'WEBSITE'" tabindex="-1" class="{{entityCardConfig?.individualColumnClass?.['WEBSITE'] || entityCardConfig?.columnClass}}"
+                        [attr.aria-label]="'Website is ' + (entityCardConfig?.sharedEntityDetails?.website? entityCardConfig?.sharedEntityDetails?.website: 'empty')">
+                        <label for="coi-{{uniqueId}}-website" class="coi-text-dark d-block">Website</label>
+                        <div id="coi-{{uniqueId}}-website" class="text-slice">
+                            <app-no-data-label [valueToShow]="entityCardConfig?.sharedEntityDetails?.website">
+                                <span [title]="entityCardConfig?.sharedEntityDetails?.website"
+                                    class="coi-text-light">{{entityCardConfig?.sharedEntityDetails?.website}}</span>
+                            </app-no-data-label>
+                        </div>
+                    </div>
+                    <!-- Prior Name -->
+                    <div *ngIf="fieldOrder === 'PRIOR_NAME'" tabindex="-1" class="{{entityCardConfig?.individualColumnClass?.['PRIOR_NAME'] || entityCardConfig?.columnClass}}"
+                        [attr.aria-label]="'Prior name is ' + (entityCardConfig?.sharedEntityDetails?.priorName? entityCardConfig?.sharedEntityDetails?.priorName: 'empty')">
+                        <label for="coi-{{uniqueId}}-prior-name" class="coi-text-dark d-block">Prior Name</label>
+                        <div id="coi-{{uniqueId}}-prior-name" class="text-slice">
+                            <app-no-data-label [valueToShow]="entityCardConfig?.sharedEntityDetails?.priorName">
+                                <span [title]="entityCardConfig?.sharedEntityDetails?.priorName"
+                                    class="coi-text-light">{{entityCardConfig?.sharedEntityDetails?.priorName}}</span>
+                            </app-no-data-label>
+                        </div>
+                    </div>
+                    <!-- Foreign Name(s) -->
+                    <div *ngIf="fieldOrder === 'FOREIGN_NAME'" tabindex="-1" class="{{entityCardConfig?.individualColumnClass?.['FOREIGN_NAME'] || entityCardConfig?.columnClass}}"
+                        [attr.aria-label]="'Foreign name(s) are ' + (entityCardConfig?.sharedEntityDetails?.foreignName? entityCardConfig?.sharedEntityDetails?.foreignName: 'empty')">
+                        <label for="coi-{{uniqueId}}-foreign-name" class="coi-text-dark d-block">Foreign Name(s)</label>
+                        <div id="coi-{{uniqueId}}-foreign-name">
+                            <app-no-data-label [valueToShow]="entityCardConfig?.sharedEntityDetails?.foreignNames?.length ? true : null">
+                                <span *ngIf="entityCardConfig?.sharedEntityDetails?.foreignNames?.length" class="coi-file-chip-container">
+                                    <ng-container *ngFor="let foreignName of entityCardConfig?.sharedEntityDetails?.foreignNames; let nameIndex = index; let last = last">
+                                        <ng-container *ngIf="(nameIndex < 2) || isExpandForeignName">
+                                            <span class="coi-file-chips rounded-pill">{{foreignName?.foreignName}}</span>
+                                        </ng-container>
+                                        <!-- view more / less -->
+                                        <button *ngIf="last && entityCardConfig?.sharedEntityDetails?.foreignNames?.length > 2" class="coi-btn-halo rounded-pill d-inline-flex fs-12"
+                                            title="Click here to read {{ isExpandForeignName ? 'less' : 'more' }}"
+                                            attr.aria-label="Click here to read {{ isExpandForeignName ? 'less' : 'more' }}"
+                                            (click)="isExpandForeignName = !isExpandForeignName">
+                                            <span>{{isExpandForeignName ? 'View Less' : ('+' + ( entityCardConfig?.sharedEntityDetails?.foreignNames?.length - 2 ) + ' More')}}</span>
+                                        </button>
+                                    </ng-container>
+                                </span>
+                            </app-no-data-label>
+                        </div>
+                    </div>
+                    <!-- Organization ID -->
+                    <div *ngIf="fieldOrder === 'ORGANIZATION_ID'" tabindex="-1" class="{{entityCardConfig?.individualColumnClass?.['ORGANIZATION_ID'] || entityCardConfig?.columnClass}}"
+                        [attr.aria-label]="'Organization ID is ' + (entityCardConfig?.sharedEntityDetails?.organizationId ? entityCardConfig?.sharedEntityDetails?.organizationId : 'empty')">
+                        <label for="coi-{{uniqueId}}-organization-id" class="coi-text-dark d-block">Organization ID</label>
+                        <div id="coi-{{uniqueId}}-organization-id" class="text-slice">
+                            <app-no-data-label [valueToShow]="entityCardConfig?.sharedEntityDetails?.organizationId ? entityCardConfig?.sharedEntityDetails?.organizationId : ''">
+                                <span [title]="entityCardConfig?.sharedEntityDetails?.organizationId"
+                                    class="coi-text-light">{{ entityCardConfig?.sharedEntityDetails?.organizationId }}</span>
+                            </app-no-data-label>
+                        </div>
+                    </div>
+                    <!-- Sponsor Code -->
+                    <div *ngIf="fieldOrder === 'SPONSOR_CODE'" tabindex="-1" class="{{entityCardConfig?.individualColumnClass?.['SPONSOR_CODE'] || entityCardConfig?.columnClass}}"
+                        [attr.aria-label]="'Sponsor code is ' + (entityCardConfig?.sharedEntityDetails?.sponsorCode ? entityCardConfig?.sharedEntityDetails?.sponsorCode : 'empty')">
+                        <label for="coi-{{uniqueId}}-sponsor-code" class="coi-text-dark d-block">Sponsor Code</label>
+                        <div id="coi-{{uniqueId}}-sponsor-code" class="text-slice">
+                            <app-no-data-label [valueToShow]="entityCardConfig?.sharedEntityDetails?.sponsorCode ? entityCardConfig?.sharedEntityDetails?.sponsorCode : ''">
+                                <span [title]="entityCardConfig?.sharedEntityDetails?.sponsorCode"
+                                    class="coi-text-light">{{ entityCardConfig?.sharedEntityDetails?.sponsorCode }}</span>
+                            </app-no-data-label>
+                        </div>
+                    </div>
+                    <!-- Mailing Address -->
+                    <div *ngIf="fieldOrder === 'MAILING_ADDRESS' && entityCardConfig?.sharedEntityDetails?.mailingAddress" tabindex="-1" class="col-12"
+                        [attr.aria-label]="'Mailing address is ' + entityCardConfig.sharedEntityDetails.mailingAddress">
+                        <span class="coi-text-dark d-block">Mailing Address</span>
+                        <span class="coi-text-light" id="coi-{{uniqueId}}-mailing-address">{{ entityCardConfig.sharedEntityDetails.mailingAddress }}</span>
+                    </div>
+                </ng-container>
+            </div>
+        </div>
+        <!-- warning card -->
+        <div *ngIf="entityCardConfig?.displaySections?.includes('ALREADY_EXIST_DUNS')" class="col-12">
+            <div class="d-flex rounded-1 matching-card mb-0 mt-2 p-2 align-items-center justify-content-between">
+                <!-- info -->
+                <p class="fs-14 mb-0">
+                    <span class="d-flex algin-items-start">An entity with this DUNS number already exists. Please go to the entity database duplicate list to select it.</span>
+                </p>
+            </div>
+         </div>
+    </div>
+
+    <!-- Footer section -->
+    <div *ngIf="entityCardConfig?.displaySections?.includes('FOOTER')" class="card-footer">
+        <div class="d-flex align-items-center">
+            <div *ngIf="entityCardConfig?.inputOptions?.CHECK_BOX?.visible" class="d-flex align-items-center width-32px"></div>
+            <div class="row col">
+                <ng-container *ngFor="let fieldOrder of entityCardConfig?.footerOrder[entityCardConfig?.cardType]">
+                    <!-- Review Action -->
+                    <div *ngIf="fieldOrder === 'REVIEW_ACTION'" tabindex="-1" class="{{entityCardConfig?.individualColumnClass?.['REVIEW_ACTION'] || entityCardConfig?.columnClass}}"
+                        [attr.aria-label]="'Review action is ' + (entityCardConfig?.sharedEntityDetails?.adminActionType?.description ? entityCardConfig?.sharedEntityDetails?.adminActionType?.description: 'empty')">
+                        <label for="coi-{{uniqueId}}-review-action" class="coi-text-dark d-block">Review Action</label>
+                        <div id="coi-{{uniqueId}}-review-action" class="text-slice">
+                            <app-no-data-label [valueToShow]="entityCardConfig?.sharedEntityDetails?.adminActionType?.description">
+                                <span [title]="entityCardConfig?.sharedEntityDetails?.adminActionType?.description"
+                                    class="coi-text-light">{{entityCardConfig?.sharedEntityDetails?.adminActionType?.description}}</span>
+                            </app-no-data-label>
+                        </div>
+                    </div>
+                    <!-- Review Status -->
+                    <div *ngIf="fieldOrder === 'REVIEW_STATUS'" tabindex="-1" class="{{entityCardConfig?.individualColumnClass?.['REVIEW_STATUS'] || entityCardConfig?.columnClass}}"
+                        [attr.aria-label]="'Review status is ' + (entityCardConfig?.sharedEntityDetails?.adminReviewStatusType?.adminReviewStatusCode ? entityCardConfig?.sharedEntityDetails?.adminReviewStatusType?.description : 'empty')">
+                        <label for="coi-{{uniqueId}}-review-status" class="coi-text-lighter d-block">Review Status</label>
+                        <div id="coi-{{uniqueId}}-review-status" class="text-slice">
+                            <app-no-data-label [valueToShow]="entityCardConfig?.sharedEntityDetails?.adminReviewStatusType?.adminReviewStatusCode">
+                                <span class="{{BATCH_ENTITY_REVIEW_STATUS_BADGE[entityCardConfig?.sharedEntityDetails?.adminReviewStatusType?.adminReviewStatusCode]}}"></span>
+                                <span [title]="entityCardConfig?.sharedEntityDetails?.adminReviewStatusType?.description"
+                                    class="coi-text-dark ms-1">{{entityCardConfig?.sharedEntityDetails?.adminReviewStatusType?.description}}</span>
+                            </app-no-data-label>
+                        </div>
+                    </div>
+                </ng-container>
+                <!-- footer buttons -->
+                <div class="col d-flex align-items-center justify-content-end gap-2">
+                    <!-- Review -->
+                    <button *ngIf="entityCardConfig?.inputOptions?.REVIEW?.visible"
+                        id="coi-{{uniqueId}}-review-btn" (click)="emitActions('REVIEW')"
+                        class="d-flex align-items-center btn btn-outline-secondary fs-14 gap-1"
+                        [disabled]="entityCardConfig?.inputOptions?.REVIEW?.disable"
+                        aria-label="Click here to review entity"
+                        title="Click here to review entity">
+                        <mat-icon aria-hidden="true">find_in_page</mat-icon>
+                        Review
+                    </button>
+                    <!-- Re-Review -->
+                    <button *ngIf="entityCardConfig?.inputOptions?.RE_REVIEW?.visible"
+                        id="coi-{{uniqueId}}-re-review-btn" (click)="emitActions('RE_REVIEW')"
+                        class="d-flex align-items-center btn btn-outline-secondary fs-14 gap-1"
+                        [disabled]="entityCardConfig?.inputOptions?.RE_REVIEW?.disable"
+                        aria-label="Click here to re-review entity"
+                        title="Click here to re-review entity">
+                        <img src="{{deployMap}}assets/images/reReview.svg" alt="re-review" class="height-18px coi-btn-img-svg">
+                        Re-review
+                    </button>
+                    <!-- View -->
+                    <button *ngIf="entityCardConfig?.inputOptions?.VIEW?.visible"
+                        id="coi-{{uniqueId}}-view-btn" (click)="emitActions('VIEW')"
+                        class="d-flex align-items-center btn btn-outline-secondary fs-14 gap-1"
+                        [disabled]="entityCardConfig?.inputOptions?.VIEW?.disable"
+                        aria-label="Click here to view entity details"
+                        title="Click here to view entity details">
+                        <mat-icon aria-hidden="true">visibility</mat-icon>
+                        View
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

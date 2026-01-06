@@ -1,0 +1,110 @@
+<div class="row gap-1">
+    <div *ngIf="isShowSearchAndInfo" class="d-flex flex-column col-12 {{projectListConfiguration?.customClass}} gap-2 pb-1">
+        <!-- search box -->
+        <ng-content select="[sticky-content]"></ng-content>
+        <div class="advance-search overflow-hide-nav coi-search-box">
+            <div class="col-12 d-flex align-items-center search-area position-relative p-2">
+                <div class="filter-search">
+                    <!-- search icon -->
+                    <mat-icon aria-hidden="true" class="fs-25px searchButton">search</mat-icon>
+                    <!-- search input -->
+                    <input class="form-control pe-5" type="text" id="coi-user-{{projectType}}-search-{{projectListConfiguration?.uniqueId}}"
+                        [(ngModel)]="projectListConfiguration.searchText" (ngModelChange)="searchTextChanged()"
+                        [placeholder]="'Search by ' + projectType" autocomplete="off"
+                        [attr.aria-label]="'Search by ' + projectType + '. Current value is ' + (projectListConfiguration?.searchText ? '' : 'empty')">
+                </div>
+                <!-- close btn -->
+                <button *ngIf="projectListConfiguration?.searchText" aria-label="Click here to clear search"
+                    id="coi-user-{{projectType}}-search-close-btn-{{projectListConfiguration?.uniqueId}}"
+                    title="Click here to clear search" class="d-flex align-items-center btn-none" (click)="clearSearch()">
+                    <mat-icon class="closeButton" aria-hidden="true">close</mat-icon>
+                </button>
+            </div>
+        </div>
+        <!-- info -->
+        <div *ngIf="infoText && userProjectList.length && canCreateDisclosure" class="d-flex align-items-center justify-content-between alert alert-primary mt-1 mb-0 py-2">
+            <div class="d-flex">
+                <!-- icon -->
+                <mat-icon class="mat-icon material-icons flex-shrink-0" aria-hidden="true">info</mat-icon>
+                <!-- text -->
+                <p class="fs-14 mb-0 ms-2"><span [innerHTML]="infoText"></span>.</p>
+            </div>
+            <div class="d-flex">
+                <!-- Create Initial Disclosure -->
+                <button *ngIf="!hasFCOIDisclosure" id="coi-user-{{projectType}}-create-initial-btn-{{projectListConfiguration?.uniqueId}}"
+                    title="Click here to create {{COMMON_DISCL_LOCALIZE.TERM_COI_INITIAL_DISCL}}"
+                    attr.aria-label="Click here to create {{COMMON_DISCL_LOCALIZE.TERM_COI_INITIAL_DISCL}}"
+                    class="btn btn-primary btn-sm d-inline-flex align-items-center justify-content-center fs-14 gap-1" (click)="handleFCOICreation('INITIAL')">
+                    <mat-icon aria-hidden="true" class="flex-shrink-0">add</mat-icon>
+                    <span class="text-nowrap">Create {{ COMMON_DISCL_LOCALIZE.TERM_COI_INITIAL_DISCL }}</span>
+                </button>
+                <!-- Create Revision -->
+                <button *ngIf="hasFCOIDisclosure && !hasPendingFCOI" id="coi-user-{{projectType}}-create-revise-btn-{{projectListConfiguration?.uniqueId}}"
+                    title="Click here to {{ COMMON_DISCL_LOCALIZE.FCOI_REVISE_BTN }}" attr.aria-label="Click here to {{ COMMON_DISCL_LOCALIZE.FCOI_REVISE_BTN }}"
+                    class="btn btn-primary btn-sm d-inline-flex align-items-center justify-content-center fs-14 gap-1" (click)="handleFCOICreation('REVISION')">
+                    <mat-icon aria-hidden="true" class="flex-shrink-0">restart_alt</mat-icon>
+                    <span>{{ COMMON_DISCL_LOCALIZE.FCOI_REVISE_BTN }}</span>
+                </button>
+                <!-- Link to Initial/Revision -->
+                <button *ngIf="hasPendingFCOI && !hasSubmittedDisclosure" id="coi-user-{{projectType}}-link-disclosure-btn-{{projectListConfiguration?.uniqueId}}"
+                    title="Click here to link {{projectType?.toLowerCase()}}s to {{pendingInitialRevisionDiscl?.fcoiTypeCode == DISCLOSURE_TYPE.INITIAL ?  COMMON_DISCL_LOCALIZE.TERM_COI_INITIAL_DISCL : COMMON_DISCL_LOCALIZE.TERM_COI_REVISION_DISCL}}"
+                    attr.aria-label="Click here to link {{projectType?.toLowerCase()}}s to {{pendingInitialRevisionDiscl?.fcoiTypeCode == DISCLOSURE_TYPE.INITIAL ?  COMMON_DISCL_LOCALIZE.TERM_COI_INITIAL_DISCL : COMMON_DISCL_LOCALIZE.TERM_COI_REVISION_DISCL}}"
+                    class="btn btn-primary btn-sm d-inline-flex align-items-center justify-content-center fs-14 gap-1" (click)="linkProjectsToDisclosure()">
+                    <span class="text-nowrap">Link {{ projectType }}s to {{ pendingInitialRevisionDiscl?.fcoiTypeCode == DISCLOSURE_TYPE.INITIAL ? COMMON_DISCL_LOCALIZE.TERM_COI_INITIAL_DISCL : COMMON_DISCL_LOCALIZE.TERM_COI_REVISION_DISCL }}</span>
+                </button>
+                <!-- View Disclosure -->
+                <button *ngIf="hasPendingFCOI && hasSubmittedDisclosure" id="coi-user-{{projectType}}-view-dislcosure-btn-{{projectListConfiguration?.uniqueId}}"
+                    title="Click here to view disclosure" aria-label="Click here to view disclosure"
+                    class="btn btn-primary btn-sm d-inline-flex align-items-center justify-content-center fs-14 gap-1" (click)="viewDisclosure()">
+                    <mat-icon aria-hidden="true" class="flex-shrink-0">visibility</mat-icon>
+                    <span class="text-nowrap">View Disclosure</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- award list -->
+    <div *ngIf="!isLoading" class="d-flex flex-column gap-2 col-12">
+        <ng-container *ngIf="userProjectList.length; else showNoData">
+            <!-- award list -->
+            <ng-container *ngFor="let projectDetails of userProjectList">
+                <div class="card coi-card-regular shadow-sm mt-0 overflow-hidden">
+                    <app-shared-project-details-card [needReporterRole]="true" [isOpenSlider]="projectListConfiguration?.isSliderOrModal"
+                        [projectDetails]="userProjectCardDetails[projectDetails?.projectId]"
+                        customClass="border-0 shadow-none card-header-border-none"
+                        columnClass="col-12 col-sm-6 col-md-4 col-lg-4 col-xl-3 col-xxl-3"
+                        [uniqueId]="'coi-project-' + projectDetails?.projectId + '-' + projectListConfiguration?.uniqueId">
+                    </app-shared-project-details-card>
+                    <!-- footer -->
+                    <div *ngIf="projectListConfiguration?.isShowCreateDisclosureBtn && canCreateDisclosure && (( hasFCOIDisclosure && !hasPendingFCOI ) || ( hasPendingFCOI && hasSubmittedDisclosure ))" class="card-footer">
+                        <div class="d-flex align-items-center justify-content-end">
+                            <button (click)="openDisclosureCreationModal(projectDetails)"
+                                id="coi-project-{{projectDetails?.projectId}}-create-disclosure-btn-{{projectListConfiguration?.uniqueId}}"
+                                class="btn btn-outline-secondary d-flex align-items-center gap-1 fs-14"
+                                title="Click here to create disclosure" aria-label="Click here to create disclosure">
+                                <mat-icon aria-hidden="true" class="flex-shrink-0">add</mat-icon>
+                                <span>Create Disclosure</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+            <!-- pagination -->
+            <div *ngIf="projectListConfiguration?.paginationLimit" class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 mt-3">
+                <nav aria-label="pagination section" class="pagination justify-content-end">
+                    <app-pagination [pageCount]="projectListConfiguration?.paginationLimit" [defaultCurrentPage]="currentPageNumber"
+                        (pageChangeEvent)="actionsOnPageChange($event)" [totalCount]="filteredCount">
+                    </app-pagination>
+                </nav>
+            </div>
+        </ng-container>
+        <!-- no data card -->
+        <ng-template #showNoData>
+            <app-no-information customClass="mt-0 rounded-2">
+                <span>{{ projectListConfiguration?.searchText ? 'No ': "You don't have any " }} 
+                    {{ projectType?.toLowerCase() }}s
+                    {{ projectListConfiguration?.searchText ? ' matching your search criteria found.' : ' to disclose.' }}
+                </span>
+            </app-no-information>
+        </ng-template>
+    </div>
+</div>

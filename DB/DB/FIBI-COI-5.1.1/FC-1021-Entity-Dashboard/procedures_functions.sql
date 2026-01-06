@@ -1,0 +1,2 @@
+\. ./FIBI-COI-5.1.1/FC-1021-Entity-Dashboard/Procedures/GET_ENTITY_DASHBOARD_DYNAMIC_DATA.sql
+\. ./FIBI-COI-5.1.1/FC-1021-Entity-Dashboard/Procedures/GET_ENTITY_DASHBOARD_DYNAMIC_COUNT.sql

@@ -1,0 +1,319 @@
+
+<!--REPORTS MODAL-->
+<div aria-hidden="true" aria-labelledby="skippedSchedulesTitle"  data-backdrop="static" class="modal fade show mySkinDialog modal-opacity mt-3"
+    id="addSponsorReports" role="dialog" tabindex="-1">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 *ngIf="action == 'add'" class="modal-title" >Add Report
+                </h5>
+                <h5 *ngIf="action == 'update'" class="modal-title" >Edit Report
+                </h5>
+                <h5 *ngIf="action == 'view'" class="modal-title" >Sponsor Reporting Requirement Details
+                </h5>
+                <button aria-label="Close" class="close"  type="button" (click)="clearReportingRequirement()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- first block -->
+                <h4 class="fs-14 fw-500 title-primary">SPONSOR DETAILS
+                    <a class="tooltip z-index-0 tooltip-helptext"><i aria-hidden="true"
+                            style="color: #48647f !important;" class="fa fa-exclamation-circle fa-med hand-cursor"></i>
+                        <div class="tooltiptext-left card card-inner p-15 text-left">
+                            <span class="font-cv">General details of the sponsor.</span>
+                        </div>
+                    </a>
+                </h4>
+                
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <label class="d-block"><span class="mandatory">*</span>Sponsor</label>
+                            <app-endpoint-search [httpOptions]="sponsorSearchOptions" [clearField]="sponsorClearField"
+                            [isDisabled]="isViewMode"
+                              [placeHolder]="'Type here for Sponsor Name'" [isError]="map.has('sponsor')" (onSelect)="onSponsorSelect($event)">
+                            </app-endpoint-search>
+                            <div *ngIf="map.get('sponsor')">
+                                <span class="mandatory">{{map.get('sponsor')}}</span>
+                            </div>
+                          </div>
+                          <div class="col form-group">
+                            <label class="d-block">Funding Scheme</label>
+                            <select class="form-control" [(ngModel)]="reportingRequirementRO.fundingSchemeId"
+                            [disabled]="sponsorFundingSchemes == null || sponsorFundingSchemes.length == 0  || isViewMode"
+                              >
+                              <option [ngValue]="null">--Select--</option>
+                              <option *ngFor="let fundingScheme of sponsorFundingSchemes" [ngValue]="fundingScheme.fundingSchemeId">
+                                {{fundingScheme?.description }}
+                            </option>
+                            </select>
+                          </div>
+                    </div>
+                
+                
+                <h4 class="fs-14 fw-500 mt-3 title-primary">REPORT DETAILS
+                    <a class="tooltip z-index-0 tooltip-helptext"><i aria-hidden="true"
+                            style="color: #48647f !important;" class="fa fa-exclamation-circle fa-med hand-cursor"></i>
+                        <div class="tooltiptext-left card card-inner p-15 text-left">
+                            <span class="font-cv">General details of the report.</span>
+                        </div>
+                    </a>
+                </h4>
+                
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label for="award-report-class"><span class="mandatory">*</span>Report Class:
+                        </label>
+                        <select [(ngModel)]="reportingRequirementRO.reportClassCode"
+                        (ngModelChange)="fetchReportType()" [disabled]="isViewMode"
+                             [ngClass]="(map.get('reportClass'))? 'is-invalid d-block' : ''"
+                            class="form-control" id="award-report-class">
+                            <option [ngValue]="null">--Select--</option>
+                            <option *ngFor="let reportClass of reportTermsLookup?.reportClassList"
+                                [hidden]="reportClass.isActive != true" [ngValue]="reportClass.reportClassCode">
+                                {{reportClass?.description}}</option>
+                        </select>
+                        <div *ngIf="map.get('reportClass')">
+                            <span class="mandatory">{{map.get('reportClass')}}</span>
+                        </div>
+                    </div>
+                    <div class="form-group col">
+                        <label for="award-report-type">Report Type:
+                        </label>
+                        <select [(ngModel)]="reportingRequirementRO.reportCode"
+                            [disabled]="reportTermsLookup?.reportList == null || reportTermsLookup?.reportList.length == 0 || isViewMode"
+                            class="form-control" id="award-report-type">
+                            <option [ngValue]="null">--Select--</option>
+                            <option *ngFor="let report of reportTermsLookup?.reportList" [ngValue]="report.reportCode">
+                                {{report?.description ? report?.description : 'No data available'}}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="form-group col">
+                        <label class="block-display" for="award-freq"><span class="mandatory">*</span>Frequency:</label>
+                        <select  [(ngModel)]="reportingRequirementRO.frequencyCode" [disabled]="isViewMode"
+                            [ngClass]="(map.get('frequency'))? 'is-invalid d-block' : ''" class="form-control mt-1"
+                            id="award-freq">
+                            <option [ngValue]="null">--Select--</option>
+                            <option *ngFor="let frequency of reportTermsLookup?.frequencyList"
+                                [hidden]="frequency.active != true" value="{{frequency.frequencyCode}}">
+                                {{frequency.description}}</option>
+                        </select>
+                        <div *ngIf="map.get('frequency')">
+                            <span class="mandatory">{{map.get('frequency')}}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- second block -->
+                <h4 class="fs-14 fw-500 title-primary mt-3">REPORTING STARTS FROM:
+                    <a class="tooltip z-index-0 tooltip-helptext"><i aria-hidden="true"
+                            style="color: #48647f !important;" class="fa fa-exclamation-circle fa-med hand-cursor"></i>
+                        <div class="tooltiptext-left card card-inner p-15 text-left">
+                            <span class="font-cv">Start date of the report.</span>
+                        </div>
+                    </a>
+                </h4>
+                <div class="container row-background">
+                    <div class="form-row  pt-3 px-2">
+                        <div class="form-group col-6">
+                            <label class="block-display" for="award-freq-base"><span class="mandatory">*</span>Frequency
+                                Base:</label>
+                            <select (change)="this.reportingRequirementRO.baseDate = null" [disabled]="isViewMode"
+                                [(ngModel)]="reportingRequirementRO.frequencyBaseCode"
+                                [ngClass]="(map.get('frequencyBase'))? 'is-invalid d-block' : ''" class="form-control"
+                                id="award-freq-base">
+                                <option [ngValue]="null">--Select--</option>
+                                <option *ngFor="let frequencyBase of reportTermsLookup?.frequencyBaseList"
+                                    [hidden]="frequencyBase.active != true" [ngValue]="frequencyBase.frequencyBaseCode">
+                                    {{frequencyBase.description}}</option>
+                            </select>
+                            <div *ngIf="map.get('frequencyBase')">
+                                <span class="mandatory">{{map.get('frequencyBase')}}</span>
+                            </div>
+                            
+                        </div>   
+                                <div class="col-6" *ngIf="reportingRequirementRO.frequencyBaseCode == '6'">
+                                    <ng-container >
+                                        <label class="block-display" for="report-base-date"><span class="mandatory">*</span>Base
+                                            Date:</label>
+                                        <span>
+                                            <span class="dateField">
+                                                <input matInput (keypress)="_commonService._keyPress($event, 'date')"
+                                                    [(ngModel)]="reportingRequirementRO.baseDate"
+                                                    [ngClass]="(map.get('baseDate'))? 'is-invalid d-block' : ''"
+                                                    [matDatepicker]="baseDt" autocomplete="off"
+                                                    class="d-inline-block form-control" id="report-base-date"
+                                                    (click)="baseDt.open()"
+                                                    placeholder="Enter Base Date" />
+                                                <i aria-hidden="true" (click)="baseDt.open()"
+                                                    class="fa fa-calendar fa-large hand-cursor insidePicker"></i>
+                                                <mat-datepicker #baseDt (opened)="setFocusToElement('report-base-date')">
+                                                </mat-datepicker>
+                                            </span>
+                                        </span>
+                                        <div *ngIf="map.get('baseDate')">
+                                            <span class="mandatory">{{map.get('baseDate')}}</span>
+                                        </div>
+                                    </ng-container>
+                                </div>
+                                <div class="col-3" *ngIf="reportingRequirementRO.frequencyBaseCode == '120'">
+                                    <ng-container >
+                                        <label class="block-display" for="month"> <span class="mandatory">*</span>Months :</label>
+                                        <select id="month" [(ngModel)]="reportingRequirementRO.month"
+                                        (ngModelChange)="getNumberOfDaysInMonth(reportingRequirementRO.month)"
+                                         [ngClass]="(map.get('month'))? 'is-invalid d-block' : ''" class="form-control" [disabled]="isViewMode">
+                                        <option [ngValue]="0">--Select--</option>
+                                        <option [ngValue]="1">January</option>
+                                        <option [ngValue]="2">February</option>
+                                        <option [ngValue]="3">March</option>
+                                        <option [ngValue]="4">April</option>
+                                        <option [ngValue]="5">May</option>
+                                        <option [ngValue]="6">June</option>
+                                        <option [ngValue]="7">July</option>
+                                        <option [ngValue]="8">August</option>
+                                        <option [ngValue]="9">September</option>
+                                        <option [ngValue]="10">October</option>
+                                        <option [ngValue]="11">November</option>
+                                        <option [ngValue]="12">December</option>
+                                        </select>
+                                        <div *ngIf="map.get('month')">
+                                            <span class="mandatory">{{map.get('month')}}</span>
+                                        </div>  
+                                    </ng-container> 
+                                </div>
+                                <div class="col-3" *ngIf="reportingRequirementRO.frequencyBaseCode == '120'">
+                                    <label class="block-display" for="month"><span class="mandatory">*</span>Days :</label>
+                                    <select id="month" [(ngModel)]="reportingRequirementRO.day" [ngClass]="(map.get('day'))? 'is-invalid d-block' : ''" class="form-control" [disabled]="isViewMode || days.length == 0 ">
+                                    <option [ngValue]="0">--Select--</option>
+                                    <option *ngFor="let day of days" [ngValue]="day">{{day}}</option>
+                                    </select>
+                                    <div *ngIf="map.get('day')">
+                                        <span class="mandatory">{{map.get('day')}}</span>
+                                    </div>
+                                </div>
+                            
+                             
+                        </div>
+                    
+                    <div *ngIf="reportingRequirementRO.frequencyCode != '14'" class="form-row" >
+                        <div class="pl-3 pb-3 col-6">
+                            <input type="checkbox" [disabled]="isViewMode" id="date-chekbox" 
+                            [(ngModel)]="reportingRequirementRO.useAsBaseDate"> 
+                            <label for="date-chekbox" [ngClass]="{'hand-cursor': isEditReport }">Consider this date as
+                                first due date</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- third block -->
+                <h4 class="fs-14 fw-500 title-primary mt-3" *ngIf="reportingRequirementRO.frequencyCode != '14'">REPORTING ENDS:
+                    <a class="tooltip z-index-0 tooltip-helptext"><i aria-hidden="true"
+                            style="color: #48647f !important;" class="fa fa-exclamation-circle fa-med hand-cursor"></i>
+                        <div class="tooltiptext-left card card-inner p-15 text-left">
+                            <span class="font-cv">End date of the report.</span>
+                        </div>
+                    </a>
+                </h4>
+                <div class=" row-background py-3 px-2" *ngIf="reportingRequirementRO.frequencyCode != '14'">
+                    <div class="d-flex justify-content-between">
+                        <div class="mt-3">
+                            <div class="checkbox-inline col-12 d-inline-flex">
+                                <span class="form-check form-check-inline mb-4">
+                                    <input class="radio-inline" type="radio" [(ngModel)]="reportingEnds" (ngModelChange)="onSelectReportingEnd(reportingEnds)" [disabled]="isViewMode"
+                                        name="inlineRadioOptions" id="endsOn" [value]="'onProjectEndDate'" (click)="reportingEnds = 'onProjectEndDate';">
+                                    <label class="ml-2 form-check-label" for="endsOn">On Project End Date</label>
+                                </span>
+                            </div>
+                            <div class="checkbox-inline col-12 d-inline-flex">
+                                <span class="form-check form-check-inline">
+                                    <input class="radio-inline" type="radio" [(ngModel)]="reportingEnds" (ngModelChange)="onSelectReportingEnd(reportingEnds)" [disabled]="isViewMode"
+                                        name="inlineRadioOptions" id="endsOn" [value]="'onCustomEndDate'" (click)="reportingEnds = 'onCustomEndDate';">
+                                    <label class="ml-2 form-check-label" for="endsOn">On Custom Date</label>
+                                </span>
+                                <span class="dateField ml-5">
+                                    <input matInput (keypress)="_commonService._keyPress($event, 'date')"
+                                        [(ngModel)]="reportingRequirementRO.customEndDate" [disabled]="reportingEnds != 'onCustomEndDate' || isViewMode "
+                                        [ngClass]="(map.get('awardEndsOn'))? 'is-invalid d-block' : ''"
+                                        [matDatepicker]="endDate" autocomplete="off"
+                                        (click)="endDate.open()"
+                                        class="d-inline-block form-control" id="report-base-date"
+                                        placeholder="Date" />
+                                    <i  aria-hidden="true" (click)="endDate.open()"
+                                        class="fa fa-calendar fa-large hand-cursor insidePicker"></i>
+                                    <mat-datepicker #endDate (opened)="setFocusToElement('report-base-date')">
+                                    </mat-datepicker>
+                                </span>
+                                <div *ngIf="map.get('awardEndsOn')" class="ml-4">
+                                    <span class="mandatory">{{map.get('awardEndsOn')}}</span>
+                                </div>
+                            </div>
+                            <div class="checkbox-inline col-12 d-inline-flex mt-3">
+                                <span class="form-check form-check-inline">
+                                    <input class="radio-inline" type="radio" [(ngModel)]="reportingEnds" (ngModelChange)="onSelectReportingEnd(reportingEnds)" [disabled]="isViewMode"
+                                        name="inlineRadioOptions" id="endsAfter" [value]="'after'"
+                                        (click)="reportingEnds = 'after'">
+                                    <label class="ml-2 form-check-label" for="endsAfter">Number Of Occurrences</label>
+                                </span>
+                                <span class="ml-4">
+                                    <input class="form-control" type="number"  [(ngModel)]="reportingRequirementRO.endOnOccurrences" (ngModelChange)="onSelectReportingEnd(reportingEnds)" 
+                                           [disabled]="reportingEnds != 'after' || isViewMode" min="1" max="999"
+                                        >
+                                </span>
+                                <div *ngIf="map.get('occurrence')" class="ml-4">
+                                    <span class="mandatory">{{map.get('occurrence')}}</span>
+                                </div>
+                            </div>
+                        </div>
+   
+                    </div>
+                </div>
+                <!-- fourth block -->
+                <!-- <h4 class="fs-14 fw-500 title-primary mt-3">RECIPIENTS:
+                    <a class="tooltip z-index-0 tooltip-helptext"><i aria-hidden="true"
+                            style="color: #48647f !important;" class="fa fa-exclamation-circle fa-med hand-cursor"></i>
+                        <div class="tooltiptext-left card card-inner p-15 text-left">
+                            <span class="font-cv">Select recipients for this report.</span>
+                        </div>
+                    </a>
+                </h4>
+                <div class="form-group col px-0">
+                    <label class="block-display" for="report-recipient"><span class="mandatory">*</span>Choose</label>
+                    <div class="searchBox memberSearchBox" id="report-recipient">
+                        <app-elastic (selectedResult)="selectedRecipients($event)"
+                                     [clearField]="clearRecipientField"
+                                     [options]="elasticPersonSearchOptions"
+                                     [placeHolder]="'Search'">
+                        </app-elastic>
+                    </div>
+                </div>
+                <div *ngIf="map.get('recipients')">
+                    <span class="mandatory">{{map.get('recipients')}}</span>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col">
+                        <div *ngIf="awardReport.awardReportTermRecipient?.length > 0" class="fileChips"
+                             style="word-break: break-all;">
+                            <ng-container *ngFor="let recipient of awardReport.awardReportTermRecipient ;let i = index">
+                                <span *ngIf="recipient.acType != 'D'">{{recipient.fullName}}
+                                    <i (click)="deleteRecipient(recipient,i)" aria-hidden="true"
+                                       class="fa fa-close hand-cursor" id="prop-keywrd-dlt"
+                                       title="Remove this Recipient"></i>
+                                </span>
+                            </ng-container>
+                        </div>
+                    </div>
+                </div>
+                
+            </div> -->
+            <div class="modal-footer">
+                <button *ngIf="action!='view'" class="btn btn-secondary btn-sm" data-dismiss="modal" id="close-report-modal" type="button" (click)="clearReportingRequirement()">
+                    Cancel
+                </button>
+                <button *ngIf="action=='add'" class="btn btn-primary-sub btn-sm"  type="button" (click)="saveReport()">Save</button>
+                <button *ngIf="action=='update' " class="btn btn-primary-sub btn-sm" type="button" (click)="saveReport()">Update</button>
+            </div>
+        </div>
+    </div>
+
+</div>

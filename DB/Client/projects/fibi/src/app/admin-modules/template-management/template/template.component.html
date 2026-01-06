@@ -1,0 +1,189 @@
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="row mb-3">
+      <div class="col-lg-6 col-sm-12">
+      <div class="card border p-3">
+      <div class="form-row">
+        <div class="col-md-12 col-sm-12 col-12 mb-0">
+          <label class="d-block"><span class="mandatory">*</span> Type of Agreement </label>
+          <app-autocompleter [completerOptions]="completerSearchOptions" [placeHolder]="'Search by table name'"
+            (onSelect)="getAgreementTypeData($event)" [isError]="(map.get('type')) ? true : false">
+          </app-autocompleter>
+        </div>
+      </div>
+    <div class="form-row mt-4">
+      <div class="col-lg-12">
+        <label class="d-block"> Description </label>
+        <textarea [(ngModel)]="templateObject.description"
+          [ngClass]="(map.get('description')) ? 'is-invalid d-block' : ''" class="form-control"
+          placeholder="Description"></textarea>
+        <!-- <div *ngIf="(map.get('description'))" class="invalid-feedback d-block">{{map.get('description')}}
+        </div> -->
+      </div>
+      <div class="col-lg-12">
+        <label class="d-block"><span class="mandatory">*</span> Add Attachment </label>
+        <app-file-drop [multiple]="false" [fileAccept]="_commonService.wordFileType" (filesDropEvent)="fileDrop($event)"></app-file-drop>
+        <div *ngIf="uploadedFile.length > 0">
+          <div class="gridSkin">
+            <div class="row">
+              <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 fileChips pt-0" style="word-break: break-all;">
+                <span style="padding:3px 8px;" *ngFor="let item of uploadedFile; let i=index">{{item?.name}}
+                  <i class="fa fa-close hand-cursor" id="req-action-doc-dlt" (click)="deleteFromUploadedFileList(i)"
+                    title="Delete attachment" aria-hidden="true"></i>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="warningObj.attachment != null">
+          <span class="mandatory font">{{warningObj.attachment}}</span>
+      </div>
+        <div *ngIf="(map.get('attachment'))" class="invalid-feedback d-block">{{map.get('attachment')}}
+        </div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="col-12 d-flex justify-content-sm-center justify-content-md-end btn-xs  mb-0">
+        <button class="btn btn-primary-sub btn-sm btn-xs" id="agreement-save-btn" type="button"
+          (click)="addAttachments()" title="Add template">Add Template</button>
+      </div>
+    </div>
+    </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card border h-100 p-3">
+          <div class="preview-outer h-100 d-flex justify-content-center align-items-center p-3">
+            <div>
+                <div *ngIf="!templateList?.agreementTypeTemplates || templateList?.agreementTypeTemplates?.length == 0" class="regularFont text-center p-5">
+                    <i class="fa fa-meh-o fa-4x text-black-50 d-block mb-3" aria-hidden="true"></i>
+                    <h4 class="text-content-color">Sorry, no result found!</h4>
+                    <span class="text-muted">No template found for this Agreement type.</span>
+                </div>
+              <div *ngIf="templateList?.agreementTypeTemplates?.length > 0" class="preview-content">
+                  <div class="text-center d-inline-block preview-icon"><i class="fa fa-file-word-o" aria-hidden="true"></i>
+                   <label class="d-block p-file-name mb-0">{{latestVersion?.fileName}}</label>
+                   <label class="d-block p-template mb-0">Template for {{this.temporaryAgreement?.description}}</label>
+                   <label class="p-creator d-block mb-0">
+                    <span class="version">Version {{latestVersion?.versionNumber}}</span>
+                     Created by {{latestVersion?.createUserFullName}} on {{latestVersion?.updateTimestamp |dateFormatterWithTimeZone}}</label>
+                   <span>{{latestVersion?.description}} </span>
+                  </div>
+              </div>
+              <div *ngIf="templateList?.agreementTypeTemplates?.length > 0" class="preview-actions">
+                  <span class="hand-cursor preview-download mr-1" (click)="downloadAgreementTemplate(latestVersion)" id="doc-dwnlod-btn" title="Click here to download">
+                      <i class="fa fa-download mr-1" aria-hidden="true"></i></span>
+                      <span>
+                        <a class="pointer" data-toggle="modal" (click)="deleteIndex = 0" data-target="#deleteTemplate" id="delete-btn" title="Click here to delete">
+                          <i aria-hidden="true" class="fa fa-trash p-delete"></i></a>
+                        </span>
+                      </div>
+            </div>
+          </div>
+      </div>
+        <!-- <h4 *ngIf="templateList?.agreementTypeTemplates?.length > 0" class="border card p-4 d-inline-block w-100 mb-0">
+            <div class="row">
+              <div class="col-10">
+                <span class=" fw-400"><i class="fa fa-file-text pr-2" aria-hidden="true"></i>Template for  </span>
+                <span class="fw-600">{{ latestVersion?.agreementType?.description}} :</span>
+                <span class="external-link "> {{latestVersion?.fileName}}</span>
+                <span class="f-12 fw-400 pt-2"> -Created by {{latestVersion?.createUserFullName}} on {{latestVersion?.updateTimestamp |dateFormatter}} </span>
+                <p><label>Description :</label><span class="font-weight-normal ml-2 mt-2">{{latestVersion?.description}}</span></p>
+              </div>
+              <div class="col-2 text-right">
+                <span class="f-14 fw-500">
+                  <a class="p-2 hand-cursor hover-effect" (click)="downloadAgreementTemplate(latestVersion)" id="doc-dwnlod-btn" title="Click here to download ">
+                    <i class="fa fa-download pr-2" aria-hidden="true"></i> Download document
+                  </a>
+                </span>
+              </div>
+            </div>
+            </h4> -->
+    </div>
+  </div>
+   <div  *ngIf="templateList?.agreementTypeTemplates?.length > 0" class="card card-inner">
+      <div  class="card-header">
+          <h4  class="card-title">
+            History
+          </h4>
+      </div>
+    <div class="card-content">
+    <div class="card-body">
+    <div class="table-responsive">
+      <table class="table tableSkin mb-0">
+        <thead>
+          <tr>
+            <th scope="col" id="filename">
+              <span class="hand-cursor" title="Click to sort by Type Of Agreement">Filename</span>
+            </th>
+            <th scope="col" id="description">
+              <span class="hand-cursor" title="Click to sort by Type Of Agreement">Description</span>
+            </th>
+            <th scope="col" id="description">
+              <span class="hand-cursor" title="Click to sort by Type Of Agreement">Version</span>
+            </th>
+            <th scope="col" id="description">
+              <span class="hand-cursor" title="Click to sort by Type Of Agreement">Created By</span>
+            </th>
+            <th scope="col" id="actions">
+              <span class="hand-cursor" title="Click to sort by Type Of Agreement">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of templateList.agreementTypeTemplates; let index = index">
+            <td>{{item.fileName}}</td>
+            <td>{{item.description}}</td>
+            <td>{{item.versionNumber}}</td>
+            <td>{{item.createUserFullName}} on {{item.updateTimestamp | dateFormatterWithTimeZone}}</td>
+            <td>
+              <ul class="actionButtonGroup d-inline-block">
+                <li>
+                  <a class="pointer" (click)="documentPreview(item)">
+                    <i aria-hidden="true" class="fa fa-eye pointer" title="Preview document"></i>
+                  </a>
+                </li>
+                <li>
+                  <a class="pointer" (click)="downloadAgreementTemplate(item)">
+                    <i aria-hidden="true" class="fa fa-download icon" title="Download document"></i>
+                  </a>
+                </li>
+                <li>
+                  <a class="pointer" data-toggle="modal" (click)="deleteIndex = index" data-target="#deleteTemplate" id="delete-btn">
+                    <i aria-hidden="true" class="fa fa-trash icon" title="Delete document"></i>
+                  </a>
+                </li>
+              </ul>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    </div>
+  </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade mySkinDialog" id="deleteTemplate" role="dialog">
+  <div class="modal-dialog">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title">Delete</h5>
+              <button aria-label="Close" class="close" data-dismiss="modal" id="prop-dlt-member-dismiss"
+                  type="button">
+                  <span aria-hidden="true">×</span>
+              </button>
+          </div>
+          <div class="modal-body">
+              <p>Are you sure you want to delete this template?</p>
+          </div>
+          <div class="modal-footer">
+              <button class="btn btn-secondary btn-sm" data-dismiss="modal" data-toggle="modal"
+                  type="button">Cancel</button>
+              <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button"
+                  (click)="deleteAgreementTemplate(deleteIndex)">Delete</button>
+          </div>
+      </div>
+  </div>
+</div>
+
+

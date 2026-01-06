@@ -1,0 +1,197 @@
+<div class="modal fade mySkinDialog" id="addEvaluationScoringModal" tabindex="-1" role="dialog"
+  aria-labelledby="skippedSchedulesTitle" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header position-relative">
+        <h5 class="modal-title" id="scoringCriteria">Scoring Criteria</h5>
+        <span class="out-line">
+          <button class="btn btn-tertiary mt-0 btn-small pointer" title="Expand All" (click)="toggleComments()">{{!isExpandall ? "Expand All" : "Collapse All"}}</button>
+        </span>
+        <button type="button" class="close" id="closeScoringModal" data-dismiss="modal" aria-label="Close"
+          (click)="setCriteriaDataList();">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="alert alert-warning alert-dismissible fade show px-4 py-3 mb-0" role="alert"
+        *ngIf="submitTryCount > 0 && !isAllCriteriaVisited">
+        <strong>Warning!</strong> {{result?.isPersonCanScore ? 'Scores': 'Comments'}} have not been entered for one or more criteria. 
+      </div>
+      <div class="modal-body">
+        <div class="no-data-container" *ngIf="scoringCriteriaList?.length == 0">
+          <span class="no-data-icon-outer">
+            <div class="no-data-icon">
+              <i class="fa fa-file-o" aria-hidden="true"></i>
+              <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+            </div>
+          </span>
+          <h4>There is no information in this section.</h4>
+        </div>
+        <section *ngIf="scoringCriteriaList.length > 0" class="mb-3 scoring-header-shadow">
+          <div class="row mb-2" *ngIf="result?.isPersonCanScore">
+            <div class="col-2">
+              <label>Score Range:</label>
+            </div>
+            <div class="col-10">
+              <div class="progress">
+                <div class="progress-bar bg-danger w-25">Poor (0-2)
+                </div>
+                <div class="progress-bar bg-warning w-25">Fair (>2-4)
+                </div>
+                <div class="progress-bar w-25">Good (>4-6)
+                </div>
+                <div class="progress-bar bg-info w-25">Very Good (>6-8)
+                </div>
+                <div class="progress-bar bg-success w-25">Excellent (>8-10)
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- <div class="row mb-2">
+            <div class="col-8">
+              <label>Criteria</label>
+            </div>
+            <div class="col-1" *ngIf="result?.isPersonCanScore">
+              <label>Score</label>
+            </div>
+            <div class="col-3">
+            </div>
+          </div> -->
+          <div class="p-2 table-scroll">
+            <div class="card questionnaire-card mb-3 p-2"
+              *ngFor="let criteria of scoringCriteriaList; let criteriaIndex = index">
+              <div class="row pb-2">
+                <div class="col">
+                  <label>{{criteriaIndex + 1}}: {{criteria.scoringCriteria?.description}}</label>
+                </div>
+                <div class="col-auto d-flex justify-content-between align-items-center">
+                  <div class="ml-5" *ngIf="result?.isPersonCanScore">
+                  <input type="number" min="0" step="any" placeholder="Score" class="form-control w-50"
+                  [(ngModel)]="criteria.score" (keypress)="inputRestriction($event)"
+                  (ngModelChange)="checkScoreValidation(criteria.score, criteriaIndex);"
+                  [ngClass]="{'is-invalid': criteriaSupportData[criteriaIndex]?.isScoreInvalid}">
+              </div>
+              <div>
+                <span class="anchor-link fs-1"  id="{{'comment' + criteriaIndex}}"
+                  (click)="toggleCriteriaComments(criteriaIndex);"
+                  title="Click here to view or add comments or atatchments">
+                  <a>
+                    <i aria-hidden="true" class="fa fa-paperclip rounded-icon mr-1" tabindex="0"></i>
+                    Comments &amp; Attachments</a>
+                </span>
+            </div>
+          </div>
+          <div class="invalid-feedback d-block pl-4 mt-3" *ngIf="criteriaSupportData[criteriaIndex]?.isScoreInvalid">
+            * Score value should be less than 10 (upto 2 decimal places) or equal to 10.
+          </div>
+      </div>
+      <ng-container *ngIf="criteriaSupportData[criteriaIndex]?.isOpen">
+        <div class="p-3 bg-color m-2">
+          <div class="row">
+            <div class="col-12">
+              <textarea class="form-control mt-3" placeholder="Add your comment here" rows="2" cols="50"
+                [(ngModel)]="criteriaDataList[criteriaIndex].comment" appLengthValidator [isShowLimiter]='true'
+                [limit]=4000 [ngClass]="{'is-invalid': !criteriaSupportData[criteriaIndex].isCommentValid}"></textarea>
+              <div *ngIf="!criteriaSupportData[criteriaIndex].isCommentValid" class="invalid-feedback d-block">
+                * Please add Comment</div>
+            </div>
+          </div>
+          <app-file-drop [multiple]="true" (filesDropEvent)="addAttachments($event, criteriaIndex)">
+          </app-file-drop>
+          <div class="d-flex">
+            <div class="fileChips" style="word-break: break-all;"
+              *ngFor="let file of criteriaDataList[criteriaIndex].workflowReviewerAttachments; let index=index">
+              <span><strong>{{file.fileName}}</strong>
+                <i class="fa fa-close hand-cursor" title="Remove the attachment" aria-hidden="true"
+                  (click)="deleteAttachment(criteriaIndex, file, index)"></i>
+              </span>
+            </div>
+          </div>
+          <div class="invalid-feedback d-block pl-4"
+            *ngIf="criteriaSupportData[criteriaIndex].attachmentWarningMessage">
+            {{criteriaSupportData[criteriaIndex].attachmentWarningMessage}}
+          </div>
+          <div class="row mt-2">
+            <div class="col">
+              <input type="checkbox" name="publicflag" [(ngModel)]="criteriaDataList[criteriaIndex].isPrivate">
+              <label> Private Comment</label>
+            </div>
+            <div class="col-auto">
+              <button class="d-inline-block btn btn-secondary btn-xs mr-sm-2"
+                (click)="clearComment(criteriaIndex);">Cancel</button>
+              <ng-container *ngIf="criteriaSupportData[criteriaIndex].editIndex == null">
+                <button class="btn btn-secondary float-right" title="Add Comment"
+                  (click)="validateCurrentCriteria(criteriaIndex)">
+                  Add Comment/Attachment(s)</button>
+              </ng-container>
+              <ng-container *ngIf="criteriaSupportData[criteriaIndex].editIndex != null">
+                <button class="btn btn-secondary float-right" title="Save Comment"
+                  (click)="validateCurrentCriteria(criteriaIndex)">
+                  Update Comment/Attachment(s)</button>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+        <div class="mt-2" *ngIf="scoringCriteriaList[criteriaIndex]?.workflowReviewerComments?.length > 0">
+          <div
+            *ngFor="let comment of scoringCriteriaList[criteriaIndex].workflowReviewerComments; let commentIndex = index"
+            class="comment-message">
+            <div class="comment-message-logo pr-2">
+              <i class="fa fa-user-circle fa-2x txt-big mr-1 text-secondary" aria-hidden="true"></i>
+            </div>
+
+            <div class="comment-message-body pt-1" id="{{'comment' + criteriaIndex + commentIndex}}">
+              <div class="comment-inner-head">
+                <div class="comment-inner-head-left">
+                  <span
+                    class="text-black font-weight-bold txt-medium">{{scoringCriteriaList[criteriaIndex].updatedUserFullName}}</span>
+                  &nbsp;&nbsp;
+                  <span *ngIf="comment.isPrivate" class="fw-700 text-primary txt-medium">Private</span>
+                  <p class="d-inline ml-10 txt-medium text-secondary font-weight-light">
+                    {{comment.updateTimeStamp | dateFormatterWithTimeZone : 'long'}}</p>
+                </div>
+                <div class="comment-inner-head-right">
+                  <span class=" fa fa-pencil px-1 text-black-50 hover-icon hand-cursor" title="Click here to edit Comment"
+                    (click)="editComment(comment, commentIndex, criteriaIndex)" tabindex="0"></span>
+                  <span class="fa fa-trash px-1  text-black-50 hover-icon hand-cursor" title="Click here to  delete this Comment"
+                    *ngIf="criteriaSupportData[criteriaIndex].editIndex == null"
+                    (click)="deleteComment(comment.workflowReviewerCommentsId, commentIndex, criteriaIndex)"
+                    tabindex="0"></span>
+                </div>
+              </div>
+              <div class="comment-inner-body pt-1">
+                <div>
+                  <i aria-hidden="true" class="fa fa-quote-left comment-icon"></i>
+                  <sub> <span class="f-13  text-content-color new-line-property" [innerHTML]="comment.comment"></span>
+                  </sub>
+                </div>
+                <div class="fileChips" style="word-break: break-all;"
+                  *ngFor="let file of comment.workflowReviewerAttachments; let fileIndex = index">
+                  <span><strong>{{file.fileName}}</strong>
+                    <i class="fa fa-close hand-cursor" title="Remove the attachment" aria-hidden="true"
+                      (click)="deleteSavedAttachment(file.workflowReviewerAttmntsId, commentIndex, criteriaIndex, fileIndex)"></i>
+                    <i class="fa fa-download hand-cursor font-color" aria-hidden="true" title="Download attachment"
+                      (click)="downloadAttachment(file)"></i>
+                  </span>
+                </div>
+              </div>
+              <hr *ngIf="(criteria?.workflowReviewerComments?.length - 1) != commentIndex">
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+
+  </section>
+  <div *ngIf="scoringCriteriaList.length > 0" class="row pt-3">
+    <div class="col-12 text-right">
+      <button class="btn btn-secondary" title="Close" data-dismiss="modal"
+        (click)="setCriteriaDataList();">Close</button>
+      <button class="btn btn-primary" title="Save" (click)="validateAllCriteria('SAVE')">Save</button>
+      <button class="btn btn-primary" title="Submit" (click)="validateAllCriteria('SUBMIT')">Submit</button>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+</div>

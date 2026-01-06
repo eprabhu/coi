@@ -1,0 +1,583 @@
+<!-- last updated by Aravind on 20-10-2020 -->
+<div class="row mb-3">
+    <div class="col-6">
+        <ul class="subTabs mb-0">
+            <li [ngClass]="{'active': _claimListService.dashboardRequestObject.tabName == 'QUALIFIED_CLAIMS'}" role="presentation">
+                <a (click)="setCurrentTab('QUALIFIED_CLAIMS')" class="subTabLink" id="my-claim-tab-3" tabindex="0"
+                    title="View awards qualified to claim">
+                    Awards Qualified To Claim</a>
+            </li>
+            <li [ngClass]="{'active': _claimListService.dashboardRequestObject.tabName == 'MANUAL_QUALIFIED_CLAIMS'}" role="presentation">
+                <a (click)="setCurrentTab('MANUAL_QUALIFIED_CLAIMS')" class="subTabLink" id="my-claim-tab-4" tabindex="0"
+                    title="View direct claims">
+                    Direct Claims</a>
+            </li>
+            <li [ngClass]="{'active': _claimListService.dashboardRequestObject.tabName  == 'PENDING_CLAIMS'}" role="presentation">
+                <a (click)="setCurrentTab('PENDING_CLAIMS')" class="subTabLink" id="all-claim-tab-1" tabindex="0"
+                    title="View pending claims">
+                    Pending Claims</a>
+            </li>
+            <li [ngClass]="{'active': _claimListService.dashboardRequestObject.tabName  == 'COMPLETED_CLAIMS'}" role="presentation">
+                <a (click)="setCurrentTab('COMPLETED_CLAIMS')" class="subTabLink" id="all-claim-tab-2" tabindex="0"
+                    title="View completed claims">
+                    Completed Claims</a>
+            </li>
+        </ul>
+    </div>
+    <div class=" col-6 text-right">
+        <a id="show-advcance-search-claim" class="btn btn-sm btn-tertiary mt-0" title="Advanced Search"
+                    href="#collapseClaims" data-toggle="collapse" role="button" aria-expanded="false"
+                    aria-controls="collapseClaims" (click)="clearAdvanceSearchField();" tabindex="0">
+                    <i aria-hidden="true" class="fa fa-sliders"></i> Advanced Search
+        </a>
+    </div>
+</div>
+
+<!-- ADVANCED SEARCH FOR CLAIMS -->
+<div id="collapseClaims" class="card mb-3 collapse">
+    <div class="card-body pb-0 ">
+        <div class="form-row mt-4">
+            <!-- Claim Number -->
+            <div class="col-xl-3 col-lg-2 col-md-3 col-sm-6 col-12"
+                *ngIf="_claimListService.dashboardRequestObject.tabName  != 'QUALIFIED_CLAIMS' && _claimListService.dashboardRequestObject.tabName != 'MANUAL_QUALIFIED_CLAIMS'">
+                <label class="d-block mb-1">Claim Number</label>
+                <input type="text" id="adv-search-claims-claim-id" placeholder="Claim Number" maxlength="60"
+                    [(ngModel)]="tempDashboardRequestObject.property13" class="form-control"
+                        (keyup.enter)="setAdvanceSearchValuesToServiceObject();$claimList.next()" />
+            </div>
+            <!-- Award # -->
+            <div class="col-xl-3 col-lg-2 col-md-3 col-sm-6 col-12">
+                <label class="d-block"><ng-container i18n="@@AWARD_AWARD_#">Award #</ng-container></label>
+                <input type="text" id="adv-search-claims-award-id" placeholder="Award #" maxlength="60"
+                    [(ngModel)]="tempDashboardRequestObject.property6" class="form-control"
+                    (keypress)="inputRestriction($event)" (keyup.enter)="setAdvanceSearchValuesToServiceObject();$claimList.next()" />
+            </div>
+            <!-- Account No -->
+            <div class="col-xl-3 col-lg-2 col-md-3 col-sm-6 col-12">
+                <label class="d-block"><ng-container i18n="@@AWARD_ACCOUNT_NUMBER">Account Number</ng-container></label>
+                <input type="text" id="adv-search-claims-account-no" placeholder="Account Number" maxlength="60"
+                    i18n-placeholder="@@AWARD_ACCOUNT_NUMBER"
+                    [(ngModel)]="tempDashboardRequestObject.property1" class="form-control" (keyup.enter)="setAdvanceSearchValuesToServiceObject();$claimList.next()" />
+            </div>
+            <!-- Sponsor -->
+            <div class="col-xl-3 col-lg-5 col-sm-6 col-12 mb-2">
+                <label class="d-block"><ng-container i18n="@@COMMON_SPONSOR">Sponsor</ng-container></label>
+                <app-endpoint-search [httpOptions]="fundingAgencySearchOptions" [clearField]="clearFieldFundingAgency"
+                    [placeHolder]="'Sponsor'" (onSelect)="setFundungAgencyForAdancedSearch($event)" (keydown.enter)="setAdvanceSearchValuesToServiceObject();advancedSearch()">
+                </app-endpoint-search>
+            </div>
+            <!-- Lead Unit -->
+            <div class="col-xl-3 col-lg-4 col-md-4 col-sm-6 col-12 mt-1">
+                <label class="d-block">Lead Unit</label>
+                <app-endpoint-search [httpOptions]="leadUnitSearchOptions" [clearField]="clearFieldLeadUnit"
+                    [placeHolder]="'Lead Unit'" (onSelect)="setLeadUnitForAdancedSearch($event)" (keydown.enter)="setAdvanceSearchValuesToServiceObject();advancedSearch()">
+                </app-endpoint-search>
+            </div>
+            <!-- Researcher Name -->
+            <div class="col-xl-6 col-lg-5 col-md-6 col-12 mb-2">
+                <label class="d-none d-sm-inline-block">Principal Investigator</label>
+                <span class="float-right">
+                    <input id="employee" type="radio" name='employee_nonemployee' [value]='true'
+                        [(ngModel)]="isEmployeeFlag" checked="true" (change)="changeMemberType()">
+                    <label for="employee">
+                        Employee
+                    </label>
+                    <input id="non-employee" type="radio" name='employee_nonemployee' [value]='false'
+                        [(ngModel)]="isEmployeeFlag" (change)="changeMemberType()">
+                    <label for="non-employee">
+                        Non-Employee
+                    </label>
+                </span>
+                <app-elastic [placeHolder]="isEmployeeFlag ? 'Search an employee': 'Search a non-employee' "
+                    (selectedResult)="selectedFilter($event)" [clearField]="clearPiField"
+                    (keyup)="emptyValidationKeyup($event)" [options]="elasticPersonSearchOptions">
+                </app-elastic>
+            </div>
+            <!-- Claim Status -->
+            <div class="col-xl-3 col-lg-2 col-md-3 col-sm-6 col-12"
+                *ngIf="_claimListService.dashboardRequestObject.tabName  == 'PENDING_CLAIMS'">
+                <label class="d-block mb-1">Status</label>
+                <app-look-up [options]='claimStatusOptions' [selectedLookUpList]="lookupValues['property8']"
+                  (selectedResult)="onLookupSelect($event, 'property8')" (keydown.enter)="setAdvanceSearchValuesToServiceObject();$claimList.next()">
+                </app-look-up>
+            </div>
+            <!-- Initial Claim Preparer -->
+            <div [hidden]="!(_claimListService.dashboardRequestObject.tabName  === 'QUALIFIED_CLAIMS' ||
+                            _claimListService.dashboardRequestObject.tabName === 'MANUAL_QUALIFIED_CLAIMS')"
+                class="col-xl-3 col-lg-3 col-md-3 col-12 mb-2">
+                <label class="d-none d-sm-inline-block">Initial Claim Preparer</label>
+                <app-elastic (keyup)="emptyFinanceValidationKeyup($event)"
+                             (selectedResult)="selectedFinanceFilter($event)"
+                             [clearField]="clearFinanceField"
+                             [options]="elasticFinanceSearchOptions" [placeHolder]="'Search an employee'">
+                </app-elastic>
+            </div>
+            <!-- Prepared by -->
+            <div class="col-xl-3 col-lg-3 col-md-3 col-12 mb-2" [hidden]="(_claimListService.dashboardRequestObject.tabName  === 'QUALIFIED_CLAIMS'
+            || _claimListService.dashboardRequestObject.tabName  === 'MANUAL_QUALIFIED_CLAIMS')">
+                <label class="d-none d-sm-inline-block">Prepared By</label>
+                <app-elastic [placeHolder]="'Search an employee'"
+                             (selectedResult)="selectedClaimPreparerFilter($event)" [clearField]="clearClaimPreparerField"
+                             (keyup)="emptyClaimPreparerValidationKeyup($event)" [options]="elasticClaimPreparerSearchOptions">
+                </app-elastic>
+            </div>
+            <!-- Button -->
+            <div class="col-md col-sm-6 col-6 flex-column flex-sm-row d-flex align-items-end justify-content-end">
+                <button id="adv-search-clear-claim" class="btn btn-secondary btn-xs mr-2 mb-2"
+                    (click)="clearAdvanceSearchField();this.$claimList.next();">Clear</button>
+                <button id="adv-search-claim" class="btn btn-primary btn-xs mb-2"
+                    (click)="_claimListService.dashboardRequestObject.currentPage = 1;;setAdvanceSearchValuesToServiceObject();advancedSearch()">Search</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card card-table-box rounded-0">
+    <div class="card-content">
+        <div class="card-header ">
+            <h4 class="card-title align-items-center d-flex" id="variation-request-header">
+                <span *ngIf="_claimListService.dashboardRequestObject.tabName  == 'QUALIFIED_CLAIMS'" class="mr-auto">List of awards
+                    qualified to claim</span>
+                <span *ngIf="_claimListService.dashboardRequestObject.tabName  == 'PENDING_CLAIMS'" class="mr-auto">List of pending
+                    claims</span>
+                <span *ngIf="_claimListService.dashboardRequestObject.tabName  == 'COMPLETED_CLAIMS'" class="mr-auto">List of complete
+                    claims</span>
+                <span *ngIf="_claimListService.dashboardRequestObject.tabName  == 'MANUAL_QUALIFIED_CLAIMS'" class="mr-auto">List of awards
+                    qualified to direct claim</span>
+            </h4>
+        </div>
+        <div *ngIf="(claimRequestList && claimRequestList?.length)" class="table-responsive">
+            <table aria-describedby="Claim Dashboard" class="table tableSkin mb-0">
+                <thead>
+                    <th *ngIf="_claimListService.dashboardRequestObject.tabName  != 'QUALIFIED_CLAIMS' && _claimListService.dashboardRequestObject.tabName != 'MANUAL_QUALIFIED_CLAIMS'" (click)="sortResult('claimNumber')"
+                        id="sortby-claimNumber" scope="col" style="width: 10%" tabindex="0" class="hand-cursor">
+                        <span title="Click to sort by claim Number"> Claim Number </span>
+                        <i *ngIf="!_claimListService.dashboardRequestObject.sort['claimNumber']" class="fa fa-sort-numeric-asc blrcolor"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="_claimListService.dashboardRequestObject.sort['claimNumber'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="_claimListService.dashboardRequestObject.sort['claimNumber'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"
+                            aria-hidden="true"></i>
+                    </th>
+                    <th scope="col" style="width: 9%;" id="sortby-award-no" (click)="sortResult('awardNumber')"
+                        tabindex="0" class="hand-cursor">
+                        <span  title="Click to sort by Award #">Award #</span>
+                        <i aria-hidden="true" *ngIf="!_claimListService.dashboardRequestObject.sort['awardNumber']"
+                            class="fa fa-sort-numeric-asc blrcolor"></i>
+                        <i aria-hidden="true"
+                            [ngClass]="_claimListService.dashboardRequestObject.sort ['awardNumber'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"></i>
+                        <i aria-hidden="true"
+                            [ngClass]="_claimListService.dashboardRequestObject.sort ['awardNumber'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"></i>
+                    </th>
+
+                    <th (click)="sortResult('accountNumber')" id="sortby-award-acc-no" scope="col" style="width: 10%"
+                        tabindex="0" class="hand-cursor">
+                        <span  title="Click to sort by Account Number">Account Number</span>
+                        <i *ngIf="!_claimListService.dashboardRequestObject.sort['accountNumber']" class="fa fa-sort-alpha-asc blrcolor"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="_claimListService.dashboardRequestObject.sort['accountNumber'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="_claimListService.dashboardRequestObject.sort['accountNumber'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                            aria-hidden="true"></i>
+                    </th>
+                    <th (click)="sortResult('awardPersons.fullName')" id="sortby-award-pi" scope="col"
+                        style="width: 15%" tabindex="0" class="hand-cursor">
+                        <span title="Click to sort by Principal Investigator">Principal
+                            Investigator</span>
+                        <i *ngIf="!_claimListService.dashboardRequestObject.sort['awardPersons.fullName']"
+                            class="fa fa-sort-alpha-asc blrcolor" aria-hidden="true"></i>
+                        <i [ngClass]="_claimListService.dashboardRequestObject.sort['awardPersons.fullName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="_claimListService.dashboardRequestObject.sort['awardPersons.fullName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                            aria-hidden="true"></i>
+                    </th>
+                    <th (click)="sortResult('sponsor.sponsorName')" id="sortby-award-sponsor" scope="col"
+                        style="width: 10%" tabindex="0" class="hand-cursor">
+                        <span  title="Click to sort by Sponsor">Sponsor</span>
+                        <i *ngIf="!_claimListService.dashboardRequestObject.sort['sponsor.sponsorName']"
+                            class="fa fa-sort-alpha-asc blrcolor" aria-hidden="true"></i>
+                        <i [ngClass]="_claimListService.dashboardRequestObject.sort['sponsor.sponsorName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="_claimListService.dashboardRequestObject.sort['sponsor.sponsorName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                            aria-hidden="true"></i>
+                    </th>
+                    <th (click)="sortResult('leadUnit.unitName')" id="sortby-lead-unit" scope="col" style="width: 15%"
+                        tabindex="0" class="hand-cursor">
+                        <span  title="Click to sort by Lead Unit">Lead Unit</span>
+                        <i *ngIf="!_claimListService.dashboardRequestObject.sort['leadUnit.unitName']"
+                            class="fa fa-sort-alpha-asc blrcolor" aria-hidden="true"></i>
+                        <i [ngClass]="_claimListService.dashboardRequestObject.sort['leadUnit.unitName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="_claimListService.dashboardRequestObject.sort['leadUnit.unitName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                            aria-hidden="true"></i>
+                    </th>
+                    <th *ngIf="_claimListService.dashboardRequestObject.tabName  == 'PENDING_CLAIMS'"
+                        (click)="sortResult('claimStatus.description')" id="sortby-status" style="width: 8%" scope="col" tabindex="0" class="hand-cursor">
+                        <span  title="Click to sort by Status"> Status </span>
+                        <i *ngIf="!_claimListService.dashboardRequestObject.sort['claimStatus.description']" class="fa fa-sort-alpha-asc sortIcon blrcolor"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="_claimListService.dashboardRequestObject.sort['claimStatus.description'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="_claimListService.dashboardRequestObject.sort['claimStatus.description'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                            aria-hidden="true"></i>
+                    </th>
+                    <th *ngIf="_claimListService.dashboardRequestObject.tabName  == 'QUALIFIED_CLAIMS' || _claimListService.dashboardRequestObject.tabName == 'MANUAL_QUALIFIED_CLAIMS'"
+                        (click)="sortResult('financeOfficer')" id="sortby-claim-preparer" scope="col"
+                        style="width: 15%" tabindex="0" class="hand-cursor">
+                        <span  title="Click to sort by Initial Claim Preparer">Initial Claim Preparer</span>
+                        <i *ngIf="!_claimListService.dashboardRequestObject.sort['financeOfficer']"
+                            class="fa fa-sort-numeric-asc blrcolor" aria-hidden="true"></i>
+                        <i [ngClass]="_claimListService.dashboardRequestObject.sort['financeOfficer'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="_claimListService.dashboardRequestObject.sort['financeOfficer'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"
+                            aria-hidden="true"></i>
+                    </th>
+                    <th *ngIf="_claimListService.dashboardRequestObject.tabName  == 'QUALIFIED_CLAIMS' || _claimListService.dashboardRequestObject.tabName == 'MANUAL_QUALIFIED_CLAIMS'"
+                        (click)="sortResult('claimSubmissionDate')" id="sortby-claim-date" scope="col"
+                        style="width: 15%" tabindex="0" class="hand-cursor">
+                        <span  title="Click to sort by Last Claim On">Last Claim On</span>
+                        <i *ngIf="!_claimListService.dashboardRequestObject.sort['claimSubmissionDate']"
+                            class="fa fa-sort-numeric-asc blrcolor" aria-hidden="true"></i>
+                        <i [ngClass]="_claimListService.dashboardRequestObject.sort['claimSubmissionDate'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="_claimListService.dashboardRequestObject.sort['claimSubmissionDate'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"
+                            aria-hidden="true"></i>
+                    </th>
+                    <th *ngIf="(_claimListService.dashboardRequestObject.tabName  !== 'QUALIFIED_CLAIMS' && _claimListService.dashboardRequestObject.tabName  !== 'MANUAL_QUALIFIED_CLAIMS')"
+                        (click)="sortResult('createUserName')" id="sortby-prepared-by" scope="col" style="width: 14%"
+                        tabindex="0" class="hand-cursor">
+                        <span  title="Click to sort by Prepared By">Prepared By</span>
+                        <i *ngIf="!_claimListService.dashboardRequestObject.sort['createUserName']" class="fa fa-sort-alpha-asc blrcolor"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="_claimListService.dashboardRequestObject.sort['createUserName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="_claimListService.dashboardRequestObject.sort['createUserName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                            aria-hidden="true"></i>
+                    </th>
+                    <th *ngIf="_claimListService.dashboardRequestObject.tabName  != 'QUALIFIED_CLAIMS' && _claimListService.dashboardRequestObject.tabName != 'MANUAL_QUALIFIED_CLAIMS'"
+                        (click)="sortResult('updateUserName')" id="sortby-update-by" scope="col" style="width: 16%"
+                        tabindex="0" class="hand-cursor">
+                        <span  title="Click to sort by Last Updated By">Last Updated By</span>
+                        <i *ngIf="!_claimListService.dashboardRequestObject.sort['updateUserName']" class="fa fa-sort-alpha-asc blrcolor"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="_claimListService.dashboardRequestObject.sort['updateUserName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                            aria-hidden="true"></i>
+                        <i [ngClass]="_claimListService.dashboardRequestObject.sort['updateUserName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                            aria-hidden="true"></i>
+                    </th>
+                    <th scope="col" style="width: 8%" class="text-center" *ngIf="isClaimable || (_claimListService.dashboardRequestObject.tabName  != 'QUALIFIED_CLAIMS' && _claimListService.dashboardRequestObject.tabName != 'MANUAL_QUALIFIED_CLAIMS')">Actions</th>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let claims of claimRequestList; let i =index"
+                        [@itemAnim] class="pull-up">
+                        <td (click)="navigateToClaim(claims)" *ngIf="_claimListService.dashboardRequestObject.tabName  != 'QUALIFIED_CLAIMS' && _claimListService.dashboardRequestObject.tabName != 'MANUAL_QUALIFIED_CLAIMS'" tabindex="0">
+                            {{claims?.claimNumber}}</td>
+                        <td (click)="navigateToClaim(claims)" tabindex="0">{{claims?.awardNumber}}</td>
+                        <td (click)="navigateToClaim(claims)" tabindex="0">{{claims?.accountNumber}}</td>
+                        <td (click)="navigateToClaim(claims)" tabindex="0">{{claims?.fullName}}</td>
+                        <td (click)="navigateToClaim(claims)" tabindex="0">{{claims?.sponsor}}</td>
+                        <td (click)="navigateToClaim(claims)" tabindex="0">{{concatUnitNumberAndUnitName(claims?.unitNumber, claims?.unitName)}}</td>
+                        <td (click)="navigateToClaim(claims)" *ngIf="_claimListService.dashboardRequestObject.tabName  == 'PENDING_CLAIMS'" tabindex="0">
+                            {{claims?.claimStatus}}</td>
+                        <td (click)="navigateToClaim(claims)" *ngIf="_claimListService.dashboardRequestObject.tabName  == 'QUALIFIED_CLAIMS' || _claimListService.dashboardRequestObject.tabName == 'MANUAL_QUALIFIED_CLAIMS'" tabindex="0">
+                            {{claims?.financeOfficer}}</td>
+                        <td (click)="navigateToClaim(claims)" *ngIf="_claimListService.dashboardRequestObject.tabName  !== 'QUALIFIED_CLAIMS' && _claimListService.dashboardRequestObject.tabName !== 'MANUAL_QUALIFIED_CLAIMS'" tabindex="0">
+                            {{claims?.createUserName}}</td>
+                        <td (click)="navigateToClaim(claims)" *ngIf="_claimListService.dashboardRequestObject.tabName  == 'QUALIFIED_CLAIMS' || _claimListService.dashboardRequestObject.tabName == 'MANUAL_QUALIFIED_CLAIMS'" tabindex="0">
+                            {{claims?.claimSubmissionDate | dateFormatter}}</td>
+                        <td (click)="navigateToClaim(claims)" *ngIf="_claimListService.dashboardRequestObject.tabName  != 'QUALIFIED_CLAIMS' && _claimListService.dashboardRequestObject.tabName != 'MANUAL_QUALIFIED_CLAIMS'" tabindex="0">
+                            {{claims?.updateUserName}}
+                            <span *ngIf="claims?.claimUpdateTimeStamp"> on
+                                {{claims?.claimUpdateTimeStamp | dateFormatter}}</span>
+                        </td>
+                        <td class="p-0 text-center action-width" *ngIf="isClaimable || (_claimListService.dashboardRequestObject.tabName  != 'QUALIFIED_CLAIMS' && _claimListService.dashboardRequestObject.tabName != 'MANUAL_QUALIFIED_CLAIMS')">
+                            <button *ngIf="_claimListService.dashboardRequestObject.tabName  == 'QUALIFIED_CLAIMS' && isClaimable"
+                                (click)="createNewClaim(claims, 'S')" class="btn btn-tertiary mt-0 mx-3">Claim now</button>
+                            <button *ngIf="_claimListService.dashboardRequestObject.tabName  == 'MANUAL_QUALIFIED_CLAIMS' && isClaimable"
+                                (click)="createNewClaim(claims, 'D')" class="btn btn-tertiary mt-0 mx-3">Claim now</button>
+                            <ul class="actionButtonGroup">
+                                <li (click)="navigateToClaim(claims)" *ngIf="_claimListService.dashboardRequestObject.tabName  != 'QUALIFIED_CLAIMS' && _claimListService.dashboardRequestObject.tabName != 'MANUAL_QUALIFIED_CLAIMS'" 
+                                    title="Open {{claims?.claimNumber}}" id="open-award-btn" tabindex="0">
+                                    <i aria-hidden="true" class="fa fa-eye pointer"></i>
+                                </li>
+                                <li *ngIf="_claimListService.dashboardRequestObject.tabName  == 'PENDING_CLAIMS' &&  claims.claimStatusCode == '1' &&(_commonService.getCurrentUserDetail('fullName') === claims?.createUserName || isClaimDelete)" 
+                                    title="Delete claim {{claims?.claimNumber}}"
+                                    id="delete-claim-dashbrd-btn" tabindex="0" (click)="deleteClaimTempObject(claims?.claimId, i, claims?.awardId, claims?.unitNumber,claims.claimStatusCode)">
+                                    <i aria-hidden="true" class="fa fa-trash"></i>
+                                </li>
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div *ngIf="(claimRequestList?.length == 0 || !claimRequestList)" class="no-data-container">
+            <span class="no-data-icon-outer">
+                <div class="no-data-icon">
+                    <i aria-hidden="true" class="fa fa-file-o"></i>
+                    <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                </div>
+            </span>
+            <h4>There is no information in this section.</h4>
+        </div>
+        <!--Pagination-->
+        <div *ngIf="claimRequestList && claimRequestList?.length"
+            class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <div>
+                <nav class="pagination justify-content-end">
+                    <app-pagination (pageChangeEvent)="actionsOnPageChange($event)"
+                        [totalCount]="result.totalServiceRequest">
+                    </app-pagination>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Claim Modal -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="deleteClaimModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Claim</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this Claim?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" data-toggle="modal">No</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="deleteClaim();"
+                    data-dismiss="modal">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button [hidden]="true" data-target="#claim-modal" data-toggle="modal" id="claimNowModal"></button>
+<div class="modal fade bd-example-modal-lg mySkinDialog " id="claim-modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Claim Now</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div>
+                <div>
+                    <div class="card mb-3 title-descriptions ">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="gridSkin">
+                                    <div class="row mb-3">
+                                        <!-- Award Number -->
+                                        <div class="col-xl-4 col-lg-9 col-md-6 col-sm-12 col-9">
+                                            <label>Award Number</label>
+                                            <span class="d-block"
+                                                [ngClass]="selectedAwardDetails?.awardNumber ? '' : 'noDataExists'">
+                                                {{selectedAwardDetails?.awardNumber ? selectedAwardDetails?.awardNumber: 'Not Available'}}</span>
+                                        </div>
+                                        <!-- Account Number -->
+                                        <div class="col-xl-4 col-lg-3 col-md-6 col-sm-12 col-3">
+                                            <label>Account Number</label>
+                                            <span class="d-block"
+                                                [ngClass]="selectedAwardDetails?.accountNumber ? '' : 'noDataExists'">
+                                                {{selectedAwardDetails?.accountNumber ? selectedAwardDetails?.accountNumber: 'Not Available'}}</span>
+                                        </div>
+                                        <!-- Principal Investigator -->
+                                        <div class="col-xl-4 col-lg-3 col-md-6 col-sm-12 col-3">
+                                            <label>Principal Investigator</label>
+                                            <span class="d-block"
+                                                [ngClass]="selectedAwardDetails?.fullName ? '' : 'noDataExists'">
+                                                {{selectedAwardDetails?.fullName ? selectedAwardDetails?.fullName: 'Not Available'}}</span>
+                                        </div>
+                                        <!-- Award Start Date -->
+                                        <div class="col-xl-4 col-lg-3 col-md-6 col-sm-12 col-3">
+                                            <label>Award Start Date</label>
+                                            <span class="d-block"
+                                                [ngClass]="selectedAwardDetails?.awardStartDate ? '' : 'noDataExists'">
+                                                {{selectedAwardDetails?.awardStartDate ? (selectedAwardDetails?.awardStartDate |dateFormatter): 'Not Available'}}</span>
+                                        </div>
+                                        <!-- Award Start Date -->
+                                        <div class="col-xl-4 col-lg-3 col-md-6 col-sm-12 col-3">
+                                            <label>Award End Date</label>
+                                            <span class="d-block"
+                                                [ngClass]="selectedAwardDetails?.awardEndDate ? '' : 'noDataExists'">
+                                                {{selectedAwardDetails?.awardEndDate ? (selectedAwardDetails?.awardEndDate |dateFormatter): 'Not Available'}}</span>
+                                        </div>
+                                        <!-- Award Start Date -->
+                                        <div class="col-xl-4 col-lg-3 col-md-6 col-sm-12 col-3">
+                                            <label>Last Claim End Date</label>
+                                            <span class="d-block"
+                                                [ngClass]="selectedAwardDetails?.lastClaimEndDate ? '' : 'noDataExists'">
+                                                {{selectedAwardDetails?.lastClaimEndDate ? (selectedAwardDetails?.lastClaimEndDate |dateFormatter): 'Not Available'}}</span>
+                                        </div>
+                                        <!-- Sponsor -->
+                                        <div class="col-xl-4 col-lg-3 col-md-6 col-sm-12 col-3">
+                                            <label>Sponsor</label>
+                                            <span class="d-block"
+                                                [ngClass]="selectedAwardDetails?.sponsor ? '' : 'noDataExists'">
+                                                {{selectedAwardDetails?.sponsor? selectedAwardDetails?.sponsor: 'Not Available'}}</span>
+                                        </div>
+                                        <!-- Lead Unit -->
+                                        <div class="col-xl-4 col-lg-3 col-md-6 col-sm-12 col-3">
+                                            <label>Lead Unit</label>
+                                            <span class="d-block"
+                                                [ngClass]="selectedAwardDetails?.unitName ? '' : 'noDataExists'">
+                                                {{selectedAwardDetails?.unitName ? selectedAwardDetails?.unitName: 'Not Available'}}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col-12 form-group">
+                                        <label class="block-display" for="title"> <span class="mandatory">*</span>
+                                            Claim Description</label>
+                                        <div>
+                                            <input class="form-control" id="title"
+                                                [(ngModel)]="claimRequestObject.title" placeholder="" type="text"
+                                                [ngClass]="(claimMap.get('title')) ? 'is-invalid d-block' : ''" />
+                                            <div *ngIf="(claimMap.get('title'))" class="invalid-feedback d-block">
+                                                * Please provide a Claim Description.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-2"><i class="fs-14 fw-500 text-content-color">Select a Period</i></div>
+                                <div class="form-row">
+                                    <div class="col-6 form-group">
+                                        <label class="block-display" for="from-date"><span
+                                                class="mandatory">*</span>From</label>
+                                        <div>
+                                            <span class="dateField">
+                                                <input matInput [matDatepicker]="fromDate" (click)="fromDate.open()"
+                                                    autocomplete="off" class="d-inline-block form-control"
+                                                    [(ngModel)]="claimRequestObject.startDate"
+                                                    (ngModelChange)="validateEndDate()" id="from-date"
+                                                    [ngClass]="(claimMap.get('startDate')) ? 'is-invalid d-block' : ''"
+                                                    placeholder="{{datePlaceHolder}}">
+                                                <i (click)="fromDate.open()" aria-hidden="true"
+                                                    class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                                    id="from-date-icon" title="Open Calendar"></i>
+                                                <mat-datepicker #fromDate
+                                                    (opened)="setFocusToElement('from-date')"
+                                                    (closed)="validateEndDate()">
+                                                </mat-datepicker>
+                                            </span>
+                                            <div *ngIf="(claimMap.get('startDate'))" class="invalid-feedback d-block">
+                                                * Please pick a Start Date.
+                                            </div>
+                                            <div>
+                                                <span class="invalid-feedback d-block"
+                                                    *ngFor="let item of dateWarningList">
+                                                    {{item}}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 form-group">
+                                        <label class="block-display" for="to-date"><span
+                                                class="mandatory">*</span>To</label>
+                                        <div>
+                                            <span class="dateField">
+                                                <input matInput [matDatepicker]="toDate" (click)="toDate.open()"
+                                                    autocomplete="off" class="d-inline-block form-control" id="to-date"
+                                                    placeholder="{{datePlaceHolder}}"
+                                                    [(ngModel)]="claimRequestObject.endDate"
+                                                    (ngModelChange)="validateEndDate()" type="text"
+                                                    [ngClass]="(claimMap.get('endDate')) ? 'is-invalid d-block' : ''" />
+                                                <i (click)="toDate.open()" aria-hidden="true"
+                                                    class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                                    id="to-date-icon" title="Open Calendar"></i>
+                                                <mat-datepicker #toDate (opened)="setFocusToElement('to-date')"
+                                                    (closed)="validateEndDate()">
+                                                </mat-datepicker>
+                                            </span>
+                                            <div *ngIf="(claimMap.get('endDate'))" class="invalid-feedback d-block">
+                                                {{claimMap.get('endDate')}}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <ng-container *ngIf="claimType == 'D'">
+                                    <div class="form-row">
+                                        <div class="col-6 form-group">
+                                            <label class="block-display" for="submit-date"><span
+                                                    class="mandatory">*</span>Submit Date</label>
+                                            <div>
+                                            <span class="dateField">
+                                                <input matInput [matDatepicker]="claimSubmissionDate" (click)="claimSubmissionDate.open()"
+                                                       autocomplete="off" class="d-inline-block form-control"
+                                                       [(ngModel)]="claimRequestObject.claimSubmissionDate"
+                                                       id="submit-date"
+                                                       [ngClass]="(claimMap.get('claimSubmissionDate')) ? 'is-invalid d-block' : ''"
+                                                       placeholder="{{datePlaceHolder}}">
+                                                <i (click)="claimSubmissionDate.open()" aria-hidden="true"
+                                                   class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                                   id="submit-date-icon" title="Open Calendar"></i>
+                                                <mat-datepicker #claimSubmissionDate
+                                                               (opened)="setFocusToElement('submit-date')">
+                                                </mat-datepicker>
+                                            </span>
+                                                <div *ngIf="(claimMap.get('claimSubmissionDate'))" class="invalid-feedback d-block">
+                                                    * Please pick a Submit Date.
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 form-group">
+                                            <label class="block-display" for="total-amount"><span
+                                                    class="mandatory">*</span>Total Amount</label>
+                                            <div>
+                                                <input class="form-control" id="total-amount" appCurrencyFormat
+                                                       [(ngModel)]="claimRequestObject.totalAmount" placeholder="" type="text"
+                                                       [ngClass]="(claimMap.get('totalAmount')) ? 'is-invalid d-block' : ''" />
+                                                <div *ngIf="(claimMap.get('totalAmount'))" class="invalid-feedback d-block">
+                                                    * Please provide total amount.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-dismiss="modal" type="button">Close</button>
+                <button class="btn btn-primary-sub btn-sm" type="button" (click)="addNewClaim()">Proceed</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Concurrency Warning modal -->
+<div class="modal fade show mySkinDialog" id="invalidActionModalInClaims" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Invalid Action</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+			<div class="form-row">
+				<div class="col-1">
+					<i class="fa fa-2x px-2 fa-exclamation-triangle text-warning position-person-inpur-box" aria-hidden="true"></i>
+				</div>
+				<div class="col-11">
+					<p>
+						You have tried to perform an action that is not valid for the current state of this Claim. The likely cause is that
+						somebody has changed the Claim recently. Please click the Refresh button to proceed further.
+					</p>
+				</div>
+			</div>
+            <div class="modal-footer">
+                <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button" (click)="reload()"
+                    >Refresh</button>
+            </div>
+        </div>
+    </div>
+  </div>
+

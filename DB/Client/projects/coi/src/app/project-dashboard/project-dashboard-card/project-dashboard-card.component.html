@@ -1,0 +1,400 @@
+<div class="col-12 card coi-card-regular" id="coi-project-overview-card">
+    <div class="d-flex gap-2">
+        <div class="col">
+            <app-shared-project-details-card [needReporterRole]="false" [isOpenSlider]="false"
+                [projectDetails]="cardProjectDetails" customClass="border-0 shadow-none card-header-border-none"
+                columnClass="col-12 col-md-6 col-lg-4 col-xl-4 col-xxl-4"
+                [uniqueId]="'coi-project-' + projectData?.projectDetails?.projectId" [isShowExternalLinkIcon]="false">
+            </app-shared-project-details-card>
+        </div>
+        <div class="d-flex justify-content-center align-items-center col-4 col-lg-3 col-md-4 mb-2 py-3 px-3">
+            <div class="col-lg-auto coi-box-purple p-2 w-75">
+                <!-- submission status -->
+                <div class="col mb-2">
+                    <div class="coi-text-lighter fw-semibold"><ng-container i18n="@@PROJECT_SUBMISSION">Submission Status</ng-container></div>
+                    <app-no-data-label [valueToShow]="CA_DASH_PROJECT_LOCALIZE.PROJECT_OVERALL_SUBMISSION_STATUS[projectData?.projectDetails?.projectSubmissionStatus] ?? projectData?.projectDetails?.projectSubmissionStatus">
+                        <span [attr.aria-label]="CA_DASH_PROJECT_LOCALIZE.PROJECT_OVERALL_SUBMISSION_STATUS[projectData?.projectDetails?.projectSubmissionStatus] ?? projectData?.projectDetails?.projectSubmissionStatus">
+                            <span
+                                class="{{SUBMISSION_STATUS_BADGE[projectData?.projectDetails?.projectSubmissionStatus]}} me-1">
+                            </span>
+                            <!-- index1 -->
+                            <span class="coi-text-light fw-bold" id="coi-project-overview-submission-status"
+                                [title]="CA_DASH_PROJECT_LOCALIZE.PROJECT_OVERALL_SUBMISSION_STATUS[projectData?.projectDetails?.projectSubmissionStatus] ?? projectData?.projectDetails?.projectSubmissionStatus">
+                                {{ CA_DASH_PROJECT_LOCALIZE.PROJECT_OVERALL_SUBMISSION_STATUS[projectData?.projectDetails?.projectSubmissionStatus] ?? projectData?.projectDetails?.projectSubmissionStatus }}
+                            </span>
+                        </span>
+                    </app-no-data-label>
+                </div>
+
+                <!-- Overall review Status -->
+                <div class="col">
+                    <div class="coi-text-lighter fw-semibold"><ng-container i18n="@@OVERALL_REVIEW">Overall
+                            Review</ng-container></div>
+                    <app-no-data-label [valueToShow]="projectData?.projectDetails?.projectReviewStatus">
+                        <span [attr.aria-label]="projectData?.projectDetails?.projectReviewStatus">
+                            <span class="{{SUBMISSION_STATUS_BADGE[projectData?.projectDetails?.projectReviewStatus]}} me-1">
+                            </span>
+                            <!-- index1 -->
+                            <span class="coi-text-light fw-bold" id="coi-project-overview-review-status"
+                                [title]="projectData?.projectDetails?.projectReviewStatus">
+                                {{projectData?.projectDetails?.projectReviewStatus}}
+                            </span>
+                        </span>
+                    </app-no-data-label>
+                </div>
+            </div>
+            <!-- Keyperson expand collapse button -->
+            <div *ngIf="projectData?.projectDetails?.keyPersonCount > 0" class="col-auto d-flex justify-content-end">
+                <button (click)="toggleProjectOverviewCard()" id="coi-project-overview-collapse-btn-"
+                    class="align-items-center btn d-flex jusitfy-content-center p-0 me-1 shadow-sm toggle-btn mt-2"
+                    aria-label="Click here to collapse / expand Project overview section">
+                    <mat-icon title="Click here to collapse / expand Project overview section"
+                        [ngClass]="isProjectOverviewCardCollapse ? 'coi-rotate-180' : 'coi-rotate-0'"
+                        aria-hidden="true">expand_more</mat-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div *ngIf="projectDashboardService.projectOverviewRequestObject.tabName === PROJECT_DASHBOARD_TABS.AWARD && projectData?.projectDetails?.info"
+        class="d-flex alert alert-primary f-14 p-2 mx-3 my-2" id="award-hold-reason-msg">
+        <mat-icon class="mat-icon material-icons flex-shrink-0" aria-hidden="true">info</mat-icon>
+        <p class="fs-14 mb-0 ms-1">
+            <span class="d-flex algin-items-start"><em>{{projectData?.projectDetails?.info}}</em></span>
+        </p>
+        <a *ngIf="(!closedAwardStatus.includes(projectData.projectDetails.projectStatus) || (projectData.projectDetails.projectStatus === 'Hold' && (projectData?.projectDetails?.mandatorySelf === 'SELF' || !projectData?.projectDetails?.info)))"
+            class="d-flex align-items-center link-primary ms-1 gap-1" (click)="toggleHistorySlider('OPEN_SLIDER')">
+            <mat-icon id="coi-risk-history" class="coi-mat-icon-size" aria-hidden="true">history</mat-icon>
+            <span>View History</span>
+        </a>
+    </div>
+
+    <!-- keypersons -->
+    <div class="row px-3 pb-3">
+        <div class="d-flex flex-wrap col-12 mt-3 gap-2 align-items-baseline justify-content-between">
+            <div class="d-flex align-items-start cursor-pointer" (click)="toggleProjectOverviewCard()"
+                (keyup.enter)="toggleProjectOverviewCard()" (keyup.space)="toggleProjectOverviewCard()" tabindex="0"
+                title="Click here to collapse / expand Project Personnel details"
+                aria-label="Click here to collapse / expand Project Personnel details">
+                <h4 class="me-1 mb-0 fs-6 link-primary" for="coi-project-overview-keyperson-count">
+                    Project Personnel</h4>
+                <span [attr.aria-label]="projectData?.projectDetails?.keyPersonCount"
+                    class="count-badge badge rounded-pill align-items-center justify-content-center d-inline-flex rounded-circle">
+                    <app-no-data-label [valueToShow]="projectData?.projectDetails?.keyPersonCount">
+                        <span class="text-slice fs-12 fw-700" id="coi-project-overview-keyperson-count-"
+                            [title]="projectData?.projectDetails?.keyPersonCount">{{projectData?.projectDetails?.keyPersonCount}}</span>
+                    </app-no-data-label>
+                </span>
+            </div>
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <div *ngIf="projectDashboardService.projectOverviewRequestObject.tabName === PROJECT_DASHBOARD_TABS.AWARD && (!closedAwardStatus.includes(projectData.projectDetails.projectStatus) || (projectData.projectDetails.projectStatus === 'Hold' && (projectData?.projectDetails?.mandatorySelf === 'SELF' || !projectData?.projectDetails?.info)))"
+                    class="d-flex gap-2 align-items-center">
+                    <button id="coi-entity-fcoi-required-btn" class="d-flex align-items-center gap-2 btn btn-outline-secondary btn-sm"
+                        title="Click here to mark fcoi disclosure required" aria-label="Click here to mark fcoi disclosure required"
+                        (click)="setDisclosureToMandatory(projectData.projectDetails)"
+                        [disabled]="projectData?.projectDetails?.resubmissionFlag === 'Y'">
+                        <mat-icon class="rounded-5 border coi-mat-icon-size" id="coi-risk-history" aria-hidden="true">arrow_back</mat-icon>
+                        Request {{ COMMON_DISCL_LOCALIZE.TERM_COI }} Disclosure
+                    </button>
+                </div>
+                <button *ngIf="isShowCommentButton"
+                    class="align-items-start btn btn-sm btn-tertiary d-inline-flex position-relative mt-0" tabindex="0"
+                    (click)="toggleProjectCommentSlider('OPEN_SLIDER')" id="coi-comment-btn-"
+                    title="Click here to open comment slider">
+                    <mat-icon aria-hidden="true" class="hyper-link me-1">rate_review</mat-icon>
+                    <span>{{projectData?.projectDetails?.commentCount && projectData.projectDetails.commentCount > 0 ?
+                        'Comments('+projectData?.projectDetails?.commentCount + ')' : 'Comments'}}
+                    </span>
+                </button>
+            </div>
+        </div>
+        <div *ngIf="isProjectOverviewCardCollapse" class="col-12 mt-3" [@heightAnimation]>
+            <div class="table-responsive coi-table-striped">
+                <table *ngIf="projectData?.projectDetails?.keyPersonCount > 0"
+                    class="table table-bordered fs-14 fw-medium table-striped" id="coi-keyperson-table-">
+                    <thead>
+                        <tr class="header-border table-light" id="coi-project-overview-table-thead-">
+                            <th style="width: 11%;" class="p-0 align-middle">
+                                <button
+                                    title="{{ isDesc['keyPersonName'] ? 'Click here to sort project personnel name in ascending order' : 'Click here to sort project personnel name in descending order' }}"
+                                    class="btn-none w-100 h-100 px-3 py-2 mt-0 d-flex align-items-center coi-table-sort-btn"
+                                    aria-label="{{ isDesc['keyPersonName'] ? 'Click here to sort project personnel name in ascending order' : 'Click here to sort project personnel name in descending order' }}"
+                                    (click)="onSortClick('keyPersonName')">
+                                    <span class="coi-text-darker">Name</span>
+                                    <i class="fa coi-text-light ms-2 coi-table-sort-icon" [ngClass]="{
+                                    'fa-sort-alpha-asc': !isDesc['keyPersonName'],
+                                    'fa-sort-alpha-desc': isDesc['keyPersonName']}" aria-hidden="true"></i>
+                                </button>
+                            </th>
+
+                            <th style="width: 12%;" class="p-0 align-middle">
+                                <button
+                                    title="{{ isDesc['keyPersonRole'] ? 'Click here to sort project personnel role in ascending order' : 'Click here to sort project personnel role in descending order' }}"
+                                    class="btn-none w-100 h-100 px-3 py-2 mt-0 d-flex align-items-center coi-table-sort-btn"
+                                    aria-label="{{ isDesc['keyPersonRole'] ? 'Click here to sort project personnel role in ascending order' : 'Click here to sort project personnel role in descending order' }}"
+                                    (click)="onSortClick('keyPersonRole')">
+                                    <span class="coi-text-darker">Role</span>
+                                    <i class="fa coi-text-light ms-2 coi-table-sort-icon" [ngClass]="{
+                                    'fa-sort-alpha-asc': !isDesc['keyPersonRole'],
+                                    'fa-sort-alpha-desc': isDesc['keyPersonRole']}" aria-hidden="true"></i>
+                                </button>
+                            </th>
+
+                            <th style="width: 14%;" class="p-0 align-middle">
+                                <button
+                                    title="{{ isDesc['homeUnitName'] ? 'Click here to sort '+ keyPersonColumnTitles.department + ' in ascending order' : 'Click here to sort '+ keyPersonColumnTitles.department + ' in descending order' }}"
+                                    class="btn-none w-100 h-100 px-3 py-2 mt-0 d-flex align-items-center coi-table-sort-btn"
+                                    aria-label="{{ isDesc['homeUnitName'] ? 'Click here to sort '+ keyPersonColumnTitles.department + ' in ascending order' : 'Click here to sort '+ keyPersonColumnTitles.department + ' in descending order' }}"
+                                    (click)="onSortClick('homeUnitName')">
+                                    <span class="coi-text-darker"><ng-container
+                                            i18n="@@COMMON_DEPARTMENT">Department</ng-container></span>
+                                    <i class="fa coi-text-light ms-2 coi-table-sort-icon" [ngClass]="{
+                                    'fa-sort-alpha-asc': !isDesc['homeUnitName'],
+                                    'fa-sort-alpha-desc': isDesc['homeUnitName']}" aria-hidden="true"></i>
+                                </button>
+                            </th>
+
+                            <th style="width: 10%;" class="p-0 align-middle">
+                                <button
+                                    class="btn-none w-100 h-100 px-3 py-2 mt-0 d-flex align-items-center coi-table-sort-btn"
+                                    title="{{ isDesc['trainingCompleted'] ? 'Click here to sort training in ascending order' : 'Click here to sort training in descending order' }}"
+                                    aria-label="{{ isDesc['trainingStatus'] ? 'Click here to sort training in ascending order' : 'Click here to sort training in descending order' }}"
+                                    (click)="onSortClick('trainingStatus')">
+                                    <span class="coi-text-darker">Training</span>
+                                    <i class="fa coi-text-light ms-2 coi-table-sort-icon" [ngClass]="{
+                                    'fa-sort-alpha-asc': !isDesc['trainingStatus'],
+                                    'fa-sort-alpha-desc': isDesc['trainingStatus']}" aria-hidden="true"></i>
+                                </button>
+                            </th>
+
+                            <th *ngIf="projectDashboardService.projectOverviewRequestObject.tabName === PROJECT_DASHBOARD_TABS.DEV_PROPOSAL" style="width: 10%;" class="p-0 align-middle">
+                                <button
+                                    title="{{ isDesc['certificationFlag'] ? 'Click here to sort '+ keyPersonColumnTitles.certification +' in ascending order' : 'Click here to sort '+ keyPersonColumnTitles.certification +' in descending order' }}"
+                                    class="btn-none w-100 h-100 px-3 py-2 mt-0 d-flex align-items-center coi-table-sort-btn"
+                                    aria-label="{{ isDesc['certificationFlag'] ? 'Click here to sort '+ keyPersonColumnTitles.certification +' in ascending order' : 'Click here to sort '+ keyPersonColumnTitles.certification +' in descending order' }}"
+                                    (click)="onSortClick('certificationFlag')">
+                                    <span class="coi-text-darker"><ng-container
+                                            i18n="@@KEYPERSON_CERTIFICATION">Certification</ng-container></span>
+                                    <i class="fa coi-text-light ms-2 coi-table-sort-icon" [ngClass]="{
+                                    'fa-sort-alpha-asc': !isDesc['certificationFlag'],
+                                    'fa-sort-alpha-desc': isDesc['certificationFlag']}" aria-hidden="true"></i>
+                                </button>
+                            </th>
+
+                            <th style="width: 9%;" class="p-0 align-middle">
+                                <button
+                                    title="{{ isDesc['personSubmissionStatus'] ? 'Click here to sort '+ keyPersonColumnTitles.disclosure +' in ascending order' : 'Click here to sort '+ keyPersonColumnTitles.disclosure +' in descending order' }}"
+                                    class="btn-none w-100 h-100 px-3 py-2 mt-0 d-flex align-items-center coi-table-sort-btn"
+                                    aria-label="{{ isDesc['personSubmissionStatus'] ? 'Click here to sort '+ keyPersonColumnTitles.disclosure +' in ascending order' : 'Click here to sort '+ keyPersonColumnTitles.disclosure +' in descending order' }}"
+                                    (click)="onSortClick('personSubmissionStatus')">
+                                    <span class="coi-text-darker"><ng-container
+                                            i18n="@@KEYPERSON_DISCLOSURE">Disclosure</ng-container></span>
+                                    <i class="fa coi-text-light ms-2 coi-table-sort-icon" [ngClass]="{
+                                    'fa-sort-alpha-asc': !isDesc['personSubmissionStatus'],
+                                    'fa-sort-alpha-desc': isDesc['personSubmissionStatus']}" aria-hidden="true"></i>
+                                </button>
+                            </th>
+
+                            <th style="width: 12%;" class="p-0 align-middle">
+                                <button
+                                    title="{{ isDesc['personReviewStatus'] ? 'Click here to sort '+ keyPersonColumnTitles.reviewStatus +' in ascending order' : 'Click here to sort '+ keyPersonColumnTitles.reviewStatus +' in descending order' }}"
+                                    class="btn-none w-100 h-100 px-3 py-2 mt-0 d-flex align-items-center coi-table-sort-btn"
+                                    aria-label="{{ isDesc['personReviewStatus'] ? 'Click here to sort '+ keyPersonColumnTitles.reviewStatus +' in ascending order' : 'Click here to sort '+ keyPersonColumnTitles.reviewStatus +' in descending order' }}"
+                                    (click)="onSortClick('personReviewStatus')">
+                                    <span class="coi-text-darker"><ng-container i18n="@@COI_REVIEW_STATUS">Review
+                                            Status</ng-container></span>
+                                    <i class="fa coi-text-light ms-2 coi-table-sort-icon" [ngClass]="{
+                                    'fa-sort-alpha-asc': !isDesc['personReviewStatus'],
+                                    'fa-sort-alpha-desc': isDesc['personReviewStatus']}" aria-hidden="true"></i>
+                                </button>
+                            </th>
+
+                            <th style="width: 7%;" class="p-0 align-middle">
+                                <span class="px-3 py-2 mt-0 d-flex align-items-center">Actions</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="white-bg">
+                        <tr *ngFor="let keyPersonData of projectData.keyPersonDetails; let personIndex = index"
+                            class="tr-hover">
+                            <!-- key person name -->
+                            <td class="table-data fw-600 px-1 coi-text-light">
+                                <div class="m-0 mb-2 row py-1">
+                                    <app-no-data-label [valueToShow]="keyPersonData?.keyPersonName">
+                                        <span class="align-items-center d-flex px-0">
+                                            <a class="link-primary text-slice"
+                                                id="coi-project-overview-keyperson-name-{{personIndex}}" tabindex="0"
+                                                (click)="openPersonDetailsModal(keyPersonData)"
+                                                (keyup.enter)="openPersonDetailsModal(keyPersonData)"
+                                                [title]="'Click here to view details of ' + keyPersonData?.keyPersonName"
+                                                [attr.aria-label]="keyPersonData?.keyPersonName" role="link">
+                                                {{keyPersonData?.keyPersonName}}
+                                            </a>
+                                        </span>
+                                    </app-no-data-label>
+                                </div>
+                            </td>
+                            <!-- keyperson role -->
+                            <td class="px-1">
+                                <div class="m-0 mb-2 row py-1 coi-text-light">
+                                    <app-no-data-label [valueToShow]="keyPersonData?.keyPersonRole">
+                                        <span class="align-items-center d-flex px-0"
+                                            id="coi-project-overview-keyperson-role-{{personIndex}}">
+                                            <span class="text-slice" [title]="keyPersonData?.keyPersonRole"
+                                                [attr.aria-label]="keyPersonData?.keyPersonRole">
+                                                {{keyPersonData?.keyPersonRole}}
+                                            </span>
+                                        </span>
+                                    </app-no-data-label>
+                                </div>
+                            </td>
+                            <!-- department -->
+                            <td class="px-1 coi-text-light">
+                                <div class="m-0 mb-2 row py-1">
+                                    <app-no-data-label [valueToShow]="keyPersonData?.homeUnitName">
+                                        <span class="align-items-center d-flex px-0"
+                                            id="coi-project-overview-department-{{personIndex}}">
+                                            <span class="text-slice"
+                                                [title]="keyPersonData?.homeUnitNumber + '-' + keyPersonData?.homeUnitName"
+                                                [attr.aria-label]="keyPersonData?.homeUnitNumber + '-' + keyPersonData?.homeUnitName">
+                                                {{keyPersonData?.homeUnitNumber}} -
+                                                {{keyPersonData?.homeUnitName}}
+                                            </span>
+                                        </span>
+                                    </app-no-data-label>
+                                </div>
+                            </td>
+                            <!-- training -->
+                            <td class="px-1 coi-text-light">
+                                <div class="m-0 mb-2 row py-1">
+                                    <app-no-data-label [valueToShow]="keyPersonData?.trainingStatus">
+                                        <span class="align-items-center d-flex px-0"
+                                            id="coi-project-overview-training-{{personIndex}}">
+                                            <span class="text-slice" [title]="keyPersonData?.trainingStatus"
+                                                [attr.aria-label]="keyPersonData?.trainingStatus">
+                                                {{keyPersonData?.trainingStatus}}
+                                            </span>
+                                        </span>
+                                    </app-no-data-label>
+                                </div>
+                            </td>
+                            <!-- certification -->
+                            <td *ngIf="projectDashboardService.projectOverviewRequestObject.tabName === PROJECT_DASHBOARD_TABS.DEV_PROPOSAL" class="px-1 coi-text-light">
+                                <div class="m-0 mb-2 row py-1">
+                                    <app-no-data-label
+                                        [valueToShow]="CA_DASH_KEYPERSON_DISCL_LOCALIZE.DISCLOSURE_CERTIFICATION_STATUS[keyPersonData?.certificationFlag] ?? CA_DASH_KEYPERSON_DISCL_LOCALIZE.DISCLOSURE_CERTIFICATION_STATUS['INCOMPLETE']">
+                                        <span class="align-items-center d-flex px-0"
+                                            id="coi-project-overview-certification-{{personIndex}}">
+                                            <span class="text-slice"
+                                                [title]="CA_DASH_KEYPERSON_DISCL_LOCALIZE.DISCLOSURE_CERTIFICATION_STATUS[keyPersonData?.certificationFlag] ?? CA_DASH_KEYPERSON_DISCL_LOCALIZE.DISCLOSURE_CERTIFICATION_STATUS['INCOMPLETE']"
+                                                [attr.aria-label]="CA_DASH_KEYPERSON_DISCL_LOCALIZE.DISCLOSURE_CERTIFICATION_STATUS[keyPersonData?.certificationFlag] ?? CA_DASH_KEYPERSON_DISCL_LOCALIZE.DISCLOSURE_CERTIFICATION_STATUS['INCOMPLETE']">
+                                                {{ CA_DASH_KEYPERSON_DISCL_LOCALIZE.DISCLOSURE_CERTIFICATION_STATUS[keyPersonData?.certificationFlag] ?? CA_DASH_KEYPERSON_DISCL_LOCALIZE.DISCLOSURE_CERTIFICATION_STATUS['INCOMPLETE'] }}
+                                            </span>
+                                        </span>
+                                    </app-no-data-label>
+                                </div>
+                            </td>
+
+                            <!-- Disclosure -->
+                            <td class="px-1 coi-text-light">
+                                <div class="m-0 mb-2 row py-1">
+                                    <app-no-data-label
+                                        [valueToShow]="CA_DASH_KEYPERSON_DISCL_LOCALIZE.DISCLOSURE_SUBMISSION_STATUS[keyPersonData?.personSubmissionStatus] ?? '--'">
+                                        <span class="align-items-center d-flex px-0"
+                                            id="coi-project-overview-disclosure-{{personIndex}}">
+                                            <span class="text-slice"
+                                                [title]="CA_DASH_KEYPERSON_DISCL_LOCALIZE.DISCLOSURE_SUBMISSION_STATUS[keyPersonData?.personSubmissionStatus] ?? '--'"
+                                                [attr.aria-label]="CA_DASH_KEYPERSON_DISCL_LOCALIZE.DISCLOSURE_SUBMISSION_STATUS[keyPersonData?.personSubmissionStatus] ?? '--'">
+                                                {{CA_DASH_KEYPERSON_DISCL_LOCALIZE.DISCLOSURE_SUBMISSION_STATUS[keyPersonData?.personSubmissionStatus] ?? '--'}}
+                                            </span>
+                                        </span>
+                                    </app-no-data-label>
+                                </div>
+                            </td>
+                            <!-- Review Status -->
+                            <td class="px-1 coi-text-light">
+                                <div class="m-0 mb-2 row py-1">
+                                    <app-no-data-label [valueToShow]="keyPersonData?.personReviewStatus">
+                                        <span class="align-items-center d-flex px-0"
+                                            id="coi-project-overview-review-status">
+                                            <span class="text-slice"
+                                                [attr.aria-label]="keyPersonData?.personReviewStatus"
+                                                [title]="keyPersonData?.personReviewStatus">
+                                                {{keyPersonData?.personReviewStatus}}
+                                            </span>
+                                        </span>
+                                    </app-no-data-label>
+                                </div>
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="p-0 align-middle">
+                                <div class="d-flex justify-content-start">
+                                    <button id="coi-keyperson-disclosure-notify-btn-{{personIndex}}"
+                                        class="d-flex align-items-center justify-content-center btn btn-primary-icon rounded-circle p-2 m-1"
+                                        title="Click here to notify the keyperson to complete their disclosure"
+                                        aria-label="Click here to notify the keyperson to complete their disclosure"
+                                        (click)="toggleNotificationSlider(personIndex)">
+                                        <mat-icon aria-hidden="true" class="flex-shrink-0">notifications_active</mat-icon>
+                                    </button>
+                                    <button *ngIf="keyPersonData?.personSubmissionStatus === 'Completed' && (hasFCOIDisclosureRights || loginPersonId === keyPersonData?.keyPersonId)"
+                                        id="coi-keyperson-disclosure-view-btn-{{personIndex}}"
+                                        class="d-flex align-items-center justify-content-center btn btn-primary-icon rounded-circle p-2 m-1"
+                                        title="Click here to view the disclosure"
+                                        aria-label="Click here to view the disclosure"
+                                        (click)="redirectToDisclosure(keyPersonData)">
+                                        <mat-icon aria-hidden="true" class="flex-shrink-0">visibility</mat-icon>
+                                    </button>
+                                    <button *ngIf="keyPersonData?.personSubmissionStatus === 'Completed' && !(hasFCOIDisclosureRights || loginPersonId === keyPersonData?.keyPersonId)"
+                                        id="coi-keyperson-disclosure-view-restrict-{{personIndex}}"
+                                        class="d-flex align-items-center justify-content-center btn btn-primary-icon rounded-circle p-2 m-1"
+                                        title="You don't have access to view this disclosure." aria-label="You don't have access to view this disclosure" [disabled]="true">
+                                        <mat-icon aria-hidden="true" class="flex-shrink-0">visibility_off</mat-icon>
+                                    </button>
+                                    <button *ngIf="isShowCommentButton && commonService.enableKeyPersonDisclosureComments && keyPersonData?.personSubmissionStatus == 'Completed' && keyPersonData?.disclosureId != 0" id="coi-keyperson-disclosure-cmnt-btn-{{personIndex}}"
+                                        class="d-flex align-items-center justify-content-center btn btn-primary-icon rounded-circle p-2 m-1"
+                                        title="Click here to add comments" aria-label="Click here to add comments"
+                                        (click)="toggleCaComment(keyPersonData)">
+                                        <mat-icon aria-hidden="true" class="flex-shrink-0">rate_review</mat-icon>
+                                        <span *ngIf="keyPersonData?.personCommentCount > 0 " class="translate-middle bg-danger align-items-center position-absolute fs-10"
+                                            [ngClass]="{ 'comment-count-icon-large': keyPersonData?.personCommentCount > 99,
+                                                'comment-count-icon':  keyPersonData?.personCommentCount <= 99 }">
+                                            {{ keyPersonData?.personCommentCount > 99 ?  '99+' : keyPersonData?.personCommentCount }}</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- project dashboard comments slider -->
+<ng-container *ngIf="isShowProjectCommentSlider">
+    <app-project-overview-comments-slider [dataForCommentSlider]="projectData" (closePage)="toggleProjectCommentSlider('CLOSE_SLIDER')"
+        (commentCountUpdated)="handleCommentCount($event)"></app-project-overview-comments-slider>
+</ng-container>
+<!-- project dashboard comments slider -->
+
+<!-- notification slider -->
+<ng-container *ngIf="isShowNotificationSlider">
+    <app-project-overview-notification-slider [notificationSliderData]="projectDashboardService.notificationSliderData"
+        (closePage)="closeNotificationSlider()"></app-project-overview-notification-slider>
+</ng-container>
+<!-- notifications slider -->
+
+<!-- CA comments slider/ comments against each keyperson -->
+<div *ngIf="isShowCaCommentSlider">
+    <app-review-comments-slider  (closePage)="closeCaComment($event)" (keyPersonCommentCount)="keyPersonCommentCount($event)" [disclosureType]="'COI'" [disclosureDetails]="disclosureDetails"
+        [projectDetails]="projectData?.projectDetails" [dataForCommentSlider]="projectData"></app-review-comments-slider>
+</div>
+<!-- CA comments slider/ comments against each keyperson -->
+
+<!-- Project mandatory history slider -->
+<div *ngIf="isShowHistorySlider">
+    <app-project-mandatory-history-slider [dataForCommentSlider]="projectData"
+        (closePage)="toggleHistorySlider('CLOSE_SLIDER')">
+    </app-project-mandatory-history-slider>
+</div>
+<!-- Project mandatory history slider -->

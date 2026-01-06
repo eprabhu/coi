@@ -1,0 +1,23 @@
+<mat-select class="form-control input-height {{customClass}}" [id]="uniqueId" #mySelect [(ngModel)]="selection"
+    name="lookupFilter" placeholder="--select--" [multiple]="isMultiple"
+    [class.is-invalid]="isError" (closed)="emitDataToParentComponent()"
+    (selectionChange)="isDataChanged = true; checkIfAllOptionsSelected(); emitSelectedDetails()" [title]="lookupTitle"
+    [disabled]="isDisabled" [class.noFocus]="isDisabled" (focus)="showLookUpList()" (opened)="setZIndex()">
+    <mat-select-trigger>
+        {{selectedLookUpList?.length > 0 ? selectedLookUpList[0]?.description : ''}}
+        <span *ngIf="(selectedLookUpList?.length || 0) > 1" class="additional-selection">
+            (+{{(selectedLookUpList?.length || 0) - 1}} {{selectedLookUpList?.length === 2 ? 'other' : 'others'}})
+        </span>
+    </mat-select-trigger>
+    <div *ngIf="isEnableSearch" class="mat-option sticky-top p-2 bg-white border">
+        <input type="text" class="form-control" [(ngModel)]="searchText" [id]="uniqueId+'search-field'"
+            (ngModelChange)="isDataChanged = true;checkIfAllOptionsSelected()" placeholder="Search">
+    </div>
+    <mat-option *ngIf="isMultiple && lookUpList.length" #lookupSelectAll [value]="'SELECT_ALL'"> Select All </mat-option>
+    <mat-option *ngIf="!isMultiple && isClearNeeded && lookUpList.length" [value]="null"> --select-- </mat-option>
+    <mat-option *ngIf="!isMultiple && !isClearNeeded && lookUpList.length" [value]="null" disabled hidden> --select-- </mat-option>
+    <mat-option *ngFor="let lookup of lookUpList | lookupFilter : searchText"
+        [value]="lookup.code || lookup.description">
+        <span [innerHTML]="lookup.description"></span>
+    </mat-option>
+</mat-select>

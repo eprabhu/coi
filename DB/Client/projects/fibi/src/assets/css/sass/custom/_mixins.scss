@@ -1,0 +1,97 @@
+//@import 'themes.scss';
+
+@function v($var) {
+  @return var(--#{$var});
+}
+
+@mixin themify($themes: $themes) {
+  @each $theme, $map in $themes {
+
+    .theme-#{$theme} & {
+      $theme-map: () !global;
+      @each $key, $submap in $map {
+        $value: map-get(map-get($themes, $theme), '#{$key}');
+        $theme-map: map-merge($theme-map, ($key: $value)) !global;
+      }
+
+      @content;
+      $theme-map: null !global;
+    }
+
+  }
+}
+
+@mixin themifyself($themes: $themes) {
+  @each $theme, $map in $themes {
+
+    &.theme-#{$theme} {
+      $theme-map: () !global;
+      @each $key, $submap in $map {
+        $value: map-get(map-get($themes, $theme), '#{$key}');
+        $theme-map: map-merge($theme-map, ($key: $value)) !global;
+      }
+
+      @content;
+      $theme-map: null !global;
+    }
+
+  }
+}
+
+@function themed($key) {
+  @return map-get($theme-map, $key);
+}
+
+
+/// Adds a browser prefix to the property
+/// @param {*} $property Property
+/// @param {*} $value Value
+
+@mixin css3-prefix($property, $value) {
+    -webkit-#{$property}: #{$value};
+     -khtml-#{$property}: #{$value};
+       -moz-#{$property}: #{$value};
+        -ms-#{$property}: #{$value};
+         -o-#{$property}: #{$value};
+            #{$property}: #{$value};
+}
+
+///box-sizing
+@mixin box-sizing($box-model) {
+    @include css3-prefix('box-sizing', $box-model);
+}
+
+/// Border Radius
+/// @param {Size} $radius [5px] - Radius
+/// @require {mixin} css3-prefix
+
+@mixin border-radius($radius: 5px) {
+    @include css3-prefix('border-radius', $radius);
+    background-clip: padding-box;
+  }
+  
+  
+  /// Box Shadow
+  
+  @mixin box-shadow( $horiz : 0 , $vert : 2px , $blur : 30px , $spread : 2px , $color : rgba(0,0,0,.1), $inset: "" ){
+    @if ($inset != "") {
+      @include css3-prefix('box-shadow', $inset $horiz $vert $blur $spread $color);
+    } @else {
+      @include css3-prefix('box-shadow', $horiz $vert $blur $spread $color);
+    }
+  }
+  
+  ///Text overflow
+  
+  @mixin text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+//new theme color
+  @function theme-color($key: 'green', $variant: 'base') {
+    $map: map-get($theme-colors, $key);
+    @return map-get($map, $variant);
+  }
+  

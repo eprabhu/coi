@@ -1,0 +1,705 @@
+<section>
+    <div class="fs-18 fw-bold mb-2" tabindex="-1" aria-label="Manage Entity Dashboard">Entity Management</div>
+    <div [@fadeInOutHeight]>
+        <section class="coi-dashboard-tab-sticky coi-custom-top">
+            <div *ngIf="canViewEntity || canShowImportTab" class="row bg-white mx-0 d-flex align-items-center border shadow-sm">
+                <nav class="d-flex justify-content-between align-items-center ps-0 pe-3 border-bottom flex-wrap" aria-label="Entity management tabs">
+                    <!-- new tab design -->
+                    <ul class="nav nav-custom nav-tabs nav-line-tabs nav-line-tabs-2x border-0 fw-semibold mb-8">
+                        <ng-container *ngIf="canViewEntity">
+                            <!-- All Entities -->
+                            <li class="nav-item" [ngClass]="{'active': activeTabName === 'ALL_ENTITY'}">
+                                <a tabindex="0" class="nav-link p-3 fs-6 align-self-center" role="tab"
+                                    (click)="entityTabName('ALL_ENTITY')" (keyup.enter)="entityTabName('ALL_ENTITY')"
+                                    title="Click here to view all entities" id="coi-entity-management-all-entities"
+                                    aria-label="Click here to view the list of all entities">All Entities</a>
+                            </li>
+                            <!-- Unconfirmed Entities -->
+                            <li class="nav-item" [ngClass]="{'active': activeTabName === 'UNVERIFIED'}">
+                                <a tabindex="0" class="nav-link p-3 fs-6 align-self-center" role="tab"
+                                    (click)="entityTabName('UNVERIFIED')" (keyup.enter)="entityTabName('UNVERIFIED')"
+                                    title="Click here to view unconfirmed entities" id="coi-entity-management-unconfirmed-entities"
+                                    aria-label="Click here to view the list of all Unconfirmed entities">Unconfirmed Entities</a>
+                            </li>
+                            <ng-container *ngIf="isEnableEntityDunsMatch">
+                                <!-- D&B Entity Updates -->
+                                <li class="nav-item" [ngClass]="{'active': activeTabName === 'DUNS_REFRESH_ENTITIES'}">
+                                    <a tabindex="0" class="nav-link p-3 fs-6 align-self-center" role="tab"
+                                        (click)="entityTabName('DUNS_REFRESH_ENTITIES')" (keyup.enter)="entityTabName('DUNS_REFRESH_ENTITIES')"
+                                        title="Click here to view D&B Entity Updates" id="coi-entity-duns-refresh-entities"
+                                        aria-label="Click here to view the list of all D&B Entity Updates">D&B Entity Updates</a>
+                                </li>
+                            </ng-container>
+                        </ng-container>
+                        <ng-container *ngIf="canShowImportTab">
+                            <!-- Import Entities -->
+                            <li class="nav-item" [ngClass]="{'active': activeTabName === 'IMPORT'}">
+                                <a tabindex="0" class="nav-link p-3 fs-6 align-self-center" role="tab"
+                                    (click)="fetchBatches('IMPORT')" (keyup.enter)="fetchBatches('IMPORT')"
+                                    title="Click here to view import entities" id="coi-entity-management-import-entities"
+                                    aria-label="Click here to view the list of all import entities">Import Entities</a>
+                            </li>
+                        </ng-container>
+                    </ul>
+
+                    <div class="d-flex justify-content-end flex-grow-1 my-2 gap-2">
+                        <button aria-label="Click here to expand / collapse Advanced Search fields" id="coi-entity-management-advance-search-btn"
+                            class="btn btn-tertiary d-inline-flex fs-14 align-items-center mt-0 position-relative"
+                            [ngClass]="{'me-1' : isAdvanceSearchMade && activeTabName !== 'IMPORT' && !isViewAdvanceSearch}"
+                            (click)="toggleAdvanceSearch()" aria-controls="view-advance-search" aria-expanded="false"
+                            title="Click here to expand / collapse Advanced Search fields">
+                            <span *ngIf="isAdvanceSearchMade && !isViewAdvanceSearch" class="position-absolute translate-middle adv-search-count-top bg-danger"
+                            [ngClass]="{
+                                'badge rounded-pill': advancedSearchCriteriaCount > 0,
+                                'p-2 border border-light rounded-circle': advancedSearchCriteriaCount === 0
+                            }">{{ advancedSearchCriteriaCount > 0 ? advancedSearchCriteriaCount : '' }}</span>
+                            <mat-icon aria-hidden="true" class="me-3">tune</mat-icon>
+                            Advanced Search
+                        </button>
+                        <button *ngIf="isManageEntity && activeTabName !== 'IMPORT'" aria-label="Click here to add a new entity" class="btn coi-icon-btn btn-outline-secondary"
+                            id="coi-entity-management-add-new-entity-btn" title="Click here to add an entity"
+                            aria-label="Click here to add a new entity" (click)="addNewEntity()">
+                            <mat-icon aria-hidden="true" class="me-1">add</mat-icon>
+                            Add New Entity
+                        </button>
+                    </div>
+                </nav>
+
+                <!-- Advance search -->
+                <div class="bg-white pb-3 px-3 pt-2" *ngIf="isViewAdvanceSearch" id="collapseExample" [@topSlideInOut]>
+                    <div class="row g-3">
+                        <ng-container *ngIf="activeTabName !== 'IMPORT'">
+                            <ng-container *ngFor="let advancedSearchOrder of ENTITY_DASHBOARD_ADVANCED_SEARCH_ORDER[activeTabName]">
+                                <!-- Entity Name search field -->
+                                <div *ngIf="advancedSearchOrder === 'ENTITY_NAME'" class="col-xl-3 col-lg-4 col-sm-6 col-12" title="Click here to search by Entity name" tabindex="-1"
+                                    aria-label="Entity search field" role="searchbox">
+                                    <label class="fw-bold fs-14 d-block" for="adv-entity-name">Entity Name</label>
+                                    <app-elastic [options]="entitySearchOptions" [placeHolder]="'Search Entity or type an Entity Name'"
+                                        class="text-secondary fs-13" [clearField]="clearEntityName" [uniqueId]="'adv-entity-name'"
+                                        (selectedResult)="setEntityNameForAdvanceSearch($event)" (keyup.enter)="advancedSearch()" [canEmitSearchText]="true">
+                                    </app-elastic>
+                                </div>
+                                <!-- Ownership Type -->
+                                <div *ngIf="advancedSearchOrder === 'OWNERSHIP_TYPE'" class="col-xl-3 col-lg-4 col-sm-6 col-12" title="Click here to search by Ownership Type" tabindex="-1"
+                                    aria-label="Ownership Type dropdown" role="searchbox">
+                                    <label class="fw-bold fs-14 d-block" for="adv-entity-ownership-type">Ownership Type</label>
+                                    <app-look-up (selectedResult)="onLookupSelect($event, 'OWNERSHIP_TYPE_CODE')" [options]="lookupOptions.ownershipTypeOptions"
+                                        [selectedLookUpList]="lookupValues['OWNERSHIP_TYPE_CODE']" class="text-secondary fs-13"
+                                        [uniqueId]="'adv-entity-ownership-type'"
+                                        [needResultOnEachSelection]="true" (keyup.enter)="advancedSearch()">
+                                    </app-look-up>
+                                </div>
+                                <!-- Address -->
+                                <div *ngIf="advancedSearchOrder === 'ADDRESS'" class="col-xl-3 col-lg-4 col-sm-6 col-12" title="Click here to search by Address" tabindex="-1" aria-label="Address">
+                                    <label class="fw-bold fs-14 d-block" for="adv-search-address">Address</label>
+                                    <input type="text" id="adv-search-address" placeholder="Type the Address here" title="Click here to search by Address" aria-label="Address search field"
+                                        maxlength="1000" autocomplete="off" class="form-control" [(ngModel)]="tempEntitySearchRequestObject.PRIMARY_ADDRESS" (keyup.enter)="advancedSearch()"/>
+                                </div>
+                                <!-- City -->
+                                <div *ngIf="advancedSearchOrder === 'CITY'" class="col-xl-3 col-lg-4 col-sm-6 col-12" title="Click here to search by City" tabindex="-1" aria-label="City">
+                                    <label class="fw-bold fs-14 d-block" for="adv-search-city">City</label>
+                                    <input type="text" id="adv-search-city" placeholder="Type the City here" title="Click here to search by City" aria-label="City search field"
+                                        maxlength="30" autocomplete="off" class="form-control" [(ngModel)]="tempEntitySearchRequestObject.CITY" (keyup.enter)="advancedSearch()"/>
+                                </div>
+                                <!-- State/Province/Region lookUp -->
+                                <div *ngIf="advancedSearchOrder === 'STATE'" class="col-xl-3 col-lg-4 col-sm-6 col-12">
+                                    <label for="adv-entity-state" class="block-display">State/Province/Region</label>
+                                    <app-endpoint-search [httpOptions]="stateSearchOption" [clearField]="stateClearField" [canEmitSearchText]="true"
+                                        [placeHolder]="'Search by State'" [uniqueId]="'adv-entity-state'"
+                                        (onSelect)="onSelectEntityState($event)" (keyup.enter)="advancedSearch()">
+                                    </app-endpoint-search>
+                                </div>
+                                <!-- Country search field -->
+                                <div *ngIf="advancedSearchOrder === 'COUNTRY'" class="col-xl-3 col-lg-4 col-sm-6 col-12" title="Click here to search by Country" tabindex="-1"
+                                    aria-label="Country search field" role="searchbox">
+                                    <label class="fw-bold fs-14 d-block" for="adv-entity-country">Country</label>
+                                    <app-endpoint-search (onSelect)="onSelectEntityCountry($event)" [clearField]="clearEntityCountry"
+                                        [httpOptions]="countrySearchOptions" class=" text-secondary fs-13"
+                                        [placeHolder]="'Search by Country'" [uniqueId]="'adv-entity-country'"
+                                        (keyup.enter)="advancedSearch()">
+                                    </app-endpoint-search>
+                                </div>
+                                <!-- DUNS Number -->
+                                <div *ngIf="advancedSearchOrder === 'DUNS_NUMBER'" class="col-xl-3 col-lg-4 col-sm-6 col-12" title="Click here to search by DUNS Number" tabindex="-1" aria-label="DUNS Number">
+                                    <label class="fw-bold fs-14 d-block" for="adv-search-duns-number">DUNS Number</label>
+                                    <input type="text" id="adv-search-duns-number" placeholder="Type the DUNS Number here" title="Click here to search by DUNS Number" aria-label="DUNS Number search field"
+                                        maxlength="20" autocomplete="off" class="form-control" [(ngModel)]="tempEntitySearchRequestObject.DUNS_NUMBER" (keyup.enter)="advancedSearch()"/>
+                                </div>
+                                <!-- UEI Number -->
+                                <div *ngIf="advancedSearchOrder === 'UEI_NUMBER'" class="col-xl-3 col-lg-4 col-sm-6 col-12" title="Click here to search by UEI Number" tabindex="-1" aria-label="UEI Number">
+                                    <label class="fw-bold fs-14 d-block" for="adv-search-uei-number">UEI Number</label>
+                                    <input type="text" id="adv-search-uei-number" placeholder="Type the UEI Number here" title="Click here to search by UEI Number" aria-label="UEI Number search field"
+                                        maxlength="12" autocomplete="off" class="form-control" [(ngModel)]="tempEntitySearchRequestObject.UEI_NUMBER" (keyup.enter)="advancedSearch()"/>
+                                </div>
+                                <!-- CAGE Number -->
+                                <div *ngIf="advancedSearchOrder === 'CAGE_NUMBER'" class="col-xl-3 col-lg-4 col-sm-6 col-12" title="Click here to search by CAGE Number" tabindex="-1" aria-label="CAGE Number">
+                                    <label class="fw-bold fs-14 d-block" for="adv-search-cage-number">CAGE Number</label>
+                                    <input type="text" id="adv-search-cage-number" placeholder="Type the CAGE Number here" title="Click here to search by CAGE Number" aria-label="CAGE Number search field"
+                                        maxlength="20" autocomplete="off" class="form-control" [(ngModel)]="tempEntitySearchRequestObject.CAGE_NUMBER" (keyup.enter)="advancedSearch()"/>
+                                </div>
+                                <!-- Website -->
+                                <div *ngIf="advancedSearchOrder === 'WEBSITE'" class="col-xl-3 col-lg-4 col-sm-6 col-12" title="Click here to search by Website" tabindex="-1" aria-label="Website">
+                                    <label class="fw-bold fs-14 d-block" for="adv-search-website">Website</label>
+                                    <input type="text" id="adv-search-website" placeholder="Type the Website here" title="Click here to search by Website" aria-label="Website search field"
+                                        maxlength="500" autocomplete="off" class="form-control" [(ngModel)]="tempEntitySearchRequestObject.WEBSITE_ADDRESS" (keyup.enter)="advancedSearch()"/>
+                                </div>
+                                <!-- Entity Status dropdown(lookup) -->
+                                <div *ngIf="advancedSearchOrder === 'ENTITY_STATUS'" class="col-xl-3 col-lg-4 col-sm-6 col-12" title="Click here to search by Entity Status" tabindex="-1"
+                                    aria-label="Entity Status dropdown" role="searchbox">
+                                    <label class="fw-bold fs-14 d-block" for="adv-entity-status">Entity Status</label>
+                                    <app-look-up (selectedResult)="onLookupSelect($event, 'ENTITY_STATUS_TYPE_CODE')" [options]="lookupOptions.statusTypeOptions"
+                                        [selectedLookUpList]="lookupValues['ENTITY_STATUS_TYPE_CODE']"
+                                        class="text-secondary fs-13" [uniqueId]="'adv-disclosure-status'"
+                                        [needResultOnEachSelection]="true" (keyup.enter)="advancedSearch()">
+                                    </app-look-up>
+                                </div>
+                                <!-- Entity Confirmation Status -->
+                                <div *ngIf="advancedSearchOrder === 'ENTITY_VERIFICATION_STATUS'" class="col-xl-3 col-lg-4 col-sm-6 col-12"
+                                    title="Click here to search by Entity Confirmation Status" tabindex="-1"
+                                    aria-label="Entity Confirmation Status dropdown" role="searchbox">
+                                    <label class="fw-bold fs-14 d-block" for="adv-entity-Confirmation">Entity Confirmation Status</label>
+                                    <app-look-up (selectedResult)="onLookupSelect($event, 'VERIFICATION_STATUS')"
+                                        [options]="lookupOptions.verificationTypeOptions" [selectedLookUpList]="lookupValues['VERIFICATION_STATUS']"
+                                        class="text-secondary fs-13" [uniqueId]="'adv-entity-Confirmation'"
+                                        [needResultOnEachSelection]="true" (keyup.enter)="advancedSearch()">
+                                    </app-look-up>
+                                </div>
+                                <!-- Source Type -->
+                                <div *ngIf="advancedSearchOrder === 'ENTITY_SOURCE_TYPE'" class="col-xl-3 col-lg-4 col-sm-6 col-12"
+                                    title="Click here to search by Source Type" tabindex="-1"
+                                    aria-label="Source Type dropdown" role="searchbox">
+                                    <label class="fw-bold fs-14 d-block" for="adv-entity-Source">Source Type</label>
+                                    <app-look-up (selectedResult)="onLookupSelect($event, 'ENTITY_SOURCE_TYPE_CODE')"
+                                        [options]="lookupOptions.sourceTypeOptions" [selectedLookUpList]="lookupValues['ENTITY_SOURCE_TYPE_CODE']"
+                                        class="text-secondary fs-13" [uniqueId]="'adv-entity-source'"
+                                        [needResultOnEachSelection]="true" (keyup.enter)="advancedSearch()">
+                                    </app-look-up>
+                                </div>
+                                <!-- Foreign name -->
+                                <div *ngIf="advancedSearchOrder === 'FOREIGN_NAME'" class="col-xl-3 col-lg-4 col-sm-6 col-12" title="Click here to search by Foreign name" tabindex="-1" aria-label="Foreign name">
+                                    <label class="fw-bold fs-14 d-block" for="adv-search-foreign-name">Foreign Name</label>
+                                    <input type="text" id="adv-search-foreign-name" placeholder="Type the Foreign Name here" title="Click here to search by Foreign name" aria-label="Foreign name search field"
+                                        maxlength="500" autocomplete="off" class="form-control" [(ngModel)]="tempEntitySearchRequestObject.FOREIGN_NAME" (keyup.enter)="advancedSearch()"/>
+                                </div>
+                                <!-- Translated name -->
+                                <div *ngIf="advancedSearchOrder === 'TRANSLATED_NAME'" class="col-xl-3 col-lg-4 col-sm-6 col-12"
+                                    title="Click here to search by Translated Name" tabindex="-1" aria-label="Translated Name">
+                                    <label class="fw-bold fs-14 d-block" for="adv-search-translated-name">Translated Name</label>
+                                    <input type="text" id="adv-search-translated-name" placeholder="Type the Translated Name here"
+                                        title="Click here to search by Translated Name" aria-label="Translated name search field" maxlength="500"
+                                        autocomplete="off" class="form-control" [(ngModel)]="tempEntitySearchRequestObject.TRANSLATED_NAME"
+                                        (keyup.enter)="advancedSearch()" />
+                                </div>
+                                <!-- Prior name -->
+                                <div *ngIf="advancedSearchOrder === 'PRIOR_NAME'" class="col-xl-3 col-lg-4 col-sm-6 col-12" title="Click here to search by Prior Name" tabindex="-1" aria-label="Prior Name">
+                                    <label class="fw-bold fs-14 d-block" for="adv-search-prior-name">Prior Name</label>
+                                    <input type="text" id="adv-search-prior-name" placeholder="Type the Prior Name here" title="Click here to search by Prior Name" aria-label="Prior Name search field"
+                                        maxlength="200" autocomplete="off" class="form-control" [(ngModel)]="tempEntitySearchRequestObject.PRIOR_NAME" (keyup.enter)="advancedSearch()"/>
+                                </div>
+                                <!-- Sponsor code -->
+                                <div *ngIf="advancedSearchOrder === 'SPONSOR_CODE'" class="col-xl-3 col-lg-4 col-sm-6 col-12" title="Click here to search by Sponsor Code" tabindex="-1" aria-label="Sponsor Code">
+                                    <label class="fw-bold fs-14 d-block" for="adv-search-sponsor-code">Sponsor Code</label>
+                                    <input type="text" id="adv-search-sponsor-code" placeholder="Type the Sponsor Code here" title="Click here to search by Sponsor Code" aria-label="Sponsor Code search field"
+                                        maxlength="20" autocomplete="off" class="form-control" [(ngModel)]="tempEntitySearchRequestObject.SPONSOR_CODE" (keyup.enter)="advancedSearch()"/>
+                                </div>
+                                <!-- Organization ID -->
+                                <div *ngIf="advancedSearchOrder === 'ORGANIZATION_ID'" class="col-xl-3 col-lg-4 col-sm-6 col-12" title="Click here to search by Organization ID" tabindex="-1" aria-label="Organization Id">
+                                    <label class="fw-bold fs-14 d-block" for="adv-search-organization-id">Organization ID</label>
+                                    <input type="text" id="adv-search-organization-id" placeholder="Type the Organization ID here" title="Click here to search by Organization ID" aria-label="Organization ID search field"
+                                        maxlength="8" autocomplete="off" class="form-control" [(ngModel)]="tempEntitySearchRequestObject.ORGANIZATION_ID" (keyup.enter)="advancedSearch()"/>
+                                </div>
+                            </ng-container>
+                        </ng-container>
+                        <!-- for import tab -->
+                        <ng-container *ngIf="activeTabName === 'IMPORT'">
+                            <ng-container *ngFor="let advancedSearchOrder of ENTITY_DASHBOARD_ADVANCED_SEARCH_ORDER[activeTabName]">
+                                <!-- Batch ID -->
+                                <div *ngIf="advancedSearchOrder === 'BATCH_ID'" class="col-xl-4 col-lg-4 col-sm-6 col-12">
+                                    <label class="fw-bold fs-14 d-block" for="adv-batch-id">Batch ID</label>
+                                    <input type="text" id="adv-batch-id" name="adv-batch-id" placeholder="Type the Batch ID here"
+                                        [(ngModel)]="importEntityRO.batchId"  maxlength="5" autocomplete="off" class="form-control"
+                                        [attr.aria-label]="'Please enter the batch id. Current batch id is ' + (importEntityRO.batchId ? '' : 'empty')"
+                                        (keyup.enter)="advancedSearch()" (keypress)="inputNumberRestriction($event)"/>
+                                </div>
+                                <!-- Batch Status for future -->
+                                <div *ngIf="advancedSearchOrder === 'BATCH_STATUS'" class="col-xl-4 col-lg-4 col-sm-6 col-12">
+                                    <label class="fw-bold fs-14 d-block" for="adv-batch-status">Batch Status</label>
+                                    <app-look-up (selectedResult)="onBatchLookupSelect($event, 'batchStatusCodes')" [options]="lookupOptions.batchTypeOptions"
+                                        [selectedLookUpList]="lookupValues['batchStatusCodes']"
+                                        class=" text-secondary fs-13" [uniqueId]="'adv-batch-status'"
+                                        [needResultOnEachSelection]="true" (keyup.enter)="advancedSearch()">
+                                    </app-look-up>
+                                </div>
+                                <!-- Review Status -->
+                                <div *ngIf="advancedSearchOrder === 'REVIEW_STATUS'" class="col-xl-4 col-lg-4 col-sm-6 col-12">
+                                    <label class="fw-bold fs-14 d-block" for="adv-review-status">Review Status</label>
+                                    <app-look-up (selectedResult)="onBatchLookupSelect($event, 'reviewStatusCodes')" [options]="lookupOptions.reviewTypeOptions"
+                                        [selectedLookUpList]="lookupValues['reviewStatusCodes']"
+                                        class=" text-secondary fs-13" [uniqueId]="'adv-review-status'"
+                                        [needResultOnEachSelection]="true" (keyup.enter)="advancedSearch()">
+                                    </app-look-up>
+                                </div>
+                            </ng-container>
+                        </ng-container>
+                        <!-- Advanced search actions -->
+                        <div class="col d-flex justify-content-end mt-4 align-items-end">
+                            <!-- Clear -->
+                            <button id="coi-entity-management-clear-btn" class="btn btn-outline-secondary  fs-14 py-2 mx-2"
+                                (click)="clearAdvancedSearch()" title="Click here to clear all the fields"
+                                aria-label="Click here to clear all the fields">
+                                Clear
+                            </button>
+                            <!-- Search -->
+                            <button class="btn btn-primary fs-14" id="coi-entity-management-search-btn"
+                                (click)="advancedSearch()"
+                                title="Click here to Initiate search"
+                                aria-label="Click here to get the search results with/without fields">
+                                Search
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sorting panel-->
+            <div class="sort-div border mt-2 px-3" *ngIf="canViewEntity && entityList.length && activeTabName !== 'IMPORT'">
+                <span class="fs-14 fw-medium me-2 text-secondary">Sort By : </span>
+                <button id="coi-entity-management-sort-btn" *ngFor="let sortSection of sortSectionsList; let index = index"
+                    attr.aria-labelledby="coi-entity-list-sort-{{index}}" (click)="sortResult(sortSection?.variableName)"
+                    [class.filter-active]="['ASC', 'DESC'].includes(entityDashboardService.entitySearchRequestObject.entityDashboardData.SORT_TYPE[sortSection?.variableName])"
+                    title="Click here to sort by {{sortSection?.fieldName}}"
+                    class="shadow-sm fw-medium py-2 px-3 fs-13 border rounded-5 bg-white px-8 coi-sort-filter-btn">
+                    <div class="d-inline-flex align-items-center">
+                        <span class="d-none" id="coi-entity-list-sort-{{index}}">Click here to sort by {{ sortSection?.fieldName }} in
+                            {{entityDashboardService.entitySearchRequestObject.entityDashboardData.SORT_TYPE[sortSection?.variableName]=== 'ASC' ?
+                            'descending Order' : entityDashboardService.entitySearchRequestObject.entityDashboardData.SORT_TYPE[sortSection?.variableName]===
+                            'DESC' ?
+                            'normal Order' : 'ascending order'}}</span>
+                        <span>{{sortSection?.fieldName}}</span>
+                        <mat-icon aria-hidden="true" class="arrow selected-arrow" [@slideDown]
+                            *ngIf="entityDashboardService.entitySearchRequestObject.entityDashboardData.SORT_TYPE[sortSection?.variableName]=== 'ASC' ">arrow_downward</mat-icon>
+                        <mat-icon aria-hidden="true" class="arrow selected-arrow" [@slideUp] [@scaleOut]
+                            *ngIf="entityDashboardService.entitySearchRequestObject.entityDashboardData.SORT_TYPE[sortSection?.variableName]=== 'DESC' ">arrow_upward</mat-icon>
+                    </div>
+                </button>
+            </div>
+        </section>
+        <ng-container *ngIf="activeTabName !== 'IMPORT'">
+            <!-- entity list -->
+            <ng-container *ngIf="!isLoading && isShowEntityList">
+                <div *ngIf="entityList.length; else noData" [@listAnimation]="entityList.length">
+                    <div *ngFor="let entityListData of entityList;let listIndex=index">
+                        <div class="card coi-card-regular">
+                            <div class="card-body" id="coi-entity-management-card-body">
+                                <div class="row row-gap-2">
+                                    <!-- header -->
+                                    <div class="d-flex col-12 mb-2 gap-5">
+                                        <h4 class="d-flex align-items-center col mb-0 coi-text-darker fs-6 pe-5">
+                                            <!-- icon -->
+                                            <span class="coi-icon-bg me-2 fs-14 d-inline-flex"><mat-icon aria-hidden="true" class="coi-entity-icon-size coi-coloured-icons">domain</mat-icon></span>
+                                            <!-- Entity Name -->
+                                            <div class="d-flex flex-column">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="text-slice fs-6" [title]="entityListData?.entityName">{{ entityListData?.entityName }}</span>
+                                                    <ng-container *ngIf="entityListData?.isForeign">
+                                                        <app-common-foreign-flag [entityName]="entityListData?.entityName"></app-common-foreign-flag>
+                                                    </ng-container>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-1">
+                                                    <!-- Ownership Type -->
+                                                    <div class="d-flex align-items-center gap-1">
+                                                        <label for="coi-entity-dashboard-ownership-type-{{listIndex}}" class="coi-text-dark fs-13 text-nowrap">Ownership Type:</label>
+                                                        <div id="coi-entity-dashboard-ownership-type-{{listIndex}}" class="text-slice coi-text-light fs-13 coi-min-width-25px">
+                                                            <app-no-data-label [valueToShow]="entityListData?.ownershipType">
+                                                                <span [title]="entityListData?.ownershipType"
+                                                                    class="coi-text-light fs-13">{{ entityListData?.ownershipType }}</span>
+                                                            </app-no-data-label>
+                                                        </div>
+                                                    </div>
+                                                    <!-- divider -->
+                                                    <span class="coi-text-lighter">|</span>
+                                                    <!-- Business Type -->
+                                                    <div class="d-flex align-items-center gap-1">
+                                                        <label for="coi-entity-dashboard-business-type-{{listIndex}}" class="coi-text-dark fs-13 text-nowrap">Business Type:</label>
+                                                        <div id="coi-entity-dashboard-business-type-{{listIndex}}" class="text-slice coi-text-light fs-13 coi-min-width-25px">
+                                                            <app-no-data-label [valueToShow]="entityListData?.entityBusinessType">
+                                                                <span [title]="entityListData?.entityBusinessType"
+                                                                    class="coi-text-light fs-13">{{ entityListData?.entityBusinessType }}</span>
+                                                            </app-no-data-label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!-- corporate linkage -->
+                                                <div *ngIf="entityListData?.entityFamilyTreeRolesList?.length" class="d-flex align-items-center">
+                                                    <mat-icon aria-hidden="true" class="flex-shrink-0 coi-text-lighter coi-scale-7 coi-ms-n3px">mediation</mat-icon>
+                                                    <ng-container *ngFor="let familyTreeRoles of entityListData?.entityFamilyTreeRolesList; let lastLinkage = last">
+                                                        <div class="coi-text-light fs-13 text-slice" [title]="familyTreeRoles">{{ familyTreeRoles }}</div>
+                                                        <!-- divider -->
+                                                        <span *ngIf="!lastLinkage" class="coi-text-lighter px-1">|</span>
+                                                    </ng-container>
+                                                </div>
+                                            </div>
+                                        </h4>
+                                        <!-- badges -->
+                                        <div class="d-inline-flex align-items-center gap-2">
+                                            <!-- Unconfirmed -->
+                                            <div *ngIf="entityListData?.entityStatusTypeCode === ENTITY_UNVERIFIED"
+                                                class="coi-warning-pill rounded-pill fs-14 px-3 py-1 rounded-5 py-0"
+                                                title="The entity confirmation status of '{{ entityListData?.entityName }}' is Unconfirmed">
+                                                <i aria-hidden="true" class="fa fa-times me-2"></i>
+                                                <span>Unconfirmed</span>
+                                            </div>
+                                            <!-- Confirmed -->
+                                            <div *ngIf="entityListData?.entityStatusTypeCode === ENTITY_VERIFIED"
+                                                class="d-inline-flex align-items-center rounded-pill fs-14 fw-700 px-3 py-2 badge rounded-5 py-0 text-bg-success"
+                                                title="The entity confirmation status of '{{ entityListData?.entityName }}' is Confirmed">
+                                                <mat-icon aria-hidden="true" class="me-1 fs-14">check_circle</mat-icon>
+                                                <span>Confirmed</span>
+                                            </div>
+                                            <!-- ACTIVE / INACTIVE -->
+                                            <div class="badge fs-14 px-3 py-2 rounded-pill text-bg-warning"
+                                                title="The entity status of '{{ entityListData?.entityName }}' is {{ entityListData?.entityStatus }}"
+                                                [ngClass]="{'text-bg-success': entityListData?.documentStatusTypeCode === ENTITY_ACTIVE,
+                                                            'text-bg-secondary': entityListData?.documentStatusTypeCode === ENTITY_INACTIVE,
+                                                            'text-bg-warning': entityListData?.documentStatusTypeCode === ENTITY_DUPLICATE}">
+                                                <span>{{ entityListData?.entityStatus }}</span>
+                                            </div>
+                                            <!-- Modifying -->
+                                            <div *ngIf="entityListData?.modificationIsInProgress"
+                                                class="coi-warning-pill rounded-pill fs-14 px-3 py-1 rounded-5 py-0"
+                                                title="The entity '{{ entityListData?.entityName }}' is in Modifying">
+                                                <span>Modifying</span>
+                                            </div>
+                                            <!-- Modifying -->
+                                            <div *ngIf="entityListData?.dunsRefVersionIsInProgress"
+                                                class="coi-warning-pill rounded-pill fs-14 px-3 py-1 rounded-5 py-0"
+                                                title="The entity '{{ entityListData?.entityName }}' is in Modifying-DUNS Refresh">
+                                                <span>Modifying - DUNS Refresh</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- body -->
+                                    <ng-container *ngFor="let fieldOrder of DASHBOARD_ENTITY_DETAILS_CARD_ORDER">
+                                        <!-- Address -->
+                                        <div *ngIf="fieldOrder === 'ADDRESS'" tabindex="-1" class="col-12"
+                                            [attr.aria-label]="'Address is ' + (entityListData?.primaryAddress ? entityListData?.primaryAddress : 'empty')">
+                                            <label for="coi-entity-dashboard-address-{{listIndex}}" class="coi-text-dark d-block">Address</label>
+                                            <div id="coi-entity-dashboard-address-{{listIndex}}" class="text-slice">
+                                                <app-no-data-label [valueToShow]="entityListData?.primaryAddress">
+                                                    <span [title]="entityListData?.primaryAddress"
+                                                        class="coi-text-light">{{entityListData?.primaryAddress}}</span>
+                                                </app-no-data-label>
+                                            </div>
+                                        </div>
+                                        <!-- City -->
+                                        <div *ngIf="fieldOrder === 'CITY'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                                            [attr.aria-label]="'City is ' + (entityListData?.city ? entityListData?.city : 'empty')">
+                                            <label for="coi-entity-dashboard-city-{{listIndex}}" class="coi-text-dark d-block">City</label>
+                                            <div id="coi-entity-dashboard-city-{{listIndex}}" class="text-slice">
+                                                <app-no-data-label [valueToShow]="entityListData?.city">
+                                                    <span [title]="entityListData?.city"
+                                                        class="coi-text-light">{{entityListData?.city}}</span>
+                                                </app-no-data-label>
+                                            </div>
+                                        </div>
+                                        <!-- State/Province/Region -->
+                                        <div *ngIf="fieldOrder === 'STATE'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                                            [attr.aria-label]="'State/Province/Region is ' + (entityListData?.state ? entityListData?.state : 'empty')">
+                                            <label for="coi-entity-dashboard-state-{{listIndex}}" class="coi-text-dark d-block">State/Province/Region</label>
+                                            <div id="coi-entity-dashboard-state-{{listIndex}}" class="text-slice">
+                                                <app-no-data-label [valueToShow]="entityListData?.state">
+                                                    <span [title]="entityListData?.state"
+                                                        class="coi-text-light">{{ entityListData?.state }}</span>
+                                                </app-no-data-label>
+                                            </div>
+                                        </div>
+                                        <!-- Country -->
+                                        <div *ngIf="fieldOrder === 'COUNTRY'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                                            [attr.aria-label]="'Country is ' + (entityListData?.country ? entityListData?.country : 'empty')">
+                                            <label for="coi-entity-dashboard-country-{{listIndex}}" class="coi-text-dark d-block">Country</label>
+                                            <div id="coi-entity-dashboard-country-{{listIndex}}" class="text-slice">
+                                                <app-no-data-label [valueToShow]="entityListData?.country">
+                                                    <span [title]="entityListData?.country"
+                                                        class="coi-text-light">{{ entityListData?.country }}</span>
+                                                </app-no-data-label>
+                                            </div>
+                                        </div>
+                                        <!-- DUNS Number -->
+                                        <div *ngIf="fieldOrder === 'DUNS_NUMBER'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                                            [attr.aria-label]="'DUNS number is ' + (entityListData?.dunsNumber ? entityListData?.dunsNumber : 'empty')">
+                                            <label for="coi-entity-dashboard-duns-number-{{listIndex}}" class="coi-text-dark d-block">DUNS Number</label>
+                                            <div id="coi-entity-dashboard-duns-number-{{listIndex}}" class="text-slice">
+                                                <app-no-data-label [valueToShow]="entityListData?.dunsNumber">
+                                                    <span class="d-inline-flex align-items-center gap-1">
+                                                        <span [title]="entityListData?.dunsNumber"
+                                                            class="coi-text-light">{{entityListData?.dunsNumber}}</span>
+                                                        <span *ngIf="isEnableEntityDunsMatch && entityListData?.dunsNumber && entityListData?.isDunsMatched"
+                                                            title="The entity {{ entityListData?.entityName }} is DUNS Matched"
+                                                            class="d-inline-flex align-items-center badge fw-normal gap-1 fs-13 px-2 rounded-5 text-bg-light-success">
+                                                            <mat-icon aria-hidden="true" class="fs-13">check_circle</mat-icon>
+                                                            <span>Matched</span>
+                                                        </span>
+                                                    </span>
+                                                </app-no-data-label>
+                                            </div>
+                                        </div>
+                                        <!-- UEI Number -->
+                                        <div *ngIf="fieldOrder === 'UEI_NUMBER'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                                            [attr.aria-label]="'UEI number is ' + (entityListData?.ueiNumber ? entityListData?.ueiNumber : 'empty')">
+                                            <label for="coi-entity-dashboard-uei-number-{{listIndex}}" class="coi-text-dark d-block">UEI Number</label>
+                                            <div id="coi-entity-dashboard-uei-number-{{listIndex}}" class="text-slice">
+                                                <app-no-data-label [valueToShow]="entityListData?.ueiNumber">
+                                                    <span [title]="entityListData?.ueiNumber"
+                                                        class="coi-text-light">{{entityListData?.ueiNumber}}</span>
+                                                </app-no-data-label>
+                                            </div>
+                                        </div>
+                                        <!-- ZIP/Postal Code -->
+                                        <div *ngIf="fieldOrder === 'ZIP_CODE'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                                            [attr.aria-label]="'UEI number is ' + (entityListData?.postCode ? entityListData?.postCode : 'empty')">
+                                            <label for="coi-entity-dashboard-zip-code-{{listIndex}}" class="coi-text-dark d-block">ZIP/Postal Code</label>
+                                            <div id="coi-entity-dashboard-zip-code-{{listIndex}}" class="text-slice">
+                                                <app-no-data-label [valueToShow]="entityListData?.postCode">
+                                                    <span [title]="entityListData?.postCode"
+                                                        class="coi-text-light">{{entityListData?.postCode}}</span>
+                                                </app-no-data-label>
+                                            </div>
+                                        </div>
+                                        <!-- CAGE Number -->
+                                        <div *ngIf="fieldOrder === 'CAGE_NUMBER'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                                            [attr.aria-label]="'CAGE number is ' + (entityListData?.cageNumber ? entityListData?.cageNumber : 'empty')">
+                                            <label for="coi-entity-dashboard-cage-number-{{listIndex}}" class="coi-text-dark d-block">CAGE Number</label>
+                                            <div id="coi-entity-dashboard-cage-number-{{listIndex}}" class="text-slice">
+                                                <app-no-data-label [valueToShow]="entityListData?.cageNumber">
+                                                    <span [title]="entityListData?.cageNumber"
+                                                        class="coi-text-light">{{entityListData?.cageNumber}}</span>
+                                                </app-no-data-label>
+                                            </div>
+                                        </div>
+                                        <!-- Website -->
+                                        <div *ngIf="fieldOrder === 'WEBSITE'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                                            [attr.aria-label]="'Website is ' + (entityListData?.websiteAddress ? entityListData?.websiteAddress: 'empty')">
+                                            <label for="coi-entity-dashboard-website-{{listIndex}}" class="coi-text-dark d-block">Website</label>
+                                            <div id="coi-entity-dashboard-website-{{listIndex}}" class="text-slice">
+                                                <app-no-data-label [valueToShow]="entityListData?.websiteAddress">
+                                                    <span [title]="entityListData?.websiteAddress"
+                                                        class="coi-text-light">{{entityListData?.websiteAddress}}</span>
+                                                </app-no-data-label>
+                                            </div>
+                                        </div>
+                                        <!-- Prior Name -->
+                                        <div *ngIf="fieldOrder === 'PRIOR_NAME'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                                            [attr.aria-label]="'Prior name is ' + (entityListData?.priorName ? entityListData?.priorName: 'empty')">
+                                            <label for="coi-entity-dashboard-prior-name-{{listIndex}}" class="coi-text-dark d-block">Prior Name</label>
+                                            <div id="coi-entity-dashboard-prior-name-{{listIndex}}" class="text-slice">
+                                                <app-no-data-label [valueToShow]="entityListData?.priorName">
+                                                    <span [title]="entityListData?.priorName"
+                                                        class="coi-text-light">{{entityListData?.priorName}}</span>
+                                                </app-no-data-label>
+                                            </div>
+                                        </div>
+                                        <!-- Foreign name(s) -->
+                                        <div *ngIf="fieldOrder === 'FOREIGN_NAME'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                                            [attr.aria-label]="'Foreign name(s) are ' + (entityListData?.foreignNameList?.length ? entityListData?.foreignName: 'empty')">
+                                            <label for="coi-entity-dashboard-foreign-name-{{listIndex}}" class="coi-text-dark d-block">Foreign Name(s)</label>
+                                            <div id="coi-entity-dashboard-foreign-name-{{listIndex}}">
+                                                <app-no-data-label [valueToShow]="entityListData?.foreignNameList?.length">
+                                                    <span *ngIf="entityListData?.foreignNameList?.length" class="coi-file-chip-container">
+                                                        <ng-container *ngFor="let foreignName of entityListData?.foreignNameList; let nameIndex = index; let last = last">
+                                                            <ng-container *ngIf="(nameIndex < 2) || showForeignName[listIndex]">
+                                                                <span class="coi-file-chips rounded-pill">{{foreignName}}</span>
+                                                            </ng-container>
+                                                            <!-- view more / less -->
+                                                            <button *ngIf="last && entityListData?.foreignNameList?.length > 2" class="coi-btn-halo rounded-pill d-inline-flex fs-12"
+                                                                title="Click here to read {{ showForeignName[listIndex] ? 'less' : 'more' }}"
+                                                                attr.aria-label="Click here to read {{ showForeignName[listIndex] ? 'less' : 'more' }}"
+                                                                (click)="showForeignName[listIndex] = !showForeignName[listIndex]">
+                                                                <span>{{showForeignName[listIndex] ? 'View Less' : ('+' + ( entityListData?.foreignNameList?.length - 2 ) + ' More')}}</span>
+                                                            </button>
+                                                        </ng-container>
+                                                    </span>
+                                                </app-no-data-label>
+                                            </div>
+                                        </div>
+                                        <!-- Organization ID -->
+                                        <div *ngIf="fieldOrder === 'ORGANIZATION_ID'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                                            [attr.aria-label]="'Organization ID is ' + (entityListData?.organizationId ? entityListData?.organizationId : 'empty')">
+                                            <label for="coi-entity-dashboard-organization-id-{{listIndex}}" class="coi-text-dark d-block">Organization ID</label>
+                                            <div id="coi-entity-dashboard-organization-id-{{listIndex}}" class="text-slice">
+                                                <app-no-data-label [valueToShow]="entityListData?.organizationId ? entityListData?.organizationId : ''">
+                                                    <span [title]="entityListData?.organizationId"
+                                                        class="coi-text-light">{{ entityListData?.organizationId }}</span>
+                                                </app-no-data-label>
+                                            </div>
+                                        </div>
+                                        <!-- Sponsor Code -->
+                                        <div *ngIf="fieldOrder === 'SPONSOR_CODE'" tabindex="-1" class="col-xl-3 col-lg-4 col-md-6 col-12"
+                                            [attr.aria-label]="'Sponsor code is ' + (entityListData?.sponsorCode ? entityListData?.sponsorCode : 'empty')">
+                                            <label for="coi-entity-dashboard-sponsor-code-{{listIndex}}" class="coi-text-dark d-block">Sponsor Code</label>
+                                            <div id="coi-entity-dashboard-sponsor-code-{{listIndex}}" class="text-slice">
+                                                <app-no-data-label [valueToShow]="entityListData?.sponsorCode ? entityListData?.sponsorCode : ''">
+                                                    <span [title]="entityListData?.sponsorCode"
+                                                        class="coi-text-light">{{ entityListData?.sponsorCode }}</span>
+                                                </app-no-data-label>
+                                            </div>
+                                        </div>
+                                    </ng-container>
+                                </div>
+                            </div>
+                            <!-- footer -->
+                            <div class="card-footer d-flex gap-2 align-items-center">
+                                <!-- Source -->
+                                <div class="d-flex align-items-center col-3 gap-1">
+                                    <ng-container *ngIf="entityListData?.entitySourceType">
+                                        <mat-icon class="flex-shrink-0 coi-text-light coi-scale-9" aria-hidden="true">info</mat-icon>
+                                        <span [title]="'This entity is from ' + entityListData?.entitySourceType"
+                                            class="coi-text-light">This entity is from <strong>{{ entityListData?.entitySourceType }}</strong></span>
+                                    </ng-container>
+                                </div>
+                                <!-- Used in Engagement -->
+                                <div class="d-flex align-items-center col-3 gap-1">
+                                    <ng-container *ngIf="entityListData?.hasPersonEntityLinked && entityListData?.entityStatusTypeCode === ENTITY_UNVERIFIED">
+                                        <span title="Used in Engagement"
+                                            class="coi-text-light">Used in Engagement</span>
+                                        <span class="coi-circle-icons bg-success ms-1"><mat-icon
+                                            aria-hidden="true" class="text-white flex-shrink-0 coi-scale-7">check</mat-icon></span>
+                                    </ng-container>
+                                </div>
+                                <!-- Created By -->
+                                <div class="d-flex flex-column col-3">
+                                    <span class="coi-text-lighter fs-13 mb-0">Created By</span>
+                                    <span id="coi-discl-last-updated-{{disclosureId}}" class="coi-text-dark fs-13 fw-normal">
+                                        <span>{{ entityListData?.createUserFullName }}</span>
+                                        <span class="coi-text-lighter"> On </span>
+                                        <span>{{ entityListData?.createTimestamp | dateFormatterWithTimeZone: 'long' }}</span>
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-end gap-2 col">
+                                    <!-- Modify -->
+                                    <button *ngIf="hasModifyEntityRight && !entityListData?.modificationIsInProgress && !entityListData?.dunsRefVersionIsInProgress && entityListData?.entityStatusTypeCode === ENTITY_VERIFIED && entityListData?.documentStatusTypeCode === ENTITY_ACTIVE"
+                                        id="coi-entity-management-edit-btn-{{listIndex}}" (click)="openModifyConfirmationModal(entityListData)"
+                                        aria-label="Click here to modify entity details"
+                                        class="align-items-center btn btn-outline-secondary d-flex fs-14" title="Click here to modify entity details">
+                                        <mat-icon aria-hidden="true" class="me-1">edit</mat-icon>
+                                        Modify
+                                    </button>
+                                    <!-- View -->
+                                    <button *ngIf="canViewEntity && activeTabName !== 'DUNS_REFRESH_ENTITIES'" id="coi-entity-management-view-btn-{{listIndex}}" (click)="viewDetails(entityListData)"
+                                        aria-label="Click here to view entity details" class="align-items-center btn btn-outline-secondary d-flex fs-14"
+                                        title="Click here to view entity details">
+                                        <mat-icon aria-hidden="true" class="me-1">visibility</mat-icon>
+                                        View
+                                    </button>
+                                    <!-- Review changes -->
+                                    <button *ngIf="canViewEntity && activeTabName === 'DUNS_REFRESH_ENTITIES'" id="coi-entity-management-review-btn-{{listIndex}}" (click)="reviewChanges(entityListData)"
+                                        aria-label="Click here to view review changes" class="align-items-center btn btn-outline-secondary d-flex fs-14"
+                                        title="Click here to view review changes">
+                                        <mat-icon aria-hidden="true" class="me-1">visibility</mat-icon>
+                                        Review Changes
+                                    </button>
+                                    <!-- Graph -->
+                                    <button *ngIf="isShowGraph" id="coi-entity-management-graph-btn-{{listIndex}}"
+                                        (click)="openGraph(entityListData)"
+                                        aria-label="Click here to view entity graph"
+                                        class="align-items-center btn btn-outline-secondary d-flex fs-14"
+                                        title="Click here to view entity graph">
+                                        <mat-icon aria-hidden="true" class="me-1">hub</mat-icon>
+                                        Graph
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+            <!-- pagination Panel-->
+            <div *ngIf="entityList.length>0 && !isLoading" class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 mt-3">
+                <nav aria-label="pagination section" class="pagination justify-content-end">
+                    <app-pagination [defaultCurrentPage]="entityDashboardService.entitySearchRequestObject.entityDashboardData.PAGED + 1"
+                        (pageChangeEvent)="actionsOnPageChange($event)" [totalCount]="resultCount">
+                    </app-pagination>
+                </nav>
+            </div>
+        </ng-container>
+
+        <!-- IMPORT Entities -->
+        <div *ngIf="activeTabName === 'IMPORT' && !isLoading" class="mt-2">
+            <div *ngIf="batchList?.length; else noData" class="row gap-2">
+                <ng-container *ngFor="let batchDetails of batchList;">
+                    <div class="col-12">
+                        <!-- batch card -->
+                        <app-shared-entity-batch-card [uniqueId]="batchDetails.batchId" [entityBatchDetails]="batchDetails" [isShowViewBtn]="true"></app-shared-entity-batch-card>
+                    </div>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</section>
+<ng-template #noData>
+    <app-no-information></app-no-information>
+</ng-template>
+
+<!-- Source Selected Exclude Validation Modal -->
+<ng-container *ngIf="entityVersionsList?.activeVersion || entityVersionsList?.pendingVersion">
+    <app-common-modal [modalConfig]="versionModalConfig" (modalAction)="entityVersionModalActions($event)">
+        <!-- header -->
+        <ng-container modal-header>
+            <span>Pending Version Found</span>
+            <app-common-help-text [subSectionId]="2638" elementId="coi-entity-version-view"></app-common-help-text>
+        </ng-container>
+
+        <!-- body -->
+        <ng-container modal-body>
+            <div class="card coi-card-regular mt-0 shadow-sm">
+                <div class="card-body">
+                    <!-- card -->
+                    <app-shared-entity-details-card [entityCardConfig]="entityVersionsList.activeVersion" (actions)="sharedEntityCardActions($event)"></app-shared-entity-details-card>
+                    <!-- info -->
+                    <div class="d-flex alert alert-primary mt-3 mb-0 py-2">
+                        <mat-icon class="mat-icon material-icons flex-shrink-0" aria-hidden="true">info</mat-icon>
+                        <p class="fs-14 mb-0 ms-2"><span class="d-flex algin-items-start">There is a pending version for this entity.</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- links -->
+            <div class="d-flex flex-column gap-2 pt-3">
+                <!-- active version -->
+                <div class="d-flex align-items-center justify-content-between pb-2 border-bottom">
+                    <span class="coi-text-light">Active Version</span>
+                    <a tabindex="0" class="d-flex align-items-center  gap-1 link-primary fs-14 text-slice fw-600 lh-1" id="coi-entity-active-version-view"
+                        (click)="navigateToEntity(entityVersionsList?.activeVersion?.sharedEntityDetails?.entityId)"
+                        (keyup.enter)="navigateToEntity(entityVersionsList?.activeVersion?.sharedEntityDetails?.entityId)"
+                        title="Click here to view entity details of active version"
+                        aria-label="Click here to view entity details of active version">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0">visibility</mat-icon>
+                        <span>View</span>
+                    </a>
+                </div>
+
+                <!-- pending version -->
+                <div *ngIf="entityVersionsList?.pendingVersion" class="d-flex align-items-center justify-content-between">
+                    <span class="coi-text-light">Pending Version</span>
+                    <a tabindex="0" class="d-flex align-items-center gap-1 link-primary fs-14 text-slice fw-600 lh-1" id="coi-entity-pending-version-view"
+                        (click)="navigateToEntity(entityVersionsList?.pendingVersion?.sharedEntityDetails?.entityId)"
+                        (keyup.enter)="navigateToEntity(entityVersionsList?.pendingVersion?.sharedEntityDetails?.entityId)"
+                        title="Click here to view entity details of pending version"
+                        aria-label="Click here to view entity details of pending version">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0">visibility</mat-icon>
+                        <span>View</span>
+                    </a>
+                </div>
+            </div>
+        </ng-container>
+    </app-common-modal>
+</ng-container>
+
+<app-common-modal [modalConfig]="modifyConfirmationConfig" (modalAction)="modifyPostConfirmation($event)">
+    <ng-container modal-header>
+        <span>Confirmation</span>
+        <app-common-help-text [subSectionId]="2641" [elementId]="'coi-entity-modify-cnfrm-modal'"></app-common-help-text>
+    </ng-container>
+    <ng-container modal-body>
+        <p>Are you sure you want to modify the entity <strong>{{currentModifiedEntity?.entityName}}</strong>?</p>
+    </ng-container>
+</app-common-modal>

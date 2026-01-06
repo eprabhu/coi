@@ -1,0 +1,254 @@
+<!-- last updated by Ramlekshmy on 13-02-2020 -->
+<!--Adds area of research-->
+<div class="card mb-3">
+  <div class="card-header p-2 px-4">
+    <h4 class="card-title d-inline-block title" id="proposal-research-area-edit-details">
+      <ng-container i18n="@@COMMON_AREA_OF_RESEARCH/SOCIETAL_CHALLENGE_AREA">Area of Research/Societal Challenge Area
+      </ng-container></h4>
+      <span *ngIf="helpText?.areaOfResearch?.helpTextInfo" class="d-inline-block icon-hover">
+        <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med hand-cursor"
+            aria-hidden="true"></i>
+          <div class="tooltiptext-left card card-inner p-15 text-left">
+            <span class="font-cv">{{helpText?.areaOfResearch?.helpTextInfo}}</span>
+          </div>
+        </a>
+      </span>
+          <div *ngIf="!isViewMode" class="float-right">
+            <button id="prop-add-area-of-research-btn" class="btn btn-tertiary btn-sm mt-0 button-right" data-toggle="modal"
+              data-target="#add-area-modal" (click)="resetAreaOfResearch()">
+              Add Area </button>
+          </div>
+      <button id="area-of-research-expnd-btn" class="updown-arrow"
+        (click)="isAreaOfResearchWidgetOpen = !isAreaOfResearchWidgetOpen">
+        <i [ngClass]="isAreaOfResearchWidgetOpen?'fa fa-angle-double-up':'fa fa-angle-double-down'" aria-hidden="true"
+          class="fa-large"></i>
+      </button>
+  </div>
+  <div class="card-content" *ngIf="isAreaOfResearchWidgetOpen">
+    <div class="card-body p-2">
+      <div class="noDataOnChart noDataExists p-2" *ngIf="areaOfResearchList.length == 0">
+        <div class="no-data-container">
+          <span class="no-data-icon-outer">
+            <div class="no-data-icon">
+              <i aria-hidden="true" class="fa fa-file-o"></i>
+              <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+            </div>
+          </span>
+          <h4>There is no information in this section.</h4>
+        </div>
+      </div> 
+      <table class="table tableSkin grid2 mt-2" aria-describedby="proposal-research-area-edit-details"
+        *ngIf="areaOfResearchList.length > 0">
+        <caption class="sr-only">Area of Research/Societal Challenge Area</caption>
+        <thead class="thead-light">
+          <th scope="col">Type</th>
+          <th scope="col">Area</th>
+          <th scope="col">Sub-Area</th>
+          <th scope="col" *ngIf="!isViewMode">Actions</th>
+        </thead>
+        <tbody>
+          <tr *ngFor="let researchArea of areaOfResearchList;let i = index;">
+            <td>{{researchArea?.researchType?.description}}</td>
+            <td>{{researchArea?.researchTypeArea?.description}}</td>
+            <td *ngIf="researchArea?.researchTypeSubArea?.description">
+              {{researchArea?.researchTypeSubArea?.description}}</td>
+            <td *ngIf="!researchArea?.researchTypeSubArea?.description"><span class="noDataExists">No subarea
+                selected</span></td>
+            <td *ngIf="!isViewMode">
+              <ul class="actionButtonGroup">
+                <li>
+                  <a id="prop-area-of-research-edit-btn" data-toggle="modal" data-target="#add-area-modal">
+                      <i class="fa fa-pencil" aria-hidden="true"
+                          (click)="editAreaOfResearch(i)"
+                          title="Edit this Research Area"></i>
+                  </a>
+              </li>
+                <li>
+                  <a href="#" id="prop-area-of-research-delete-btn" data-toggle="modal"
+                    data-target="#deleteResearchArea" (click)="deleteIndex = i"><i class="fa fa-trash-o"
+                      aria-hidden="true"
+                      title="{{researchArea.researchTypeCode === '1' ? 'Remove this Research Area' : 'Remove this Societal Challenge Area'}}"></i>
+                  </a>
+                </li>
+              </ul>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="areaOfResearchList.length == 0  && isViewMode" class="noDataExists ml-2">
+        There are no area of research in this proposal
+      </div>
+      <div class="card-details">
+        <h4 class="card-title pb-3">More Information</h4>
+        <div class="media-card gridSkin p-2 m-0">
+          <div class="row">
+            <div class="col-12">
+              <label>
+                <ng-container i18n="@@COMMON_STUDY_SOCIETAL_CHALLENGE_DESCRIPTION_ERR">Elaborate on how the proposed
+                  study may contribute to the Societal Challenge and/or
+                  Research Area</ng-container>
+              </label>
+            <div *ngIf="!isViewMode">
+                <textarea id="prop-area-of-research-desc" name="description" autocomplete="off"
+                    [(ngModel)]="generalDetails.researchDescription" 
+                    (ngModelChange)="setUnsavedChanges(true);"
+                    class="form-control" appLengthValidator [limit]=4000
+                    i18n-placeholder='@@COMMON_STUDY_SOCIETAL_CHALLENGE_DESCRIPTION_PLHDR'
+                    placeholder="Elaborate on how the proposed study may contribute to the Societal Challenge and/or Research Area"></textarea>
+            </div>
+            <ng-container *ngIf="isViewMode">
+                <span *ngIf="generalDetails.researchDescription != null">
+                    <span class="textView" *ngIf="!isResearchDescriptionReadMore">
+                        <p class="new-line-property" [innerHTML]="(generalDetails.researchDescription).length>240 ?
+                                    (generalDetails.researchDescription | slice:0:240 | customTagRemover: currentMethod)+'...' :
+                                    generalDetails.researchDescription | customTagRemover: currentMethod"></p>
+                        <span *ngIf="(generalDetails.researchDescription?.length>240)" class="hand-cursor fibiDefaultColor italian"
+                            (click)="isResearchDescriptionReadMore = !isResearchDescriptionReadMore" tabindex="0">Read
+                            more<i aria-hidden="true"
+                                [ngClass]="isResearchDescriptionReadMore?'fa fa-angle-double-left':'fa fa-angle-double-right'"></i>
+                        </span>
+                    </span>
+                    <span *ngIf="isResearchDescriptionReadMore" class="textView">
+                        <p class="new-line-property" [innerHTML]="generalDetails.researchDescription | customTagRemover: currentMethod"></p>
+                        <span *ngIf="(generalDetails.researchDescription?.length>240)" class="hand-cursor fibiDefaultColor italian"
+                            (click)="isResearchDescriptionReadMore = !isResearchDescriptionReadMore">Show
+                            less<i aria-hidden="true"
+                                [ngClass]="isResearchDescriptionReadMore?'fa fa-angle-double-left':'fa fa-angle-double-right'"></i>
+                        </span>
+                    </span>
+                </span>
+                <div class="noDataExists"
+                    *ngIf="generalDetails.researchDescription == null || generalDetails.researchDescription == ''">
+                    <ng-container i18n="@@COMMON_SOCIETAL_CHALLENGE_DESCRIPTION_ERR">No contributions or descriptions
+                        provided on how the proposed study may contribute to
+                        the societal challenge and/or research area</ng-container>
+                </div>
+            </ng-container>
+            </div>
+            <div class="col-12">
+              <label>Indicate if the application is a multi-disciplinary project and elaborate</label>
+            <div *ngIf="!isViewMode">
+                <textarea id="prop-area-of-research-milti-desc" name="areadescription" autocomplete="off"
+                    [(ngModel)]="generalDetails.multiDisciplinaryDescription" class="form-control" appLengthValidator
+                    [isShowLimiter]='!isViewMode' [limit]=4000
+                    placeholder="Indicate if the application is a multi-disciplinary project and elaborate"></textarea>
+            </div>
+              <ng-container *ngIf="isViewMode">
+                <span *ngIf="generalDetails.multiDisciplinaryDescription != null">
+                  <span class="textView" *ngIf="!isMultiDisciplinaryDescriptionReadMore">
+                      <p class="new-line-property" [innerHTML]="(generalDetails.multiDisciplinaryDescription).length>240 ?
+                        (generalDetails.multiDisciplinaryDescription | slice:0:240 | customTagRemover: currentMethod)+'...' :
+                        generalDetails.multiDisciplinaryDescription | customTagRemover: currentMethod"></p>
+                        <span
+                      *ngIf="(generalDetails.multiDisciplinaryDescription?.length>240)"
+                      class="hand-cursor fibiDefaultColor italian"
+                      (click)="isMultiDisciplinaryDescriptionReadMore = !isMultiDisciplinaryDescriptionReadMore"
+                      tabindex="0">Read
+                      more<i aria-hidden="true"
+                        [ngClass]="isMultiDisciplinaryDescriptionReadMore?'fa fa-angle-double-left':'fa fa-angle-double-right'"></i>
+                    </span>
+                </span>
+                  <span *ngIf="isMultiDisciplinaryDescriptionReadMore" class="textView">
+                      <p class="new-line-property" [innerHTML]="generalDetails.multiDisciplinaryDescription | customTagRemover: currentMethod"></p><span
+                      *ngIf="(generalDetails.multiDisciplinaryDescription?.length>240)"
+                      class="hand-cursor fibiDefaultColor italian"
+                      (click)="isMultiDisciplinaryDescriptionReadMore = !isMultiDisciplinaryDescriptionReadMore">Show
+                      less<i aria-hidden="true"
+                        [ngClass]="isMultiDisciplinaryDescriptionReadMore?'fa fa-angle-double-left':'fa fa-angle-double-right'"></i>
+                    </span>
+                </span>
+                </span>
+                <div class="noDataExists"
+                  *ngIf="generalDetails.multiDisciplinaryDescription == null || generalDetails.multiDisciplinaryDescription == ''">
+                  No contributions or descriptions provided for indicating the proposal is a
+                  multi-disciplinary project.
+                </div>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- DELETE RESEARCH AREA WARNING MODAL -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="deleteResearchArea" tabindex="-1" role="dialog"
+  aria-labelledby="deleteModalTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete</h5>
+        <button type="button" id="prop-area-of-research-dismiss" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this item?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="prop-area-of-research-close-btn" class="btn btn-secondary"
+          data-dismiss="modal">No</button>
+        <button type="button" id="prop-area-of-research-delete" class="btn btn-primary-sub btn-sm"
+          (click)="deleteAreaOfResearch()" data-dismiss="modal">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Area Modal -->
+<div class="modal fade mySkinDialog" id="add-area-modal" role="dialog" aria-labelledby="skippedSchedulesTitle"
+  aria-hidden="true" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{editIndex !== null ? 'Update' : 'Add'}} Area of Research/Societal Challenge Area</h5>
+        <button type="button" class="close" (click)="resetAreaOfResearch()" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body py-1 px-3">
+        <app-ip-overview-modal-card></app-ip-overview-modal-card>
+        <div class="w-100">
+          <div class="form-row">
+            <div class="col-12 mt-3">
+              <label for="prop-area-of-research-type">Type</label>
+              <select class="form-control" id="prop-area-of-research-type" [(ngModel)]="areaOfResearch.researchTypeCode"
+                (change)="researchTypeChange()">
+                <option *ngFor="let type of researchTypes" [hidden]="type.isActive != true"
+                  [value]="type.researchTypeCode">
+                  {{type.description}}</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label>
+                <span class="mandatory">*</span>Area
+              </label>
+              <div class="searchBox">
+                <app-endpoint-search [isError]="errorMap.has('area')" id="prop-area-of-research"
+				[httpOptions]="areaSearchOptions" [placeHolder]="'Type here for Area'"
+				(onSelect)="onResearchAreaSelect($event)" [searchOnFocus]=true></app-endpoint-search>
+				<div class="invalid-feedback d-block" *ngIf="errorMap.has('area')">
+				{{errorMap.get('area')}}</div>
+              </div>
+            </div>
+            <div class="col-12">
+              <label class="margin-left-label">
+                Sub-Area</label>
+              <app-endpoint-search id="prop-sub-area-of-research" [httpOptions]="subAreaSearchOptions"
+				[placeHolder]="'Type here for Sub-Area'" (onSelect)="onResearchSubAreaSelect($event)" [searchOnFocus]=true>
+			  </app-endpoint-search>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer mt-4">
+        <div class="text-center text-md-right">
+          <button id="prop-cancel-area-of-research-btn" class="btn btn-secondary btn-sm  btn-xs mr-2"
+            data-dismiss="modal" (click)="resetAreaOfResearch()">Cancel</button>
+          <button class="btn btn-primary-sub btn-xs" id="prop-edit-area-of-research-btn"
+            (click)="validateAreaOfResearch()">{{editIndex !== null ? 'Update' : 'Add'}}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

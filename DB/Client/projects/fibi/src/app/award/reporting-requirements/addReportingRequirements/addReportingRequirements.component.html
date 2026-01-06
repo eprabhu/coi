@@ -1,0 +1,251 @@
+<div aria-hidden="true" aria-labelledby="skippedSchedulesTitle" data-backdrop="static" class="modal fade show mySkinDialog modal-opacity mt-3"
+        id="addReports" role="dialog" tabindex="-1">
+        <div class="modal-dialog modal-width" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5  class="modal-title " id="skippedSchedulesLongTitleAdd">Add Reporting Requirements For Award #{{awardData.awardNumber}} - </h5> <span class="card-title-header d-inline-block modal-title fw-500" [title]="awardData.title">{{awardData.title}}</span>
+                    <button (click)="clearReportingRequirementObj()" aria-label="Close" class="close" data-dismiss="modal" id="special-revw-close-btn" type="button">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- first block -->
+                    <h4 class="fs-14 fw-500 title-primary">REPORT DETAILS
+                        <a class="tooltip z-index-0 tooltip-helptext"><i aria-hidden="true"
+                                style="color: #48647f !important;" class="fa fa-exclamation-circle fa-med hand-cursor"></i>
+                            <div class="tooltiptext-left card card-inner p-15 text-left">
+                                <span class="font-cv">General details of the report.</span>
+                            </div>
+                        </a>
+                    </h4>
+                    <div class="form-row">
+                        <div class="form-group col">
+                            <label for="award-report-class"><span class="mandatory">*</span>Report Class:
+                            </label>
+                            <select (change)="fetchReportType();" [(ngModel)]="awardReport.reportClassCode"
+                                [ngClass]="(map.get('class'))? 'is-invalid d-block' : ''"
+                                class="form-control" id="award-report-class">
+                                <option [ngValue]='null'>--Select--</option>
+                                <option *ngFor="let reportClass of reportTermsLookup?.reportClassList"
+                                    [hidden]="reportClass.isActive != true" [value]="reportClass.reportClassCode">
+                                    {{reportClass?.description}}</option>
+                            </select>
+                            <div *ngIf="map.get('class')">
+                                <span class="mandatory">{{map.get('class')}}</span>
+                            </div>
+                        </div>
+                        <div class="form-group col">
+                            <label for="award-report-type">Report Type:
+                            </label>
+                            <select [(ngModel)]="awardReport.reportCode"
+                                [disabled]=" awardReport.reportClassCode == null"
+                                class="form-control" id="award-report-type">
+                                <option [ngValue]='null'>--Select--</option>
+                                <option *ngFor="let report of reportTermsLookup?.reportList" [value]="report.reportCode">
+                                    {{report?.description ? report?.description : 'No data available'}}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="form-group col">
+                            <label class="block-display" for="award-freq"><span class="mandatory">*</span>Frequency:</label>
+                            <select  (change)="previewReport()"
+                                [(ngModel)]="awardReport.frequencyCode"
+                                [ngClass]="(map.get('frequencyCode'))? 'is-invalid d-block' : ''" class="form-control mt-1"
+                                id="award-freq">
+                                <option [ngValue]='null'>--Select--</option>
+                                <option *ngFor="let frequency of reportTermsLookup?.frequencyList"
+                                    [hidden]="frequency.active != true" value="{{frequency.frequencyCode}}">
+                                    {{frequency.description}}</option>
+                            </select>
+                            <div *ngIf="map.get('frequencyCode')">
+                                <span class="mandatory">{{map.get('frequencyCode')}}</span>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <!-- second block -->
+                    <h4 class="fs-14 fw-500 title-primary mt-3">REPORTING STARTS FROM:
+                        <a class="tooltip z-index-0 tooltip-helptext"><i aria-hidden="true"
+                                style="color: #48647f !important;" class="fa fa-exclamation-circle fa-med hand-cursor"></i>
+                            <div class="tooltiptext-left card card-inner p-15 text-left">
+                                <span class="font-cv">Start date of the report.</span>
+                            </div>
+                        </a>
+                    </h4>
+                    <div class="form-row row-background py-3 px-2">
+                        <div class="col">
+                            <label class="block-display" for="award-freq-base"><span class="mandatory">*</span>Frequency
+                                Base:</label>
+                            <select (change)="this.awardReport.baseDate = null;frequencyBaseChange(); previewReport()"
+                                [(ngModel)]="awardReport.frequencyBaseCode"
+                                [ngClass]="(map.get('frequencyBaseCode'))? 'is-invalid d-block' : ''" class="form-control"
+                                id="award-freq-base">
+                                <option [ngValue]='null'>--Select--</option>
+                                <option *ngFor="let frequencyBase of reportTermsLookup?.frequencyBaseList"
+                                    [hidden]="frequencyBase.active != true" value="{{frequencyBase.frequencyBaseCode}}">
+                                    {{frequencyBase.description}}</option>
+                            </select>
+                            <div *ngIf="map.get('frequencyBaseCode')">
+                                <span class="mandatory">{{map.get('frequencyBaseCode')}}</span>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <label class="block-display" for="report-base-date"><span class="mandatory">*</span>Base
+                                Date:</label>
+                            <span>
+                                <span class="dateField">
+                                    <input matInput (keypress)="_commonService._keyPress($event, 'date')"
+                                        [(ngModel)]="awardReport.baseDate" (ngModelChange)="previewReport()"
+                                        [disabled]="awardReport.frequencyBaseCode !== '6'"
+                                        [class.white-background-invalid]="awardReport.frequencyBaseCode == '6'"
+                                        [ngClass]="(map.get('isFrequencyAsRequired'))? 'is-invalid d-block' : ''"
+                                        [matDatepicker]="baseDt" autocomplete="off"
+                                        (click)="baseDt.open()"
+                                        class="d-inline-block form-control" id="report-base-date"
+                                        placeholder="{{datePlaceHolder}}" />
+                                    <i aria-hidden="true" (click)="baseDt.open()"
+                                        class="fa fa-calendar fa-large hand-cursor insidePicker"></i>
+                                    <mat-datepicker #baseDt (opened)="setFocusToElement('report-base-date')">
+                                    </mat-datepicker>
+                                </span>
+                            </span>
+                            <div *ngIf="map.get('isFrequencyAsRequired')">
+                                <span class="mandatory">{{map.get('isFrequencyAsRequired')}}</span>
+                            </div>
+                            <span *ngIf="awardReport.frequencyCode != '14'">
+                                <input type="checkbox"  id="date-chekbox"
+                                    [disabled]="awardReport.baseDate == null" [(ngModel)]="awardReport.useBaseDate" (ngModelChange)="previewReport()">
+                                <label for="date-chekbox" >Consider this date as
+                                    first due date</label>
+                            </span>
+                        </div>
+                    </div>
+    
+                    <!-- third block -->
+                    <h4 class="fs-14 fw-500 title-primary mt-3" *ngIf="awardReport.frequencyCode != '14'">Reporting Ends On/After :
+                        <a class="tooltip z-index-0 tooltip-helptext"><i aria-hidden="true"
+                                style="color: #48647f !important;" class="fa fa-exclamation-circle fa-med hand-cursor"></i>
+                            <div class="tooltiptext-left card card-inner p-15 text-left">
+                                <span class="font-cv">End date of the report.</span>
+                            </div>
+                        </a>
+                    </h4>
+                    <div class=" row-background py-3 px-2" *ngIf="awardReport.frequencyCode != '14'">
+                        <div class="d-flex justify-content-between">
+                            <div class="mt-3">
+                                <div class="checkbox-inline col-12 d-inline-flex">
+                                    <span class="form-check form-check-inline">
+                                      <label>
+                                        <input type="radio" name="option" value="onCustomDate" [(ngModel)]="selectedOption" (ngModelChange)="isCustomDateOrOccurrence()"  > On 
+                                      </label>
+                                    </span>
+
+                                    <span class="dateField ml-5">
+                                        <input (click)="endDate.open(); selectedOption = 'onCustomDate'" (keypress)="_commonService._keyPress($event, 'date')"
+                                            [(ngModel)]="awardReport.customEndDate" [disabled]="selectedOption == 'occurrence'" (ngModelChange)="previewReport()"
+                                            [ngClass]="(map.get('customDate'))? 'is-invalid d-block' : ''"
+                                            [owlDateTimeTrigger]="endDate" [owlDateTime]="endDate" autocomplete="off"
+                                            class="d-inline-block form-control" id="report-base-date"
+                                            placeholder="{{datePlaceHolder}}" />
+                                        <i aria-hidden="true" (click)="endDate.open()"
+                                            class="fa fa-calendar fa-large hand-cursor insidePicker"></i>
+                                        <mat-datepicker #endDate (afterPickerOpen)="setFocusToElement('report-base-date')">
+                                        </mat-datepicker>
+                                    </span>
+                                </div>
+                                <div class="checkbox-inline col-12 d-inline-flex mt-3">
+                                    <span class="form-check form-check-inline">
+                                      <label>
+                                        <input type="radio" name="option" value="occurrence" [(ngModel)]="selectedOption" (ngModelChange)="isCustomDateOrOccurrence()" > After 
+                                      </label>
+                                    </span>
+                                    <span class="dateField ml-4">
+    
+                                        <input (click)="selectedOption = 'occurrence'" class="form-control" type="number" [(ngModel)]="awardReport.occurrence"
+                                            [ngClass]="(map.get('occurrence')) ? 'is-invalid d-block' : ''" (change)="previewReport()"
+                                            [disabled]="selectedOption == 'onCustomDate'" min="1" max="999">
+                                        
+                                    </span>
+                                    <label class="d-flex align-items-center ml-4">Occurrence</label>
+                                </div>
+                                <div *ngIf="map.get('customDate') || map.get('occurrence')" class="ml-4">
+                                    <span class="mandatory">{{map.get('customDate')}}{{map.get('occurrence')}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="preview-scroll mt-2 border  form-row" *ngIf=" previewDates.length != 0 && this.awardReport.frequencyCode != '14'">
+                        
+                        <div  class="px-5 py-0 date-size col-2 d-flex align-items-center text-nowrap"
+                        [ngClass]="{'border-bottom': !(index >= previewDates.length - previewDates.length%6)}"
+                         *ngFor="let date of previewDates; let index = index; let last = last;">
+                         {{date | date:'dd-MM-yyyy'}}  <i *ngIf="!last && (index + 1) % 6 !== 0" class="m-1 fa fa-arrow-right date-arrow " aria-hidden="true"></i>
+                         </div>
+                  </div>
+
+                  <div class="no-data-container no-preview border p-2 mt-2" *ngIf=" previewDates.length == 0 && this.awardReport.frequencyCode != '14'">
+                    <span class="no-data-icon-outer">
+                      <div class="no-data-icon">
+                        <i class="fa fa-file-o" aria-hidden="true"></i>
+                        <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                      </div>
+                    </span>
+                    <h4>No preview due dates available</h4>
+          
+                  </div>
+    
+                    <!-- fourth block -->
+                    <!-- <h4 class="fs-14 fw-500 title-primary mt-3">RECIPIENTS:
+                        <a class="tooltip z-index-0 tooltip-helptext"><i aria-hidden="true"
+                                style="color: #48647f !important;" class="fa fa-exclamation-circle fa-med hand-cursor"></i>
+                            <div class="tooltiptext-left card card-inner p-15 text-left">
+                                <span class="font-cv">Select recipients for this report.</span>
+                            </div>
+                        </a>
+                    </h4>
+                    <div class="form-group col px-0">
+                        <label class="block-display" for="report-recipient"><span class="mandatory">*</span>Choose</label>
+                        <div class="searchBox memberSearchBox" id="report-recipient">
+                            <app-elastic (selectedResult)="selectedRecipients($event)"
+                                         [clearField]="clearRecipientField"
+                                         [options]="elasticPersonSearchOptions"
+                                         [placeHolder]="'Search'">
+                            </app-elastic>
+                        </div>
+                    </div>
+                    <div *ngIf="map.get('recipients')">
+                        <span class="mandatory">{{map.get('recipients')}}</span>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col">
+                            <div *ngIf="awardReport.awardReportTermRecipient?.length > 0" class="fileChips"
+                                 style="word-break: break-all;">
+                                <ng-container *ngFor="let recipient of awardReport.awardReportTermRecipient ;let i = index">
+                                    <span *ngIf="recipient.acType != 'D'">{{recipient.fullName}}
+                                        <i (click)="deleteRecipient(recipient,i)" aria-hidden="true"
+                                           class="fa fa-close hand-cursor" id="prop-keywrd-dlt"
+                                           title="Remove this Recipient"></i>
+                                    </span>
+                                </ng-container>
+                            </div>
+                        </div>
+                    </div> -->
+                    <div *ngIf="map.get('noDueDate')">
+                      <span class="mandatory">{{map.get('noDueDate')}}</span>
+                  </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button (click)="clearReportingRequirementObj()" class="btn btn-secondary btn-sm" data-dismiss="modal" id="close-report-modal" type="button">
+                        Cancel
+                    </button>
+                    <button class="btn btn-primary-sub btn-sm" id="award-special-revw-add-btn" type="button"
+                        (click)="saveReports()">Generate
+                    </button>
+                </div>
+            </div>
+        </div>
+    
+    </div>
+

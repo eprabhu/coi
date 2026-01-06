@@ -1,0 +1,125 @@
+<div tabindex="-1" class="card coi-card-regular mt-0 border-0" id="COI_EXT_PROJ_REL_NAV_CARD" [class.rounded-0]="!extendedProjRelService.isEditMode">
+    <div class="card-header px-0 pb-0 border-bottom-0 position-sticky z-index-4 rounded-0" [class.p-0]="!extendedProjRelService.isEditMode"
+        id="COI_EXT_PROJ_REL_NAV_HEADER" [style.top]="extendedProjRelService.isEditMode ? '-1px' : '-1px'">
+        <div class="row w-100 mx-0" [class.mt-1]="extendedProjRelService.isEditMode">
+            <div *ngIf="!extendedProjRelService.isEditMode" class="d-flex align-items-center justify-content-end position-relative px-0"
+                [class.coi-active-scrollspy]="defineRelationshipService.scrollSpyConfiguration.activeCounter > (1 + (coiService.isExpandSummaryBySection['COI803'] ? filteredDefineRelationsList.length : 0)) && defineRelationshipService.scrollSpyConfiguration.activeCounter < filteredExtProjSfiRelationsList?.length + (coiService.isExpandSummaryBySection['COI803'] ? filteredDefineRelationsList.length : 0) + 2 && coiService.isExpandSummaryBySection['COI805']">
+                <a class="coi-nav-link d-flex align-items-center" role="link" tabindex="-1" [class.border-bottom]="!coiService.isExpandSummaryBySection['COI805']"
+                    title="Go to Relationships section" aria-label="Go to Relationships section" (focus)="scrollIntoView()" (click)="openIfClose()">
+                    <span class="me-2">New Awards</span>
+                    <span class="fs-10 count-badge badge rounded-pill align-items-center justify-content-center d-inline-flex rounded-circle">{{filteredExtProjSfiRelationsList?.length}}</span>
+                </a>
+                <div class="position-absolute d-flex align-items-center gap-2 me-2">
+                    <!-- open/close filter btn -->
+                    <ng-container *ngIf="coiService.isExpandSummaryBySection['COI805'] && extProjSfiRelationsList?.length">
+                        <ng-container *ngTemplateOutlet="searchToggleBtn;"></ng-container>
+                    </ng-container>
+                    <!-- expand/collapse -->
+                    <button id="relationship_collapse_btn" (click)="expandCollapseRelationship()"
+                        [attr.aria-label]="coiService.isExpandSummaryBySection['COI805'] ? 'Click here to collapse relationship' : 'Click here to expand relationship'"
+                        class="position-static d-flex justify-content-center align-items-center btn toggle-btn border rounded-5 shadow-sm p-0 coi-scale-9"
+                        [title]="coiService.isExpandSummaryBySection['COI805'] ? 'Click here to collapse relationship' : 'Click here to expand relationship'">
+                        <mat-icon aria-hidden="true" [ngClass]="coiService.isExpandSummaryBySection['COI805'] ? 'coi-rotate-180' : 'coi-rotate-0'">expand_more</mat-icon>
+                    </button>
+                </div>
+            </div>
+            <div *ngIf="extendedProjRelService.isEditMode" class="col-12 px-3 d-flex align-items-center gap-1 mb-2 lh-1">
+                <span class="coi-text-darker fs-16">Projects</span>
+                <ng-container *ngIf="extProjSfiRelationsList?.length">
+                    <span class="d-inline-flex align-items-center justify-content-center fs-10 count-badge badge rounded-pill rounded-circle">{{filteredExtProjSfiRelationsList?.length}}</span>
+                    <!-- open/close filter btn -->
+                    <ng-container *ngTemplateOutlet="searchToggleBtn;"></ng-container>
+                </ng-container>
+            </div>
+            <ng-template #searchToggleBtn>
+                <!-- open/close filter btn -->
+                <button class="d-flex align-items-center btn p-1 rounded-circle ms-auto fs-13 coi-scale-9"
+                    id="ext_proj_rel_filter_toggle_btn" (click)="isShowFilter = !isShowFilter"
+                    title="Click here to {{ isShowFilter ? 'close' : 'show' }} search"
+                    [ngClass]="isShowFilter ? 'btn-primary' : 'btn-tertiary mt-0 coi-min-w-0'"
+                    attr.aria-label="Click here to {{ isShowFilter ? 'close' : 'show' }} search">
+                    <mat-icon aria-hidden="true" class="flex-shrink-0">search</mat-icon>
+                </button>
+            </ng-template>
+            <div *ngIf="coiService.isExpandSummaryBySection['COI805']" class="p-0 border-bottom"></div>
+            <div *ngIf="coiService.isExpandSummaryBySection['COI805'] && extProjSfiRelationsList?.length && isShowFilter"
+                class="col-12 p-0" [@heightAnimation]>
+                <div class="d-flex align-items-center gap-2 border-bottom p-3">
+                    <div class="d-flex align-items-center position-relative w-100">
+                        <mat-icon aria-hidden="true" class="position-absolute start-6px light-color">search</mat-icon>
+                        <input type="text" autocomplete="off"
+                            class="form-control p-x-2rem rounded-2" id="ext_proj_rel_search_text"
+                            name="ext_proj_rel_search_text"
+                            placeholder="Search by Title, PI, Reporter's Role, Lead Unit, Sponsor, Prime Sponsor."
+                            [(ngModel)]="extendedProjRelService.searchText" (ngModelChange)="searchProjectDetails()">
+                        <button *ngIf="extendedProjRelService.searchText" class="btn-none d-flex align-items-center position-absolute end-8px coi-text-lighter" (click)="resetList()"
+                            aria-label="Click here to clear search text" title="Click here to clear search text" id="ext_proj_rel_search_text_clear_btn">
+                            <mat-icon class="light-color" aria-hidden="true">close</mat-icon>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div *ngIf="coiService.isExpandSummaryBySection['COI805']" class="card-body rounded-0 border-none position-relative" id="COI_EXT_PROJ_REL_NAV_BODY"
+        [class.min-height-200px]="extendedProjRelService.isLoading" tabindex="-1"
+        [ngClass]="{'d-flex align-items-center justify-content-center': !filteredExtProjSfiRelationsList?.length}">
+        <ng-container *ngIf="!extendedProjRelService.isLoading; else showLoader">
+            <ul *ngIf="filteredExtProjSfiRelationsList?.length; else showNoData" class="list-unstyled m-0 ps-3 pe-0 py-0">
+                <li *ngFor="let projectSfiRelation of filteredExtProjSfiRelationsList; let navIndex = index">
+                    <!-- tabindex is set to -1 for navigation with up/down keys only -->
+                    <a class="row m-0 w-100 gap-4 pb-3 pt-2 border-bottom text-decoration-none cursor-pointer coi-scrollspy-right" (focus)="coiService.setActiveSection('COI805');"
+                        [class.scrollspy-activate]="defineRelationshipService.scrollSpyConfiguration?.activeCounter === (extendedProjRelService.isEditMode ? navIndex : navIndex + (coiService.isExpandSummaryBySection['COI803'] ? filteredDefineRelationsList?.length : 0) + 2)"
+                        [title]="'Click here to view relationship details of #' + projectSfiRelation?.projectNumber + ' -' + projectSfiRelation?.title"
+                        [attr.aria-label]="'Click here to view relationship details of #' + projectSfiRelation?.projectNumber + ' -' + projectSfiRelation?.title"
+                        [id]="'COI_EXT_PROJ_REL_NAV' + navIndex" tabindex="-1">
+                        <div class="col-12 px-3 pt-2">
+                            <!-- badge -->
+                            <div class="d-flex align-items-center justify-content-between coi-card-body-notch-container">
+                                <div class="d-flex align-items-center">
+                                    <div [style.background-color]="projectSfiRelation?.projectBadgeColour"
+                                        id="project-realtionship-value-heading-{{projectSfiRelation?.projectId}}"
+                                        class="coi-card-notch-ribbon rounded-start-0 mb-auto p-2">{{ projectSfiRelation?.projectType }}</div>
+                                    <div class="d-flex align-items-end ms-2">
+                                        <mat-icon aria-hidden="true" class="coi-text-light flex-shrink-0 coi-mat-icon-size">{{projectSfiRelation?.projectIcon}}</mat-icon>
+                                        <span class="coi-text-dark lh-1"
+                                            [title]="'Click here to view relationship details of #' + projectSfiRelation?.projectNumber + ' -' + projectSfiRelation?.title"
+                                            [attr.aria-label]="'Click here to view relationship details of #' + projectSfiRelation?.projectNumber + ' -' + projectSfiRelation?.title">
+                                            <span class="text-slice">#{{projectSfiRelation?.projectNumber}} - {{projectSfiRelation?.title}}</span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <!-- defined or not icon -->
+                                 <span *ngIf="projectSfiRelation?.conflictCompleted || !projectSfiRelation?.coiDisclEntProjDetails?.length" class="coi-circle-icons bg-success ms-1"><mat-icon aria-hidden="true" class="text-white flex-shrink-0 coi-scale-7">check</mat-icon></span>
+                                 <span *ngIf="!projectSfiRelation?.conflictCompleted && projectSfiRelation?.coiDisclEntProjDetails?.length" class="coi-circle-icons ms-1"><mat-icon aria-hidden="true" class="text-danger flex-shrink-0 fs-24 coi-scale-9">not_interested</mat-icon></span>
+                            </div>
+                        </div>
+                        <!-- conflict counts -->
+                        <div class="col-12 d-flex align-items-center justify-content-between">
+                            <ng-container *ngFor="let status of extendedProjRelService.relationshipConflictType; let last = last">
+                                <div class="d-flex align-items-center fs-12 coi-text-light fw-600">
+                                    <span class="text-nowrap">{{ status?.projectConflictStatus }}</span>
+                                    <span class="me-2">:</span>
+                                    <span [ngClass]="status?.color" class="conflict-count-width">{{ projectSfiRelation?.conflictCount?.[status?.statusCode] ?? 0 }}</span>
+                                </div>
+                                <span *ngIf="!last" class="me-2 coi-text-lighter">|</span>
+                            </ng-container>
+                        </div>
+                    </a>
+                </li>
+            </ul>
+            <ng-template #showNoData>
+                <div class="d-flex align-items-center justify-content-center ps-3">
+                    <app-no-information customClass="mt-0" [isBorderNeeded]="false">
+                        <span *ngIf="!extProjSfiRelationsList.length">{{ RELATIONSHIP_TAB_NO_PROJECT_INFO_MSG }}</span>
+                    </app-no-information>
+                </div>
+            </ng-template>
+        </ng-container>
+        <ng-template #showLoader>
+            <div class="w-100 h-100 d-flex align-items-center position-absolute justify-content-center">
+                <mat-icon class="text-primary coi-refresh-rotate-animation">cached</mat-icon>
+            </div>
+        </ng-template>
+    </div>
+</div>

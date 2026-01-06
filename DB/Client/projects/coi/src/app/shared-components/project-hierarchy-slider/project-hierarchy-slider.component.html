@@ -1,0 +1,66 @@
+<ng-container *ngIf="hierarchyProjectTree?.projectNumber">
+    <app-coi-slider (closeSlider)="closeHierarchySlider()" [elementId]="COI_HIERARCHY_SLIDER_ID"
+        [isHeaderNeeded]="true" [sliderWidth]="'w-100 w-xxl-75 w-lg-90'">
+        <!-- slider header -->
+        <ng-container header>
+            <span id="coi-project-hierarchy-slider-header">Project Hierarchy</span>
+            <!-- [subSectionId]="2601" [elementId]="'coi-project-hierarchy-slider-header'" -->
+            <app-common-help-text [helpTextHardCoded]="'Project hierarchy view'"></app-common-help-text>
+        </ng-container>
+
+        <!-- modal content -->
+        <ng-container content>
+            <div class="d-flex gap-3">
+                <ng-container *ngIf="hierarchyProjectTree?.projectNumber; else showNoData">
+                    <div class="col-auto">
+                        <div class="position-sticky top-0">
+                            <app-project-hierarchy class="w-100" [hierarchyProjectTree]="hierarchyProjectTree" (hierarchyAction)="fetchHierarchyProjectDetails()"></app-project-hierarchy>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card coi-regular-card shadow-sm overflow-hidden coi-hierarchy-card-min-height position-sticky top-0">
+                            <ng-container *ngIf="!isProjectLoading else showLoader">
+                                <ng-container *ngIf="projectDetailsCache[hierarchyService.activeProjectNumber]?.projectNumber else showNoDataForProjectDetails">
+                                    <!-- project details header card -->
+                                    <app-shared-project-details-card [projectDetails]="projectDetailsCache[hierarchyService.activeProjectNumber]" [uniqueId]="'project-hierarchy'"></app-shared-project-details-card>
+                                    <!-- key person -->
+                                    <div class="card-body px-3">
+                                        <!-- header -->
+                                        <div class="col-12 d-flex align-items-center gap-1 px-0 pb-2 mb-1">
+                                            <span class="coi-text-darker fs-16">Project Personnel</span>
+                                            <span class="d-inline-flex align-items-center justify-content-center fs-12 count-badge badge rounded-pill rounded-circle">{{ projectDetailsCache[hierarchyService.activeProjectNumber]?.projectPersons?.length ?? 0 }}</span>
+                                        </div>
+                                        <!-- key person details -->
+                                        <div class="row gap-3 mx-0">
+                                            <div class="col-12 px-0" *ngFor="let keyPersonData of projectDetailsCache[hierarchyService.activeProjectNumber]?.projectPersons; let keyPersonIndex = index">
+                                                <app-disclosure-project-key-person [keyPersonData]="keyPersonData" [uniqueId]="'project-hierarchy' + keyPersonIndex"></app-disclosure-project-key-person>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                                <!-- no data for details -->
+                                <ng-template #showNoDataForProjectDetails>
+                                    <div class="card-body d-flex align-items-center justify-content-center">
+                                        <app-no-information customClass="mt-0" [isBorderNeeded]="false"></app-no-information>
+                                    </div>
+                                </ng-template>
+                            </ng-container>
+                            <!-- loader -->
+                            <ng-template #showLoader>
+                                <div role="alert" class="w-100 h-100 d-flex align-items-center position-absolute justify-content-center" aria-label="Project details loading. Please wait">
+                                    <mat-icon aria-hidden="true" class="text-primary coi-refresh-rotate-animation">cached</mat-icon>
+                                </div>
+                            </ng-template>
+                        </div>
+                    </div>
+                </ng-container>
+                <!-- no data for tree and details -->
+                <ng-template #showNoData>
+                    <div class="card coi-regular-card shadow-sm d-flex align-items-center justify-content-center coi-hierarchy-card-min-height w-100">
+                        <app-no-information customClass="mt-0" [isBorderNeeded]="false"></app-no-information>
+                    </div>
+                </ng-template>
+            </div>
+        </ng-container>
+    </app-coi-slider>
+</ng-container>

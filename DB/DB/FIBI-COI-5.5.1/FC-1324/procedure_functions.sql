@@ -1,0 +1,2 @@
+\. ./FIBI-COI-5.5.1/FC-1324/Procedures/COI_SYNC_FCOI_DISCLOSURE.sql
+

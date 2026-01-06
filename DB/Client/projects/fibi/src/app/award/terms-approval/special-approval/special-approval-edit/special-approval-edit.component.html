@@ -1,0 +1,262 @@
+<!-- Special Approval -->
+<div id="Award119" class="card mt-3">
+  <div class="card-header px-4">
+    <h4 class="card-title">Foreign Travel
+      <button class="updown-arrow" (click)="isForeignTravel = !isForeignTravel">
+        <i aria-hidden="true" [ngClass]="!isForeignTravel?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+          class="fa-large"></i>
+      </button>
+    </h4>
+  </div>
+  <div class="card-content">
+    <div *ngIf="!isForeignTravel" class="card-body">
+      <div class="form-row">
+        <div class="col-lg col-md-6 col-12">
+          <label for="special-approval-name" class="block-display"><span class="mandatory">*</span>Name</label>
+          <select id="special-approval-name" class="form-control" [ngClass]="(map.get('traveler'))? 'is-invalid d-block' : ''"
+            [(ngModel)]="awardAprovedForeignTravel.travellerName" (ngModelChange)="reportTermsTravellerChange()">
+            <option value="">--Traveller Name--</option>
+            <option *ngFor="let travelerName of reportTermsLookup?.awardForeignTravellerList"
+              [value]="travelerName.fullName">{{travelerName.fullName}}</option>
+          </select>
+          <div *ngIf="map.get('traveler')">
+            <span class="invalid-feedback">{{map.get('traveler')}}</span>
+          </div>
+        </div>
+        <div class="col-lg col-md-6 col-12">
+          <label for="special-approval-dest" class="block-display">Destination</label>
+          <input id="special-approval-dest" class="form-control" type="text" placeholder="Destination"
+            [(ngModel)]="awardAprovedForeignTravel.destination">
+        </div>
+        <div class="col-lg col-md-4 col-sm-4 col-12">
+          <label for="approval-start-date" class="block-display"><span class="mandatory">*</span>Start Date</label>
+          <span class="dateField">
+            <input matInput [matDatepicker]="startDate" placeholder="Start Date" [ngClass]="(map.get('startDate'))? 'is-invalid d-block' : ''"
+              id="special-approval-start-date" class="form-control d-inline-block"
+              [(ngModel)]="awardAprovedForeignTravel.startDate" autocomplete="off"
+              (keypress)="_commonService._keyPress($event, 'date');" (click)="startDate.open()" />
+            <i aria-hidden="true" id="award-special-approval-start-date-icon" class="fa fa-calendar fa-large insidePicker hand-cursor"
+              (click)="startDate.open()"></i>
+            <mat-datepicker #startDate (opened)="setFocusToElement('special-approval-start-date')"></mat-datepicker>
+          </span>
+          <div *ngIf="map.get('startDate')">
+            <span class="invalid-feedback">{{map.get('startDate')}}</span>
+          </div>
+        </div>
+        <div class="col-lg col-md-4 col-sm-4 col-12">
+          <label for="approval-end-date"  class="block-display">End Date</label>
+          <span class="dateField">
+            <input matInput [matDatepicker]="endDate" placeholder="End Date" id="award-special-approval-end-date"
+              class="form-control d-inline-block" [(ngModel)]="awardAprovedForeignTravel.endDate"
+              [ngClass]="warningMsg?.dateWarningText ? 'is-invalid d-block' : ''"
+              (keypress)="_commonService._keyPress($event, 'date');" autocomplete="off"
+              (click)="endDate.open()" />
+            <i aria-hidden="true" id="award-special-end-date-icon" class="fa fa-calendar fa-large insidePicker hand-cursor"
+              (click)="endDate.open()"></i>
+            <mat-datepicker #endDate (opened)="setFocusToElement('award-special-approval-end-date')">
+            </mat-datepicker>
+          </span>
+          <div *ngIf="warningMsg?.dateWarningText != null">
+            <span class="invalid-feedback">{{warningMsg?.dateWarningText}}</span>
+          </div>
+        </div>
+        <div class="col-lg col-md-4 col-sm-4 col-12">
+          <label class="block-display"><span class="mandatory">*</span>Amount({{_commonService.currencyFormat}})</label>
+          <input class="form-control" type="text" placeholder="Amount({{_commonService.currencyFormat}})"
+            [ngClass]="(map.get('foreignamount'))? 'is-invalid d-block' : ''" appCurrencyFormat
+            [initialValue]="awardAprovedForeignTravel.amount" appDecimalLimit
+            [(ngModel)]="awardAprovedForeignTravel.amount" 
+            (ngModelChange)="inputDigitRestriction(awardAprovedForeignTravel.amount, 'amount');foreignTravelValidation();"
+            [ngClass]="(map.get('amount')) ? 'is-invalid d-block' : ''">
+          <div *ngIf="map.get('foreignamount')"><span class="invalid-feedback">{{map.get('foreignamount')}}</span></div>
+          <div *ngIf="(map.get('amount'))" class="invalid-feedback d-block"> {{map.get('amount')}}</div>
+        </div>
+        <div class="col-12 d-flex align-items-end  justify-content-lg-end justify-content-center">
+          <button *ngIf="!isSpecialApproval" id="prop-project-team-add-btn" class="btn btn-secondary mr-2 btn-xs"
+            (click)="this.awardApprovedEquipment = {}; this.awardAprovedForeignTravel = {};this.isSpecialApproval = true;">Cancel</button>
+          <button *ngIf="isSpecialApproval" id="prop-project-team-add-btn" class="btn btn-primary-sub btn-xs"
+            (click)="addForeignTravel()">Add Foreign Travel</button>
+          <button *ngIf="!isSpecialApproval" id="prop-project-team-add-btn" class="btn btn-primary-sub btn-xs"
+            (click)="addForeignTravel()">Save Foreign Travel</button>
+        </div>
+      </div>
+      <div class="table-responsive mt-2 p-3" *ngIf="specialForeignTravel?.length > 0">
+        <table class="table tableSkin">
+          <caption class="sr-only"> Special Approval Details</caption>
+          <tbody>
+            <tr class="thead-light">
+              <th scope="col" colspan="2">Traveler Name</th>
+              <th scope="col">Destination</th>
+              <th scope="col">Start Date </th>
+              <th scope="col">End Date</th>
+              <th scope="col">Amount({{_commonService.currencyFormat}})</th>
+              <th scope="col">Actions</th>
+            </tr>
+            <tr *ngFor="let specialforeign of specialForeignTravel ;let i = index">
+              <td colspan="2"> {{specialforeign.travellerName}}</td>
+              <td> {{specialforeign.destination}}</td>
+              <td> {{specialforeign.startDate| dateFormatter}}</td>
+              <td> {{specialforeign.endDate | dateFormatter}} </td>
+              <td> {{specialforeign.amount | customCurrency}}</td>
+              <td>
+                <ul class="actionButtonGroup">
+                  <li *ngIf="specialforeign.awardApprovedForiegnTravelId != null">
+                    <a href="#" id="prop-project-team-delete-btn" data-toggle="modal">
+                      <i class="fa fa-pencil hand-cursor hoverColor" aria-hidden="true"
+                        title="Click here to edit {{specialforeign.travellerName}}"
+                        (click)="editForeignTravel(i);isSpecialApproval = false;map.clear();this.warningMsg.dateWarningText = null;"></i>
+                    </a>
+                  </li>
+                  <li>
+                    <a *ngIf="isSpecialApproval || (!isSpecialApproval && index.specialApprovalIndex !== i)" href="#"
+                      id="prop-project-team-delete-btn" data-toggle="modal" data-target="#deleteSpecial"
+                      (click)="index.deleteIndex = i; specialType='foreigntravel'">
+                      <i class="fa fa-trash-o" aria-hidden="true"
+                        title="Click here to delete {{specialforeign.travellerName}}"></i>
+                    </a>
+                  </li>
+                </ul>
+              </td>
+            </tr>
+          </tbody>
+          <tbody *ngIf="specialForeignTravel?.length > 0">
+            <tr>
+              <td colspan="5" class="totalText">
+                <span>Total Amount</span>
+              </td>
+              <td class="totalText">
+                <span>{{foreignTravelSum| customCurrency}}</span>
+              </td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <h4 class="card-title">Equipment
+        <button class="updown-arrow" (click)="isApproval = !isApproval">
+          <i aria-hidden="true" [ngClass]="!isApproval?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+            class="fa-large"></i>
+        </button>
+      </h4>
+    </div>
+    <div class="card-content">
+      <div *ngIf="!isApproval" class="card-body">
+        <div class="form-row">
+          <div class="col-md-3 col-sm-6 col-12">
+            <label class="block-display"><span class="mandatory">*</span>Item</label>
+            <input class="form-control" type="text" placeholder="Item" autocomplete="off"
+              [ngClass]="(map.get('item'))? 'is-invalid d-block' : ''" [(ngModel)]="awardApprovedEquipment.item">
+            <div *ngIf="map.get('item')">
+              <span class="invalid-feedback">{{map.get('item')}}</span>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6 col-12">
+            <label class="block-display">Vendor</label>
+            <input class="form-control" type="text" placeholder="Vendor" [(ngModel)]="awardApprovedEquipment.vendor">
+          </div>
+          <div class="col-md-3 col-sm-6 col-12">
+            <label class="block-display">Model</label>
+            <input class="form-control" type="text" placeholder="Model" [(ngModel)]="awardApprovedEquipment.model">
+          </div>
+          <div class="col-md-3 col-sm-6 col-12">
+            <label class="block-display"><span
+                class="mandatory">*</span>Amount({{_commonService.currencyFormat}})</label>
+            <input type="text" class="form-control" placeholder="Amount({{_commonService.currencyFormat}})"
+              [ngClass]="(map.get('equipmentamount'))? 'is-invalid d-block' : ''"
+              [ngClass]="(map.get('vendorAmount')) ? 'is-invalid d-block' : ''"
+              [(ngModel)]="awardApprovedEquipment.amount" appCurrencyFormat
+              [initialValue]="awardApprovedEquipment.amount" 
+              (ngModelChange)="inputDigitRestriction(awardApprovedEquipment.amount, 'vendorAmount');equipmentValidation()" />
+            <div *ngIf="map.get('equipmentamount')"><span class="invalid-feedback">{{map.get('equipmentamount')}}</span></div>
+            <div *ngIf="(map.get('vendorAmount'))" class="invalid-feedback d-block"> {{map.get('vendorAmount')}}</div>
+          </div>
+          <div class="col d-flex align-items-end  justify-content-lg-end justify-content-center">
+            <button *ngIf="!isSpecialApproval" id="prop-project-team-add-btn" class="btn btn-secondary btn-xs mr-2"
+              (click)="this.awardApprovedEquipment = {}; this.awardAprovedForeignTravel = {};this.isSpecialApproval = true;">Cancel</button>
+            <button *ngIf="isSpecialApproval" id="prop-project-team-add-btn" class="btn btn-primary-sub btn-xs"
+              (click)="addEquipment()">Add Equipment</button>
+            <button *ngIf="!isSpecialApproval" id="prop-project-team-add-btn" class="btn btn-primary-sub btn-xs"
+              (click)="addEquipment()">Save Equipment</button>
+          </div>
+        </div>
+        <div class="table-responsive mt-2">
+          <table class="table tableSkin grid2">
+            <caption class="sr-only">Approved Equipment List</caption>
+            <tbody *ngIf="specialEquipment?.length > 0">
+              <tr class="thead-light">
+                <th scope="col" colspan="2">Item</th>
+                <th scope="col" colspan="2">Vendor</th>
+                <th scope="col">Model </th>
+                <th scope="col">Amount({{_commonService.currencyFormat}})</th>
+                <th scope="col">Actions</th>
+              </tr>
+              <tr *ngFor="let specialequipment of specialEquipment ;let i = index">
+                <td colspan="2"> {{specialequipment.item}}</td>
+                <td colspan="2"> {{specialequipment.vendor}}</td>
+                <td> {{specialequipment.model}}</td>
+                <td> {{specialequipment.amount | customCurrency}}</td>
+                <td>
+                  <ul class="actionButtonGroup">
+                    <li *ngIf="specialequipment.awardApprovedEquipmentId != null">
+                      <a href="#" id="prop-project-team-delete-btn" data-toggle="modal">
+                        <i class="fa fa-pencil hand-cursor hoverColor" aria-hidden="true"
+                          title="Click here to edit {{specialequipment.item}} "
+                          (click)="editEquipment(i); equipmentIndex = i ; isSpecialApproval = false;map.clear();this.warningMsg.dateWarningText = null;"></i>
+                      </a>
+                    </li>
+                    <li>
+                      <a *ngIf="isSpecialApproval || (!isSpecialApproval && equipmentIndex !== i)" href="#"
+                        id="prop-project-team-delete-btn" data-toggle="modal" data-target="#deleteSpecial"
+                        (click)="index.deleteIndex = i; specialType='equipment'">
+                        <i class="fa fa-trash-o" aria-hidden="true"
+                          title="Click here to delete {{specialequipment.item}}"></i>
+                      </a>
+                    </li>
+                  </ul>
+                </td>
+              </tr>
+            </tbody>
+            <tbody *ngIf="specialEquipment?.length > 0">
+              <tr>
+                <td colspan="5" class="totalText">
+                  <span>Total Amount</span>
+                </td>
+                <td class="totalText">
+                  <span>{{equipmentSum| customCurrency}}</span>
+                </td>
+
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Special Approval ends -->
+  <!-- Special Approval Delete modal -->
+  <div class="modal fade mySkinDialog" id="deleteSpecial" role="dialog">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Delete</h5>
+          <button aria-label="Close" class="close" data-dismiss="modal" id="prop-dlt-member-dismiss" type="button">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to delete this?</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" data-dismiss="modal" data-toggle="modal" type="button">No</button>
+          <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button"
+            (click)="specialType == 'foreigntravel' ? deleteForeignTravel(index.deleteIndex) : deleteEquipment(index.deleteIndex)">Yes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--Special Approval Delete modal ends -->

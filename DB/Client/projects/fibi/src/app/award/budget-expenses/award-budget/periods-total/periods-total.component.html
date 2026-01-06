@@ -1,0 +1,309 @@
+<div *ngIf="awardBudgetData?.awardBudgetHeader" class="card-widget-container mb-3">
+  <div class="card h-100">
+    <div class="card-content">
+      <div class="card-body pt-0">
+        <div>
+          <div class="row my-md-3 my-2">
+            <div class="col-lg-6 col-md-6 col-sm-6 col-6 colorBlack">
+              <h4 class="card-title" id="proposal-period-summary">Budget Periods & Total</h4>
+            </div>
+          </div>
+          <table class="tableStyle mt-4">
+            <caption class="d-none"></caption>
+            <thead>
+              <tr>
+                <th scope="col" style="width:5%">Period #</th>
+                <th scope="col" style="width:10%">Period Start Date</th>
+                <th scope="col" style="width:10%">Period End Date</th>
+                <th scope="col" style="width:12%">Direct Cost</th>
+                <th scope="col" style="width:12%">Indirect Cost</th>
+                <th scope="col" style="width:12%">Total Cost</th>
+                <th scope="col" style="width:10%" *ngIf="_budgetDataService.isBudgetEditable">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let period of awardBudgetData?.awardBudgetHeader?.budgetPeriods; let index = index">
+                <td>
+                  <input type="text" class="dateBox form-control" id="period-number" disabled
+                    [value]="period?.budgetPeriod" />
+                </td>
+                <td class="align-top">
+                  <span class="dateField budget-date">
+                    <input matInput [matDatepicker]="periodstart" placeholder="{{datePlaceHolder}}" id="award-period-start-date"
+                      [disabled]="!_budgetDataService.isBudgetEditable"
+                      class="budgetDate-width form-control" [(ngModel)]="period.startDate"
+                      (ngModelChange)="validatePeriodDates(period, 'STARTDATE');_commonDataService.isAwardDataChange = true;"
+                      (click)="periodstart.open()" />
+                    <i *ngIf="_budgetDataService.isBudgetEditable"
+                      class="fa fa-calendar fa-large insidePicker hand-cursor" (click)="periodstart.open()"
+                      aria-hidden="true"></i>
+                    <mat-datepicker #periodstart (opened)="setFocusToElement('award-period-start-date')"></mat-datepicker>
+                  </span>
+                  <span *ngIf="startDatesWarningMap[period.budgetPeriod]" class="invalid-feedback block-display">
+                    {{startDatesWarningMap[period.budgetPeriod]?.startErrorMessage}}
+                  </span>
+                </td>
+                <td class="align-top">
+                  <span class="dateField budget-date">
+                    <input matInput [matDatepicker]="periodend" placeholder="{{datePlaceHolder}}" id="award-period-end-date"
+                      [disabled]="!_budgetDataService.isBudgetEditable"
+                      class="budgetDate-width form-control" [(ngModel)]="period.endDate"
+                      (ngModelChange)="validatePeriodDates(period, 'ENDDATE');_commonDataService.isAwardDataChange = true;"
+                      (click)="periodend.open()" />
+                    <i *ngIf="_budgetDataService.isBudgetEditable"
+                      class="fa fa-calendar fa-large insidePicker hand-cursor" (click)="periodend.open()"
+                      aria-hidden="true"></i>
+                    <mat-datepicker #periodend (opened)="setFocusToElement('award-period-end-date')"></mat-datepicker>
+                  </span>
+                  <span *ngIf="endDatesWarningMap[period.budgetPeriod]" class="invalid-feedback block-display">
+                    {{endDatesWarningMap[period.budgetPeriod]?.endErrorMessage}}
+                  </span>
+                </td>
+                <td>
+                  <input type="text" appCurrencyFormat class="dateBox form-control text-right" autocomplete="off"
+                    [disabled]="!isPeriodsAndTotalEditable" [(ngModel)]="period.totalDirectCost"
+                    [initialValue]="period.totalDirectCost" (ngModelChange)="calculatePeriodTotalCost(period);_commonDataService.isAwardDataChange = true;
+                    inputDigitRestriction(period.totalDirectCost, 'directCost', index)" [ngClass]="(map.get('directCost'+index)) ? 'is-invalid d-block' : ''"/>
+                  <div *ngIf="map.has('directCost'+index)" class="mandatory">{{map.get('directCost'+index)}}</div>
+                </td>
+                <td>
+                  <input type="text" appCurrencyFormat class="dateBox form-control text-right" autocomplete="off"
+                    [disabled]="!isPeriodsAndTotalEditable" [(ngModel)]="period.totalIndirectCost"
+                    [initialValue]="period.totalIndirectCost"
+                    (ngModelChange)="calculatePeriodTotalCost(period);_commonDataService.isAwardDataChange = true;
+                    inputDigitRestriction(period.totalIndirectCost, 'indirectCost', index)" [ngClass]="(map.get('indirectCost'+index)) ? 'is-invalid d-block' : ''"/>
+                    <div *ngIf="map.has('indirectCost'+index)" class="mandatory">{{map.get('indirectCost'+index)}}</div>
+                </td>
+                <td>
+                  <input type="text" appCurrencyFormat class="dateBox form-control text-right" autocomplete="off"
+                    disabled [(ngModel)]="period.totalCost" [initialValue]="period.totalCost"
+                    (ngModelChange)="_commonDataService.isAwardDataChange = true;" />
+                </td>
+                <td class="text-center align-top" *ngIf="_budgetDataService.isBudgetEditable">
+                  <i *ngIf="period?.budgetPeriod !== 1 && _budgetDataService.isBudgetEditable"
+                    class="fa fa-copy hand-cursor hoverColor mr-1"
+                    title="Copy from Period {{period?.budgetPeriod - 1}} to Period {{period?.budgetPeriod}}"
+                    (click)="triggerCopyBudgetModal(period);" aria-hidden="true"></i>
+                  <i *ngIf="_budgetDataService.isBudgetEditable && awardBudgetData?.awardBudgetHeader?.budgetTypeCode != 2"
+                    aria-hidden="true" class="fa fa-trash hand-cursor hoverColor mr-1"
+                    title="Delete Period {{period?.budgetPeriod}}"
+                    (click)="validateDeleteBudgetPeriod(period.budgetPeriod)"></i>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="2"></td>
+                <td class="font-weight-bold text-right">Total</td>
+                <td class="font-weight-bold text-right">
+                  {{awardBudgetData?.awardBudgetHeader?.totalDirectCost | customCurrency}}</td>
+                <td class="font-weight-bold text-right">
+                  {{awardBudgetData?.awardBudgetHeader?.totalIndirectCost | customCurrency}}</td>
+                <td class="font-weight-bold text-right">
+                  {{awardBudgetData?.awardBudgetHeader?.totalCost | customCurrency}}</td>
+                <td *ngIf="_budgetDataService.isBudgetEditable"></td>
+              </tr>
+              <tr>
+                <td colspan="7">
+                  <div class="form-row">
+                    <div class="col-10">
+                      <span class="invalid-feedback d-block regularFont"
+                        *ngIf="_budgetDataService.isInvalidCost && !isInvalidCost">* Total Cost should be less than or
+                        equal to Remaining Fund.</span>
+                      <span class="invalid-feedback d-block regularFont" *ngIf="isInvalidCost">* Cannot proceed since
+                        total cost exceeds Remaining Fund.</span>
+                    </div>
+                    <div class="col-2">
+                      <button class="btn btn-primary-sub btn-sm float-right mt-3 mb-3"
+                        *ngIf="_budgetDataService.isBudgetEditable" (click)="savePeriodsAndTotalData()">Save</button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD BUDGET PERIOD MODAL -->
+<button id="addAwardBudgetPeriodModalBtn" data-toggle="modal" data-target="#addAwardBudgetPeriodModal"
+  [hidden]="true"></button>
+<div class="modal fade mySkinDialog" tabindex="-1" id="addAwardBudgetPeriodModal" tabindex="-1" role="dialog"
+  data-backdrop="static" data-keyboard="false" aria-labelledby="addActionModalTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Period</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p *ngIf="!awardBudgetData.isSinglePeriodBudgetEnabled">Are you sure you want to add a new budget period?</p>
+        <p *ngIf="awardBudgetData.isSinglePeriodBudgetEnabled">There is only single period supported</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{!awardBudgetData.isSinglePeriodBudgetEnabled ? 'Cancel' : 'Ok'}}</button>
+        <button type="button" class="btn btn-primary-sub" data-dismiss="modal" *ngIf="!awardBudgetData.isSinglePeriodBudgetEnabled"
+          (click)="addAwardBudgetPeriod()">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ADD BUDGET PERIOD MODAL ENDS-->
+
+<!-- GENERATE BUDGET PERIOD MODAL -->
+<button id="generateAwardBudgetPeriodModalButton" data-toggle="modal" data-target="#generateAwardBudgetPeriodModal"
+  [hidden]="true"></button>
+<div class="modal fade mySkinDialog" tabindex="-1" id="generateAwardBudgetPeriodModal" tabindex="-1" role="dialog"
+  data-backdrop="static" data-keyboard="false" aria-labelledby="generateActionModalTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Generate Period</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p *ngIf="!awardBudgetData.isSinglePeriodBudgetEnabled">{{modalActionObject.generatePeriodMsg}}</p>
+        <p *ngIf="awardBudgetData.isSinglePeriodBudgetEnabled">There is only single period supported</p>
+      </div>
+      <div class="modal-footer" *ngIf="!modalActionObject.isGeneratePeriodError">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary-sub" data-dismiss="modal"
+          (click)="generateAwardBudgetPeriod()">Generate</button>
+      </div>
+      <div class="modal-footer" *ngIf="modalActionObject.isGeneratePeriodError">
+        <button type="button" class="btn btn-primary-sub" data-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- GENERATE BUDGET PERIOD MODAL ENDS -->
+
+<!-- COPY BUDGET PERIOD WARNING MODAL -->
+<button [hidden]="true" id="copy-period-modal-warning-button" data-toggle="modal"
+  data-target="#copyAwardBudgetWarnModal"></button>
+<div class="modal fade mySkinDialog" tabindex="-1" id="copyAwardBudgetWarnModal" tabindex="-1" role="dialog"
+  data-backdrop="static" data-keyboard="false" aria-labelledby="copyWarnModalTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Copy Period</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>{{modalActionObject.copyPeriodMsg}}</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary-sub" data-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- COPY BUDGET PERIOD WARNING MODAL ENDS-->
+
+<!-- COPY BUDGET PERIOD MODAL -->
+<button [hidden]="true" id="copy-period-modal-button" data-toggle="modal" data-target="#copyAwardBudgetModal"></button>
+<div class="modal fade mySkinDialog" tabindex="-1" id="copyAwardBudgetModal" tabindex="-1" role="dialog"
+  data-backdrop="static" data-keyboard="false" aria-labelledby="copyActionModalTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Copy Period</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to copy from Period {{copyPeriod.budgetPeriod}} to Period
+          {{currentPeriod.budgetPeriod}}?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary-sub" data-dismiss="modal"
+          (click)="copyAwardBudgetPeriod()">Copy</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- COPY BUDGET PERIOD MODAL ENDS-->
+
+<!-- DELETE BUDGET PERIOD CONFIRMATION MODAL -->
+
+<button class="d-none" id="deleteAwardBudgetPeriodModalBtn" data-toggle="modal"
+  data-target="#deleteAwardBudgetPeriodModal"></button>
+<div class="modal fade mySkinDialog" tabindex="-1" id="deleteAwardBudgetPeriodModal" tabindex="-1" role="dialog"
+  data-backdrop="static" data-keyboard="false" aria-labelledby="deletePeriodActionModalTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete Period</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete Period {{modalActionObject.deletePeriodNumber}} ?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary-sub" data-dismiss="modal"
+          (click)="deleteAwardBudgetPeriod()">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- DELETE BUDGET PERIOD CONFIRMATION MODAL ENDS-->
+
+<!-- DELETE BUDGET PERIOD WARNING MODAL -->
+<button class="d-none" id="deleteBudgetPeriodWarnModalBtn" data-toggle="modal"
+  data-target="#deleteBudgetPeriodWarnModal"></button>
+<div class="modal fade mySkinDialog" tabindex="-1" id="deleteBudgetPeriodWarnModal" tabindex="-1" role="dialog"
+  data-backdrop="static" data-keyboard="false" aria-labelledby="deleteBudgetPeriodWarnModalTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete Period</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Cannot delete the only period of budget.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary-sub" data-dismiss="modal">Ok</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- DELETE BUDGET PERIOD WARNING MODAL ENDS-->
+
+<!-- SAVE WARNING MODAL -->
+<button class="d-none" id="awardBudgetDataSaveModalBtn" data-toggle="modal"
+  data-target="#awardBudgetDataSaveModal"></button>
+<div class="modal fade mySkinDialog" tabindex="-1" id="awardBudgetDataSaveModal" tabindex="-1" role="dialog"
+  data-backdrop="static" data-keyboard="false" aria-labelledby="deleteBudgetPeriodWarnModalTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Warning!</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>{{saveWarningMsg}}</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary-sub" data-dismiss="modal">Ok</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- SAVE WARNING MODAL ENDS-->

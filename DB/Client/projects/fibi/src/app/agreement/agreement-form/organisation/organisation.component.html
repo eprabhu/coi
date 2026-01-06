@@ -1,0 +1,534 @@
+<div class="row">
+  <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+    <div class="card mb-3" id="agreement-third-party">
+      <div class="card-header p-2 px-3">
+        <h4 class="card-title d-inline-block other-party-title ml-3">
+          <ng-container i18n="@@AGREEMENT_ORGANIZATION">Sponsor/Organization</ng-container>
+        </h4>
+        <button class="btn btn-tertiary btn-sm mt-0 float-right button-right" data-toggle="modal" *ngIf="isOrganisationEditMode"
+          data-target="#add-organization-modal" (click)="initializeLookupValues();isEditOrganisation=false" title="Add Organization">
+          <span>Add Organization</span>
+        </button>
+        <button class="updown-arrow mt-2" (click)="isShowOrganisation = !isShowOrganisation">
+          <i [ngClass]="!isShowOrganisation?'fa-large fa fa-angle-double-down':'fa-large fa fa-angle-double-up'"
+            class="fa-large" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div *ngIf="isShowOrganisation" class="success-banner px-3 my-2 mx-4 d-flex justify-content-between align-items-center py-2">
+        <div class="d-flex">
+          <span><i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i></span>
+          <span class="ml-2">
+            <em>Enter the Sponsor or Organization you are working with on this agreement; based on the agreement type,
+              for example for a NDA or DUA, this field represents the "Other Party" that you are working with.
+            </em>
+          </span>
+        </div>
+      </div>
+      <div class="card-content p-1" *ngIf="isShowOrganisation">
+        <div class="card-body pt-0">
+          <div class="noDataOnChart noDataExists p-2" *ngIf="result?.agreementSponsors?.length == 0">
+            <div class="no-data-container">
+              <span class="no-data-icon-outer">
+                      <div class="no-data-icon">
+                          <i aria-hidden="true" class="fa fa-file-o"></i>
+                          <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                      </div>
+               </span>
+               <h4>There is no information in this section.</h4>
+           </div>
+          </div>
+          <ng-container *ngFor="let sponsors of result?.agreementSponsors; let i=index">
+            <div class="gridSkin gridSkin-no-hover-effect border border-info mt-2 sponsor-view-details"
+              *ngIf="sponsors.agreementSponsorId != null && (!isOrganisationEditMode || !isNewOrganisation && isOrganisationEditMode )">
+              <div class="row">
+                <div class="col-md-2 col-12">
+                  <label class="d-block">Agreement Party </label>
+                  <span [ngClass]="sponsors?.agreementSponsorType ? 'bolder-font' : 'dull-font'">
+                    {{sponsors?.agreementSponsorType ? sponsors?.agreementSponsorType?.description : 'No Agreement Party Specified'}}
+                  </span>
+                </div>
+                <div class="col-md-3 col-12">
+                  <label class="d-block">Role </label>
+                  <span [ngClass]="sponsors?.sponsorRole ? 'bolder-font' : 'dull-font'">
+                    {{sponsors.sponsorRole ? sponsors?.sponsorRole?.description : 'No Role Specified'}}
+                  </span>
+                </div>
+                <div class="col-md-3 col-12">
+                  <label class="d-block">Organization Name </label>
+                  <span [ngClass]="sponsors?.sponsorName ? 'bolder-font' : 'dull-font'">
+                    {{sponsors.sponsorName ? sponsors.sponsorName : 'No Organization Name Specified'}}
+                  </span>
+                </div>
+                <div class="col-md-2 col-12">
+                  <label class="d-block">Organization Type </label>
+                  <span [ngClass]="sponsors?.sponsor?.sponsorType ? 'bolder-font' : 'dull-font'">
+                    {{sponsors?.sponsor?.sponsorType ? sponsors?.sponsor?.sponsorType?.description : 'No Organization type
+                    Specified'}}
+                  </span>
+                </div>
+                <!-- <div class="col-md-2 col-12 text-right">
+                  <span class="badge badge-pill badge-info primary-badge">{{sponsors?.sponsor?.isAdminVerified ? 'Admin Verified' : 'New'}}</span>
+                </div> -->
+              </div>
+              <div class="row">
+                <div class="col-md-2 col-12">
+                  <label class="d-block">Organization Address </label>
+                  <span class="bolder-font" *ngIf="sponsors?.sponsor?.addressLine1 || sponsors?.sponsor?.addressLine2">
+                    {{sponsors?.sponsor?.addressLine1}}
+                    <span *ngIf="sponsors?.sponsor?.addressLine1 && sponsors?.sponsor?.addressLine2">,</span>
+                    {{sponsors?.sponsor?.addressLine2}}                 
+                 </span>
+                  <span *ngIf="!sponsors?.sponsor?.addressLine1 && !sponsors?.sponsor?.addressLine2" class="dull-font">No Address Specified
+                  </span>
+                </div>
+                <div class="col-md-3 col-12">
+                  <label class="d-block">City</label>
+                  <span [ngClass]="sponsors?.sponsor?.sponsorLocation ? 'bolder-font' : 'dull-font'">
+                    {{sponsors?.sponsor?.sponsorLocation ? sponsors?.sponsor?.sponsorLocation  : 'No City Specified'}}
+                  </span>
+                </div>
+                <div class="col-md-3 col-12">
+                  <label class="d-block">State</label>
+                  <span [ngClass]="sponsors?.sponsor?.state  ? 'bolder-font' : 'dull-font'">
+                    {{sponsors?.sponsor?.state ? sponsors?.sponsor?.state : 'No State Specified'}}
+                  </span>
+                </div>
+                <div class="col-md-2 col-12">
+                  <label class="d-block">ZipCode</label>
+                  <span [ngClass]="sponsors?.sponsor?.postalCode ? 'bolder-font' : 'dull-font'">
+                    {{sponsors?.sponsor?.postalCode ? sponsors?.sponsor?.postalCode : 'No ZipCode Specified'}}
+                  </span>
+                </div>
+                <div class="col-md-4 col-12">
+                  <label class="d-block">Country</label>
+                  <span [ngClass]="sponsors?.sponsor?.country ? 'bolder-font' : 'dull-font'">
+                    {{sponsors?.sponsor?.country ? sponsors?.sponsor?.country?.countryName : 'No Country Specified'}}
+                  </span>
+                </div>
+                <div class="col-md-8 col-12  text-right" *ngIf="isOrganisationEditMode">
+                  <span data-toggle="modal" data-target="#add-contacts-modal"
+                    title="Click here to add contacts to {{sponsors.sponsorName}}"
+                    (click)="sponsorIndex=i;setDefaultContact(sponsors);">
+                    <button class="btn more-btn">
+                      <i class="fa fa-user-plus" aria-hidden="true"></i>
+                    </button>
+                  </span>
+                  <span class="mr-2" (click)="editOrganisation(sponsors);isEditOrganisation=true;isDisabled=true;"
+                    data-toggle="modal" data-target="#add-organization-modal"
+                    title="Click here to edit {{sponsors.sponsorName}}">
+                    <button class="btn more-btn"><i class="fa fa-pencil" aria-hidden="true"></i></button></span>
+                  <span data-toggle="modal" data-target="#deleteSponsorModal"
+                    title="Click here to delete {{sponsors.sponsorName}}" (click)="setSponsorDeleteDetails(i)">
+                    <button class="btn more-btn"><i class="fa fa-trash-o f-14" aria-hidden="true"></i></button></span>
+                </div>
+                <div *ngIf="sponsors?.agreementSponsorContacts?.length > 0"
+                  class="table-responsive col-12 contact-details">
+                  <div>
+                    <label class="fw-600">Contact Details</label>
+                    <table aria-describedby="agreement-sponsor-header-id" class="table tableSkin ">
+                      <thead>
+                        <tr class="thead-light">
+                          <th scope="col" style="width: 8vw;">Contact Type</th>
+                          <th scope="col">Contact Person</th>
+                          <th scope="col">Designation</th>
+                          <th scope="col">Address</th>
+                          <th scope="col">Email</th>
+                          <th scope="col">Phone</th>
+                          <th *ngIf="isOrganisationEditMode" scope="col">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let sponsor of  sponsors?.agreementSponsorContacts ; let id=index">
+                          <td>
+                            {{sponsor?.agreementSponsorContactType?.description}}
+                          </td>
+                          <td>
+                            <ng-container *ngIf="sponsor?.salutation; else noSalutation">
+                              {{sponsor?.salutation}}.{{sponsor?.contactPersonName}}
+                            </ng-container>
+                            <ng-template #noSalutation>
+                              {{sponsor?.contactPersonName}}
+                            </ng-template>
+                          </td>
+                          <td>{{sponsor?.designation}}</td>
+                          <td>{{sponsor?.contactAddressLine}}</td>
+                          <td>{{sponsor?.contactEmailId}}</td>
+                          <td>{{sponsor?.contactPhone}}</td>
+                          <td *ngIf="isOrganisationEditMode">
+                            <ul class="actionButtonGroup">
+                              <li *ngIf="!isNewOrganisation">
+                                <a data-toggle="modal">
+                                  <i class="fa fa-pencil pointer" title="Click here to edit this contact ({{sponsor?.contactPersonName}})"
+                                    aria-hidden="true"
+                                    (click)="editContact(sponsors, id);sponsorIndex=i;" data-toggle="modal"
+                                    data-target="#add-contacts-modal"></i>
+                                </a>
+                              </li>
+                              <li><a data-toggle="modal" data-target="#delete-organisation-contact-modal"
+                                  (click)="setContactDeleteDetails(id, sponsor.agreementSponsorContactId, i);"><i
+                                    class="fa fa-trash-o pointer"  title="Click here to delete this contact ({{sponsor?.contactPersonName}})" aria-hidden="true"></i></a>
+                              </li>
+                            </ul>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add organization modal -->
+<div class="modal fade mySkinDialog" id="add-organization-modal" role="dialog"
+  aria-labelledby="skippedSchedulesTitle" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ isEditOrganisation ? 'Edit Organization' : 'Add Organization' }}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" 
+        (click)="isEditOrganisation=false;isSelectedOrganization=true;organisationMap.clear();">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="col-md-6 col-12">
+            <label class="d-block"><span class="mandatory">*</span>Organization Name</label>
+            <app-endpoint-search [httpOptions]="organizationSearchOptions" [clearField]="clearOrgField"
+              [placeHolder]="'Type here for Organization Name'" (onSelect)="organizationSelectFunction($event)"
+              (onEmpty)="organizationEmptyFunction()"
+              [isError]="(organisationMap.get('organisation'))? 'is-invalid d-block' : ''"
+              >
+            </app-endpoint-search>
+            <div *ngIf="(organisationMap.get('organisation'))" class="invalid-feedback d-block">
+              Please provide an Organization.
+            </div>
+          </div>
+          <div class="col-md-6 col-12" *ngIf="isSelectedOrganization">
+            <label class="d-block">Organization Type</label>
+            <input class="form-control ng-pristine ng-valid ng-touched" [(ngModel)]="newObject.organizationType"
+              (ngModelChange)="isOrganisationFormChanged = true;" placeholder="Organization Organization Type"
+              type="text" [disabled]="isDisabled">
+          </div>
+          <div class="col-md-6 col-12" *ngIf="!isSelectedOrganization">
+            <label class="d-block"><span class="mandatory">*</span>Organization Type</label>
+            <select class="form-control ng-pristine ng-valid ng-touched" [(ngModel)]="newType"
+              (ngModelChange)="isOrganisationFormChanged = true;getSponsorType()"
+              [ngClass]="(organisationMap.get('type'))? 'is-invalid d-block' : ''">
+              <option value=null>--Select--</option>
+              <option [value]="party.code" *ngFor="let party of result?.sponsorTypes" [hidden]="party.isActive != 'Y'">
+                {{party?.description}}
+              </option>
+            </select>
+            <div *ngIf="organisationMap.has('type')" class="invalid-feedback d-block">Please provide an Organization Type.</div>
+          </div>
+        </div>
+        <div class="form-row pt-4">
+          <div class="col-md-6 col-sm-6 col-12">
+            <label class="d-block">Agreement Party</label>
+            <select class="form-control ng-pristine ng-valid ng-touched"
+              [(ngModel)]="agreementSponsor.agreementSponsorTypeCode" 
+              (ngModelChange)="isOrganisationFormChanged = true;
+                getAgreementParty(agreementSponsor.agreementSponsorTypeCode);"
+                [ngClass]="(organisationMap.get('duplicateSponsor'))? 'is-invalid d-block' : ''">
+              <option value=null>--Select--</option>
+              <option [value]="party.agreementSponsorTypeCode" *ngFor="let party of result?.agreementSponsorTypes" [hidden]="party.isActive != 'Y'">
+                {{party?.description}}
+              </option>
+            </select>
+            <div *ngIf="organisationMap.get('duplicateSponsor')" class="invalid-feedback d-block"> Primary sponsor already added.</div>
+          </div>
+          <div class="col-md-6 col-sm-6 col-12">
+            <label class="d-block">Role</label>
+            <select class="form-control ng-pristine ng-valid ng-touched"
+              [(ngModel)]="agreementSponsor.sponsorRoleTypeCode"
+              (ngModelChange)="isOrganisationFormChanged = true;setRoleDropdownValue()">
+              <option value=null>--Select--</option>
+              <option [value]="role.sponsorRoleTypeCode" *ngFor="let role of result?.sponsorRoles"
+              [hidden]="role.isActive != 'Y'">
+                {{role.description}}</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row pt-4">
+          <div class="col-md-6 col-12">
+            <label class="d-block">Address Line 1</label>
+            <textarea style="height: 35px;" placeholder="Address Line 1" [(ngModel)]="newObject.addressLine1" rows="2"
+              class="form-control" (ngModelChange)="isOrganisationFormChanged = true;"
+              [disabled]="isDisabled"></textarea>
+          </div>
+          <div class="col-md-6 col-12">
+            <label class="d-block">Address Line 2</label>
+            <textarea style="height: 35px;" placeholder="Address Line 2" [(ngModel)]="newObject.addressLine2" rows="2"
+              class="form-control" (ngModelChange)="isOrganisationFormChanged = true;"
+              [disabled]="isDisabled"></textarea>
+          </div>
+        </div>
+        <div class="form-row pt-4">
+          <div class="col-md-3 col-12">
+            <label class="d-block">City</label>
+            <input style="height: 35px;" placeholder="City" [(ngModel)]="newObject.organisationCity"
+              class="form-control" (ngModelChange)="isOrganisationFormChanged = true;" [disabled]="isDisabled" />
+          </div>
+          <div class="col-md-3 col-12">
+            <label class="d-block">State</label>
+            <input style="height: 35px;" placeholder="State" [(ngModel)]="newObject.organisationState"
+              class="form-control" (ngModelChange)="isOrganisationFormChanged = true;" [disabled]="isDisabled" />
+          </div>
+          <div class="col-md-3 col-12">
+            <label class="d-block">ZipCode</label>
+            <input style="height: 35px;" placeholder="ZipCode" [(ngModel)]="newObject.organisationZipCode"
+              class="form-control" (ngModelChange)="isOrganisationFormChanged = true;" [disabled]="isDisabled" />
+          </div>
+          <div class="col-md-3 col-12">
+            <label class="d-block">Country</label>
+            <input  *ngIf="isSelectedOrganization" style="height: 35px;" placeholder="Country" [(ngModel)]="newObject.organisationCountry"
+              class="form-control" (ngModelChange)="isOrganisationFormChanged = true;" [disabled]="isDisabled" />
+              <app-endpoint-search *ngIf="!isSelectedOrganization" [httpOptions]="countrySearchOptions" [placeHolder]="'Type here for Country'"
+              (onSelect)="countryChangeFunction($event)">
+            </app-endpoint-search>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-dismiss="modal" id="agreement-approve-close"
+          type="button" (click)="isSelectedOrganization=true;organisationMap.clear();isEditOrganisation=false;">Close</button>
+        <button id="agreement-approve-disapprove-btn" class="btn btn-primary-sub btn-sm"
+          (click)="addOrganisationDetails();" type="button">
+          {{ isEditOrganisation ? 'Update' : 'Add' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Contacts Modal -->
+<div class="modal fade mySkinDialog" id="add-contacts-modal" tabindex="-1" role="dialog"
+  aria-labelledby="skippedSchedulesTitle" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Contact Details</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="clearContactDetails()">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="col-md-3 col-12">
+            <label>Salutation</label>
+            <select [(ngModel)]="contactPersons.salutation" class="form-control ng-pristine ng-valid ng-touched wd-100">
+              <option value=null>--select--</option>
+              <option value="Mr">Mr</option>
+              <option value="Miss">Miss</option>
+              <option value="Mrs">Mrs</option>
+              <option value="Ms">Ms</option>
+              <option value="Dr">Dr</option>
+              <option value="Prof">Prof</option>
+            </select>
+          </div>
+          <div class="col-md-5 col-sm-4 col-12">
+            <label><span class="mandatory">*</span>Person</label>
+            <input class="form-control ng-pristine ng-valid ng-touched"
+              [ngClass]="(organisationMap.get('contactPerson'))? 'is-invalid d-block' : ''"
+              [(ngModel)]="contactPersons.contactPersonName" placeholder="First Name, Last Name" type="text">
+            <div *ngIf="(organisationMap.get('contactPerson'))" class="invalid-feedback d-block">
+              Please provide a Contact person.
+            </div>
+          </div>
+          <div class="col-md-4 col-12">
+            <label><span class="mandatory">*</span>Type</label>
+            <select class="form-control dateBox"
+              [ngClass]="(organisationMap.get('contactType')) || (organisationMap.get('contactTypeDuplication'))? 'is-invalid d-block' : ''"
+              [(ngModel)]="contactPersons.agreementSponsorContactType" (ngModelChange)="agreementTypeChange()">
+              <option value=null>--select--</option>
+              <option *ngFor="let type of result?.agreementSponsorContactTypes" [ngValue]="type"
+              [hidden]="type.isActive != 'Y'">
+                {{type?.description}}
+              </option>
+            </select>
+            <div *ngIf="(organisationMap.get('contactType'))" class="invalid-feedback d-block">
+              Please select a Contact type.
+            </div>
+            <div *ngIf="(organisationMap.get('contactTypeDuplication'))" class="invalid-feedback d-block">
+              Primary contact already existing.
+            </div>
+          </div>
+        </div>
+        <div class="form-row pt-4">
+          <div class="col-md-4 col-sm-5 col-12">
+            <label>Designation</label>
+            <input class="form-control ng-pristine ng-valid ng-touched" [(ngModel)]="contactPersons.designation"
+              type="text" placeholder="Designation">
+          </div>
+          <div class="col-md-4 col-sm-5 col-12">
+            <label><span class="mandatory">*</span>E-mail</label>
+            <input class="form-control ng-pristine ng-valid ng-touched"
+              [ngClass]="(organisationMap.get('email'))? 'is-invalid d-block' : ''"
+              [(ngModel)]="contactPersons.contactEmailId" type="text" placeholder="E-mail">
+            <div *ngIf="(organisationMap.get('email'))" class="invalid-feedback d-block">
+              Please provide a valid E-mail.
+            </div>
+          </div>
+          <div class="col-md-4 col-sm-5 col-12">
+            <label>Phone Number</label>
+            <input class="form-control ng-pristine ng-valid ng-touched" [(ngModel)]="contactPersons.contactPhone"
+              type="text" placeholder="Phone"
+              [ngClass]="organisationMap.has('phoneNumberWarning') ? 
+              'd-inline-block form-control ng-pristine ng-valid is-invalid d-block ng-touched' : 
+              'd-inline-block form-control ng-pristine ng-valid ng-touched'" >
+              <div class="invalid-feedback block-display" *ngIf="organisationMap.has('phoneNumberWarning')">
+                {{organisationMap.get('phoneNumberWarning')}}
+            </div>
+            <div class="invalid-feedback block-display" *ngIf="organisationMap.has('phoneNumberWarningAlphabets')">
+                {{ organisationMap.get('phoneNumberWarningAlphabets') }}
+            </div>
+          </div>
+        </div>
+        <div class="form-row pt-4" *ngIf="showCopyOption">
+          <div class="col-12">
+            <span class="ml-4">
+              <input type="checkbox" class="form-check-input mt-2" name="copyaddress" id="copyaddress"
+              [checked]="isAddressCopied" (change)="setContactAddress($event);">
+              <label class="form-check-label ml-2" for="exampleCheck1">Copy sponsor/organisation address</label>
+            </span>
+          </div>
+        </div>   
+       <div class="form-row pt-2">
+         <div class="col-md-12 col-12">
+            <label>Address</label>
+            <textarea style="height: 35px;" class="form-control ng-pristine ng-valid ng-touched" placeholder="Address"
+              [(ngModel)]="contactPersons.contactAddressLine" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div *ngIf="isOrganisationEditMode"
+          class="row flex-sm-row justify-content-md-end justify-content-center mr-0 mt-0 mb-3">
+            <button class="btn btn-secondary btn-sm mr-3" data-dismiss="modal" id="agreement-approve-close"
+            type="button" (click)="clearContactDetails()">Close</button>
+          <button *ngIf="contactIndex == -1" class="btn btn-primary-sub btn-xs"
+            (click)="saveOrUpdateOrganisationContact()">Add
+            Contact</button>
+          <button *ngIf="contactIndex > -1" class="btn btn-primary-sub btn-xs"
+            (click)="saveOrUpdateOrganisationContact('edit')">Update
+            Contact</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- DELETE ORGANISATION CONTACT MODAL -->
+<div class="modal fade mySkinDialog" id="delete-organisation-contact-modal" role="dialog" data-backdrop="static"
+  data-keyboard="false">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header ct-footer-padding">
+        <h4 class="modal-title">Delete</h4>
+      </div>
+      <div class="modal-body ct-modal-padding">
+        <div class="row">
+          <div class="col-lg-12">
+            <p>Are you sure you want to delete this contact?</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer ct-footer-padding">
+        <button id="deleteassociationId" type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+        <button (click)="deleteAgreementSponsorContact()" type="button" class="btn btn-primary-sub"
+          data-dismiss="modal">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- DELETE ORGANISATION MODAL ENDS-->
+
+<!-- DELETE ORGANISATION MODAL -->
+<div class="modal fade mySkinDialog" id="deleteSponsorModal" role="dialog" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header ct-footer-padding">
+        <h4 class="modal-title">Delete</h4>
+      </div>
+      <div class="modal-body ct-modal-padding">
+        <div class="row">
+          <div class="col-lg-12">
+            <p>Are you sure you want to delete this sponsor?</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer ct-footer-padding">
+        <button id="deleteassociationId" type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+        <button (click)="deleteSponsor()" type="button" class="btn btn-primary-sub" data-dismiss="modal">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button [hidden]="true" id="organisationSaveModalBtn" data-toggle="modal" data-target="#organisationSaveModal"></button>
+<!-- ORGANISATION SAVE MODAL -->
+<div class="modal fade mySkinDialog" id="organisationSaveModal" role="dialog" data-backdrop="static"
+  data-keyboard="false">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header ct-footer-padding">
+        <h4 class="modal-title" (click)="isDisabled=false;">Add Organization</h4>
+      </div>
+      <div class="modal-body ct-modal-padding">
+        <div class="row">
+          <div class="col-lg-12">
+            <p>Do you want to add the organization to search dropdown for future use?</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer ct-footer-padding">
+        <button (click)="saveOrUpdateOrganisationServiceCall()" type="button" class="btn btn-secondary"
+          data-dismiss="modal">No</button>
+        <button (click)="saveOrganisationToSearch()" type="button" class="btn btn-primary-sub"
+          data-dismiss="modal">Yes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ORGANISATION SAVE MODAL ENDS-->
+<!-- Confirmation Modal -->
+<div class="modal fade mySkinDialog" id="confirmOrganisationEditModal" role="dialog" data-backdrop="static"
+  data-keyboard="false">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header ct-footer-padding">
+        <h4 class="modal-title">Confirmation
+        </h4>
+        <button type="button" class="close" data-dismiss="modal" id="dissmiss-btn" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body ct-modal-padding">
+        <div class="row mt-2 mb-0">
+          <div class="col-lg-12">
+            <p>Contacts have been added to this organization. Do you want to continue?</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer ct-footer-padding">
+        <button id="nego-sumbit-no-btn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">No</button>
+        <button type="button" class="btn btn-primary-sub btn-sm" (click)="isNewOrganisation = true;"
+          data-dismiss="modal">Continue</button>
+      </div>
+    </div>
+  </div>
+</div>

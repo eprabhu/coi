@@ -1,0 +1,185 @@
+<app-common-modal [modalConfig]="modalConfig" (modalAction)="personEligibilityModalAction($event)">
+    <!-- header -->
+    <ng-container modal-header>
+        <span>{{ personEligibilityModalConfig?.isEditMode ? 'Update Eligibility' : 'Modify Eligibility' }}</span>
+    </ng-container>
+
+    <ng-container modal-body>
+        <div class="row row-gap-3">
+            <ng-container *ngFor="let fieldOrder of EligibilityModalFieldOrder">
+                <!-- Person Name -->
+                <div *ngIf="fieldOrder === 'PERSON'" class="col-12"
+                    title="Click here to search by person name" aria-label="Person search field"
+                    role="searchbox">
+                    <span class="d-block coi-text-dark" id="person-elg-person-search">
+                        <span class="mandatory me-1">*</span>
+                        <span>Name</span>
+                    </span>
+                    <app-endpoint-search (onSelect)="selectedPersonDetails($event)" [clearField]="advSearchClearField"
+                        [httpOptions]="OPAPersonSearchOptionsForPersonList" [placeHolder]="'Search by Person'"
+                        [uniqueId]="'rev-dash-eligible-person-name'" [canEmitSearchText]="true"
+                        [isDisabled]="isFieldDisabled('person')">
+                    </app-endpoint-search>
+                    <span *ngIf="mandatoryList?.has('person')" class="invalid-feedback d-inline fs-13">
+                        {{mandatoryList?.get('person')}}
+                    </span>
+                    <!-- Person Details Card - Only shown when person is selected -->
+                    <ng-container *ngIf="personEligibilityForm?.personFullName">
+                        <div class="card coi-card-regular coi-card-highlight overflow-hidden">
+                            <div class="card-body">
+                                <div class="row row-gap-2">
+                                    <!-- Person Name -->
+                                    <div class="col-12 mb-2"
+                                        [attr.aria-label]="'Person name is ' + (personEligibilityForm?.personFullName || 'empty')">
+                                        <span  class="coi-text-dark d-block">Name</span>
+                                        <div id="person-elg-person-name" class="text-slice">
+                                            <app-no-data-label [valueToShow]="personEligibilityForm?.personFullName">
+                                                <span [title]="personEligibilityForm?.personFullName"
+                                                    class="coi-text-light">{{personEligibilityForm?.personFullName}}</span>
+                                            </app-no-data-label>
+                                        </div>
+                                    </div>
+                                    <!-- Department Name -->
+                                    <div class="col-lg-4 col-md-6 col-12"
+                                        [attr.aria-label]="'Department is ' + (personEligibilityForm?.unitName || 'empty')">
+                                        <span class="coi-text-dark d-block">Department</span>
+                                        <div id="person-elg-department-name" class="text-slice">
+                                            <app-no-data-label [valueToShow]="personEligibilityForm?.unitName">
+                                                <span [title]="personEligibilityForm?.unitName"
+                                                    class="coi-text-light">{{personEligibilityForm?.unitName}}</span>
+                                            </app-no-data-label>
+                                        </div>
+                                    </div>
+        
+                                    <!-- Appointment Title -->
+                                    <div class="col-lg-4 col-md-6 col-12"
+                                        [attr.aria-label]="'Appointment Title is ' + (personEligibilityForm?.appointmentTitle || 'empty')">
+                                        <span class="coi-text-dark d-block">Appointment Title</span>
+                                        <div id="person-elg-appointment-title" class="text-slice">
+                                            <app-no-data-label [valueToShow]="personEligibilityForm?.appointmentTitle">
+                                                <span [title]="personEligibilityForm?.appointmentTitle"
+                                                    class="coi-text-light">{{personEligibilityForm?.appointmentTitle}}</span>
+                                            </app-no-data-label>
+                                        </div>
+                                    </div>
+        
+                                    <!-- Needs OPA -->
+                                    <div class="col-lg-4 col-md-6 col-12"
+                                        [attr.aria-label]="'OPA Required (HR Feed) is ' + (personEligibilityForm?.canCreateOPA !== null ? (personEligibilityForm?.canCreateOPA ? 'Yes' : 'No') : 'empty')">
+                                        <span class="coi-text-dark d-block">OPA Required (HR Feed)</span>
+                                        <div id="person-elg-can-create-opa" class="text-slice">
+                                            <app-no-data-label [valueToShow]="personEligibilityForm?.canCreateOPA !== null ? (personEligibilityForm?.canCreateOPA ? 'Yes' : 'No') : null">
+                                                <span [title]="personEligibilityForm?.canCreateOPA !== null ? (personEligibilityForm?.canCreateOPA ? 'Yes' : 'No') : ''"
+                                                    class="coi-text-light">{{personEligibilityForm?.canCreateOPA !== null ? (personEligibilityForm?.canCreateOPA ? 'Yes' : 'No') : ''}}</span>
+                                            </app-no-data-label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </ng-container>
+                </div>
+                <!-- Force Allow OPA Creation -->
+                <div *ngIf="fieldOrder === 'ADMIN_OVERRIDE'" class="position-relative col-md-12 col-lg-3">
+                    <span class="d-block coi-text-dark" id="person-elg-admin-force-allowed">
+                        <span>Force Allow OPA Creation</span>
+                    </span>
+                    <app-toggle-checkbox [isToggled]="personEligibilityForm?.createOpaAdminForceAllowed"
+                        [toggleValue]="['No', 'Yes']" (toggleClick)="onAdminOverrideToggle($event)"
+                        [label]="'Force Allow OPA Creation'" [isDisabled]="!canEditPersonEligibility">
+                    </app-toggle-checkbox>
+                </div>
+                <!-- Exempt Form OPA -->
+                <div *ngIf="fieldOrder === 'EXEMPT_FROM_OPA'" class="position-relative col-md-12 col-lg-3">
+                    <span class="d-block coi-text-dark" id="person-elg-exempt-from-opa">
+                        <span>Exempt From OPA</span>
+                    </span>
+                    <app-toggle-checkbox [isToggled]="personEligibilityForm?.isExemptFromOPA"
+                        [toggleValue]="['No', 'Yes']" (toggleClick)="onExemptFromOPAToggle($event)"
+                        [label]="'Exempt From OPA'" [isDisabled]="!canEditPersonEligibility">
+                    </app-toggle-checkbox>
+                </div>
+                <!-- period -->
+                 <div *ngIf="fieldOrder === 'PERIOD' && personEligibilityForm?.isExemptFromOPA" class="position-relative col-12">
+                    <div class="d-flex">
+                        <span class="d-block coi-text-dark" id="person-elg-exempt-from-date">
+                            <span class="mandatory me-1" *ngIf="personEligibilityForm?.isExemptFromOPA">*</span>
+                            <span>Exemption Period</span>
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-center align-items-center gap-2">
+                        <div class="col mb-auto">
+                            <span class="dateField">
+                                <input #startDateInput matInput [matDatepicker]="startDate" id="person-elg-exempt-from-date"
+                                    placeholder="FROM date ({{datePlaceHolder}})"
+                                    (click)="startDate.open()" autocomplete="off" class="d-inline-block form-control"
+                                    [(ngModel)]="personEligibilityForm.opaExemptFromDate"
+                                    (ngModelChange)="onDateSelect(); checkIsMandatoryFieldsFilled(); validateDateFormat('startDate')"
+                                    (blur)="validateDateFormat('startDate')" (dateChange)="validateDateFormat('startDate')"
+                                    (keypress)="commonService._keyPress($event, 'date')"
+                                    [disabled]="isFieldDisabled('opaExemptFromDate') || !canEditPersonEligibility" />
+                                <button id="person-eligibility-from-date-btn" title="Click here to select the OPA exempt from date"
+                                    class="btn-none insidePicker"
+                                    aria-label="Click here to select the OPA exempt from date"
+                                    (click)="startDate.open()" (keyup.enter)="startDate.open()">
+                                    <mat-icon aria-hidden="true"
+                                    class="coi-mat-icon-size coi-text-light">calendar_month</mat-icon>
+                                </button>
+                                <mat-datepicker #startDate></mat-datepicker>
+                            </span>
+                            <span *ngIf="mandatoryList.get('opaExemptFromDate') || dateValidationMap.get('startDate')"
+                                class="d-block fs-13 invalid-feedback">{{ mandatoryList.get('opaExemptFromDate') || dateValidationMap.get('startDate') }}</span>
+                        </div>
+                        <span class="mt-1 mb-auto">-</span>
+                        <div class="col mb-auto">
+                            <span class="dateField">
+                                <input #endDateInput matInput [matDatepicker]="endDate" id="person-elg-exempt-to-date"
+                                    placeholder="TO date ({{datePlaceHolder}})"
+                                    (click)="endDate.open()" autocomplete="off" class="d-inline-block form-control"
+                                    [(ngModel)]="personEligibilityForm.opaExemptToDate"
+                                    (ngModelChange)="onDateSelect(); validateDateFormat('endDate')"
+                                    (blur)="validateDateFormat('endDate')" (dateChange)="validateDateFormat('endDate')"
+                                    (keypress)="commonService._keyPress($event, 'date')"
+                                    [disabled]="isFieldDisabled('opaExemptToDate') || !canEditPersonEligibility" />
+                                <button id="person-eligibility-to-date-btn" title="Click here to select the OPA exempt to date"
+                                    class="btn-none insidePicker"
+                                    aria-label="Click here to select the OPA exempt to date"
+                                    (click)="endDate.open()" (keyup.enter)="endDate.open()">
+                                    <mat-icon aria-hidden="true"
+                                    class="coi-mat-icon-size coi-text-light">calendar_month</mat-icon>
+                                </button>
+                                <mat-datepicker #endDate></mat-datepicker>
+                            </span>
+                            <span *ngIf="mandatoryList.get('opaExemptToDate') || dateValidationMap.get('endDate')"
+                                class="d-block fs-13 invalid-feedback">{{ mandatoryList.get('opaExemptToDate') || dateValidationMap.get('endDate') }}</span>
+                        </div>
+                    </div>
+                 </div>
+                <!-- Exemption Justification -->
+                <div *ngIf="fieldOrder === 'EXEMPTION_JUSTIFICATION' && personEligibilityForm?.isExemptFromOPA" class="position-relative col-md-12 col-lg-12">
+                    <label class="d-block coi-text-dark" for="person-elg-exempt-reason">
+                        <span>Exemption Justification</span>
+                    </label>
+                    <input type="text" class="form-control" id="person-elg-exempt-reason" name="opa-exemption-reason"
+                        [(ngModel)]="personEligibilityForm.opaExemptionReason"
+                        (ngModelChange)="changeEvent('opaExemptionReason')"
+                        [disabled]="isFieldDisabled('opaExemptionReason') || !canEditPersonEligibility" appLengthValidator [limit]="500"
+                        [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'">
+                </div>
+            </ng-container>
+        </div>
+        <ng-container *ngIf="isShowErrorMessage">
+            <div class="col-12 mt-4">
+                <div class="alert alert-danger fs-14 shadow-sm m-0 gap-2" role="alert"
+                    attr.aria-label="Error: `You don’t have permission to modify this person’s eligibility for their department.`">
+                    <div class="d-flex align-items-start alert-heading flex-column">
+                        <div class="d-flex align-items-center gap-1">
+                            <mat-icon class="fs-4 text-danger flex-shrink-0 mb-auto" aria-hidden="true">error</mat-icon>
+                            <span>You don’t have permission to modify this person’s eligibility for their department.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+    </ng-container>
+</app-common-modal>

@@ -1,0 +1,114 @@
+<ng-container *ngIf="matrixResArr.length">
+    <div *ngIf="!isMatrixComplete && isEditMode" class="d-block fs-14 invalid-feedback" [ngClass]="commonService.engagementFlowType === flow3 ? 'mt-4' : 'm-0'"><span class="mandatory me-1">*</span>Please provide at least one value.</div>
+    <div class="custom-table-responsive position-relative mt-3">
+        <table class="table table-bordered" id="coi-engagement-matrix-table">
+            <caption class="sr-only">Review</caption>
+            <thead>
+                <tr id="coi-engagement-matrix-table-thead-tr" class="sticky-table-header">
+                    <th role="presentation" class="coi-text-dark matrix-header fs-16 col-auto"></th>
+                    <th class="coi-text-dark matrix-header fs-16 col-2" *ngFor="let column of columnList; let lastItem = last"
+                        [attr.colspan]="(lastItem && isEditMode) ? 2 : 1">{{ column }}</th>
+                </tr>
+            </thead>
+            <tbody *ngFor="let relationship of matrixFormValue | keyvalue: keepOriginalOrder; let isFirst = first; let index = index"
+                id="coi-engagement-matrix-table-tbody-tr-{{index}}">
+                <tr>
+                    <td class="coi-text-dark fs-16 fw-600 matrix-colspan-row" colspan="100">{{ relationship.key }}</td>
+                </tr>
+                <tr *ngFor="let relation of relationship.value; let last = last; let relationIndex = index">
+                    <td class="coi-text-light fs-14">
+                    <div [innerHTML]="relation?.coiMatrixQuestion?.columnLabel | safe"></div>
+                    </td>
+                    <td class="coi-text-dark fs-14">
+                        <ng-container *ngIf="checkForRelationsExists(relation?.relationships, '1')">
+                            <ng-container *ngIf="relation?.coiMatrixQuestion?.answerTypeCode === '1'">
+                                <app-dynamic-select class="d-flex flex-column gap-2 p-1" [isDisabled]="!isEditMode"
+                                    [uniqueId]="relation?.coiMatrixQuestion?.matrixQuestionId+'1'+index"
+                                    [lookupList]="matrixLookups[relation?.coiMatrixQuestion?.lookupType + '#' + relation?.coiMatrixQuestion?.lookupValue]"
+                                    [selectedValue]="lookUpValues[relation?.coiMatrixQuestion?.matrixQuestionId+'1']"
+                                    (selectedValueChange)="onLookupSelect($event, relation, '1')">
+                                </app-dynamic-select>
+                            </ng-container>
+                            <ng-container *ngIf="relation?.coiMatrixQuestion?.answerTypeCode === '2'">
+                                <div *ngFor="let answer of relation?.coiMatrixAnswer">
+                                    <ng-container *ngIf="answer.relationshipTypeCode === '1'">
+                                        <input type="text" autocomplete="off" class="form-control"
+                                            [(ngModel)]="answer.columnValue" maxLength="500" [title]="answer.columnValue"
+                                            (ngModelChange)="setIsTextChanged(answer, 'CV')"
+                                            [disabled]="!isEditMode">
+                                            <!-- (focusout)="insertIntoMatrixAnswer(answer, 'CV')" -->
+                                    </ng-container>
+                                </div>
+                            </ng-container>
+                        </ng-container>
+                    </td>
+                    <td class="coi-text-dark fs-14">
+                        <ng-container *ngIf="checkForRelationsExists(relation?.relationships, '2')">
+                            <ng-container *ngIf="relation?.coiMatrixQuestion?.answerTypeCode === '1'">
+                                <app-dynamic-select class="d-flex flex-column gap-2 p-1" [isDisabled]="!isEditMode"
+                                    [uniqueId]="relation?.coiMatrixQuestion?.matrixQuestionId+'2'+index"
+                                    [lookupList]="matrixLookups[relation?.coiMatrixQuestion?.lookupType + '#' + relation?.coiMatrixQuestion?.lookupValue]"
+                                    [selectedValue]="lookUpValues[relation?.coiMatrixQuestion?.matrixQuestionId+'2']"
+                                    (selectedValueChange)="onLookupSelect($event, relation, '2')">
+                                </app-dynamic-select>
+                            </ng-container>
+                            <ng-container *ngIf="relation?.coiMatrixQuestion?.answerTypeCode === '2'">
+                                <div *ngFor="let answer of relation?.coiMatrixAnswer">
+                                    <ng-container *ngIf="answer.relationshipTypeCode === '2'">
+                                        <input type="text" autocomplete="off" class="form-control"
+                                            [(ngModel)]="answer.columnValue" maxLength="500" [title]="answer.columnValue"
+                                            (ngModelChange)="setIsTextChanged(answer, 'CV')"
+                                            [disabled]="!isEditMode">
+                                            <!-- (focusout)="insertIntoMatrixAnswer(answer, 'CV')"  -->
+                                    </ng-container>
+                                </div>
+                            </ng-container>
+                        </ng-container>
+                    </td>
+                    <td class="coi-text-dark fs-14">
+                        <ng-container *ngIf="checkForRelationsExists(relation?.relationships, '3')">
+                            <ng-container *ngIf="relation?.coiMatrixQuestion?.answerTypeCode === '1'">
+                                <app-dynamic-select class="d-flex flex-column gap-2 p-1" [isDisabled]="!isEditMode"
+                                    [uniqueId]="relation?.coiMatrixQuestion?.matrixQuestionId+'3'+index"
+                                    [lookupList]="matrixLookups[relation?.coiMatrixQuestion?.lookupType + '#' + relation?.coiMatrixQuestion?.lookupValue]"
+                                    [selectedValue]="lookUpValues[relation?.coiMatrixQuestion?.matrixQuestionId+'3']"
+                                    (selectedValueChange)="onLookupSelect($event, relation, '3')">
+                                </app-dynamic-select>
+                            </ng-container>
+                            <ng-container *ngIf="relation?.coiMatrixQuestion?.answerTypeCode === '2'">
+                                <div *ngFor="let answer of relation?.coiMatrixAnswer">
+                                    <ng-container *ngIf="answer.relationshipTypeCode === '3'">
+                                        <input type="text" autocomplete="off" class="form-control"
+                                            [(ngModel)]="answer.columnValue" maxLength="500" [title]="answer.columnValue"
+                                            (ngModelChange)="setIsTextChanged(answer, 'CV')"
+                                            [disabled]="!isEditMode">
+                                            <!-- (focusout)="insertIntoMatrixAnswer(answer, 'CV')"  -->
+                                    </ng-container>
+                                </div>
+                            </ng-container>
+                        </ng-container>
+                    </td>
+                    <td class="coi-text-dark fs-14">
+                        <textarea id="coi-conflict-status-change" class="form-control fs-14" autocomplete="off"
+                            [(ngModel)]="relation.coiMatrixAnswer[0].comments" rows="3" appLengthValidator [limit]="500" [isShowLimiter]="false"
+                            (ngModelChange)="setCommentChanged(relation, relation.coiMatrixAnswer[0].comments)"
+                            [disabled]="!isEditMode" [title]="relation.coiMatrixAnswer[0].comments"
+                            [ngClass]="{'is-invalid d-block': projectConflictValidationMap?.has('comment')}">
+                        </textarea>
+                    </td>
+                    <td *ngIf="isEditMode" class="coi-text-dark fs-14 align-middle">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <button (click)="clearMatrix(relation)" id="coi-eng-matrix-row-clear-{{relationIndex}}"
+                                [disabled]="commonService.hasChangesAvailable || commonService.autoSaveSavingSpinner !== 'HIDE'"
+                                title="Click to clear this row's values"
+                                aria-label="Click to clear this row's values"
+                                class="btn btn-outline-grey btn-sm">
+                                <span>Clear</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</ng-container>

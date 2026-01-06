@@ -1,0 +1,319 @@
+<div class="row" id="agreement-basic-details">
+  <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+    <div class="card mb-3">
+      <div class="card-header p-3">
+        <span class="card-title d-inline-block person-title ml-3">Project Associations</span>
+        <button class="updown-arrow" (click)="isShowProjectAssociations = !isShowProjectAssociations">
+          <i [ngClass]="!isShowProjectAssociations?'fa-large fa fa-angle-double-down':'fa-large fa fa-angle-double-up'"
+            class="fa-large" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="card-content" *ngIf="isShowProjectAssociations">
+        <div class="card-body pt-2">
+           <div class="align-items-center d-flex justify-content-between ng-star-inserted px-3 py-2 success-banner">
+            <div>
+              <i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i>
+              <em>Select a proposal or an award or an agreement to link. If none, enter the information manually
+                below.</em>
+            </div>
+          </div>
+          <div class="form-row mt-2" *ngIf="isViewMode">
+            <div class="col-auto">
+              <label class="d-block">Link To :</label>
+            </div>
+            <div class="col-11 d-flex">
+              <div *ngFor="let module of result?.moduleList" class="mr-5">
+                <input class="radio-inline pointer" type="radio" name="{{module.moduleCode}}" [(ngModel)]="moduleCode"
+                  value="{{module.moduleCode}}" (change)="setElasticSearchOption();">
+                <label class="mr-3">{{module?.description}}</label>
+              </div>
+            </div>
+            <div class="col-12" *ngIf="moduleCode !== ''">
+              <app-elastic [options]="elasticSearchOption" [placeHolder]="placeHolderValue"
+                (selectedResult)="selectModuleFromElastic($event)" [clearField]="clearField">
+              </app-elastic>
+            </div>
+          </div>
+          <div *ngIf="moduleArray?.length == 0 && !isViewMode" class=" noDataOnChart noDataExists">
+            <div class="no-data-container">
+              <span class="no-data-icon-outer">
+                <div class="no-data-icon">
+                  <i aria-hidden="true" class="fa fa-file-o"></i>
+                  <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                </div>
+              </span>
+              <h4>There is no information in this section.</h4>
+            </div>
+          </div>
+          <ul class="left-border-card mb-0 p-0" style="list-style: none;">
+            <li class="list-style mt-2 p-2 card-design" *ngFor="let module of moduleArray;let index = index">
+              <div class="row" *ngIf="module">
+                <div class="col-4 col-auto">
+                  <label class="card-label" *ngIf="module?.moduleCode == '1'">Award Number:</label>
+                  <span [ngClass]="module?.moduleItemKey ? '' : 'noDataExists'"
+                    *ngIf="module.moduleCode == '1'">{{module.moduleItemKey ? module.moduleItemKey : 'No Data'}}</span>
+                  <label class="card-label mr-2" *ngIf="module?.moduleCode == '2'">Institute Proposal
+                    Number:</label><span [ngClass]="module?.moduleItemKey ? '' : 'noDataExists'"
+                    *ngIf="module.moduleCode == '2'">{{module?.moduleItemKey ? module?.moduleItemKey : 'No
+                    Data'}}</span>
+                  <label class="card-label mr-2" *ngIf="module?.moduleCode == '3'">Development Proposal
+                    Number:</label><span [ngClass]="module?.moduleItemKey ? '' : 'noDataExists'"
+                    *ngIf="module.moduleCode == '3'">{{module?.moduleItemKey ? module?.moduleItemKey : 'No
+                    Data'}}</span>
+                  <label class="card-label mr-2" *ngIf="module?.moduleCode == '13'">Agreement Number:</label><span
+                    [ngClass]="module?.moduleItemKey ? '' : 'noDataExists'"
+                    *ngIf="module.moduleCode == '13'">{{module?.moduleItemKey ? module?.moduleItemKey : 'No
+                    Data'}}</span>
+                </div>
+                <div class="col-5 col-auto">
+                  <label class="card-label mr-2">Title:</label><span
+                    [ngClass]="module.title ? '' : 'noDataExists'">{{module?.title ? module?.title : 'No Data'}}</span>
+                </div>
+                <div class="col-3 col-auto">
+                  <label class="card-label mr-2">Status:</label><span
+                    [ngClass]="module.status ? '' : 'noDataExists'">{{module?.status ? module?.status : 'No
+                    Data'}}</span>
+                </div>
+              </div>
+              <div class="row" *ngIf="module">
+                <div class="col-4 col-auto">
+                  <label class="card-label mr-2">Lead Unit:</label><span
+                  [ngClass]="module.leadUnitName ? '' : 'noDataExists'">
+                  {{module?.leadUnitName ? concatUnitNumberAndUnitName(module?.leadUnitNumber,module?.leadUnitName) : 'No Data' }}</span>
+                </div>
+                <div class="col-5 col-auto">
+                  <label class="card-label mr-2">Sponsor:</label>
+                  <span [ngClass]="module.sponsorName ? '' : 'noDataExists'">{{module.sponsorName ? module.sponsorName:
+                    'No Data'}}</span>
+                </div>
+                <div class="col-2 col-auto">
+                  <label class="card-label mr-2">PI:</label><span
+                    [ngClass]="module.piName !== ' ' && module.piName != null ? '' : 'noDataExists'">{{module.piName !==
+                    ' ' && module.piName != null ? module.piName : 'No Data'}}</span>
+                </div>
+                <div class="col-1 text-right" *ngIf="module && module?.moduleCode != '1'">
+                  <i class="fa fa-external-link-square external-link pointer" aria-hidden="true"
+                    title="Click here to open #{{module.moduleItemKey}}:{{module.title}}"
+                    (click)="goToExternalLink(module.moduleCode,module.moduleItemId,module.moduleItemKey)"></i>
+                  <i class="fa fa-trash-o ml-3 pointer" aria-hidden="true" data-toggle="modal" *ngIf="isViewMode"
+                    data-target="#deleteModal"
+                    (click)="deleteModuleItemKey = module?.moduleCode == '13' ? module.moduleItemKey : module.moduleItemId;deleteModuleCode = module.moduleCode;deleteIndex = index"
+                    title="Click here to delete #{{module.moduleItemKey}}:{{module.title}}"></i>
+                </div>
+              </div>
+              <div class="row" *ngIf="module && module?.moduleCode == '1'">
+                <div class="col-4">
+                  <label class="card-label">Account ID:</label>
+                  <span [ngClass]="module?.accountNumber ? '': 'noDataExists' "
+                    *ngIf="module.moduleCode == '1'">{{module?.accountNumber ? module?.accountNumber : 'No
+                    Data'}}</span>
+                </div>
+                <div class="col-8 text-right">
+                  <i class="fa fa-external-link-square external-link pointer" aria-hidden="true"
+                    title="Click here to open #{{module.moduleItemKey}}:{{module.title}}"
+                    (click)="goToExternalLink(module.moduleCode,module.moduleItemId,module.moduleItemKey)"></i>
+                  <i class="fa fa-trash-o ml-3 pointer" aria-hidden="true" data-toggle="modal" *ngIf="isViewMode"
+                    data-target="#deleteModal"
+                    (click)="deleteModuleItemKey =module?.moduleCode == '13' ? module.moduleItemKey : module.moduleItemId;deleteModuleCode = module.moduleCode;deleteIndex = index"
+                    title="Click here to delete #{{module.moduleItemKey}}:{{module.title}}"></i>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="card mb-3">
+      <div class="card-header p-3 px-3">
+        <span class="card-title ml-3">
+          General Info
+          <span *ngIf="result?.agreementHeader?.agreementRequestId" class="d-inline-block float-right icon-hover mr-2 mt-1">
+            <a class="tooltip "><i class="fa fa-info-circle fa-med" aria-hidden="true"></i>
+              <div class="tooltiptext-right card card-inner p-15 text-left">
+                <span class="font-cv">Created By:</span>
+                <span class="font-cv font-weight-bold">{{result?.agreementHeader?.createUserFullName}}
+                  on
+                  {{result?.agreementHeader?.createTimeStamp | dateFormatterWithTimeZone: 'long'}}
+                </span>
+                <span class="font-cv">Last Updated By: </span><span
+                  class="font-cv font-weight-bold">{{result?.agreementHeader?.updateUserFullName}}
+                  on
+                  {{result?.agreementHeader?.updateTimestamp | dateFormatterWithTimeZone: 'long'}}</span>
+              </div>
+            </a>
+          </span>
+        </span>
+      </div>
+      <div class="card-content">
+        <div class="card-body px-4 pt-2">
+          <div class="align-items-center d-flex justify-content-between ng-star-inserted px-3 py-2 success-banner mb-2">
+            <div>
+              <i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i>
+              <em>Enter the required information, and any optional information as applicable.  Add a short description to help explain the purpose of this agreement.</em>
+              </div>
+            </div>
+            <div class="form-row">
+            <div class="col-md-6 col-12">
+              <label class="d-block"> <span class="mandatory">*</span>Research Title
+              </label>
+              <span>
+                <textarea rows="1" [styleList]="'p2 float-right word-count'" appAutoGrow placeholder="Type here for Research Title" class="form-control" id="title"
+                [ngClass]="map.has('title') ? 'lineItem-mandatory' : ''" [(ngModel)]="result.agreementHeader.title"
+                  (ngModelChange)="setUnSaveChanges(true)"
+                  appLengthValidator [isShowLimiter]='true' [limit]=1000></textarea>
+              </span>
+              <span *ngIf="map.has('title')" class="mandatory"> {{map.get('title')}}</span>
+            </div>
+            <div class="col-md-3 col-sm-6 col-12">
+              <label class="d-block">
+                <span class="mandatory">*</span> Category</label><span>
+                <select class="form-control ng-pristine ng-valid ng-touched" [(ngModel)]="result.agreementHeader.categoryCode"
+                  [ngClass]="map.has('category') ? 'lineItem-mandatory' : ''"
+                  [disabled]="fieldsModeArray[1] || !istypeEditable" (ngModelChange)="result.agreementHeader.agreementTypeCode = null;
+                  getAgreementTypeList(result.agreementHeader.categoryCode);setUnSaveChanges(true)">
+                  <option value=null>--Select--</option>
+                  <option [value]="category.categoryCode" *ngFor="let category of result?.agreementCategories" [hidden]="category.isActive != 'Y'">
+                    {{category?.description}}
+                  </option>
+                </select>
+              </span>
+              <div *ngIf="map.has('category')"> <span class="mandatory">{{map.get('category')}}</span></div>
+            </div>
+            <div class="col-md-3 col-sm-6 col-12">
+              <label class="d-block"><span class="mandatory">*</span> Type of Agreement </label>
+              <span>
+                <select class="form-control ng-pristine ng-valid ng-touched"
+                  [disabled]="!result?.agreementHeader?.categoryCode || result?.agreementHeader?.categoryCode === 'null' || fieldsModeArray[2] || !istypeEditable"
+                  [(ngModel)]="result.agreementHeader.agreementTypeCode"
+                  [ngClass]="map.has('type') ? 'lineItem-mandatory' : ''"
+                  (ngModelChange)="checkForTypeChange();setUnSaveChanges(true)">
+                  <option value=null>--Select--</option>
+                  <option [value]="type.agreementTypeCode" *ngFor="let type of agreementTypeList" [hidden]="type.isActive != 'Y'">
+                    {{type?.description}}
+                  </option>
+                </select>
+              </span>
+              <div *ngIf="map.has('type')">
+                <span class="mandatory">{{map.get('type')}}</span>
+              </div>
+            </div>
+            <div class="col-md-3 col-sm-6 col-12">
+              <label class="d-block"><span class="mandatory">*</span>Start Date </label>
+              <span class="dateField">
+                <input matInput [matDatepicker]="dt3" (click)="dt3.open()" [ngClass]="map.has('startDate') ? 'lineItem-mandatory' : ''"
+                  placeholder="{{datePlaceHolder}}" class="d-inline-block form-control ng-pristine ng-valid ng-touched"
+                  id="start-date" [(ngModel)]="result.agreementHeader.startDate" [disabled]="fieldsModeArray[3]"
+                  (ngModelChange)="_commonAgreementData.isAgreementDataChange = true; isGeneralDetailsFormChanged = true"
+                  (keypress)="_commonService._keyPress($event, 'date');" autocomplete="off">
+                <i class="fa fa-calendar fa-large pointer insidePicker" (click)="dt3.open()" aria-hidden="true"></i>
+                <mat-datepicker #dt3 (opened)="setFocusToElement('start-date')"
+                  (closed)="dateValidation()">
+                </mat-datepicker>
+              </span>
+              <div *ngIf="map.has('startDate')">
+                <span class="mandatory">{{map.get('startDate')}}</span>
+              </div>
+            </div>
+            <div class="col-md-3 col-sm-6 col-12">
+              <label class="d-block"><span class="mandatory">*</span>End Date</label>
+              <span class="dateField">
+                <input matInput [matDatepicker]="dt2" (click)="dt2.open()" placeholder="{{datePlaceHolder}}"
+                  [ngClass]="map.has('endDate') ? 'lineItem-mandatory' : ''"
+                  class="d-inline-block form-control ng-pristine ng-valid ng-touched" id="end-date"
+                  [(ngModel)]="result.agreementHeader.endDate" (keypress)="_commonService._keyPress($event, 'date');"
+                  (ngModelChange)="setUnSaveChanges(true)"
+                  [disabled]="fieldsModeArray[4]" autocomplete="off">
+                <i class="fa fa-calendar fa-large pointer insidePicker" (click)="dt2.open()" aria-hidden="true"></i>
+                <mat-datepicker #dt2 (opened)="setFocusToElement('end-date')"
+                  (closed)="dateValidation();">
+                </mat-datepicker>
+              </span>
+             <div *ngIf="map.has('endDate') && !map.has('checkendDate')">
+                <span class="mandatory">{{map.get('endDate')}}</span>
+              </div>
+              <div *ngIf="map.has('checkendDate')">
+                <span class="mandatory">{{map.get('checkendDate')}}</span>
+              </div>
+            </div>
+            <div class="col-6 col">
+              <label class="d-block"><span class="mandatory">*</span>Lead Unit</label>
+              <app-endpoint-search id="agreement-lead-unit" [clearField]="clearLeadUnitField"
+                [httpOptions]="unitHttpOptions" [placeHolder]="'Search here for Lead Unit'"
+                (onSelect)="leadUnitSelectFunction($event)" [isDisabled]="fieldsModeArray[5]"
+                [isError]="(map.get('leadUnit')) ? true : false"></app-endpoint-search>
+              <div *ngIf="map.has('leadUnit')">
+                <span class="mandatory">{{map.get('leadUnit')}}</span>
+              </div>
+            </div>
+            <div class="col-md-1 col-12">
+              <label class="d-block">Currency</label>
+              <select [(ngModel)]="result.agreementHeader.currencyCode"
+                (ngModelChange)="setCurrencySymbol();setUnSaveChanges(true)"
+                id="dropdown" class="form-control" [disabled]="fieldsModeArray[6]">
+                <option value=null>--Select--</option>
+                <option [value]="item.currencyCode" *ngFor="let item of result.currencies">
+                  {{item.currencyCode}}({{item.currencySymbol}})
+                </option>
+              </select>
+            </div>
+            <div class="col-md-2 col-12">
+              <label class="d-block">Contract Value
+              </label>
+              <span>
+                <input type="text" maxlength="10" appCurrencyFormat
+                  class="form-control" [(ngModel)]="result.agreementHeader.contractValue"
+                  (ngModelChange)="setUnSaveChanges(true)"
+                  [customCurrency]="currencySymbol" [initialValue]="result.agreementHeader.contractValue"
+                  [disabled]="fieldsModeArray[7]" />
+              </span>
+            </div>
+            <div class="col-md-9 col-12">
+              <label class="d-block">Contract Value In Words</label>
+              <input type="text" placeholder="Type here for Contract Value In Words" class="form-control"
+                [(ngModel)]="result.agreementHeader.amountInWords" [disabled]="fieldsModeArray[8]"
+                (ngModelChange)="setUnSaveChanges(true)" />
+            </div>
+            <div class="col-12">
+              <label class="d-block">Description</label>
+              <span>
+                <textarea class="form-control " appLengthValidator [isShowLimiter]='true' [limit]=4000
+                  [(ngModel)]="result.agreementHeader.remarks" (keyup)="limitComment($event,result.remarks)"
+                  [disabled]="fieldsModeArray[9]"
+                  (ngModelChange)="setUnSaveChanges(true)">
+                </textarea>
+              </span>
+            </div>
+            <div *ngIf="fieldsModeArray.includes(false)"
+              class="col-12 d-flex justify-content-sm-center justify-content-md-end btn-xs mt-4">
+              <button class="btn btn-primary-sub btn-sm btn-xs" id="agreement-save-btn"
+                *ngIf="!result?.agreementHeader?.agreementRequestId" title="Proceed'" type="button"
+                (click)="saveAgreement()">Proceed</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade mySkinDialog modal-opacity" tabindex="-1" id="deleteModal" tabindex="-1" role="dialog"
+  aria-labelledby="deleteModalTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete</h5>
+        <button id="prop-dlt-member-dismiss" type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this association?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class=" btn-secondary btn-sm" data-dismiss="modal" data-toggle="modal">Cancel</button>
+        <button id="prop-project-team-delete-btn" type="button" class="btn btn-primary-sub btn-sm"
+          (click)="deleteLinkedModules()" data-dismiss="modal">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>

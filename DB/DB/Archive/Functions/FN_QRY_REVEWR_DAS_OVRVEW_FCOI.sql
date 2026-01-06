@@ -1,0 +1,401 @@
+DELIMITER //
+CREATE FUNCTION FN_QRY_REVEWR_DAS_OVRVEW_FCOI(
+    AV_PERSON_ID VARCHAR(40),
+    JSON_INPUT JSON
+)
+RETURNS TEXT
+DETERMINISTIC
+BEGIN
+
+/*
+
+FN_QRY_REVEWR_DAS_OVRVEW_FCOI
+
+Purpose:
+ - Build and return a complete dynamic SQL (TEXT) query used by reviewer dashboard flows for the FCOI module.
+ - The returned SQL implements CTEs, filtering, grouping, pagination and SELECT field lists depending on request flags.
+ - This function does NOT execute the SQL; it only constructs and returns it as TEXT for execution by the caller.
+
+Signature:
+ - FUNCTION FN_QRY_REVEWR_DAS_OVRVEW_FCOI(AV_PERSON_ID VARCHAR(40), JSON_INPUT JSON) RETURNS TEXT
+
+Inputs (via parameters and JSON_INPUT):
+ - AV_PERSON_ID : Reviewer person identifier used in rights and workflow checks.
+ - JSON_INPUT keys used:
+   - FETCH_TYPE    : 'HEADER' or other modes controlling count vs detail selection.
+   - IS_COUNT      : boolean — when TRUE returns SQL selecting a single TOTAL_COUNT.
+   - LIMIT         : integer — page size for pagination.
+   - PAGED         : integer — page index for pagination.
+   - IS_UNLIMITED  : boolean — when TRUE disables LIMIT/OFFSET.
+   - SORT_TYPE     : string — custom ORDER BY expression (optional).
+   - Other keys may be consulted by helper functions like FN_QRY_RVW_DAS_OVRVW_FCOI_FIL_COND.
+
+Returned SQL structure (high level):
+ - Constructs base CTEs:
+    - FCOI_ACCESS_TMP : units the person has rights to (explicit and descendant units depending on DESCEND_FLAG).
+    - PROJECT_ACCESS_TMP : similar rights set for project-scoped items.
+ - Appends auxiliary CTEs when needed (ACCESS_COMMENT, PROJECT_COMMENTS, DISCL_COMMENTS, etc.) embedding AV_PERSON_ID to model comment access and reviewer relationships.
+ - Builds LS_FILTER_CONDITION by concatenating rights/workflow/assignee/admin checks and the output of FN_QRY_RVW_DAS_OVRVW_FCOI_FIL_COND(AV_PERSON_ID, JSON_INPUT).
+ - For FETCH_TYPE = 'HEADER':
+    - Returns an aggregated SELECT field list with numeric summary fields:
+      REVIEW_PENDING_COUNT, EXPIRING_COUNT, EXPIRING_DAYS, EXPIRED_COUNT, APPROVED_COUNT, etc.
+    - Minimal sorting/pagination; used to produce widget header counts.
+ - For non-HEADER:
+    - If IS_COUNT = TRUE: SELECT COUNT(DISTINCT T1.DISCLOSURE_ID) AS TOTAL_COUNT (no pagination).
+    - Else: SELECT detailed disclosure fields (extensive field list, project info, reviewer lists, attachments, comments, last-approved info).
+    - Applies GROUP BY on T1.DISCLOSURE_ID to avoid duplicates when joining multi-row relationships.
+    - Applies ORDER BY and LIMIT/OFFSET when AV_UNLIMITED is not TRUE.
+ - Returns final SQL as TEXT: a CTE block concatenated with the outer SELECT.
+
+*/
+
+
+
+    DECLARE AV_FETCH_TYPE           VARCHAR(50);
+    DECLARE JOIN_CONDITION          LONGTEXT;
+    DECLARE LS_DYN_CTE_SQL          LONGTEXT;
+    DECLARE TAB_QUERY               LONGTEXT;
+    DECLARE LS_FILTER_CONDITION     LONGTEXT;
+    DECLARE SELECTED_FIELD_LIST     LONGTEXT;
+    DECLARE LS_GROUP_CONDITION      LONGTEXT;
+    DECLARE AV_IS_COUNT             BOOLEAN DEFAULT FALSE;
+    DECLARE AV_LIMIT                INT DEFAULT 10;
+    DECLARE AV_PAGED                INT DEFAULT 0;
+    DECLARE AV_UNLIMITED            BOOLEAN DEFAULT FALSE;
+    DECLARE LS_OFFSET               INT DEFAULT 0;
+    DECLARE LS_OFFSET_CONDITION     LONGTEXT DEFAULT '';
+    DECLARE AV_SORT_TYPE            LONGTEXT DEFAULT '';
+
+    SET JOIN_CONDITION          = '';
+    SET LS_DYN_CTE_SQL          = '';
+    SET TAB_QUERY               = '';
+    SET LS_FILTER_CONDITION     = '';
+    SET SELECTED_FIELD_LIST     = '';
+    SET LS_GROUP_CONDITION      = '';
+
+
+    -- Function logic goes here
+    SET AV_FETCH_TYPE       = JSON_UNQUOTE(JSON_EXTRACT(JSON_INPUT, '$.FETCH_TYPE'));
+    SET AV_IS_COUNT         = (JSON_EXTRACT(JSON_INPUT, '$.IS_COUNT') = TRUE);
+    SET AV_LIMIT            = JSON_UNQUOTE(JSON_EXTRACT(JSON_INPUT,'$.LIMIT'));
+    SET AV_PAGED            = JSON_UNQUOTE(JSON_EXTRACT(JSON_INPUT,'$.PAGED'));
+    SET AV_UNLIMITED        = (JSON_EXTRACT(JSON_INPUT, '$.IS_UNLIMITED') = TRUE);
+    SET AV_SORT_TYPE        = JSON_UNQUOTE(JSON_EXTRACT(JSON_INPUT,'$.SORT_TYPE'));
+
+
+
+    SET LS_DYN_CTE_SQL = CONCAT('WITH FCOI_ACCESS_TMP AS ( SELECT UNIT_NUMBER
+                    FROM PERSON_ROLES T1
+                    INNER JOIN ROLE_RIGHTS T2 ON T1.ROLE_ID = T2.ROLE_ID
+                    INNER JOIN RIGHTS T3 ON T2.RIGHT_ID = T3.RIGHT_ID
+                    WHERE T1.DESCEND_FLAG = ''N'' AND T1.PERSON_ID = ''',AV_PERSON_ID,'''
+                    AND RIGHT_NAME IN (''MANAGE_FCOI_DISCLOSURE'', ''VIEW_FCOI_DISCLOSURE'')
+                    UNION
+                       SELECT UNIT_NUMBER
+                    FROM PERSON_ROLES T1
+                    INNER JOIN ROLE_RIGHTS T2 ON T1.ROLE_ID = T2.ROLE_ID
+                    INNER JOIN RIGHTS T3 ON T2.RIGHT_ID = T3.RIGHT_ID
+                    WHERE T1.DESCEND_FLAG = ''N'' AND T1.PERSON_ID = ''',AV_PERSON_ID,'''
+                    AND RIGHT_NAME IN (''VIEW_ADMIN_GROUP_COI'')
+                    UNION
+                    SELECT CHILD_UNIT_NUMBER FROM UNIT_WITH_CHILDREN
+                    WHERE UNIT_NUMBER IN (
+                    SELECT UNIT_NUMBER
+                    FROM PERSON_ROLES T1
+                    INNER JOIN ROLE_RIGHTS T2 ON T1.ROLE_ID = T2.ROLE_ID
+                    INNER JOIN RIGHTS T3 ON T2.RIGHT_ID = T3.RIGHT_ID
+                    WHERE T1.DESCEND_FLAG = ''Y'' AND T1.PERSON_ID = ''',AV_PERSON_ID,'''
+                    AND RIGHT_NAME IN (''VIEW_ADMIN_GROUP_COI'')
+                    )
+                    UNION
+                       SELECT CHILD_UNIT_NUMBER FROM UNIT_WITH_CHILDREN
+                    WHERE UNIT_NUMBER IN ( SELECT UNIT_NUMBER
+                    FROM PERSON_ROLES T1
+                    INNER JOIN ROLE_RIGHTS T2 ON T1.ROLE_ID = T2.ROLE_ID
+                    INNER JOIN RIGHTS T3 ON T2.RIGHT_ID = T3.RIGHT_ID
+                    WHERE T1.DESCEND_FLAG = ''Y'' AND T1.PERSON_ID = ''',AV_PERSON_ID,'''
+                    AND RIGHT_NAME IN (''MANAGE_FCOI_DISCLOSURE'', ''VIEW_FCOI_DISCLOSURE'')
+                       )),
+                    PROJECT_ACCESS_TMP AS
+                    ( SELECT UNIT_NUMBER
+                    FROM PERSON_ROLES T1
+                    INNER JOIN ROLE_RIGHTS T2 ON T1.ROLE_ID = T2.ROLE_ID
+                    INNER JOIN RIGHTS T3 ON T2.RIGHT_ID = T3.RIGHT_ID
+                    WHERE T1.DESCEND_FLAG = ''N'' AND T1.PERSON_ID = ''',AV_PERSON_ID,'''
+                    AND RIGHT_NAME IN (''MANAGE_PROJECT_DISCLOSURE'', ''VIEW_PROJECT_DISCLOSURE'')
+                    UNION
+                       SELECT UNIT_NUMBER
+                    FROM PERSON_ROLES T1
+                    INNER JOIN ROLE_RIGHTS T2 ON T1.ROLE_ID = T2.ROLE_ID
+                    INNER JOIN RIGHTS T3 ON T2.RIGHT_ID = T3.RIGHT_ID
+                    WHERE T1.DESCEND_FLAG = ''N'' AND T1.PERSON_ID = ''',AV_PERSON_ID,'''
+                    AND RIGHT_NAME IN (''VIEW_ADMIN_GROUP_COI'')
+                    UNION
+                    SELECT CHILD_UNIT_NUMBER FROM UNIT_WITH_CHILDREN
+                    WHERE UNIT_NUMBER IN (
+                    SELECT UNIT_NUMBER
+                    FROM PERSON_ROLES T1
+                    INNER JOIN ROLE_RIGHTS T2 ON T1.ROLE_ID = T2.ROLE_ID
+                    INNER JOIN RIGHTS T3 ON T2.RIGHT_ID = T3.RIGHT_ID
+                    WHERE T1.DESCEND_FLAG = ''Y'' AND T1.PERSON_ID = ''',AV_PERSON_ID,'''
+                    AND RIGHT_NAME IN (''VIEW_ADMIN_GROUP_COI'')
+                    )
+                    UNION
+                       SELECT CHILD_UNIT_NUMBER FROM UNIT_WITH_CHILDREN
+                    WHERE UNIT_NUMBER IN (
+                    SELECT UNIT_NUMBER
+                    FROM PERSON_ROLES T1
+                    INNER JOIN ROLE_RIGHTS T2 ON T1.ROLE_ID = T2.ROLE_ID
+                    INNER JOIN RIGHTS T3 ON T2.RIGHT_ID = T3.RIGHT_ID
+                    WHERE T1.DESCEND_FLAG = ''Y'' AND T1.PERSON_ID = ''',AV_PERSON_ID,'''
+                    AND RIGHT_NAME IN (''MANAGE_PROJECT_DISCLOSURE'', ''VIEW_PROJECT_DISCLOSURE'')
+                       ))');
+    SET LS_FILTER_CONDITION = CONCAT(' T1.VERSION_STATUS != ''ARCHIVE'' AND (
+                    (T34.ASSIGNEE_PERSON_ID = ''', AV_PERSON_ID ,''' AND T34.REVIEW_STATUS_TYPE_CODE IN (1,2))
+                    OR T1.ADMIN_PERSON_ID = ''', AV_PERSON_ID ,'''
+                    OR (T1.FCOI_TYPE_CODE = 1 AND T1.HOME_UNIT IN (SELECT DISTINCT UNIT_NUMBER FROM FCOI_ACCESS_TMP))
+                    OR (T1.FCOI_TYPE_CODE != 1 AND T1.HOME_UNIT IN (SELECT DISTINCT UNIT_NUMBER FROM PROJECT_ACCESS_TMP))
+                    OR exists  (SELECT 1 FROM WORKFLOW WF
+                        INNER JOIN WORKFLOW_DETAIL WFD ON WF.WORKFLOW_ID = WFD.WORKFLOW_ID
+                        WHERE WF.MODULE_ITEM_ID = T1.DISCLOSURE_ID
+                        AND WFD.APPROVER_PERSON_ID = ''',AV_PERSON_ID,'''
+                        AND WF.MODULE_CODE = 8 AND WF.IS_WORKFLOW_ACTIVE = ''Y''
+                        AND WFD.APPROVAL_STATUS = ''W'' )
+                    ) AND ', FN_QRY_RVW_DAS_OVRVW_FCOI_FIL_COND(AV_PERSON_ID, JSON_INPUT));
+
+    IF AV_FETCH_TYPE = 'HEADER' THEN
+        SET SELECTED_FIELD_LIST = CONCAT(
+            ' COUNT(DISTINCT CASE WHEN T1.REVIEW_STATUS_CODE IN (2,3,7,8,9) THEN T1.DISCLOSURE_ID END) AS REVIEW_PENDING_COUNT,
+              COUNT(DISTINCT CASE WHEN T1.EXPIRATION_DATE BETWEEN CURRENT_DATE() AND DATE_ADD(CURRENT_DATE(), INTERVAL 30 DAY) THEN T1.DISCLOSURE_ID END) AS EXPIRING_COUNT,
+              30 AS EXPIRING_DAYS,
+              COUNT(DISTINCT CASE WHEN (T1.EXPIRATION_DATE < CURRENT_DATE() AND T1.DISPOSITION_STATUS_CODE = 4 ) THEN T1.DISCLOSURE_ID END) AS EXPIRED_COUNT,
+              COUNT(DISTINCT CASE WHEN T1.REVIEW_STATUS_CODE IN (4) THEN T1.DISCLOSURE_ID END) AS APPROVED_COUNT'
+        );
+        SET AV_SORT_TYPE = '';
+        SET LS_OFFSET_CONDITION = '';
+        SET JOIN_CONDITION = CONCAT(' LEFT JOIN COI_REVIEW T34 ON T34.DISCLOSURE_ID = T1.DISCLOSURE_ID ');
+    ELSE
+        IF AV_IS_COUNT THEN
+            SET SELECTED_FIELD_LIST = ' COUNT(DISTINCT T1.DISCLOSURE_ID) AS TOTAL_COUNT ';
+            SET LS_GROUP_CONDITION = '';
+            SET AV_SORT_TYPE = '';
+            SET LS_OFFSET_CONDITION = '';
+        ELSE
+            SET SELECTED_FIELD_LIST = CONCAT('T1.DISCLOSURE_ID,
+                T1.DISCLOSURE_NUMBER,
+                T1.VERSION_NUMBER,
+                T1.PERSON_ID,
+                T7.FULL_NAME AS DISCLOSURE_PERSON_FULL_NAME,
+                T1.HOME_UNIT,
+                T1.FCOI_TYPE_CODE,
+                T8.DESCRIPTION AS DISCLOSURE_CATEGORY_TYPE,
+                T1.CONFLICT_STATUS_CODE,
+                T2.DESCRIPTION AS DISCLOSURE_STATUS,
+                T1.DISPOSITION_STATUS_CODE,
+                T3.DESCRIPTION AS DISPOSITION_STATUS,
+                T1.REVIEW_STATUS_CODE,
+                T4.DESCRIPTION AS REVIEW_STATUS,
+                T1.VERSION_STATUS,
+                T1.CREATE_TIMESTAMP,
+                T1.CERTIFIED_AT,
+                T1.EXPIRATION_DATE,
+                T1.IS_EXTENDED,
+                T6.FULL_NAME AS UPDATE_USER_FULL_NAME,
+                T1.UPDATE_TIMESTAMP,
+                T11.VERSION_NUMBER AS LAST_APPROVED_VERSION,
+                T11.UPDATE_TIMESTAMP AS LAST_APPROVED_DATE,
+                CONCAT(''['', TRIM(BOTH '','' FROM CONCAT(
+                    CASE WHEN T18.DISCLOSURE_ID IS NOT NULL THEN CONCAT(''{'',
+                                                                    ''"projectType"'', '' : "'', T18.COI_PROJECT_TYPE, ''",'',
+                                                                    ''"projectCount"'', '' : "'', T18.NO_OF_PROPOSAL,''",'',
+                                                                    ''"moduleCode"'','' : '', 3, ''}'') ELSE '''' END,
+                    CASE WHEN T18.DISCLOSURE_ID IS NOT NULL AND T19.DISCLOSURE_ID IS NOT NULL THEN '','' ELSE '''' END,
+                    CASE WHEN T19.DISCLOSURE_ID IS NOT NULL THEN CONCAT(''{'',
+                                                                    ''"projectType"'', '' : "'', T19.COI_PROJECT_TYPE, ''",'',
+                                                                    ''"projectCount"'', '' : "'', T19.NO_OF_AWARD, ''",'',
+                                                                    ''"moduleCode"'','' : '', 1,''}'') ELSE '''' END,
+                    CASE WHEN T19.DISCLOSURE_ID IS NOT NULL AND T20.DISCLOSURE_ID IS NOT NULL THEN '','' ELSE '''' END,
+                    CASE WHEN T20.DISCLOSURE_ID IS NOT NULL THEN CONCAT(''{'',
+                                                                    ''"projectType"'', '' : "'', T20.COI_PROJECT_TYPE, ''",'',
+                                                                    ''"projectCount"'', '' : "'', T20.NO_OF_INSTITUTE_PROPOSALS, ''",'',
+                                                                    ''"moduleCode"'','' : '', 2,''}'') ELSE '''' END
+                    )),'']'') AS PROJECT_COUNT,
+                CASE
+                WHEN T1.FCOI_TYPE_CODE = 2 THEN COALESCE(T14.TITLE , T21.TITLE, T15.TITLE)
+                ELSE NULL
+                END AS PROJECT_TITLE,
+                CASE
+                    WHEN T1.FCOI_TYPE_CODE = 2 THEN COALESCE(T14.PROPOSAL_NUMBER , T21.PROJECT_NUMBER , T15.PROJECT_NUMBER)
+                    ELSE NULL
+                END AS PROJECT_NUMBER,
+                T22.BADGE_COLOR,
+                T22.PROJECT_ICON,
+                T22.DESCRIPTION AS COI_PROJECT_TYPE,
+                T1.COI_PROJECT_TYPE_CODE,
+                T17.NO_OF_SFI,
+                T17.DISCLOSURE_TYPES AS ENG_RELATIONSHIPS,
+                T30.UNIT_NAME AS HOME_UNIT_NAME,
+                T30.ORGANIZATION_ID,
+                T30.PARENT_UNIT_NUMBER,
+                T30.IS_ACTIVE,
+                T30.ACRONYM,
+                T30.IS_FUNDING_UNIT,
+                T31.ADMIN_GROUP_NAME,
+                T32.FULL_NAME AS ADMINISTRATOR,
+                T32.PERSON_ID AS ADMINISTRATOR_PERSON_ID,
+                GROUP_CONCAT(
+                    DISTINCT CASE
+                        WHEN T34.ASSIGNEE_PERSON_ID IS NULL THEN CONCAT(T36.DESCRIPTION, " : ", "null", " : ", T35.DESCRIPTION, " : ", T35.REVIEW_STATUS_CODE)
+                        ELSE CONCAT(T36.DESCRIPTION, " : ", T33.FULL_NAME, " : ", T35.DESCRIPTION, " : ", T35.REVIEW_STATUS_CODE)
+                    END
+                    SEPARATOR ";"
+                ) AS REVIEWERS,
+                (IFNULL(PC.COMMENT_COUNT, 0) + IFNULL(DC.COMMENT_COUNT, 0)) AS DISCLOSURE_COMMENT_COUNT,
+                IFNULL(T64.DISCLOSURE_ATTACHMENT_COUNT, 0) AS DISCLOSURE_ATTACHMENT_COUNT,
+                CASE
+                WHEN T1.FCOI_TYPE_CODE IN (''1'', ''3'') AND T1.HOME_UNIT IN (SELECT UNIT_NUMBER FROM FCOI_ACCESS_TMP) THEN ''HOME_UNIT''
+                WHEN T1.FCOI_TYPE_CODE IN (''1'', ''3'') AND EXISTS (
+                    SELECT 1 FROM DISCLOSURE_AFFILIATED_UNITS DAU
+                    WHERE DAU.DISCLOSURE_ID = T1.DISCLOSURE_ID
+                    AND DAU.UNIT_NUMBER IN (SELECT UNIT_NUMBER FROM FCOI_ACCESS_TMP)
+                ) THEN ''AFFILIATED_UNIT''
+
+                WHEN T1.FCOI_TYPE_CODE = ''2'' AND T1.HOME_UNIT IN (SELECT UNIT_NUMBER FROM PROJECT_ACCESS_TMP) THEN ''HOME_UNIT''
+                WHEN T1.FCOI_TYPE_CODE = ''2'' AND EXISTS (
+                    SELECT 1 FROM DISCLOSURE_AFFILIATED_UNITS DAU
+                    WHERE DAU.DISCLOSURE_ID = T1.DISCLOSURE_ID
+                    AND DAU.UNIT_NUMBER IN (SELECT UNIT_NUMBER FROM PROJECT_ACCESS_TMP)
+                ) THEN ''AFFILIATED_UNIT''
+
+                ELSE NULL
+                END AS UNIT_ACCESS_TYPE,',FN_QRY_REVWR_DASH_CMN_SELECT_FIELDS('T1.PERSON_ID', 8));
+
+            -- Setting GROUP BY condition to avoid duplicates
+            SET LS_GROUP_CONDITION = CONCAT(' GROUP BY T1.DISCLOSURE_ID ');
+
+            -- Pagination logic
+            IF AV_UNLIMITED IS NULL OR  AV_UNLIMITED != TRUE THEN
+                SET LS_OFFSET = (AV_LIMIT * AV_PAGED);
+                SET LS_OFFSET_CONDITION = CONCAT(' LIMIT ',AV_LIMIT,' OFFSET ',LS_OFFSET);
+            ELSE
+                SET LS_OFFSET_CONDITION = '';
+            END IF;
+
+            IF AV_SORT_TYPE IS NOT NULL OR AV_SORT_TYPE <> '' THEN
+                SET AV_SORT_TYPE = CONCAT(' ORDER BY ', AV_SORT_TYPE);
+            ELSE
+                SET AV_SORT_TYPE =  CONCAT(' ORDER BY UPDATE_TIMESTAMP DESC ');
+            END IF;
+
+        END IF;
+
+        SET LS_DYN_CTE_SQL = CONCAT(LS_DYN_CTE_SQL,	',
+            ACCESS_COMMENT AS (SELECT
+                MAX(T3.RIGHT_NAME IN (''VIEW_COI_COMMENTS'',''MAINTAIN_COI_COMMENTS'',''VIEW_COI_PRIVATE_COMMENTS'',''MAINTAIN_COI_PRIVATE_COMMENTS'')) AS HAS_PROJ_COMMENT_ACCESS,
+                MAX(T3.RIGHT_NAME IN (''VIEW_COI_PRIVATE_COMMENTS'',''MAINTAIN_COI_PRIVATE_COMMENTS'')) AS HAS_PRIVATE_COMMENT_ACCESS
+                FROM PERSON_ROLES T1
+                INNER JOIN ROLE_RIGHTS T2 ON T1.ROLE_ID = T2.ROLE_ID
+                INNER JOIN RIGHTS T3 ON T2.RIGHT_ID = T3.RIGHT_ID
+                WHERE T1.PERSON_ID = ''',AV_PERSON_ID,'''),
+            PROJECT_COMMENTS AS (
+                SELECT COUNT(CPC.COMMENT_ID) AS COMMENT_COUNT, DP.DISCLOSURE_ID
+                FROM COI_PROJECT_COMMENT CPC
+                JOIN COI_DISCL_PROJECTS DP ON DP.MODULE_CODE = CPC.MODULE_CODE AND DP.MODULE_ITEM_KEY = CPC.MODULE_ITEM_KEY
+                WHERE CPC.COMMENT_TYPE_CODE = 1
+                  AND CPC.PARENT_COMMENT_ID IS NULL
+                  AND (SELECT HAS_PROJ_COMMENT_ACCESS FROM ACCESS_COMMENT) = 1
+                GROUP BY DP.DISCLOSURE_ID),
+            DISCL_COMMENTS AS (
+                SELECT COUNT(COMMENT_ID) AS COMMENT_COUNT, MODULE_ITEM_KEY
+                FROM DISCL_COMMENT DC
+                WHERE DC.MODULE_CODE = 8
+                  AND DC.COMPONENT_TYPE_CODE IN (''2'',''3'',''4'',''5'',''6'',''8'',''9'',''10'',''11'',''12'',''13'',''14'')
+                  AND DC.PARENT_COMMENT_ID IS NULL
+                  AND (
+                        (SELECT HAS_PRIVATE_COMMENT_ACCESS FROM ACCESS_COMMENT) = 1
+                        OR (DC.IS_PRIVATE = ''N'' OR (DC.IS_PRIVATE = ''Y'' AND DC.COMMENT_BY_PERSON_ID = ''',AV_PERSON_ID,''') OR DC.MODULE_ITEM_KEY IN (
+                                            SELECT DISCLOSURE_ID
+                                            FROM COI_REVIEW CR
+                                            WHERE CR.ASSIGNEE_PERSON_ID = ''',AV_PERSON_ID,''')
+                    ))
+                GROUP BY MODULE_ITEM_KEY)
+            ');
+
+        SET JOIN_CONDITION = CONCAT(
+            ' LEFT JOIN COI_CONFLICT_STATUS_TYPE T2 ON T2.CONFLICT_STATUS_CODE = T1.CONFLICT_STATUS_CODE
+            LEFT JOIN COI_DISPOSITION_STATUS_TYPE T3 ON T3.DISPOSITION_STATUS_CODE = T1.DISPOSITION_STATUS_CODE
+            LEFT JOIN COI_REVIEW_STATUS_TYPE T4 ON T4.REVIEW_STATUS_CODE = T1.REVIEW_STATUS_CODE
+            INNER JOIN PERSON T6 ON T6.PERSON_ID = T1.UPDATED_BY
+            INNER JOIN PERSON T7 ON T7.PERSON_ID = T1.PERSON_ID
+            LEFT JOIN COI_DISCLOSURE_FCOI_TYPE T8 ON T8.FCOI_TYPE_CODE = T1.FCOI_TYPE_CODE
+            LEFT JOIN (
+                SELECT DISCLOSURE_NUMBER, VERSION_NUMBER, UPDATE_TIMESTAMP FROM COI_DISCLOSURE
+                WHERE (DISCLOSURE_NUMBER, VERSION_NUMBER) IN (
+                    SELECT S1.DISCLOSURE_NUMBER, MAX(S1.VERSION_NUMBER) FROM COI_DISCLOSURE S1
+                    WHERE S1.VERSION_STATUS = ''ACTIVE'' GROUP BY S1.DISCLOSURE_NUMBER
+                )
+            ) T11 ON T11.DISCLOSURE_NUMBER = T1.DISCLOSURE_NUMBER
+            LEFT JOIN COI_INT_STAGE_DEV_PROPOSAL T14 ON T14.PROPOSAL_NUMBER = T50.MODULE_ITEM_KEY AND  T1.COI_PROJECT_TYPE_CODE = ''3''
+            LEFT JOIN COI_INT_STAGE_AWARD T15 ON T15.PROJECT_NUMBER = T50.MODULE_ITEM_KEY AND T1.COI_PROJECT_TYPE_CODE = ''1''
+            LEFT JOIN COI_INT_STAGE_PROPOSAL T21 ON T21.PROJECT_NUMBER = T50.MODULE_ITEM_KEY AND  T1.COI_PROJECT_TYPE_CODE = ''2''
+            LEFT JOIN UNIT T30 ON T30.UNIT_NUMBER = T1.HOME_UNIT
+            LEFT JOIN ADMIN_GROUP T31 ON T31.ADMIN_GROUP_ID = T1.ADMIN_GROUP_ID
+            LEFT JOIN PERSON T32 ON T32.PERSON_ID = T1.ADMIN_PERSON_ID
+            LEFT JOIN (
+                SELECT DISCLOSURE_ID, COUNT(DISTINCT ATTACHMENT_NUMBER) AS DISCLOSURE_ATTACHMENT_COUNT
+                FROM DISCL_ATTACHMENT
+                GROUP BY DISCLOSURE_ID
+            ) T64 ON T64.DISCLOSURE_ID = T1.DISCLOSURE_ID
+            LEFT JOIN COI_PROJECT_TYPE T22 ON T22.COI_PROJECT_TYPE_CODE = T1.COI_PROJECT_TYPE_CODE
+            LEFT JOIN PROJECT_COMMENTS PC ON PC.DISCLOSURE_ID = T1.DISCLOSURE_ID
+            LEFT JOIN DISCL_COMMENTS DC ON DC.MODULE_ITEM_KEY = T1.DISCLOSURE_ID
+            LEFT JOIN (SELECT IFNULL(COUNT(DISTINCT T1.PERSON_ENTITY_ID),0) AS NO_OF_SFI,T1.DISCLOSURE_ID,
+                CONCAT(''['',
+                    GROUP_CONCAT(
+                        DISTINCT JSON_OBJECT(
+                            ''DISCLOSURE_TYPE_CODE'', T3.DISCLOSURE_TYPE_CODE,
+                            ''DESCRIPTION'', T3.DESCRIPTION
+                        )
+                    ),
+                '']'') AS DISCLOSURE_TYPES,
+                COUNT(DISTINCT CASE WHEN T4.IS_FOREIGN = ''Y'' THEN T1.ENTITY_ID END) AS NO_OF_FOREIGN_ENTITIES
+                FROM COI_DISCL_PERSON_ENTITY_REL T1
+                LEFT JOIN PER_ENT_DISCL_TYPE_SELECTION T2 ON T2.PERSON_ENTITY_ID = T1.PERSON_ENTITY_ID
+                LEFT JOIN COI_DISCLOSURE_TYPE T3 ON T3.DISCLOSURE_TYPE_CODE = T2.DISCLOSURE_TYPE_CODE
+                INNER JOIN ENTITY T4 ON T4.ENTITY_ID = T1.ENTITY_ID
+                GROUP BY T1.DISCLOSURE_ID) T17 ON T17.DISCLOSURE_ID = T1.DISCLOSURE_ID
+            LEFT JOIN (SELECT IFNULL(COUNT(DISTINCT T1.MODULE_ITEM_KEY),0) AS NO_OF_PROPOSAL,T1.DISCLOSURE_ID,
+                T2.DESCRIPTION AS COI_PROJECT_TYPE
+                FROM COI_DISCL_PROJECTS T1
+                INNER JOIN COI_PROJECT_TYPE T2 ON T2.COI_PROJECT_TYPE_CODE = 3
+                WHERE T1.MODULE_CODE = 3 GROUP BY T1.DISCLOSURE_ID) T18 ON T18.DISCLOSURE_ID = T1.DISCLOSURE_ID
+                AND T1.FCOI_TYPE_CODE != 2
+            LEFT JOIN (SELECT IFNULL(COUNT(DISTINCT T1.MODULE_ITEM_KEY),0) AS NO_OF_AWARD,T1.DISCLOSURE_ID,
+                T2.DESCRIPTION AS COI_PROJECT_TYPE
+                FROM COI_DISCL_PROJECTS T1
+                INNER JOIN COI_PROJECT_TYPE T2 ON T2.COI_PROJECT_TYPE_CODE = 1
+                WHERE T1.MODULE_CODE = 1 GROUP BY T1.DISCLOSURE_ID) T19 ON T19.DISCLOSURE_ID = T1.DISCLOSURE_ID
+                AND T1.FCOI_TYPE_CODE != 2
+            LEFT JOIN (SELECT IFNULL(COUNT(DISTINCT T1.MODULE_ITEM_KEY),0) AS NO_OF_INSTITUTE_PROPOSALS,T1.DISCLOSURE_ID,
+                T2.DESCRIPTION AS COI_PROJECT_TYPE
+                FROM COI_DISCL_PROJECTS T1
+                INNER JOIN COI_PROJECT_TYPE T2 ON T2.COI_PROJECT_TYPE_CODE = 2
+                WHERE T1.MODULE_CODE = 2 GROUP BY T1.DISCLOSURE_ID) T20 ON T20.DISCLOSURE_ID = T1.DISCLOSURE_ID
+                AND T1.FCOI_TYPE_CODE != 2
+            LEFT JOIN COI_REVIEW T34 ON T34.DISCLOSURE_ID = T1.DISCLOSURE_ID
+            LEFT JOIN PERSON T33 ON T33.PERSON_ID = T34.ASSIGNEE_PERSON_ID
+            LEFT JOIN coi_reviewer_status_type T35 ON T35.REVIEW_STATUS_CODE = T34.REVIEW_STATUS_TYPE_CODE
+            LEFT JOIN coi_review_location_type T36 ON T36.LOCATION_TYPE_CODE = T34.LOCATION_TYPE_CODE
+            ', JOIN_CONDITION
+        );
+    END IF;
+
+
+    SET LS_DYN_CTE_SQL = CONCAT(LS_DYN_CTE_SQL, ' SELECT * FROM (SELECT ', SELECTED_FIELD_LIST, '
+                FROM COI_DISCLOSURE T1
+                LEFT JOIN COI_DISCL_PROJECTS T50 ON T50.DISCLOSURE_ID = T1.DISCLOSURE_ID
+                ', JOIN_CONDITION, ' WHERE ', LS_FILTER_CONDITION, LS_GROUP_CONDITION, AV_SORT_TYPE, LS_OFFSET_CONDITION, ') T ');
+
+    RETURN LS_DYN_CTE_SQL;
+END
+//

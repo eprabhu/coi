@@ -1,0 +1,386 @@
+<div id="Award115" class="card my-3">
+  <div class="card-header">
+    <h4 class="card-title">Outcomes
+      <button id="award-expand-btn" class="updown-arrow" (click)="isPublications = !isPublications">
+        <i [ngClass]="!isPublications?'fa fa-angle-double-up':'fa fa-angle-double-down'" class="fa-large"
+          aria-hidden="true"></i>
+      </button>
+
+    </h4>
+  </div>
+  <div *ngIf="!isPublications" class="card-content">
+    <div id="Award115" *ngIf="!_commonService.isOrcidWOrkEnabled && _commonData?.awardSectionConfig['194']?.isActive" class="card-inner mx-3 my-3">
+      <div class="card-header">
+        <h4 class="card-title">Publications
+        </h4>
+      </div>
+      <div class="card-content">
+        <div class="card-body">
+          <div *ngIf="awardPublicationList?.length == 0" class="noDataExists px-2">
+            <ng-container i18n="@@AWARD_NO_PUBLICATIONS_FOR_THIS_AWARD_ERR">There are no publications for this Award</ng-container></div>
+          <table *ngIf="awardPublicationList?.length > 0" class="table tableSkin grid2">
+            <caption class="sr-only">Publications</caption>
+            <thead class="thead-light">
+              <th scope="col">ID</th>
+              <th scope="col">Type</th>
+              <th scope="col">Status</th>
+              <th scope="col" style="width:25%">Title of Paper</th>
+              <th scope="col" style="width:25%">Name of Journal / Book / Conference</th>
+              <th scope="col">Year</th>
+              <th scope="col">URL</th>
+              <th scope="col" style="width: 10%">Action</th>
+            </thead>
+            <tbody>
+              <tr [ngClass]="{ 'delete-background': selectedPublication.status == -1,
+              'add-background': selectedPublication.status == 1}" *ngFor="let selectedPublication of awardPublicationList; let i = index">
+                <td [innerHTML]='selectedPublication?.publication?.publicationId | customTagRemover: currentMethod'></td>
+                <td [innerHTML]='selectedPublication?.publication?.publicationType | customTagRemover: currentMethod'></td>
+                <td [innerHTML]='selectedPublication?.publication?.publicationStatus | customTagRemover: currentMethod'></td>
+                <td [innerHTML]='selectedPublication?.publication?.title | customTagRemover: currentMethod'></td>
+                <td [innerHTML]='selectedPublication?.publication?.nameOfJournal | customTagRemover: currentMethod'></td>
+                <td [innerHTML]='selectedPublication?.publication?.year | customTagRemover: currentMethod'></td>
+                <td>
+                  <a class="anchor-link" title="click here to view {{selectedPublication?.publication?.url}}"
+                    href="http://{{selectedPublication?.publication?.url}}"
+                    target="_blank" [innerHTML]='selectedPublication?.publication?.url | customTagRemover: currentMethod'></a>
+                </td>
+                <td>
+                  <ul class="actionButtonGroup">
+                    <li>
+                      <a id="award-publication-details-view-btn"
+                        (click)="publicationDetails = selectedPublication?.publication;" data-toggle="modal"
+                        data-target="#awardPublicationDetailView">
+                        <i class="fa fa-eye" aria-hidden="true"
+                          title="Click here to view {{selectedPublication?.publication?.title}}"></i>
+                      </a>
+                    </li>
+                  </ul>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="card-inner mx-3 mt-3">
+      <div class="card-header">
+        <h4 class="card-title"><ng-container i18n="@@AWARD_ASSOCIATIONS">Associations</ng-container></h4>
+      </div>
+      <div class="card-content">
+        <div class="card-body">
+          <div *ngIf="associationList?.length == 0" class="noDataExists px-2">
+            <ng-container i18n="@@AWARD_NO_PROPOSALS_SUBMITTED/PROJECTS_AWARDED_FOR_THIS_AWARD_ERR">There are no proposals submitted / projects awarded for this Award</ng-container></div>
+          <div class="table-responsive mt-3" *ngIf="associationList?.length > 0">
+            <table class="table tableSkin grid2">
+              <caption class="sr-only"><ng-container i18n="@@AWARD_ASSOCIATION">Association</ng-container></caption>
+              <thead class="thead-light">
+                <th scope="col">Association Type</th>
+                <th scope="col">Title</th>
+                <th scope="col">Principal Investigator</th>
+                <th scope="col"><ng-container i18n="@@COMMON_SPONSOR">Sponsor</ng-container></th>
+                <th scope="col">Funding Scheme</th>
+                <th scope="col">Total Project Value</th>
+                <th scope="col">Status</th>
+                <th scope="col" class="w-10">Actions</th>
+              </thead>
+              <tbody>
+                <tr [ngClass]="{ 'delete-background': association.status == -1,
+                'add-background': association.status == 1}" *ngFor="let association of associationList; let i = index">
+                  <td [innerHTML]='association?.awardAssociationType?.description | customTagRemover: currentMethod'></td>
+                  <td [innerHTML]='association?.awardAssociationDetail?.title | customTagRemover: currentMethod'></td>
+                  <td [innerHTML]='association?.awardAssociationDetail?.piName | customTagRemover: currentMethod'></td>
+                  <td [innerHTML]='association?.awardAssociationDetail?.sponsor?.sponsorName | customTagRemover: currentMethod'></td>
+                  <td [innerHTML]='association?.awardAssociationDetail?.fundingScheme?.schemeName | customTagRemover: currentMethod'></td>
+                  <td [innerHTML]='currencyFormatter.parseCurrency(association?.awardAssociationDetail?.totalProjectCost) | customTagRemover: currentMethod'></td>
+                  <td [innerHTML]='association?.awardAssociationDetail?.statusDescription | customTagRemover: currentMethod'></td>
+                  <td>
+                    <ul class="actionButtonGroup">
+                      <li>
+                        <a id="award-association-view-btn" class="hand-cursor" *ngIf="association?.awardAssociationType?.associationTypeCode !='3'"
+                          (click)="viewAssociation(association?.associationTypeCode,association?.associatedProjectId)">
+                          <i class="fa fa-eye" aria-hidden="true"
+                            title="Click here to view {{association?.associatedProjectId}}"></i>
+                        </a>
+                        <a id="award-detailed-outcome-view" *ngIf="association?.awardAssociationType?.associationTypeCode =='3'"
+                          (click)="isShowNoneAssociationDetails=true;temporaryAssociationDetails=association?.awardAssociationDetail"
+                          title="Click here to view External Association" data-toggle="modal"
+                          data-target="#award-show-detailed-outcome-viewmode">
+                          <i class="fa fa-eye" aria-hidden="true" title="Click here to view this External Association"></i>
+                        </a>
+                      </li>
+                    </ul>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-inner mx-3 my-3">
+      <div class="card-header">
+        <h4 class="card-title">Other Achievements
+        </h4>
+      </div>
+      <div class="card-content">
+        <div class="card-body">
+          <div *ngIf="awardAcheivementList?.length == 0" class="noDataExists px-2">
+            <ng-container i18n="@@AWARD_NO_ACHEIVEMENTS_IN_THIS_AWARD_ERR">There are no acheivements in this Award</ng-container></div>
+          <table *ngIf="awardAcheivementList?.length > 0" class="table tableSkin grid2">
+            <caption class="sr-only">Achievements</caption>
+            <thead class="thead-light">
+              <th scope="col" style="width:70%">Achievement</th>
+              <th scope="col" style="width:20%">File Name</th>
+              <th scope="col" style="width:10%">Actions</th>
+            </thead>
+            <tbody>
+              <tr [ngClass]="{ 'delete-background': achievement.status == -1,
+              'add-background': achievement.status == 1}" *ngFor="let achievement of awardAcheivementList; let i = index">
+                <td class="new-line-property" [innerHTML]= 'achievement?.comment | customTagRemover: currentMethod'></td>
+                <td [innerHTML]='achievement?.fileName | customTagRemover: currentMethod'></td>
+                <td>
+                  <ul class="actionButtonGroup">
+                    <li>
+                      <a *ngIf="achievement?.fileName" id="award-download-btn" class="hand-cursor"
+                        (click)="downloadAcheivement(achievement)">
+                        <i class="fa fa-download" aria-hidden="true" title="Click here to download attachmnet"></i>
+                      </a>
+                    </li>
+                  </ul>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="_commonData?.awardSectionConfig['198']?.isActive" class="card-inner mx-3 my-3">
+      <div class="card-header">
+        <h4 class="card-title">ORCID Works</h4>
+      </div>
+      <div class="card-comtent">
+        <div class="card-body">
+          <app-orcid-comparison></app-orcid-comparison>
+        </div>
+      </div>
+    </div>
+    <div class="card-inner mx-3 my-3" *ngIf="_commonData?.awardSectionConfig['195']?.isActive">
+      <div class="card-header">
+        <h4 class="card-title">Scopus
+        </h4>
+      </div>
+      <div class="card-content">
+        <div class="card-body">
+          <div *ngIf="awardScopusList?.length == 0" class="noDataExists px-2">
+            <ng-container>There are no scoups in this Award
+            </ng-container>
+          </div>
+          <div *ngFor="let selectedScopus of awardScopusList; let i = index" class="shadow-sm mb-3">
+            <div *ngIf="awardScopusList?.length !== 0" class="card">
+              <div class="card-header" [ngClass]="{ 'delete-background': selectedScopus.status == -1,
+            'add-background': selectedScopus.status == 1}">
+                <h4 class="card-title d-flex justify-content-between">
+                  <span>
+                    {{selectedScopus?.scopus?.title }}</span>
+                  <ul class="actionButtonGroup">
+                    <li>
+                      <a id="award-expand-btn" (click)="isShowCollapse[i] = !isShowCollapse[i]" class="position-relative">
+                        <i [ngClass]="!isShowCollapse[i]?'fa fa-angle-double-up':'fa fa-angle-double-down'" class="fa-large"
+                          aria-hidden="true"></i>
+                      </a>
+                    </li>    
+                  </ul>
+                </h4>
+              </div>
+              <ng-container *ngIf="!isShowCollapse[i]">
+                <div class="card-content">
+                  <div class="card-body gridSkin">
+                    <div class="row f-13 p-2">
+                      <div class="col-lg-12">
+                        <label class="d-block">Source Title</label>
+                        <span [innerHTML]='selectedScopus?.scopus?.sourceTitle | customTagRemover: currentMethod'></span>
+                      </div>
+                      <div class="col-12">
+                        <label class="d-block">Affiliations</label>
+                        <span [innerHTML]='selectedScopus?.scopus?.affiliations | customTagRemover: currentMethod'></span>
+                      </div>
+                      <div class="col-12">
+                        <label class="d-block">Author(s)</label>
+                        <span [innerHTML]='selectedScopus?.scopus?.authors | customTagRemover: currentMethod'></span>
+                      </div>
+                      <div class="col-md-4 col-12">
+                        <label class="d-block">Scopus ID</label>
+                        <span [innerHTML]='selectedScopus?.scopus?.scopusId | customTagRemover: currentMethod'></span>
+                      </div>
+                      <div class="col-md-4 col-12">
+                        <label class="d-block">DOI</label>
+                        <span [innerHTML]='selectedScopus?.scopus?.doi | customTagRemover: currentMethod'></span>
+                      </div>
+                      <div class="col-md-4 col-12">
+                        <label class="d-block">Citations</label>
+                        <span [innerHTML]='selectedScopus?.scopus?.citations | customTagRemover: currentMethod'></span>
+                      </div>
+                      <div class="col-md-4 col-12">
+                        <label class="d-block">ISSN</label>
+                        <span [innerHTML]='selectedScopus?.scopus?.issn | customTagRemover: currentMethod'></span>
+                      </div>
+                      <div class="col-md-4 col-12">
+                        <label class="d-block">Source Type</label>
+                        <span [innerHTML]='selectedScopus?.scopus?.sourceType | customTagRemover: currentMethod'></span>
+                      </div>
+                      <div class="col-md-4 col-12">
+                        <label class="d-block">Cover Date</label>
+                        <span [innerHTML]='selectedScopus?.scopus?.coverDate | customTagRemover: currentMethod'></span>
+                      </div>
+                      <div class="col-md-4 col-12">
+                        <label class="d-block">Pub Media Id</label>
+                        <span [innerHTML]='selectedScopus?.scopus?.pubMedId | customTagRemover: currentMethod'></span>
+                      </div>
+                      <div class="col-12">
+                        <label class="d-block">Reference</label>
+                        <!-- <span [innerHTML]='selectedScopus?.scopus?.reference | customTagRemover: currentMethod'></span>   -->
+                        <a *ngIf="selectedScopus?.scopus?.reference" [href]="selectedScopus?.scopus?.reference"
+                          target="_blank">
+                          <span [innerHTML]='selectedScopus?.scopus?.reference | customTagRemover: currentMethod'></span></a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="p-3">
+      <app-comment-box [sectionCode]="115" [awardId]="comparisonDetails.baseAwardId" [awardNumber]="comparisonDetails.awardNumber"
+        [sequenceNumber]="comparisonDetails.sequenceNumber"></app-comment-box>
+    </div>
+  </div>
+</div>
+<!--Publication Details modal-->
+<div class="modal fade mySkinDialog modal-opacity" tabindex="-1" id="awardPublicationDetailView" tabindex="-1"
+  role="dialog" aria-labelledby="deleteModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Publication Details</h5>
+        <button id="publ-decldetail-close" type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row  mb-3">
+          <div class="col">
+            <label class="block-display">Volume</label>
+            <span [ngClass]="publicationDetails?.volume ? '' : 'noDataExists'">{{publicationDetails?.volume ?
+            publicationDetails?.volume : 'No volume specified'}}</span>
+          </div>
+          <div class="col">
+            <label class="block-display">Page</label>
+            <span [ngClass]="publicationDetails?.page ? '' : 'noDataExists'">{{publicationDetails?.page
+            ? publicationDetails?.page : 'No page specified'}}</span>
+          </div>
+          <div class="col">
+            <label class="block-display">Edition</label>
+            <span [ngClass]="publicationDetails?.edition ? '' : 'noDataExists'">{{publicationDetails?.edition
+             ? publicationDetails?.edition : 'No edition specified'}}</span>
+          </div>
+        </div>
+        <div class="form-row  mb-3">
+          <div class="col">
+            <label class="block-display">ISSN</label>
+            <span [ngClass]="publicationDetails?.issn ? '' : 'noDataExists'">{{publicationDetails?.issn
+                ? publicationDetails?.issn : 'No issn specified'}}</span>
+          </div>
+          <div class="col">
+            <label class="block-display">School of Author</label>
+            <span [ngClass]="publicationDetails?.schoolOfAuthor ? '' : 'noDataExists'">{{publicationDetails?.schoolOfAuthor
+                ? publicationDetails?.schoolOfAuthor : 'No school of author specified'}}</span>
+          </div>
+
+          <div class="col">
+            <label class="block-display">Review Status</label>
+            <span [ngClass]="publicationDetails?.reviewStatus ? '' : 'noDataExists'">{{publicationDetails?.reviewStatus
+                ? publicationDetails?.reviewStatus : 'No review status specified'}}</span>
+          </div>
+        </div>
+        <div class="form-row  mb-3">
+          <div class="col-4">
+            <label class="block-display">Author’s Organisation</label>
+            <span [ngClass]="publicationDetails?.authorOrganisation ? '' : 'noDataExists'">{{publicationDetails?.authorOrganisation
+                    ? publicationDetails?.authorOrganisation : 'No author’s organisation specified'}}</span>
+          </div>
+          <div class="col">
+            <label class="block-display">Authors</label>
+            <span [ngClass]="publicationDetails?.author ? '' : 'noDataExists'">{{publicationDetails?.author
+                ? publicationDetails?.author : 'No authors specified'}}</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="publn-close-publnDetails" type="button" class="btn btn-primary-sub" data-dismiss="modal"
+          aria-label="Close">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--External association display modal-->
+<div class="modal fade mySkinDialog" *ngIf="isShowNoneAssociationDetails" tabindex="-1"
+  id="award-show-detailed-outcome-viewmode" tabindex="-1" role="dialog" aria-labelledby="noneAssociationModalTitle"
+  aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">External Association</h5>
+        <button type="button" id="award-hide-detailed-outcome" class="close"
+          (click)="isShowNoneAssociationDetails = false" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body gridSkin">
+        <div class="row">
+          <div class="col-6">
+            <label>Person</label>
+            <div [ngClass]="temporaryAssociationDetails?.piName ? '' : 'noDataExists'"
+            [innerHTML]="temporaryAssociationDetails?.piName ? (temporaryAssociationDetails.piName | customTagRemover: currentMethod) : 'Not Available'">
+              </div>
+          </div>
+          <div class="col-6">
+            <label>Department</label>
+            <div [ngClass]="temporaryAssociationDetails?.unit?.unitName ? '' : 'noDataExists'"
+            [innerHTML]="temporaryAssociationDetails?.unit?.unitName ? (temporaryAssociationDetails.unit.unitName | customTagRemover: currentMethod) : 'Not Available'">
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-6">
+            <label><ng-container i18n="@@COMMON_SPONSOR">Sponsor</ng-container></label>
+            <div [ngClass]="temporaryAssociationDetails?.sponsor?.sponsorName ? '' : 'noDataExists'"
+            [innerHTML]="temporaryAssociationDetails?.sponsor?.sponsorName ? (temporaryAssociationDetails.sponsor.sponsorName | customTagRemover: currentMethod) : 'Not Available'">
+            </div>
+          </div>
+          <div class="col-6">
+            <label>Prime Sponsor</label>
+            <div [ngClass]="temporaryAssociationDetails?.primeSponsor?.sponsorName ? '' : 'noDataExists'"
+            [innerHTML]="temporaryAssociationDetails?.primeSponsor?.sponsorName ? (temporaryAssociationDetails.primeSponsor.sponsorName | customTagRemover: currentMethod) : 'Not Available'">
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-12">
+            <label>Title</label>
+            <div [innerHTML]="temporaryAssociationDetails?.title | customTagRemover: currentMethod"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="award-close-detailed-outcome" class="btn btn-secondary" data-dismiss="modal"
+          data-toggle="modal" (click)="isShowNoneAssociationDetails = false">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

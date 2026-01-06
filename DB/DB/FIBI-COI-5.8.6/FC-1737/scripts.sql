@@ -1,0 +1,29 @@
+-- Change SUBMISSION_DATE only if it is still DATE
+SET @qry1 = (
+    SELECT IF(
+        (SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS 
+         WHERE TABLE_NAME='coi_declaration' 
+           AND COLUMN_NAME='SUBMISSION_DATE'
+           AND TABLE_SCHEMA=DATABASE()) = 'date',
+        'ALTER TABLE coi_declaration MODIFY SUBMISSION_DATE DATETIME NULL DEFAULT NULL;',
+        'SELECT 1;'
+    )
+);
+PREPARE stmt FROM @qry1;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Change EXPIRATION_DATE only if it is still DATE
+SET @qry2 = (
+    SELECT IF(
+        (SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS 
+         WHERE TABLE_NAME='coi_declaration' 
+           AND COLUMN_NAME='EXPIRATION_DATE'
+           AND TABLE_SCHEMA=DATABASE()) = 'date',
+        'ALTER TABLE coi_declaration MODIFY EXPIRATION_DATE DATETIME NULL DEFAULT NULL;',
+        'SELECT 1;'
+    )
+);
+PREPARE stmt FROM @qry2;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;

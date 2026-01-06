@@ -1,0 +1,72 @@
+<!-- verify modal -->
+<app-common-modal [modalConfig]="entityVerifyModalConfig" (modalAction)="entityVerifyModalActions($event)">
+    <!-- header -->
+    <ng-container modal-header>
+        <span>{{ modalType === 'CONFIRM' ? 'Confirm Entity' : 'Validate Entity' }}</span>
+        <app-common-help-text *ngIf="modalType === 'CONFIRM'" [subSectionId]="2632" [elementId]="'coi-entity-verify-modal'"></app-common-help-text>
+        <app-common-help-text *ngIf="modalType === 'VALIDATION'" [subSectionId]="2632" [elementId]="'coi-entity-validate-modal'"></app-common-help-text>
+    </ng-container>
+    <!-- body -->
+    <ng-container modal-body>
+        <div class="row mx-0 gap-3">
+            <ng-container *ngFor="let sections of verifyConfig">
+                <div class="alert alert-{{sections?.alertClass}} fs-14 shadow-sm m-0 gap-2" role="alert" attr.aria-label="{{sections?.alertText}}: {{sections?.ValidationMessage}}">
+                    <div class="alert-heading d-flex align-items-center gap-2">
+                        <mat-icon *ngIf="sections?.errorSubSections?.length" class="fs-4 mb-auto text-{{sections?.alertClass}}" aria-hidden="true">{{sections?.alertClass === 'danger' ? 'error' : sections?.alertClass}}</mat-icon>
+                        <span *ngIf="!sections?.errorSubSections?.length" class="coi-circle-icons bg-success"><mat-icon aria-hidden="true" class="text-white flex-shrink-0 coi-scale-7">check</mat-icon></span>
+                        <strong>{{sections?.alertText}}: {{sections?.ValidationMessage}}</strong>
+                    </div>
+                    <!-- list -->
+                    <ul *ngIf="sections?.errorSubSections?.length" class="m-0 ps-4 list-unstyled">
+                        <ng-container *ngFor="let errorDetails of sections?.errorSubSections">
+                            <li class="mt-1">
+                                <a tabindex="0" class="link-primary"
+                                    [title]="errorDetails?.title"
+                                    [attr.aria-label]="errorDetails?.ariaLabel"
+                                    (click)="navigateToSection(errorDetails?.navigateTo, errorDetails?.subsection)"
+                                    (keyup.enter)="navigateToSection(errorDetails?.navigateTo, errorDetails?.subsection)">
+                                    <span class="fs-13 fw-500 ms-1 mt-1">{{errorDetails?.subsection?.sectionName}}</span>
+                                </a>
+                                <app-common-help-text [subSectionId]="2632" [elementId]="errorDetails?.helpTextElementId"></app-common-help-text>
+                            </li>
+                        </ng-container>
+                    </ul>
+                </div>
+            </ng-container>
+            <!-- duplicateMatch -->
+            <div *ngIf="!hasErrorValidation || modalType === 'VALIDATION'"
+                attr.aria-label="{{matchedDuplicateEntities?.length ? 'Warning' : ''}}: {{matchedDuplicateEntities?.length ? 'Potential Duplicates Found (' + matchedDuplicateEntities?.length + ')' : 'No Potential Duplicates Found'}}"
+                class="alert alert-{{matchedDuplicateEntities?.length ? 'warning' : 'success'}} fs-14 shadow-sm m-0 gap-2" role="alert">
+                <div class="alert-heading d-flex align-items-center gap-2">
+                    <mat-icon *ngIf="matchedDuplicateEntities?.length" class="fs-4 mb-auto text-warning" aria-hidden="true">warning</mat-icon>
+                    <span *ngIf="!matchedDuplicateEntities?.length" class="coi-circle-icons bg-success"><mat-icon aria-hidden="true" class="text-white flex-shrink-0 coi-scale-7">check</mat-icon></span>
+                    <strong>{{matchedDuplicateEntities?.length ? 'Warning:' : ''}} {{matchedDuplicateEntities?.length ? 'Potential Duplicates Found (' + matchedDuplicateEntities?.length + ')' : 'No Potential Duplicates Found'}}</strong>
+                </div>
+                <!-- list -->
+                <ul *ngIf="matchedDuplicateEntities?.length" class="m-0 ps-4 list-unstyled">
+                    <li class="mt-1">
+                        <a tabindex="0" class="link-primary"
+                            title="Click here to view duplicate entities"
+                            aria-label="Click here to view duplicate entities"
+                            (click)="navigateToSection('entity-duplicate')" (keyup.enter)="navigateToSection('entity-duplicate')">
+                            <span class="fs-13 fw-500 ms-1 mt-1">View Duplicates</span>
+                        </a>
+                    </li>
+                </ul>
+                <!-- confirmation -->
+                <div *ngIf="matchedDuplicateEntities?.length && modalType === 'CONFIRM'" class="col-12 pt-2">
+                    <div class="d-flex align-items-center gap-2 matching-card px-4 py-3 rounded-2">
+                        <input type="checkbox" [(ngModel)]="hasConfirmedNoDuplicate"
+                            name="coi-entity-verify-duplicate-confirm"
+                            (ngModelChange)="updateVerifyButtonState()"
+                            title="Click here to confirm the items are not exact duplicates"
+                            aria-label="Click here to confirm the items are not exact duplicates"
+                            class="coi-certify-box cursor-pointer" id="coi-entity-verify-duplicate-confirm">
+                        <label for="coi-entity-verify-duplicate-confirm"
+                            class="coi-text-light cursor-pointer">{{ DUPLICATE_MARK_CONFIRMATION_TEXT }}</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+</app-common-modal>

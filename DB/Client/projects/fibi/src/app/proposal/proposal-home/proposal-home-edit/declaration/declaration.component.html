@@ -1,0 +1,336 @@
+<!--Last Updated By Ramlekshmy I on 10-08-2020-->
+<div class="card mb-3" [class.input-field__modified]="hasUnsavedChanges" id="fundingSupport">
+  <div class="card-header px-4" [class.pb-0]="hasUnsavedChanges">
+    <h4 class="card-title" id="proposal-declaration-edit-details">Declaration of Other Funding Support
+      <span *ngIf="helpText?.declarationOfFundingSupport?.helpTextInfo" class="d-inline-block icon-hover">
+        <a class="tooltip z-index-0 tooltip-helptext"><i class="fa fa-question-circle fa-med" aria-hidden="true"></i>
+          <div class="tooltiptext-left card card-inner p-15 text-left">
+            <span class="font-cv">{{helpText?.declarationOfFundingSupport?.helpTextInfo}}</span>
+          </div>
+        </a>
+      </span>
+      <button *ngIf="sponsorObject?.sponsorId == null && isEditMode" class="btn btn-tertiary btn-sm mt-0 button-right float-right" id="declaration-add-btn" data-toggle="modal" data-target="#add-declaration-modal">Add Other Funding Support</button>
+      <button id="declaration-expand-btn" class="updown-arrow " (click)="isDeclarationWidgetOpen = !isDeclarationWidgetOpen">
+        <i [ngClass]="isDeclarationWidgetOpen ?'fa fa-angle-double-up':'fa fa-angle-double-down'" aria-hidden="true"
+          class="fa-large"></i>
+      </button>
+    </h4>
+    <app-unsaved-change-warning [hasUnsavedChanges]="hasUnsavedChanges"
+      [buttonName]="sponsorObject?.sponsorId != null ? 'Update':'Add'">
+    </app-unsaved-change-warning>
+  </div>
+  <div class="card-content" *ngIf="isDeclarationWidgetOpen">
+    <div class="card-body p-2">
+      <div class="noDataOnChart noDataExists p-2" *ngIf="result?.proposalSponsors?.length == 0">
+        <div class="no-data-container">
+          <span class="no-data-icon-outer">
+            <div class="no-data-icon">
+              <i aria-hidden="true" class="fa fa-file-o"></i>
+              <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+            </div>
+          </span>
+          <h4>There is no information in this section.</h4>
+        </div>
+      </div>
+      <!--Funding agency details-->
+      <div class="table-responsive" *ngIf="result?.proposalSponsors?.length > 0">
+        <table class="table table-inner tableSkin grid2 stable-vertical-align">
+          <caption class="sr-only">Declaration of Other Funding Support</caption>
+          <thead class="thead-light">
+            <tr>
+              <th scope="col">Declaration For</th>
+              <th scope="col">Proposal / Project Title</th>
+              <th scope="col">Title of Grant Call</th>
+              <th scope="col">Role Played</th>
+              <th scope="col">Currency</th>
+              <th scope="col">Amount</th>
+              <th scope="col">Status</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let proposalSponsor of result?.proposalSponsors;let i = index">
+              <td>{{proposalSponsor?.fullName}}</td>
+              <td>{{proposalSponsor?.projectTitle}}</td>
+              <td>{{proposalSponsor?.grantCallName}}</td>
+              <td>{{proposalSponsor?.proposalPersonRole?.description}}</td>
+              <td>{{proposalSponsor?.currency?.currencyCode}}</td>
+              <td>{{proposalSponsor?.amount | currency : proposalSponsor?.currency?.currencySymbol}}</td>
+              <td>{{proposalSponsor?.proposalFundingStatus?.description}}</td>
+              <td>
+                <ul class="actionButtonGroup d-flex">
+                  <li *ngIf="isEditMode">
+                    <a data-toggle="modal" data-target="#add-declaration-modal" id="prop-declrn-edit-btn" (click)="editDeclaration(i)">
+                      <i class="fa fa-pencil" aria-hidden="true" title="Click here to edit the declaration details of {{proposalSponsor?.fullName}}"></i>
+                    </a>
+                  </li>
+                  <li>
+                    <a id="prop-decl-view-btn" data-toggle="modal" data-target="#declarationDetailsModal"
+                      (click)="viewDeclarationDetails(proposalSponsor)">
+                      <i class="fa fa-eye" aria-hidden="true"
+                        title="Click here to view the declaration details of {{proposalSponsor?.fullName}}"></i>
+                    </a>
+                  </li>
+                  <li *ngIf="isEditMode">
+                    <a href="#" id="prop-declaration-delete-btn" data-toggle="modal" data-target="#deleteSponsor"
+                      (click)="deleteSponsorId = proposalSponsor?.sponsorId;">
+                      <i class="fa fa-trash-o" aria-hidden="true"
+                        title="Click here to delete the declaration details of {{proposalSponsor?.fullName}}"></i>
+                    </a>
+                  </li>
+                </ul>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- DELETE SPONSOR WARNING MODAL -->
+<div class="modal fade mySkinDialog modal-opacity" tabindex="-1" id="deleteSponsor" role="dialog"
+  aria-labelledby="deleteModalTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete</h5>
+        <button type="button" class="close" id="prop-dlt-sponsor-dismiss" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this item?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="prop-dlt-sponsor-no-btn" data-dismiss="modal">No</button>
+        <button type="button" class="btn btn-primary-sub btn-sm" id="prop-dlt-sponsor-yes-btn" (click)="deleteSponsor()"
+          data-dismiss="modal">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Declaration Details modal-->
+<div class="modal fade mySkinDialog modal-opacity" tabindex="-1" id="declarationDetailsModal" role="dialog"
+  aria-labelledby="deleteModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Declaration Details of {{viewDeclarationObject?.fullName}}</h5>
+        <button id="prop-decldetail-close" type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row  mb-3">
+          <div class="col">
+            <label class="block-display">Declaration For</label>
+            <span [ngClass]="viewDeclarationObject?.fullName ? '' : 'noDataExists'">{{viewDeclarationObject?.fullName
+              ? viewDeclarationObject?.fullName : 'No declaration for specified'}}</span>
+          </div>
+          <div class="col">
+            <label class="block-display">Proposal / Project Title</label>
+            <span
+              [ngClass]="viewDeclarationObject?.projectTitle ? '' : 'noDataExists'">{{viewDeclarationObject?.projectTitle
+              ? viewDeclarationObject?.projectTitle : 'No proposal / project title specified'}}</span>
+          </div>
+          <div class="col">
+            <label class="block-display">Title of Grant Call</label>
+            <span
+              [ngClass]="viewDeclarationObject?.grantCallName ? '' : 'noDataExists'">{{viewDeclarationObject?.grantCallName
+              ? viewDeclarationObject?.grantCallName : 'No title of grant call specified'}}</span>
+          </div>
+          <div class="col">
+            <label class="block-display">Role Played</label>
+            <span [ngClass]="viewDeclarationObject?.proposalPersonRole ? '' : 'noDataExists'">{{viewDeclarationObject?.proposalPersonRole ? viewDeclarationObject?.proposalPersonRole?.description : 'No role played specified'}}</span>
+          </div>
+        </div>
+        <div class="form-row  mb-3">
+          <div class="col">
+            <label class="block-display">Currency</label>
+            <span [ngClass]="viewDeclarationObject?.currency ? '' : 'noDataExists'">{{viewDeclarationObject?.currency
+              ? viewDeclarationObject?.currency?.currencyCode : 'No currency specified'}}</span>
+          </div>
+          <div class="col">
+            <label class="block-display">Amount</label>
+            <span *ngIf="viewDeclarationObject.amount != null">{{viewDeclarationObject?.amount | currency :
+              viewDeclarationObject?.currency?.currencySymbol}}</span>
+            <span class="noDataExists" *ngIf="viewDeclarationObject?.amount == null">No amount specified</span>
+          </div>
+          <div class="col">
+            <label class="block-display">Funding Type</label>
+            <span [ngClass]="viewDeclarationObject?.sponsorType ? '' : 'noDataExists'">{{viewDeclarationObject?.sponsorType ? viewDeclarationObject?.sponsorType?.description : 'No funding type specified'}}</span>
+          </div>
+          <div class="col">
+            <label class="block-display">Funding Source</label>
+            <!-- SMU SPECIFIC change - sponsorTypeCode == '5' ie, When funding type is 'Other', funding source will be text box instead of end point search -->
+            <span
+              [ngClass]="viewDeclarationObject?.sponsorTypeCode ? '' : 'noDataExists'">{{(viewDeclarationObject?.sponsorTypeCode
+              == null) ? 'No funding source specified' : (viewDeclarationObject?.sponsorTypeCode
+              !== '5') ? viewDeclarationObject?.sponsor?.sponsorName : viewDeclarationObject?.sponsorName}}</span>
+          </div>
+        </div>
+        <div class="form-row mb-3">
+          <div class="col">
+            <label class="block-display">Start Date</label>
+            <span *ngIf="viewDeclarationObject?.startDate">{{viewDeclarationObject?.startDate | dateFormatter}}</span>
+            <span class="noDataExists" *ngIf="viewDeclarationObject?.startDate == null">No start date specified</span>
+          </div>
+          <div class="col">
+            <label class="block-display">End Date</label>
+            <span *ngIf="viewDeclarationObject?.endDate">{{viewDeclarationObject?.endDate | dateFormatter}}</span>
+            <span *ngIf="viewDeclarationObject?.endDate == null" class="noDataExists">No end date specified</span>
+          </div>
+          <div class="col">
+            <label class="block-display">% of Effort</label>
+            <span
+              [ngClass]="(viewDeclarationObject?.percentageOfEffort || viewDeclarationObject?.percentageOfEffort == 0) ? '' : 'noDataExists'">{{(viewDeclarationObject?.percentageOfEffort
+              || viewDeclarationObject?.percentageOfEffort == 0) ? viewDeclarationObject?.percentageOfEffort
+              : 'No % of effort specified'}}</span>
+          </div>
+          <div class="col">
+            <label class="block-display">Status</label>
+            <span
+              [ngClass]="viewDeclarationObject?.proposalFundingStatus ? '' : 'noDataExists'">{{viewDeclarationObject?.proposalFundingStatus
+              ? viewDeclarationObject?.proposalFundingStatus?.description :
+              'No status specified'}}</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="prop-close-declDetails" type="button" class="btn btn-primary-sub btn-sm" data-dismiss="modal"
+          aria-label="Close">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Declaration Modal -->
+<div class="modal fade mySkinDialog" id="add-declaration-modal" role="dialog" aria-labelledby="skippedSchedulesTitle"
+    aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{editIndex !== null ? 'Update' : 'Add'}} Other Funding Support </h5>
+                <button type="button" class="close" (click)="clearDeclarationDetails()" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div> 
+            <div class="modal-body py-1 px-3">
+                <app-proposal-overview-modal-card></app-proposal-overview-modal-card>
+                <div class="w-100">
+                    <div class="form-row">
+                        <div class="col-md-6 col-12 mt-3">
+                            <label  for="prop-declaration-funding-type" class="d-block"><span class="mandatory">*</span>Declaration For</label>
+                            <select id="prop-declaration-funding-type" [(ngModel)]="sponsorObject.fullName" [ngClass]="fundingMap?.get('person') ? 'is-invalid d-block' : ''"
+                              class="form-control">
+                              <option [value]=null>--Select--</option>
+                              <option *ngFor="let type of result.proposalPersons" [value]="type?.fullName">{{type?.fullName}}</option>
+                            </select>
+                            <div class="invalid-feedback d-block font-weight-normal" *ngIf="fundingMap?.get('person')">{{fundingMap.get('person')}}</div>
+                        </div>
+                        <div class="col-md-6 col-12 mt-3">
+                          <label for="prop-declaration-project-title" class="d-block">Proposal / Project Title</label>
+                          <input type="text" id="prop-declaration-project-title" autocomplete="off" class="form-control" [(ngModel)]="sponsorObject.projectTitle"
+                          />
+                        </div>
+                        <div class="col-md-6 col-12">
+                          <label for="prop-declaration-grantcall" class="d-block">Title of Grant Call</label>
+                          <input type="text" id="prop-declaration-grantcall" [(ngModel)]="sponsorObject.grantCallName" autocomplete="off" class="form-control"
+                          />
+                        </div>
+                        <div class="col-md-6 col-12">
+                          <label for="prop-project-role" class="d-block">Role Played</label>
+                          <select id="prop-project-role" class="form-control" [(ngModel)]="sponsorObject.proposalPersonRole">
+                            <option [value]=null>--Select--</option>
+                            <option *ngFor="let role of result.proposalPersonRoles" [ngValue]="role">{{role?.description}}</option>
+                          </select>
+                        </div>
+                        <div class="col-md-6 col-12">
+                          <label for="prop-declaration-funding-currency" class="d-block">Currency</label>
+                          <select id="prop-declaration-funding-currency" [(ngModel)]="sponsorObject.currency" class="form-control">
+                            <option [value]=null>--Select--</option>
+                            <option *ngFor="let type of result?.currencyDetails" [ngValue]="type">{{type?.currencyCode}}</option>
+                          </select>
+                        </div>
+                        <div class="col-md-6 col-12">
+                          <label for="prop-declaration-amount" class="d-block">Amount</label>
+                          <input type="text" autocomplete="off" [ngClass]="fundingMap?.get('amount') ? 'is-invalid d-block' : ''"
+                            id="prop-declaration-amount" class="form-control" [(ngModel)]="sponsorObject.amount" (ngModelChange)="amountValidation();"
+                            appCurrencyFormat [initialValue]="sponsorObject.amount" [customCurrency]="sponsorObject?.currency?.currencySymbol"
+                          />
+                          <div class="invalid-feedback d-block font-weight-normal" *ngIf="fundingMap?.get('amount')">{{fundingMap.get('amount')}}</div>
+                        </div>
+                        <div class="col-md-6 col-12">
+                          <label for="prop-declaration-funding-type" class="d-block">Funding Type</label>
+                          <select id="prop-declaration-funding-type" [(ngModel)]="sponsorObject.sponsorType" (change)="sponsorTypeChange()" class="form-control">
+                            <option [value]=null>--Select--</option>
+                            <option *ngFor="let type of result?.sponsorTypes" [ngValue]="type">{{type?.description}}</option>
+                          </select>
+                        </div>
+                        <div class="col-md-6 col-12">
+                          <label for="funding-source" class="d-block">Funding Source</label>
+                          <!-- SMU SPECIFIC change - sponsorTypeCode == '5' ie, When funding type is 'Other', funding source will be text box instead of end point search -->
+                          <app-endpoint-search *ngIf="(sponsorObject.sponsorTypeCode !== '5' ) else sponsornametextbox" [httpOptions]="sponsorHttpOptions"
+                            [clearField]="clearSponsorSearchField" [placeHolder]="'Type here for Funding Source'" (onSelect)="sponsorSelect($event)"></app-endpoint-search>
+                          <ng-template #sponsornametextbox>
+                            <input type="text" id="prop-declaration-sponsorname-text" autocomplete="off" class="form-control" [(ngModel)]="sponsorObject.sponsorName"
+                            />
+                          </ng-template>
+                        </div>
+                        <div class="col-md-6 col-12">
+                          <label class="d-block">Start Date</label>
+                          <span class="dateField">
+                            <input matInput [matDatepicker]="startDt" placeholder="{{datePlaceHolder}}" id="prop-declaration-start-date" autocomplete="off" class="form-control d-inline-block"
+                              [(ngModel)]="sponsorObject.startDate" (keypress)="_commonService._keyPress($event, 'date');" (click)="startDt.open()">
+                            <i class="fa fa-calendar fa-large hand-cursor insidePicker" id="prop-declaration-start-date-icon"
+                            (click)="startDt.open()" aria-hidden="true"></i>
+                            <mat-datepicker #startDt (opened)="setFocusToElement('prop-declaration-start-date')" (closed)="validateEndDate()"></mat-datepicker>
+                          </span>
+                        </div>
+                        <div class="col-md-6 col-12">
+                          <label class="d-block">End Date</label>
+                          <span class="dateField">
+                            <input matInput [matDatepicker]="endDt" placeholder="{{datePlaceHolder}}" id="prop-declaration-end-date" autocomplete="off" [ngClass]="fundingMap?.get('endDate') ? 'is-invalid d-block' : ''"
+                              class="form-control d-inline-block" [(ngModel)]="sponsorObject.endDate" (ngModelChange)="validateEndDate()"
+                              (keypress)="_commonService._keyPress($event, 'date');" (click)="endDt.open()" />
+                              <i class="fa fa-calendar fa-large hand-cursor insidePicker" id="prop-declaration-end-date-icon"
+                              (click)="endDt.open()" aria-hidden="true"></i>
+                            <mat-datepicker #endDt (opened)="setFocusToElement('prop-declaration-end-date')" (closed)="validateEndDate()"></mat-datepicker>
+                          </span>
+                          <div class="invalid-feedback d-block font-weight-normal" *ngIf="fundingMap?.get('endDate') != null">{{fundingMap?.get('endDate')}}</div>
+                        </div>
+                        <div class="col-md-6 col-12">
+                          <label for="prop-declaration-effort" class="d-block">% of Effort</label>
+                          <input type="number" id="prop-declaration-effort" autocomplete="off" step="any" placeholder="eg: 100, 99.99, 10.22, 25 etc"
+                            [ngClass]="fundingMap?.get('percentageOfEffort') ? 'is-invalid d-block' : ''" class="form-control" [(ngModel)]="sponsorObject.percentageOfEffort"
+                            (keyup)="limitKeypress(sponsorObject.percentageOfEffort)" />
+                          <div *ngIf="fundingMap?.get('percentageOfEffort')">
+                            <span class="mandatory font">{{fundingMap?.get('percentageOfEffort')}}</span>
+                          </div>
+                        </div>
+                        <div class="col-md-6 col-12">
+                          <label for="prop-declaration-funding-status" class="d-block">Status</label>
+                          <select id="prop-declaration-funding-status" [(ngModel)]="sponsorObject.proposalFundingStatus" class="form-control">
+                            <option [value]=null>--Select--</option>
+                            <option *ngFor="let type of result?.proposalFundingStatus" [ngValue]="type">{{type?.description}}</option>
+                          </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer mt-3">
+                <button class="btn btn-secondary btn-sm  btn-xs mr-2" data-dismiss="modal"
+                (click)="clearDeclarationDetails()">Close</button>
+                <button (click)="addSponsor()" class="btn btn-primary-sub btn-xs mt-3 mt-sm-0" id="add-btn">
+                    {{editIndex !== null ? 'Update' : 'Add'}}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,116 @@
+<!-- Draggable Validation List -->
+<div *ngIf="validationList.length && isShowDock && !isModalOpened && validationConfig.isShowNavigationBar" class="validation-list card shadow-lg" [@slideDown] appFreeDragging>
+    <div class="card-header d-flex justify-content-between free-dragging align-items-baseline">
+        <h4 class="modal-title fs-14">Validation ({{validationList.length}})</h4>
+        <i aria-hidden="true" class="fa fa-window-minimize float-right m-1 hand-cursor" title="Minimize validation list"
+            (click)="isShowDock = !isShowDock"></i>
+    </div>
+    <div class="card-body">
+        <div *ngIf="validationList?.length > 0" class="fb-validator-list-container">
+            <ng-container *ngFor="let validation of validationList; let index = index">
+                <div *ngIf="validation.validationType != 'VW'"
+                    class="alert alert-text alert-danger hand-cursor py-2 fs-14 fb-validator-list-parent mb-0" role="alert"
+                    (click)="currentIndex=index;goToCorrespondingValidation(validation, validation?.navigationURL)">
+                    <i class="me-2 fa fa-exclamation-circle icon text-danger" aria-hidden="true"></i>
+                    <strong>Error: </strong><span [innerHTML]="validation.validationMessage"></span>
+                </div>
+                <div *ngIf="validation?.componentType === 'QN' && validation?.questionnaire?.length > 0 && validation?.validationType != 'VW'"
+                    class="fb-validator-child-container">
+                    <ng-container *ngFor="let question of validation.questionnaire; let index = index">
+                        <div class="alert alert-text alert-danger hand-cursor py-2 fs-14 fb-validator-list-child mb-0" role="alert"
+                            (click)="currentIndex=index;goToCorrespondingValidation(question, validation?.navigationURL)">
+                            <i class="me-2 fa fa-exclamation-circle icon text-danger" aria-hidden="true"></i>
+                            <strong>Error: </strong><span [innerHTML]="question.validationMessage"></span>
+        
+                        </div>
+                    </ng-container>
+                </div>
+                <div *ngIf="validation.validationType == 'VW'"
+                    class="alert alert-text alert-warning hand-cursor py-2 fs-14" role="alert"
+                    (click)="currentIndex=index;goToCorrespondingValidation(validation, validation?.navigationURL)">
+                    <i class="me-2 fa fa-exclamation-triangle icon text-warning" aria-hidden="true"></i>
+                    <strong>Warning: </strong><span [innerHTML]="validation.validationMessage"></span>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+</div>
+
+<!-- Dock with next and previous actions -->
+<div *ngIf="validationList.length && !isShowDock && !isModalOpened && validationConfig.isShowNavigationBar" class="dock-box shadow-lg" [@fadeIn]>
+    <div class="card-header d-flex justify-content-between border-radius p-0">
+        <h4 class="align-items-center d-flex ps-3 pt-2 fs-14">Validation ({{validationList.length}})</h4>
+        <span class="align-items-center d-flex">
+            <a (click)="moveToNextValidation('LEFT')" class="arrow-btn" aria-label="Previous"
+                title="Previous validation">
+                <span aria-hidden="true"><i class="fa fa-angle-double-left" aria-hidden="true"></i></span>
+                <span class="sr-only"></span>
+            </a>
+            <a class="arrow-btn" (click)="moveToNextValidation('RIGHT')" aria-label="Next" title="Next validation">
+                <span aria-hidden="true"><i class="fa fa-angle-double-right" aria-hidden="true"></i></span>
+                <span class="sr-only"></span>
+            </a>
+            <a class="arrow-btn corner-radius" title="Expand validation list" (click)="isShowDock = true">
+                <i aria-hidden="true" class="fa fa-expand float-right hand-cursor"></i>
+            </a>
+        </span>
+    </div>
+</div>
+
+<!-- Validation Modal -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="validate-form-modal" role="dialog"
+    data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Validation</h5>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div *ngIf="validationList?.length > 0">
+                            <ng-container *ngFor="let validation of validationList; let index = index">
+                                <div *ngIf="validation.validationType != 'VW'"
+                                    class="alert alert-text mb-2 alert-danger hand-cursor py-2 fs-14" role="alert"
+                                    (click)="currentIndex=index;isShowDock = true;isModalOpened = false;goToCorrespondingValidation(validation, validation?.navigationURL)"
+                                    data-bs-dismiss="modal">
+                                    <i class="me-2 fa fa-exclamation-circle icon text-danger" aria-hidden="true"></i>
+                                    <strong>Error: </strong><span [innerHTML]="validation.validationMessage"></span>
+                                </div>
+                                <div *ngIf="validation.validationType == 'VW'"
+                                    class="alert alert-text mb-2 alert-warning hand-cursor py-2 fs-14" role="alert"
+                                    (click)="currentIndex=index;isShowDock = true;isModalOpened = false;goToCorrespondingValidation(validation, validation?.navigationURL)"
+                                    data-bs-dismiss="modal">
+                                    <i class="me-2 fa fa-exclamation-triangle icon text-warning" aria-hidden="true"></i>
+                                    <strong>Warning: </strong><span [innerHTML]="validation.validationMessage"></span>
+                                </div>
+                            </ng-container>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <ng-container *ngIf="validationList.length && isErrorPresent">
+                    <button type="button" title="Close validation modal"
+                        (click)="isShowDock = true; isModalOpened = false" class="btn btn-outline-primary fs-14"
+                        data-bs-dismiss="modal" tabindex="0" aria-label="View" role="button">
+                        Close
+                    </button>
+                </ng-container>
+                <ng-container *ngIf="validationList.length && !isErrorPresent">
+                    <button type="button" title="Close validation modal"
+                        (click)="isShowDock = true; isModalOpened = false" class="btn btn-outline-primary fs-14"
+                        data-bs-dismiss="modal" tabindex="0" aria-label="View" role="button">
+                        Cancel
+                    </button>
+                    <button type="button" title="Click to {{validationConfig.proceedBtnName}}"
+                        (click)="isShowDock = true; isModalOpened = false;emitProceedAction()"
+                        class="btn btn-primary fs-14" data-bs-dismiss="modal" tabindex="0" aria-label="View"
+                        role="button">
+                        {{ validationConfig.proceedBtnName }}
+                    </button>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</div>

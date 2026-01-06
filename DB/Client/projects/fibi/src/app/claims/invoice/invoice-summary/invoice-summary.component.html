@@ -1,0 +1,270 @@
+<div class="card mt-3">
+    <div class="card-header px-4">
+        <h4 class="card-title">Invoice Summary
+            <button (click)="isInvoiceWidgetOpen = !isInvoiceWidgetOpen" class="updown-arrow" id="invoiceExpandBtn">
+                <i [ngClass]="!isInvoiceWidgetOpen?'fa fa-angle-double-down':'fa fa-angle-double-up'" aria-hidden="true"
+                   class="fa-large"></i>
+            </button>
+        </h4>
+    </div>
+    <div *ngIf="isInvoiceWidgetOpen" class="card-content">
+        <div class="card-body">
+            <div class="overflow-auto">
+                <table *ngIf="invoiceSummaryList?.length" aria-hidden="true"
+                       class="table tableSkin invoice-table-inner invoice-table">
+                    <thead>
+                    <tr>
+                        <th scope="col">Invoice Id</th>
+                        <th scope="col">Invoice/Credit Memo</th>
+                        <th scope="col">Amount</th>
+                        <th scope="col">Currency Code</th>
+                        <th scope="col">Doc No. To SAP</th>
+                        <th scope="col">Doc No. From SAP</th>
+                        <th scope="col">Doc Header Text</th>
+                        <th scope="col">Fiscal Year</th>
+                        <th scope="col">Document Type</th>
+                        <th scope="col">Customer No.</th>
+                        <th scope="col">Customer Email Address</th>
+                        <th scope="col">Requester Email Address</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <ng-container
+                            *ngFor="let groupedBySequence of invoiceSummaryList;let last = last; let index = index">
+                        <ng-container
+                                *ngFor="let invoice of groupedBySequence;let invoiceFirst = first; let invoiceLast = last">
+                            <tr *ngIf="invoiceFirst">
+                                <td class="p-2 px-3 bg-light" colspan="12">
+                                    <strong>Version {{invoice?.sequenceNumber}}</strong>
+                                    <i (click)="showSAPResponses(invoice?.sequenceNumber, groupedBySequence)"
+                                       aria-hidden="true"
+                                       class="pl-2 fa fa-commenting-o hand-cursor"
+                                       title="Show SAP responses"></i>
+                                </td>
+                                <td (click)="isSequenceDetailsShow[index]= !isSequenceDetailsShow[index];isInvoiceDetailsShow={}"
+                                    [title]="!isSequenceDetailsShow[index]?'Hide details':'Show details'"
+                                    class="text-center p-2 px-3 bg-light hover-action hand-cursor hoverColor">
+                                    <i [ngClass]="!isSequenceDetailsShow[index]?'fa-chevron-up':'fa-chevron-down'"
+                                       aria-hidden="true" class="action-icons f-12 fa"></i>
+                                </td>
+                            </tr>
+                            <tr *ngIf="!isSequenceDetailsShow[index]"
+                                [class.light-border]="!invoiceLast && !isInvoiceDetailsShow[invoice?.claimInvoiceLogId]"
+                                [ngClass]="{'table-inner-row-shown bg-selected': isInvoiceDetailsShow[invoice?.claimInvoiceLogId]}">
+                                <td [ngClass]="{'dark-border-top pl-4':isInvoiceDetailsShow[invoice?.claimInvoiceLogId]}">
+                                    {{invoice?.claimInvoiceLogId}} <br>
+                                    <ng-container *ngIf="invoice?.status && invoice?.status === 'S'">
+                                        <span class="badge badge-success">Success</span>
+                                    </ng-container>
+                                    <ng-container *ngIf="invoice?.status && invoice?.status === 'E'">
+                                        <span class="badge badge-danger">Failed</span>
+                                    </ng-container>
+                                    <ng-container *ngIf="!invoice?.status">
+                                        <span class="badge badge-warning">Pending</span>
+                                    </ng-container>
+                                </td>
+                                <td>{{invoice?.claimInvoiceFeedType?.description}}</td>
+                                <td>{{invoice?.claimAmount | currency: _commonService.currencyFormat}}</td>
+                                <td>{{invoice?.currencyCode}}</td>
+                                <td>{{invoice?.inputDocumentNumber}}</td>
+                                <td>{{invoice?.outputDocumentNumber}}</td>
+                                <td>{{invoice?.documentHeaderText}}</td>
+                                <td>{{invoice?.fiscalYear}}</td>
+                                <td>{{invoice?.claimInvoiceMetadata?.documentTypeCode && ((invoice?.documentTypeCode === invoice?.claimInvoiceMetadata?.documentTypeCode) ?
+                                    invoice?.claimInvoiceMetadata?.documentTypeCode + ' - ' + invoice?.claimInvoiceMetadata?.documentTypeDesc :
+                                    invoice?.claimInvoiceMetadata?.reversalDocumentTypeCode + ' - ' + invoice?.claimInvoiceMetadata?.reversalDocumentTypeDesc)}}</td>
+                                <td>{{invoice?.customerNumber}}</td>
+                                <td>{{invoice?.customerEmailAddress}}</td>
+                                <td>{{invoice?.requesterEmailAddress}}</td>
+                                <td (click)="toggleLineItems(invoice?.claimInvoiceLogId)"
+                                    [title]="isInvoiceDetailsShow[invoice?.claimInvoiceLogId]?'Hide details':'Show details'"
+                                    class="text-center hover-action hand-cursor hoverColor">
+                                    <i [ngClass]="isInvoiceDetailsShow[invoice?.claimInvoiceLogId]?'fa-chevron-up':'fa-chevron-down'"
+                                       aria-hidden="true" class="action-icons f-12 fa"></i>
+                                </td>
+                            </tr>
+                            <tr *ngIf="isInvoiceDetailsShow[invoice?.claimInvoiceLogId] && !isSequenceDetailsShow[index]"
+                                [class.table-inner-row-shown]="isInvoiceDetailsShow[invoice?.claimInvoiceLogId]"
+                                class="inner-box-shadow">
+                                <td class="p-0" colspan="13">
+                                    <div class="p-3 default-height">
+                                        <div class="card section-highlight p-1 mb-3 shadow-sm gridSkin">
+                                            <div class="row">
+                                                <div class="col-2">
+                                                    <label class="block-display">GL Account</label>
+                                                    <span *ngIf="invoice?.glAccountCode">
+                                                    {{invoice?.claimGlAccount?.glAccountCode}}
+                                                        - {{invoice?.claimGlAccount?.description}}</span>
+                                                    <span *ngIf="!invoice?.glAccountCode" class="noDataExists">No GL Account Specified</span>
+                                                </div>
+                                                <div class="col-3">
+                                                    <label class="block-display">Grant Code</label>
+                                                    <span class="new-line-property">{{invoice?.grantCode}}</span>
+                                                    <span *ngIf="!invoice?.grantCode" class="noDataExists">No Grant Code Specified</span>
+                                                </div>
+                                                <div class="col-2">
+                                                    <label class="block-display">Profit Centre</label>
+                                                    <span class="new-line-property">{{invoice?.profitCentre}}</span>
+                                                    <span *ngIf="!invoice?.profitCentre" class="noDataExists">No Profit Centre Specified</span>
+                                                </div>
+                                                <div class="col-3">
+                                                    <label class="block-display">Company Code</label>
+                                                    <span class="new-line-property">{{invoice?.companyCode}}</span>
+                                                    <span *ngIf="!invoice?.companyCode" class="noDataExists">No Company Code Specified</span>
+                                                </div>
+                                                <div class="col-2">
+                                                    <label class="block-display">Contact / Telephone</label>
+                                                    <span class="new-line-property">{{invoice?.contactTelephoneNo}}</span>
+                                                    <span *ngIf="!invoice?.contactTelephoneNo" class="noDataExists">No Contact / Telephone Specified</span>
+                                                </div>
+                                                <div class="p-0">
+                                                    <button (click)="isMoreDetailsShow[invoice?.claimInvoiceLogId] = !isMoreDetailsShow[invoice?.claimInvoiceLogId]"
+                                                            [title]="isMoreDetailsShow[invoice?.claimInvoiceLogId]?'Hide more details':'Show more details'"
+                                                            class="updown-arrow float-right"
+                                                            id="progressReportExpandBtn">
+                                                        <i [ngClass]="!isMoreDetailsShow[invoice?.claimInvoiceLogId]?'fa fa-angle-double-down':'fa fa-angle-double-up'"
+                                                           aria-hidden="true"
+                                                           class="fa-large fa fa-angle-double-up"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <ng-container *ngIf="isMoreDetailsShow[invoice?.claimInvoiceLogId]">
+                                                <div class="row">
+                                                    <div class="col-2">
+                                                        <label class="block-display">Assignment Field</label>
+                                                        <span class="new-line-property">{{invoice?.assignmentField}}</span>
+                                                        <span *ngIf="!invoice?.assignmentField" class="noDataExists">No Assignment Field Specified</span>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <label class="block-display">Particulars 1</label>
+                                                        <span class="new-line-property">{{invoice?.particulars1}}</span>
+                                                        <span *ngIf="!invoice?.particulars1" class="noDataExists">No Particulars 1 Specified</span>
+                                                    </div>
+                                                    <div class="col-2">
+                                                        <label class="block-display">Particulars 2</label>
+                                                        <span class="new-line-property">{{invoice?.particulars2}}</span>
+                                                        <span *ngIf="!invoice?.particulars2" class="noDataExists">No Particulars 2 Specified</span>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <label class="block-display">Particulars 3</label>
+                                                        <span class="new-line-property">{{invoice?.particulars3}}</span>
+                                                        <span *ngIf="!invoice?.particulars3" class="noDataExists">No Particulars 3 Specified</span>
+                                                    </div>
+                                                    <div class="col-2">
+                                                        <label class="block-display">Particulars 4</label>
+                                                        <span class="new-line-property">{{invoice?.particulars4}}</span>
+                                                        <span *ngIf="!invoice?.particulars4" class="noDataExists">No Particulars 4 Specified</span>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-12">
+                                                        <label class="block-display">Description</label>
+                                                        <span class="new-line-property">{{invoice?.description}}</span>
+                                                        <span *ngIf="!invoice?.description" class="noDataExists">No Description Specified</span>
+                                                    </div>
+                                                </div>
+                                            </ng-container>
+                                        </div>
+                                        <app-invoice-line-item
+                                                [config]="{invoiceLineItems: invoice?.claimInvoiceDetails, isNestedMode: true}">
+                                        </app-invoice-line-item>
+                                    </div>
+                                </td>
+                            </tr>
+                        </ng-container>
+                    </ng-container>
+                    </tbody>
+                </table>
+            </div>
+
+            <div *ngIf="!invoiceSummaryList.length" class="mt-2">
+                <div class="d-flex align-items-center justify-content-center height-adjust">
+                    <div class="no-data-container">
+                        <span class="no-data-icon-outer">
+                            <div class="no-data-icon">
+                                <i aria-hidden="true" class="fa fa-file-o"></i>
+                                <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                            </div>
+                        </span>
+                        <h4>There is no information in this section.</h4>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!--SAP Response message modal-->
+<div class="modal fade mySkinDialog" id="SAPResponseModal" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header ct-footer-padding">
+                <h4 class="modal-title">
+                    SAP Responses
+                </h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <ng-container *ngFor="let sequence of selectedMessageRow;let last = last">
+                            <div [class.mb-3]="!last" class="border card p-3">
+                                <div class="form-row mb-2">
+                                    <div class="col">
+                                        <label class="d-block">Invoice Id:</label>
+                                        <span>
+                                            {{sequence?.claimInvoiceLogId}}
+                                            <ng-container *ngIf="sequence?.status && sequence?.status === 'S'">
+                                                <span class="badge badge-success ml-1">Success</span>
+                                            </ng-container>
+                                            <ng-container *ngIf="sequence?.status && sequence?.status === 'E'">
+                                                <span class="badge badge-danger ml-1">Failed</span>
+                                            </ng-container>
+                                            <ng-container *ngIf="!sequence?.status">
+                                                <span class="badge badge-warning ml-1">Pending</span>
+                                            </ng-container>
+                                        </span>
+                                    </div>
+                                    <div class="col">
+                                        <label class="d-block">Invoice/Credit Memo:</label>
+                                        <span>{{sequence?.claimInvoiceFeedType?.description}}</span>
+                                        <span *ngIf="!sequence?.claimInvoiceFeedType?.description"
+                                              class="noDataExists f-12 bold-600">No Invoice/Credit Memo Specified</span>
+                                    </div>
+                                    <div class="col">
+                                        <label class="d-block">Doc No. To SAP:</label>
+                                        <span>{{sequence?.inputDocumentNumber}}</span>
+                                        <span *ngIf="!sequence?.inputDocumentNumber" class="noDataExists f-12 bold-600">No Doc No. To SAP Specified</span>
+                                    </div>
+                                    <div class="col">
+                                        <label class="d-block">Doc No. From SAP:</label>
+                                        <span>{{sequence?.outputDocumentNumber}}</span>
+                                        <span *ngIf="!sequence?.outputDocumentNumber"
+                                              class="noDataExists f-12 bold-600">No Doc No. From SAP Specified</span>
+                                    </div>
+                                </div>
+                                <div *ngFor="let message of getInvoiceIdBasedMessages(sequence?.claimInvoiceLogId); let lastmsg = last"
+                                     [class.mb-3]="!lastmsg" class="border px-3 py-2 shadow-sm bg-light">
+                                    <p class="greenLabel mb-2">
+                                        <i aria-hidden="true"
+                                           class="fa fa-clock-o"></i> {{message?.updateTimeStamp | dateFormatterWithTimeZone: 'long'}}
+                                    </p>
+                                    <p class="f-14 mb-0 new-line-property">{{message?.message}}</p>
+                                </div>
+                                <ng-container *ngIf="!getInvoiceIdBasedMessages(sequence?.claimInvoiceLogId).length">
+                                    <p class="bg-color m-0 p-2 text-center">No message available.</p>
+                                </ng-container>
+                            </div>
+                        </ng-container>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer ct-footer-padding">
+                <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
+

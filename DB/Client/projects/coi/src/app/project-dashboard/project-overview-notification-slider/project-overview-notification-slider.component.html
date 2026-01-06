@@ -1,0 +1,230 @@
+<ng-container>
+    <app-coi-slider (closeSlider)="closeSlider()" [elementId]="'coi-project-notification-slider'"
+        [isHeaderNeeded]="true" [sliderWidth]="'w-100 w-md-90 w-lg-75'">
+
+        <ng-container header>
+            <span id="coi-project-overview-notification">Notification</span><app-common-help-text [subSectionId]="810" [elementId]="'project-notify-slider-header'"></app-common-help-text>
+        </ng-container>
+
+        <ng-container content-sticky>
+            <app-shared-project-details-card [projectDetails]="projectDetails"
+                [uniqueId]="'project-overview-notification'"
+                customClass="coi-box-red shadow-medium"></app-shared-project-details-card>
+        </ng-container>
+
+        <ng-container content>
+            <div class="card shadow-medium my-3">
+                <!-- Engagement main navigation tabs -->
+                <ul class="nav main-navs nav-underline gap-0 border-bottom" id="coi-main-engagement-nav">
+                    <li tabindex="0" (click)="openTab('NEW_NOTIFICATION')" (keyup.space)="openTab('NEW_NOTIFICATION')"
+                        (keyup.enter)="openTab('NEW_NOTIFICATION')">
+                        <a class="nav-link px-3 py-3 border-end" title="Click here to view New Notification"
+                            id="project-new-notification-tab" [class.active]="activeTab === 'NEW_NOTIFICATION'"
+                            id="coi-view-relationship-details-sfi-details"
+                            [attr.aria-label]="activeTab === 'NEW_NOTIFICATION' ? 'Selected tab is New Notification' : 'Click here to view New Notification'">
+                            New Notification
+                        </a>
+                    </li>
+                    <li *ngIf="notificationList?.length" tabindex="0" (click)="openTab('PAST_NOTIFICATIONS')"
+                        (keyup.space)="openTab('PAST_NOTIFICATIONS')" (keyup.enter)="openTab('PAST_NOTIFICATIONS')">
+                        <a class="nav-link px-3 py-3 border-end" title="Click here to view Past notifications"
+                            id="project-past-notification-tab" [class.active]="activeTab === 'PAST_NOTIFICATIONS'"
+                            id="coi-view-relationship-details-sfi-details"
+                            [attr.aria-label]="activeTab === 'PAST_NOTIFICATIONS' ? 'Selected tab is Past Notifications' : 'Click here to view Past Notifications'">
+                            Past Notifications
+                        </a>
+                    </li>
+                </ul>
+                <div *ngIf="activeTab === 'NEW_NOTIFICATION'" class="p-3">
+                    <div class="pb-0">
+
+                        <!-- To Recipient -->
+                        <div class="col-lg-12 mb-2">
+                            <div class="row gap-1 align-items-center">
+                                <label for="coi-notification-recipient-type" class="d-block coi-text-dark"><span
+                                        class="mandatory me-1">*</span>To<app-common-help-text [subSectionId]="810"
+                                        [elementId]="'project-notify-slider-to-field'"></app-common-help-text></label>
+                                <div class="col-12 align-items-baseline justify-content-center">
+                                    <app-elastic [options]="elasticSearchOptionsForTo" [clearField]="clearField"
+                                        (click)="recipientGroup = 'TO'" [placeHolder]="'Search person'"
+                                        [isError]="validationMap.get('recipients')" (selectedResult)="selectedRecipient($event)">
+                                    </app-elastic>
+                                    <!-- recipients error -->
+                                    <span *ngIf="validationMap?.has('recipients')"
+                                        class="invalid-feedback d-block fs-13">{{validationMap?.get('recipients')}}</span>
+                                    <span *ngIf="validationMap?.has('duplicateRecipientTo')"
+                                        class="invalid-feedback d-block fs-13">{{validationMap?.get('duplicateRecipientTo')}}</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <div class="d-inline-flex flex-wrap">
+                                        <ng-container *ngFor="let recipient of notificationObject?.recipients">
+                                            <div *ngIf="(recipient.recipientType == 'TO')"
+                                                class="badge rounded-pill bg-recipient-user-filechips mt-1 me-2">
+                                                <div class="d-flex align-items-center">
+                                                    <mat-icon aria-hidden="true" class="flex-shrink-0 coi-scale-9">person</mat-icon>
+                                                    <span id="coi-notify-to-recipientname">{{recipient.recipientName}}</span>
+                                                    <button class="d-flex align-items-center jusitfy-content-center fs-15 btn-none"
+                                                        (click)="removeRecipient(recipient)"
+                                                        title="Click here to remove {{recipient.recipientName}}"
+                                                        attr.aria-label="Click here to remove {{recipient.recipientName}}">
+                                                        <mat-icon aria-hidden="true" class="flex-shrink-0 coi-scale-9">close</mat-icon>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </ng-container>
+                                    </div>
+                                    <div>
+                                        <a class="coi-anchor-link ms-2 text-nowrap fs-14 col-auto px-0" tabindex="0"
+                                            *ngIf="!isCcViewable" (click)="isCcViewable = true">
+                                            <i aria-hidden="true"></i>Add Cc</a>
+
+                                        <a class="coi-anchor-link ms-3 text-nowrap fs-14 col-auto px-0" tabindex="0"
+                                            *ngIf="!isBccViewable" (click)="isBccViewable = true">
+                                            <i aria-hidden="true"></i>Add Bcc</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CC Recipient -->
+                        <div *ngIf="isCcViewable" class="col-12">
+                            <div class="col mb-0">
+                                <label class="d-block coi-text-dark">Cc<app-common-help-text [subSectionId]="810"
+                                        [elementId]="'project-notify-slider-cc-field'"></app-common-help-text></label>
+                                <div class="col-12 align-items-baseline justify-content-center">
+                                    <app-elastic [options]="elasticSearchOptionsForCc" [clearField]="clearField"
+                                        (click)="recipientGroup = 'CC'" [placeHolder]="'Search person'"
+                                        (selectedResult)="selectedRecipient($event)">
+                                    </app-elastic>
+                                </div>
+                                <span *ngIf="validationMap?.has('duplicateRecipientCc')"
+                                    class="invalid-feedback d-block fs-13">{{validationMap?.get('duplicateRecipientCc')}}</span>
+                            </div>
+                            <div class="d-inline-flex flex-wrap mb-2 mt-1">
+                                <ng-container *ngFor="let recipient of notificationObject?.recipients">
+                                    <div *ngIf="(recipient.recipientType == 'CC')"
+                                        class="badge rounded-pill bg-recipient-user-filechips mt-1 me-2">
+                                        <div class="d-flex align-items-center">
+                                            <mat-icon aria-hidden="true" class="flex-shrink-0 coi-scale-9">person</mat-icon>
+                                            <span id="coi-notify-cc-recipientname">{{recipient.recipientName}}</span>
+                                            <button class="d-flex align-items-center jusitfy-content-center fs-15 btn-none"
+                                                (click)="removeRecipient(recipient)"
+                                                title="Click here to remove {{recipient.recipientName}}"
+                                                attr.aria-label="Click here to remove {{recipient.recipientName}}">
+                                                <mat-icon aria-hidden="true" class="flex-shrink-0 coi-scale-9">close</mat-icon>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                            </div>
+                        </div>
+
+                        <!-- BCC Recipient -->
+                        <div *ngIf="isBccViewable" class="col-lg-12">
+                            <label class="d-block coi-text-dark">Bcc<app-common-help-text [subSectionId]="810"
+                                    [elementId]="'project-notify-slider-bcc'"></app-common-help-text></label>
+                            <div class="col-12 align-items-baseline justify-content-center">
+                                <app-elastic [options]="elasticSearchOptionsForBcc" [clearField]="clearField"
+                                    (click)="recipientGroup = 'BCC'" [placeHolder]="'Search person'"
+                                    (selectedResult)="selectedRecipient($event)">
+                                </app-elastic>
+                            </div>
+                            <span *ngIf="validationMap?.has('duplicateRecipientBcc')"
+                                class="invalid-feedback d-block fs-13">{{validationMap?.get('duplicateRecipientBcc')}}</span>
+                            <div class="d-inline-flex flex-wrap mb-2 mt-1">
+                                <ng-container *ngFor="let recipient of notificationObject?.recipients">
+                                    <div *ngIf="(recipient.recipientType == 'BCC')"
+                                        class="badge rounded-pill bg-recipient-user-filechips mt-1 me-2">
+                                        <div class="d-flex align-items-center">
+                                            <mat-icon aria-hidden="true" class="flex-shrink-0 coi-scale-9">person</mat-icon>
+                                            <span id="coi-notify-bcc-recipientname">{{recipient.recipientName}}</span>
+                                            <button class="d-flex align-items-center jusitfy-content-center fs-15 btn-none"
+                                                (click)="removeRecipient(recipient)"
+                                                title="Click here to remove {{recipient.recipientName}}"
+                                                attr.aria-label="Click here to remove {{recipient.recipientName}}">
+                                                <mat-icon aria-hidden="true" class="flex-shrink-0 coi-scale-9">close</mat-icon>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notification Template -->
+                    <div *ngIf="notificationTemplates?.length" class="pb-0">
+                        <div class="mt-1 mb-3">
+                            <label for="notification-template-lookup" class="d-block coi-text-dark mb-1">Notification
+                                Template<app-common-help-text [subSectionId]="810"
+                                    [elementId]="'project-notify-slider-template'"></app-common-help-text></label>
+                            <app-look-up [options]='templateOptions' (selectedResult)="onTemplateSelect($event)"
+                                [isExternalArray]="true" [selectedLookUpList]="selectedTemplateLookUpList"
+                                [externalArray]="notificationTemplates" [uniqueId]="'notification-template-lookup'">
+                            </app-look-up>
+                        </div>
+                    </div>
+
+                    <!-- Subject -->
+                    <div class="pb-0">
+                        <div class="col-lg-12 mb-3">
+                            <label for="notification-msg-subject" class="d-block coi-text-dark mb-1"><span
+                                    class="mandatory me-1">*</span>Subject<app-common-help-text [subSectionId]="810"
+                                    [elementId]="'project-notify-slider-subject'"></app-common-help-text></label>
+                            <input id="notification-msg-subject" class="form-control"
+                                [class.coi-invalid-feedback-border]="validationMap.get('subject')"
+                                [(ngModel)]="notificationObject.subject" appTailingSpaceRemover placeholder="Please provide a subject">
+
+                            <!-- subject error -->
+                            <span *ngIf="validationMap?.has('subject')"
+                                class="invalid-feedback d-block fs-13">{{validationMap?.get('subject')}}</span>
+                        </div>
+                    </div>
+
+                    <!-- Message Body -->
+                    <div class="col-lg-12">
+                        <label for="coi-notification-msg-body" class="d-block coi-text-dark mb-1">
+                            <span class="mandatory me-1">*</span>
+                            <span>Message Body</span>
+                            <app-common-help-text [subSectionId]="810"
+                                [elementId]="'project-notify-slider-msg-body'"></app-common-help-text>
+                        </label>
+                        <div class="alert alert-primary p-1 f-14 mb-2 d-flex">
+                            <mat-icon class="mat-icon material-icons flex-shrink-0" aria-hidden="true">info</mat-icon>
+                            <p class="fs-14 mb-0 ms-1">
+                                <span class="d-flex algin-items-start"><em>The editor does not support images.</em></span>
+                            </p>
+                        </div>
+                        <!-- ck editor -->
+                        <div [class.coi-invalid-feedback-border]="validationMap.get('message')">
+                            <ckeditor [(ngModel)]="notificationObject.message" [id]="'coi-notification-msg-body'"
+                                [config]="editorConfig" [editor]="Editor" (focus)="onEditorFocus()" (blur)="onEditorBlur()"
+                                (ready)="onReady($event)" placeholder="Comment" row="1" maxlength="2000">
+                            </ckeditor>
+                        </div>
+                    </div>
+
+                    <!-- body error -->
+                    <span *ngIf="validationMap?.has('message')" class="invalid-feedback d-block fs-13">{{validationMap?.get('message')}}
+                    </span>
+
+                    <!-- footer -->
+                    <div class="modal-footer mt-3">
+                        <button title="Click here to clear" type="button" aria-label="Click here to clear"
+                            id="coi-notification-modal-close-btn" class="btn btn-outline-secondary me-2"
+                            (click)="clearNotificationFields()">
+                            Clear
+                        </button>
+                        <button type="button" title="Click here to notify" class="btn btn-primary fs-14"
+                            aria-label="Click here to notify" id="coi-notification-modal-notify-btn" (click)="sendNotification()">
+                            Notify
+                        </button>
+                    </div>
+                </div>
+
+                <div *ngIf="activeTab === 'PAST_NOTIFICATIONS'" class="p-3">
+                    <app-project-dashboard-notification-sent-items  [notificationList]="notificationList"></app-project-dashboard-notification-sent-items>
+                </div>
+            </div>
+        </ng-container>
+    </app-coi-slider>
+</ng-container>

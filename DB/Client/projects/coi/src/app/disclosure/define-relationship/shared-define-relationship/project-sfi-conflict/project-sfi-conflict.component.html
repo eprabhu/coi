@@ -1,0 +1,279 @@
+<div class="w-100">
+    <!-- sort and apply to all -->
+    <div *ngIf="filteredProjectRelation?.coiDisclEntProjDetails?.length" id="coi-relationship-{{filteredProjectRelation?.projectId || filteredProjectRelation?.personEntityId}}"
+        class="d-flex align-items-stretch gap-2 sort-div border px-2 position-sticky z-index-5 top-38px">
+        <div class="d-flex align-items-center gap-2 col-auto pe-2 py-1 border-end">
+            <span class="fs-13 fw-medium text-secondary">Sort By :</span>
+            <!-- Entity -->
+            <button *ngIf="defineRelationshipService.currentRelationSwitch === 'PROJECTS'"
+                id="coi-define-relationship-entity-sort-btn-{{filteredProjectRelation?.projectId}}"
+                [class.coi-sort-filter-active]="isDesc['entityName']?.order" (click)="sortEntityName()"
+                title="Click here to sort engagement in {{isDesc['entityName']?.order === 'DESC' ? 'ascending' : 'descending'}} order"
+                attr.aria-label="Click here to sort engagement in {{isDesc['entityName']?.order === 'DESC' ? 'ascending' : 'descending'}} order"
+                class="d-inline-flex align-items-center justify-content-center shadow-sm fw-medium py-1 px-3 fs-12 border rounded-5 bg-white coi-sort-filter-btn">
+                <span>Entity</span>
+                <mat-icon *ngIf="isDesc['entityName']?.order === 'ASC'" aria-hidden="true" class="arrow selected-arrow flex-shrink-0" [@slideDown]>arrow_downward</mat-icon>
+                <mat-icon *ngIf="isDesc['entityName']?.order === 'DESC'" aria-hidden="true" class="arrow selected-arrow flex-shrink-0" [@slideUp] [@scaleOut]>arrow_upward</mat-icon>
+            </button>
+            <!-- Conflict Status -->
+            <button id="coi-define-relationship-conflict-sort-btn-{{filteredProjectRelation?.projectId || filteredProjectRelation?.personEntityId}}"
+                [class.coi-sort-filter-active]="isDesc['projectConflictStatusCode']?.order" (click)="sortConflictStatus()"
+                title="Click here to sort conflict status in {{isDesc['projectConflictStatusCode']?.order === 'DESC' ? 'ascending' : 'descending'}} order"
+                attr.aria-label="Click here to sort conflict status in {{isDesc['projectConflictStatusCode']?.order === 'DESC' ? 'ascending' : 'descending'}} order"
+                class="d-inline-flex align-items-center justify-content-center shadow-sm fw-medium py-1 px-3 fs-12 border rounded-5 bg-white coi-sort-filter-btn">
+                <span>Conflict Status</span>
+                <mat-icon *ngIf="isDesc['projectConflictStatusCode']?.order === 'ASC'" aria-hidden="true" class="arrow selected-arrow flex-shrink-0" [@slideDown]>arrow_downward</mat-icon>
+                <mat-icon *ngIf="isDesc['projectConflictStatusCode']?.order === 'DESC'" aria-hidden="true" class="arrow selected-arrow flex-shrink-0" [@slideUp] [@scaleOut]>arrow_upward</mat-icon>
+            </button>
+        </div>
+
+        <!-- apply to all -->
+        <div *ngIf="defineRelationshipService.isEditMode" class="d-flex align-items-center justify-content-end gap-2 col py-1">
+            <div *ngIf="applyAllHelpText[defineRelationshipService.currentRelationSwitch]" class="d-flex align-items-start gap-1">
+                <mat-icon aria-hidden="true" class="coi-text-light flex-shrink-0 coi-mat-icon-size">info</mat-icon>
+                <span class="coi-text-light fs-13">{{ applyAllHelpText[defineRelationshipService.currentRelationSwitch] }}</span>
+            </div>
+            <button type="button" id="coi_project_sfi_apply-to_all-{{filteredProjectRelation?.projectId}}"
+                class="col-auto fs-12 btn btn-primary btn-sm" (click)="openApplyToAllModal()"
+                aria-label="Click here to apply to all" title="Click here to apply to all">
+                <span>Apply to All</span>
+            </button>
+        </div>
+    </div>
+    <!-- engagement and project relations -->
+    <div *ngIf="filteredProjectRelation?.coiDisclEntProjDetails?.length; else showNoData">
+        <ng-container *ngFor="let coiDisclEntProjDetail of filteredProjectRelation.coiDisclEntProjDetails; let listIndex = index; let last = last; let oddList = odd">
+            <div class="card coi-card-regular mt-0 rounded-0 coi-card-custom-border-bottom"
+                id="coi-define-relationship-card-{{coiDisclEntProjDetail?.coiDisclProjectEntityRelId}}" [class.coi-card-bg-stripped-light]="oddList">
+                <div class="card-body">
+                    <div class="row col align-items-center" [class.g-3]="defineRelationshipService.currentRelationSwitch === 'PROJECTS'">
+                        <!-- entity name / ownership type / country -->
+                        <div *ngIf="defineRelationshipService.currentRelationSwitch === 'PROJECTS'" class="col-lg col-9">
+                            <h4 class="d-flex align-items-center col mb-0 coi-text-darker">
+                                <!-- icon -->
+                                <span class="coi-icon-bg me-2 fs-14 d-inline-flex"><mat-icon aria-hidden="true" class="coi-entity-icon-size coi-coloured-icons">domain</mat-icon></span>
+                                <!-- Entity Name -->
+                                <div class="d-flex align-items-start flex-column">
+                                    <div class="d-flex align-items-center gap-1">
+                                        <div class="d-flex align-items-center">
+                                            <a class="fs-6 link-primary" tabindex="0"
+                                                id="engagement-entity-name-link-{{coiDisclEntProjDetail?.coiDisclProjectEntityRelId}}"
+                                                (click)="viewEntityDetails(coiDisclEntProjDetail?.personEntity?.entityId)"
+                                                (keyup.enter)="viewEntityDetails(coiDisclEntProjDetail?.personEntity?.entityId)"
+                                                [attr.aria-label]="'Click here to view details of ' + coiDisclEntProjDetail?.personEntity?.entityName"
+                                                [title]="'Click here to view details of ' + coiDisclEntProjDetail?.personEntity?.entityName">
+                                                <span class="text-slice">{{ coiDisclEntProjDetail?.personEntity?.entityName }}</span>
+                                            </a>
+                                            <ng-container *ngIf="coiDisclEntProjDetail?.personEntity?.entityIsForeign">
+                                                <app-common-foreign-flag [entityName]="coiDisclEntProjDetail?.personEntity?.entityName"></app-common-foreign-flag>
+                                            </ng-container>
+                                        </div>
+                                        <!-- modified sign -->
+                                        <span *ngIf="coiDisclEntProjDetail?.prePersonEntityId && (coiDisclEntProjDetail?.prePersonEntityId != coiDisclEntProjDetail?.personEntityId)"
+                                        class="fs-13 sfi-info-text px-2 rounded-5 rounded-pill">Modified</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1 flex-wrap">
+                                        <!-- Relationship -->
+                                        <div class="d-flex align-items-center gap-1">
+                                            <span class="coi-text-dark fs-13 text-nowrap">Relationship:</span>
+                                            <div id="coi-eng-rel-{{coiDisclEntProjDetail?.coiDisclProjectEntityRelId}}" class="text-slice coi-text-light fs-13">
+                                                <app-no-data-label [valueToShow]="coiDisclEntProjDetail?.personEntity?.personEntityRelations">
+                                                    <div class="d-flex align-items-center flex-wrap">
+                                                        <ng-container *ngFor="let sfiRelations of coiDisclEntProjDetail?.personEntity?.personEntityRelations; let relationIndex = index; let lastRelationType = last">
+                                                            <span class="d-inline-flex align-items-center coi-text-light fs-13">
+                                                                <span class="coi-text-light fs-13">
+                                                                    {{ sfiRelations?.relationshipType }}
+                                                                    <ng-container
+                                                                    *ngIf="commonService.isSfiEvaluationEnabled && coiDisclEntProjDetail?.personEntity?.isSignificantFinInterest && ENGAGEMENT_LOCALIZE.TERM_FINANCIAL_FOR_REL_PILLS === sfiRelations?.relationshipType">
+                                                                        <span>|</span>
+                                                                        <span class="pe-1"></span>{{ ENGAGEMENT_LOCALIZE.TERM_SFI_FOR_REL_PILLS }}
+                                                                    </ng-container>
+                                                                </span>
+                                                                <ng-container *ngIf="!commonService?.isCompensatedFlow">
+                                                                    <span *ngIf="sfiRelations?.relations?.length" class="me-1 coi-text-light fs-13">:</span>
+                                                                    <ng-container *ngFor="let relation of sfiRelations?.relations; let lastRelation = last">
+                                                                        <span class="coi-text-lighter fs-13">{{ relation }}</span>
+                                                                        <span *ngIf="!lastRelation" class="px-1">/</span>
+                                                                    </ng-container>
+                                                                </ng-container>
+                                                                <span *ngIf="!lastRelationType" class="px-1">|</span>
+                                                            </span>
+                                                        </ng-container>
+                                                    </div>
+                                                </app-no-data-label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </h4>
+                        </div>
+                        <!-- project name -->
+                        <div *ngIf="defineRelationshipService.currentRelationSwitch === 'ENGAGEMENTS'" class="col-lg col-9">
+                            <div class="d-flex align-items-start justify-content-between coi-card-body-notch-container">
+                                <div class="d-flex align-items-end col">
+                                    <div [style.background-color]="coiDisclEntProjDetail?.projectBadgeColour"
+                                        id="coi-proj-rel-badge-{{coiDisclEntProjDetail?.coiDisclProjectEntityRelId}}"
+                                        class="coi-card-notch-ribbon mb-auto">{{ coiDisclEntProjDetail?.projectType }}</div>
+                                    <!-- project number, tile, and link -->
+                                    <div class="d-flex align-items-end ms-1 mt-1">
+                                        <mat-icon aria-hidden="true" class="coi-text-light flex-shrink-0 coi-scale-9">{{coiDisclEntProjDetail?.projectIcon}}</mat-icon>
+                                        <a tabindex="0" class="link-primary cursor-pointer fs-6 fw-600 lh-1"
+                                            id="coi-proj-rel-title-{{coiDisclEntProjDetail?.coiDisclProjectEntityRelId}}"
+                                            (click)="openProjectHierarchySlider(coiDisclEntProjDetail)" (keyup.enter)="openProjectHierarchySlider(coiDisclEntProjDetail)"
+                                            [title]="'Click here to view details of #' + coiDisclEntProjDetail?.projectNumber + ' -' + coiDisclEntProjDetail?.title"
+                                            [attr.aria-label]="'Click here to view details of #' + coiDisclEntProjDetail?.projectNumber + ' -' + coiDisclEntProjDetail?.title">
+                                            <span class="text-slice">#{{coiDisclEntProjDetail?.projectNumber}} - {{coiDisclEntProjDetail?.title}}</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- actions -->
+                        <div class="col-lg-auto col d-inline-flex justify-content-end gap-2">
+                            <!-- risk type -->
+                            <div *ngIf="isShowEngagementRisk && defineRelationshipService.currentRelationSwitch === 'PROJECTS'"
+                                class="d-flex align-items-center fs-14 gap-1 me-2">
+                                <span class="coi-text-lighter">Risk:</span>
+                                <span id="coi-entity-risk-{{coiDisclEntProjDetail?.coiDisclProjectEntityRelId}}" class="coi-text-light">
+                                    <app-no-data-label [valueToShow]="coiDisclEntProjDetail?.personEntity?.entityRiskLevelCode">
+                                        <span class="d-flex">
+                                            <mat-icon aria-hidden="true" class="flex-shrink-0 me-1"
+                                                [ngClass]="riskIconColor[coiDisclEntProjDetail?.personEntity?.entityRiskLevelCode] || riskIconColor['NA']">warning</mat-icon>
+                                            <span class="coi-text-dark">{{ coiDisclEntProjDetail?.personEntity?.entityRiskLevel }}</span>
+                                        </span>
+                                    </app-no-data-label>
+                                </span>
+                            </div>
+                            <ng-container *ngIf="!defineRelationshipService.isEditMode">
+                                <!-- conflict slider -->
+                                <button id="coi-relationship-mark-btn-{{coiDisclEntProjDetail?.coiDisclProjectEntityRelId}}"
+                                    class="d-flex align-items-center btn btn-outline-secondary coi-btn-sm fs-13 gap-1"
+                                    title="Click here to view the relationship between engagement and project"
+                                    aria-label="Click here to view the relationship between engagement and project"
+                                    (click)="openAddConflictSlider(coiDisclEntProjDetail)">
+                                    <img src="{{deployMap}}assets/images/history-icon-with-dark-shade.svg" alt="icon" aria-hidden="true" class="coi-btn-img-svg coi-size-20">
+                                </button>
+                            </ng-container>
+                            <!-- engagement view -->
+                            <button *ngIf="defineRelationshipService.currentRelationSwitch === 'PROJECTS'"
+                                class="d-flex align-items-center btn btn-outline-secondary coi-btn-sm fs-13 gap-1"
+                                id="coi-engagement-view-btn-{{coiDisclEntProjDetail?.coiDisclProjectEntityRelId}}"
+                                (click)="openEngagementSlider(coiDisclEntProjDetail?.personEntity?.personEntityId)"
+                                aria-label="Click here to view engagement" title="Click here to view engagement">
+                                <mat-icon aria-hidden="true">visibility</mat-icon>
+                            </button>
+                            <!-- comment -->
+                            <button *ngIf="isShowCommentButton" id="coi-comment-btn-{{coiDisclEntProjDetail?.coiDisclProjectEntityRelId}}"
+                                class="d-flex align-items-center btn btn-outline-secondary coi-btn-sm fs-13 gap-1 position-relative"
+                                title="Click here to open comment" aria-label="Click here to open comment"
+                                (click)="openReviewerComment(coiDisclEntProjDetail)">
+                                <mat-icon aria-hidden="true" class="flex-shrink-0 coi-comment-icon-size">rate_review</mat-icon>
+                                <span *ngIf="commentCounts[coiDisclEntProjDetail.coiDisclProjectEntityRelId] > 0 "
+                                    class="position-absolute bg-danger fs-10"
+                                    [ngClass]="{'comment-count-icon-large':  commentCounts[coiDisclEntProjDetail.coiDisclProjectEntityRelId] > 99,
+                                    'comment-count-icon':   commentCounts[coiDisclEntProjDetail.coiDisclProjectEntityRelId] <= 99 }">
+                                    {{ commentCounts[coiDisclEntProjDetail.coiDisclProjectEntityRelId] > 99 ? '99+' :
+                                    commentCounts[coiDisclEntProjDetail.coiDisclProjectEntityRelId] }}</span>
+                            </button>
+                        </div>
+                        <!-- conflict details -->
+                        <div class="d-flex col-12 flex-wrap gap-3">
+                            <!-- Edit Mode -->
+                            <ng-container *ngIf="defineRelationshipService.isEditMode">
+                                <!-- conflict status edit mode -->
+                                <div class="d-flex flex-column gap-1"
+                                    [ngClass]="defineRelationshipService.conflictStatusLookup?.length > DYNAMIC_SELECT_LIMIT ? 'col-auto' : 'col-12'">
+                                    <span class="coi-text-dark d-block text-nowrap">
+                                        <span class="mandatory me-1" aria-label="Mandatory field">*</span>
+                                        <span>Conflict Status</span>
+                                        <!-- help text -->
+                                        <app-common-help-text [subSectionId]="803" [elementId]="'select-conflict-status'"></app-common-help-text>
+                                    </span>
+                                    <!-- do not change the class for app-dynamic-select -->
+                                    <app-dynamic-select class="d-flex align-items-center gap-3" [lookupList]="defineRelationshipService.conflictStatusLookup"
+                                        [uniqueId]="'CONFLICT_STATUS_' + coiDisclEntProjDetail?.coiDisclProjectEntityRelId"
+                                        [isError]="defineRelationshipService.mandatoryList.has('CONFLICT_STATUS_' + coiDisclEntProjDetail?.coiDisclProjectEntityRelId)"
+                                        [selectedValue]="{ code: coiDisclEntProjDetail.projectConflictStatusCode,
+                                            description: coiDisclEntProjDetail.coiProjConflictStatusType.description }"
+                                        (selectedValueChange)="conflictStatusChanged(coiDisclEntProjDetail, 'CONFLICT_STATUS', $event)">
+                                    </app-dynamic-select>
+                                    <!-- conflict status error -->
+                                    <span *ngIf="defineRelationshipService.mandatoryList.has('CONFLICT_STATUS_' + coiDisclEntProjDetail?.coiDisclProjectEntityRelId)" role="alert"
+                                        class="d-block invalid-feedback mt-0">{{ defineRelationshipService.mandatoryList.get('CONFLICT_STATUS_' + coiDisclEntProjDetail?.coiDisclProjectEntityRelId) }}</span>
+                                </div>
+
+                                <!-- description edit mode -->
+                                <div class="d-flex flex-column gap-1 col">
+                                    <label [for]="'CONFLICT_COMMENT_' + coiDisclEntProjDetail?.coiDisclProjectEntityRelId"
+                                        class="coi-text-dark d-block">
+                                        <span class="mandatory me-1" aria-label="Mandatory field">*</span>
+                                        <span>Define Project - Engagement Relation</span>
+                                        <!-- help text -->
+                                        <app-common-help-text [subSectionId]="803" [elementId]="'coi-conflict-status-change'"></app-common-help-text>
+                                    </label>
+                                    <div class="col">
+                                        <textarea class="form-control coi-custom-height-on-focus"
+                                            [(ngModel)]="coiDisclEntProjDetail.personEngagementDetails" rows="1"
+                                            (ngModelChange)="coiDisclEntProjDetail.personEngagementDetails = coiDisclEntProjDetail.personEngagementDetails?.trim(); triggerAutoSave(coiDisclEntProjDetail, 'DESCRIPTION')"
+                                            [id]="'CONFLICT_COMMENT_' + coiDisclEntProjDetail?.coiDisclProjectEntityRelId"
+                                            [name]="'CONFLICT_COMMENT_' + coiDisclEntProjDetail?.coiDisclProjectEntityRelId"
+                                            appLengthValidator [limit]="2000" spellcheck="false" [isShowLimiter]="false"
+                                            [class.is-invalid]="defineRelationshipService.mandatoryList.has('CONFLICT_COMMENT_' + coiDisclEntProjDetail?.coiDisclProjectEntityRelId)"
+                                            title="Click here to provide your project - engagement relation" placeholder="Please provide the project - engagement relation here."
+                                            [attr.aria-label]="coiDisclEntProjDetail?.personEngagementDetails">
+                                        </textarea>
+                                        <!-- description error -->
+                                        <span *ngIf="defineRelationshipService.mandatoryList.has('CONFLICT_COMMENT_' + coiDisclEntProjDetail?.coiDisclProjectEntityRelId)" role="alert"
+                                            class="d-block invalid-feedback">{{ defineRelationshipService.mandatoryList.get('CONFLICT_COMMENT_' + coiDisclEntProjDetail?.coiDisclProjectEntityRelId) }}</span>
+                                    </div>
+                                </div>
+                            </ng-container>
+                            <!-- View Mode -->
+                            <ng-container *ngIf="!defineRelationshipService.isEditMode">
+                                <!-- Conflict Status view mode -->
+                                <div class="d-inline-flex gap-2 custom-width-250px">
+                                    <span class="coi-text-light d-block text-nowrap fw-500">Conflict Status:</span>
+                                    <div class="col" id="coi_sfi_project_conflict_view_{{coiDisclEntProjDetail?.coiDisclProjectEntityRelId}}">
+                                        <app-no-data-label [valueToShow]="coiDisclEntProjDetail?.projectConflictStatusCode">
+                                            <div class="text-nowrap">
+                                                <span class="{{PROJECT_CONFLICT_STATUS_BADGE[coiDisclEntProjDetail?.projectConflictStatusCode]}}"></span>
+                                                <span id="coi_project_relationship_conflict-status_{{coiDisclEntProjDetail?.coiDisclProjectEntityRelId}}"
+                                                    class="coi-text-dark ms-1">{{coiDisclEntProjDetail?.coiProjConflictStatusType?.description}}</span>
+                                            </div>
+                                        </app-no-data-label>
+                                    </div>
+                                </div>
+                                <!-- Project - Engagement Relation view mode -->
+                                <div class="col-lg col-12">
+                                    <span class="coi-text-dark text-nowrap fw-600 pe-1">Project - Engagement Relation:</span>
+                                    <div class="col d-inline" [id]="'CONFLICT_COMMENT_' + coiDisclEntProjDetail?.coiDisclProjectEntityRelId">
+                                        <app-no-data-label [valueToShow]="coiDisclEntProjDetail?.personEngagementDetails">
+                                            <span class="coi-text-light">
+                                                <span [title]="coiDisclEntProjDetail?.personEngagementDetails">{{(readMore[listIndex] ? coiDisclEntProjDetail?.personEngagementDetails : coiDisclEntProjDetail?.personEngagementDetails | slice:0:sliceCount)}}</span>
+                                                <ng-container *ngIf="coiDisclEntProjDetail?.personEngagementDetails?.length > sliceCount">
+                                                    <span *ngIf="!readMore[listIndex]">... </span>
+                                                    <a *ngIf="!readMore[listIndex]" tabindex="0" class="link-primary fs-14 fw-medium text-nowrap"
+                                                        (click)="readMore[listIndex] = true" (keyup.enter)="readMore[listIndex] = true"
+                                                        title="Click here to read more" aria-label="Click here to read more">Read More</a>
+                                                    <a *ngIf="readMore[listIndex]" tabindex="0" class="link-primary ms-1 fs-14 fw-medium text-nowrap"
+                                                        (click)="readMore[listIndex] = false" (keyup.enter)="readMore[listIndex] = false"
+                                                        title="Click here to read less" aria-label="Click here to read less">Read Less</a>
+                                                </ng-container>
+                                            </span>
+                                        </app-no-data-label>
+                                    </div>
+                                </div>
+                            </ng-container>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+    </div>
+    <!-- no data -->
+    <ng-template #showNoData>
+        <app-no-information customClass="mt-0">
+            <span>There are no {{ commonService.includeAllEngagementTypesInFcoi ? 'engagements' : 'financial engagements' }} associated with this {{ filteredProjectRelation?.projectType?.toLowerCase() }}.</span>
+        </app-no-information>
+    </ng-template>
+</div>

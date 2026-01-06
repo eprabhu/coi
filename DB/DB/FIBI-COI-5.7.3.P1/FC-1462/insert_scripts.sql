@@ -1,0 +1,3 @@
+INSERT INTO dyn_section_config (SECTION_CODE, MODULE_CODE, DESCRIPTION, IS_ACTIVE, UPDATE_TIMESTAMP, UPDATE_USER) VALUES ('COI807', 'COI8', 'Disclosure Questionnaire', 'Y', now(), 'admin');
+INSERT INTO dyn_subsection_config (SUB_SECTION_CODE, SECTION_CODE, DESCRIPTION, IS_ACTIVE, UPDATE_TIMESTAMP, UPDATE_USER) VALUES ('813', 'COI807', 'Disclosure Questionnaire', 'Y', now(), 'admin');
+INSERT INTO dyn_element_config (UI_REFERENCE_ID, DESCRIPTION, SUB_SECTION_CODE, SECTION_CODE, UPDATE_USER, UPDATE_TIMESTAMP) VALUES ('coi-disc-quest-info-text', 'Disclosure Questionnaire header', '813', 'COI807', 'admin', now());

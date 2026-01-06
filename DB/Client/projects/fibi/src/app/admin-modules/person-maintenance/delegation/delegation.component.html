@@ -1,0 +1,237 @@
+<div class="card mt-3 mb-3">
+    <div class="card-body">
+        <div class="card card-inner mb-3" *ngIf="(delegationPersonId == delegatedByPersonId) || isMaintainDelegation">
+            <div class="card-header px-3 py-2">
+                <h4 class="card-title align-items-center d-flex py-2">
+                    <span *ngIf="(delegationPersonId == delegatedByPersonId)">Your approval responsibilities are delegated to</span>
+                    <span *ngIf="!(delegationPersonId == delegatedByPersonId)">The approval responsibility of <span class="themed-text-highlighted">
+                        <i class="fa fa-user"></i> {{_personService.personDisplayCard.fullName}}</span> is delegated to</span>
+                </h4>
+            </div>
+            <div class="card-content p-4">
+                <div class="form-row">
+                    <div class="col-md col-sm-6 col-12 form-group">
+                        <label class="d-block">
+                            <span class="mandatory">*</span>Delegated To</label>
+                        <app-elastic [options]="elasticSearchOptions" [placeHolder]="'Search: Persons'"
+                            [isError]="map.get('personfullname')" [isDisabled]="isviewMode"
+                            [clearField]="clearField" (selectedResult)="selectedPersonData($event)">
+                        </app-elastic>
+                    </div>
+                    <div class="col-md col-sm-6 col-12 form-group">
+                        <label class="d-block">
+                            <span class="mandatory">*</span>Effective On</label>
+                        <span class="dateField d-block">
+                            <input matInput [matDatepicker]="effectiveOn" [disabled]="isviewMode"
+                                [ngClass]="(map.get('effectiveDate')) ? 'is-invalid d-block' : ''"
+                                (click)="effectiveOn.open()" autocomplete="off" class="d-inline-block form-control"
+                                id="effectiveOn" [(ngModel)]="delegation.effectiveDate"
+                                (ngModelChange)="validateDates()" placeholder="{{datePlaceHolder}}" type="text" />
+                            <i (click)="effectiveOn.open()" aria-hidden="true"
+                                class="fa fa-calendar fa-large insidePicker hand-cursor" id="enroll-date-icon"
+                                title="Open Calendar"></i>
+                            <mat-datepicker #effectiveOn (opened)="setFocusToElement('effectiveOn')">
+                            </mat-datepicker>
+                            <div *ngIf="(map.get('effectiveDate'))" class="invalid-feedback d-block">
+                                {{map.get('effectiveDate')}}</div>
+                        </span>
+                    </div>
+                    <div class="col-md col-sm-6 col-12 form-group">
+                        <label class="d-block">Effective Till</label>
+                        <span class="dateField d-block">
+                            <input matInput [matDatepicker]="effectiveTill" [disabled]="isviewMode"
+                                [ngClass]="(map.get('endDate')) ? 'is-invalid d-block' : ''"
+                                (click)="effectiveTill.open()" autocomplete="off" class="d-inline-block form-control"
+                                id="effectiveTill" [(ngModel)]="delegation.endDate"
+                                (ngModelChange)="validateDates()" placeholder="{{datePlaceHolder}}" type="text" />
+                            <i aria-hidden="true" class="fa fa-calendar fa-large insidePicker hand-cursor" id="enroll-date-icon"
+                                title="Open Calendar" (click)="effectiveTill.open()"></i>
+                            <mat-datepicker #effectiveTill (opened)="setFocusToElement('effectiveTill')">
+                            </mat-datepicker>
+                            <div *ngIf="(map.get('endDate'))" class="invalid-feedback d-block">
+                                {{map.get('endDate')}}</div>
+                        </span>
+                    </div>
+                    <div *ngIf="isviewMode" class=" col-lg-2 col-sm-6 col-12 ">
+                        <label class="d-block ml-4">Status</label>
+                        <span *ngIf="delegation.delegationStatus == 'Accepted'"
+                            class="status-badge-success bg-transparent">{{delegation.delegationStatus}}</span>
+                        <span *ngIf="delegation.delegationStatus == 'Requested'"
+                            class="status-badge-warning bg-transparent">{{delegation.delegationStatus}}</span>
+                        <span *ngIf="delegation.delegationStatus == 'Denied'"
+                            class="status-badge-danger bg-transparent">{{delegation.delegationStatus}}</span>
+                    </div>
+                    <div class="col-12 viewMode resultCard" *ngIf="isPersonCard && selectedMemberObject?.fullName">
+                        <button class="closeResultCard ontop" id="award-close-elastic-result"
+                            (click)="isPersonCard = false;">
+                            <i class="fa fa-times" aria-hidden="true"></i>
+                        </button>
+                        <div class="row shadow-medium bg-light">
+                            <div class="col-lg-2 col-md-6 col-12">
+                                <label>Name</label>
+                                <span>{{selectedMemberObject?.fullName}}
+                                    <span *ngIf="selectedMemberObject.isExternalUser" class="badge badge-warning ml-2">External</span>
+                                </span>
+                            </div>
+                            <div class="col-lg-2 col-md-6 col-12" >
+                                <label>Designation</label> <span>
+                                    <a>{{selectedMemberObject?.designation}}</a>
+                                </span>
+                            </div>
+                            <div class="col-lg-2 col-md-6 col-12" >
+                                <label>Home Unit</label> <span>
+                                    <a>{{selectedMemberObject?.homeUnit}}</a>
+                                </span>
+                            </div>
+                            <div class="col-lg-3 col-md-6 col-12" >
+                                <label>Email Address</label> <span>
+                                    <a>{{selectedMemberObject?.email}}</a>
+                                </span>
+                            </div>
+                            <div class="col-lg-2 col-md-6 col-12" >
+                                <label>Phone Number</label> <span>
+                                    <a>{{selectedMemberObject?.phoneNumber}}</a>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label for="award-special-review-comnt"> Comment</label>
+                        <textarea [disabled]="isviewMode" appAutoGrow id="delegation-comnt"
+                            class="form-control auto-grow-height" [(ngModel)]="delegation.comment" appLengthValidator
+                            [isShowLimiter]='true' [limit]=4000></textarea>
+                    </div>
+                    <div class="col-12 text-center text-md-right mt-3">
+                        <button *ngIf="!isviewMode " class="btn btn-secondary btn-xs"
+                            (click)="resetAllDelegationData();">Clear</button>
+                        <button *ngIf="!isviewMode " class="btn btn-primary-sub"
+                            (click)="saveOrUpdateDeligationData('R')">Delegate</button>
+                        <button *ngIf="isviewMode " class="btn btn-secondary btn-xs"
+                            (click)="editDelegation();">Edit</button>
+                        <button *ngIf="isviewMode " class="btn btn-primary-sub" data-toggle="modal"
+                            data-target="#delegationRemoveModal">Remove</button>
+                        <button *ngIf="!isviewMode && isShowCancelButton " class="btn btn-primary-sub"
+                            (click)="cancelDelegationEdit();">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card card-inner mb-3">
+            <div class="card-header px-3 py-2">
+                <h4 class="card-title align-items-center d-flex py-2">Responsibilities delegated
+                </h4>
+            </div>
+            <div class="card-content p-4">
+                <div *ngIf="myDelegationList.length != 0" class="table-responsive">
+                    <table class="table tableSkin grid2">
+                        <tbody>
+                            <tr class="thead-light">
+                                <th scope="col" style="width:14%">Delegated For</th>
+                                <th scope="col" style="width:10%">Effective Date</th>
+                                <th scope="col" style="width:10%">Effective Till</th>
+                                <th scope="col" style="width:35%">Comments</th>
+                                <th scope="col" style="width:14%">Delegated By</th>
+                                <th scope="col">Status</th>
+                                <th *ngIf=" delegationPersonId == delegatedByPersonId" scope="col" style="width:14%">
+                                    Actions
+                                </th>
+                            </tr>
+                            <tr *ngFor="let eachDelegation of myDelegationList; let index = index">
+                                <td>{{eachDelegation?.delegatedByPerson?.fullName}}</td>
+                                <td>{{eachDelegation?.effectiveDate |dateFormatter}}</td>
+                                <td>{{eachDelegation?.endDate | dateFormatter}}</td>
+                                <td>{{eachDelegation?.comment}}</td>
+                                <td>{{eachDelegation?.createUserFullName}}
+                                    <a class="tooltip "><i class="fa fa-info-circle fa-med hand-cursor" aria-hidden="true"></i>
+                                        <div class="tooltiptext-right card card-inner p-15 text-left">
+                                            <span class="font-cv">Created By</span>
+                                            <span class="font-cv font-weight-bold">{{eachDelegation?.createUserFullName}}
+                                                on {{eachDelegation?.createTimestamp | dateFormatterWithTimeZone: 'long'}} </span>
+                                            <span class="font-cv">Last Updated By</span><span
+                                                class="font-cv font-weight-bold">{{eachDelegation?.updateUserFullName}}
+                                                on {{eachDelegation?.updateTimestamp| dateFormatterWithTimeZone: 'long'}}</span>
+                                        </div>
+                                        </a>
+                                </td>
+                                <td><span *ngIf="eachDelegation?.delegationStatus?.description == 'Accepted'"
+                                        class="status-badge-success bg-transparent pl-1">{{eachDelegation?.delegationStatus?.description}}</span>
+                                    <span *ngIf="eachDelegation?.delegationStatus?.description == 'Requested'"
+                                        class="status-badge-warning bg-transparent pl-1">{{eachDelegation?.delegationStatus?.description}}</span>
+                                    <span *ngIf="eachDelegation?.delegationStatus?.description == 'Denied'"
+                                        class="status-badge-danger bg-transparent pl-1">{{eachDelegation?.delegationStatus?.description}}</span>
+                                </td>
+                                <td *ngIf=" (delegationPersonId == delegatedByPersonId)">
+                                    <ul class=" align-self-end pl-0">
+                                        <button *ngIf="eachDelegation?.delegationStatusCode == 'R'" type="button"
+                                            class="btn btn-secondary" data-toggle="modal"
+                                            data-target="#delegationAcceptModal"
+                                            (click)="delegationAcceptChecking('D',eachDelegation.delegationId,index)">Deny</button>
+                                        <button *ngIf="eachDelegation?.delegationStatusCode != 'R'" type="button"
+                                        class="btn btn-secondary" data-toggle="modal"
+                                        data-target="#delegationAcceptModal"
+                                            (click)="delegationAcceptChecking('X',eachDelegation.delegationId,index);">Delete</button>
+                                        <button *ngIf="eachDelegation?.delegationStatusCode == 'R'" type="button"
+                                            class="btn btn-primary-sub" data-toggle="modal"
+                                            data-target="#delegationAcceptModal"
+                                            (click)="delegationAcceptChecking('A',eachDelegation.delegationId,index)">Accept</button>
+                                    </ul>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div *ngIf="myDelegationList.length == 0">
+                    <p class="p-3 text-center fs-13 bg-color mb-0 mt-2">No Entries Found.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade show mySkinDialog" id="delegationRemoveModal" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Remove Delegation</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to remove this delegation?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-dismiss="modal" type="button">No</button>
+                <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button"
+                    (click)="isviewMode = false;isPersonViewMode = false; saveOrUpdateDeligationData('X');">yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade show mySkinDialog" id="delegationAcceptModal" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                    <h5 *ngIf="delegationAcceptObject.statusCode == 'A'" class="modal-title">Accept Delegation</h5>
+                    <h5 *ngIf="delegationAcceptObject.statusCode == 'D'" class="modal-title">Deny Delegation</h5>
+                    <h5 *ngIf="delegationAcceptObject.statusCode == 'X'" class="modal-title">Delete Delegation</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p *ngIf="delegationAcceptObject.statusCode == 'A'">Are you sure you want to accept this delegation?</p>
+                <p *ngIf="delegationAcceptObject.statusCode == 'D'">Are you sure you want to deny this delegation?</p>
+                <p *ngIf="delegationAcceptObject.statusCode == 'X'">Are you sure you want to delete this delegation from the list?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-dismiss="modal" type="button">Close</button>
+                <button *ngIf="delegationAcceptObject.statusCode == 'A'" class="btn btn-primary-sub btn-sm"
+                    data-dismiss="modal" type="button" (click)="updateDeligationStatus()">Accept</button>
+                <button *ngIf="delegationAcceptObject.statusCode == 'D'" class="btn btn-primary-sub btn-sm"
+                    data-dismiss="modal" type="button" (click)="updateDeligationStatus()">Deny</button>
+                    <button *ngIf="delegationAcceptObject.statusCode == 'X'" class="btn btn-primary-sub btn-sm"
+                    data-dismiss="modal" type="button" (click)="updateDeligationStatus()">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>

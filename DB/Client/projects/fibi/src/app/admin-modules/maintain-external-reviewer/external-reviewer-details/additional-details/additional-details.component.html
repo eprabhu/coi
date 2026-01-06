@@ -1,0 +1,222 @@
+<div class="person-details-outer mt-3">
+  <div class="card mb-3">
+    <div class="card-content">
+      <div class="card-body"
+        *ngIf="_extReviewerMaintenanceService.mode == 'edit'">
+        <div class="form-row">
+
+          <div class="col-xl col-lg col-md-6 col-sm-6 col-12 mt-2">
+            <label class="d-block"><span class="mandatory">*</span>H-Index</label>
+            <select class="form-control dateBox" [(ngModel)]="externalReviewerExt.hIndex" id="hIndexDropdown"
+              (ngModelChange)="_extReviewerMaintenanceService.isDataChange = true;"
+              [ngClass]="(map.get('hIndex')) ? 'is-invalid d-block' : ''">
+              <option [ngValue]=null>--Select--</option>
+              <option *ngFor="let item of hIndex" [value]="item">{{item}}</option>
+            </select>
+            <div class="invalid-feedback d-block mb-3" *ngIf="map.get('hIndex')">
+              Please enter h-index.
+            </div>
+          </div>
+          <div class="col-xl col-lg col-md-6 col-sm-6 col-12 mt-2">
+            <label class="d-block" for="reviewer-full-name">
+              Supplier DOF</label>
+            <input class="form-control dateBox" type="number" id="ext_rev-supplierDOF"
+              [(ngModel)]="externalReviewerExt.supplierDof" placeholder="Enter Supplier DOF"
+              (ngModelChange)="_extReviewerMaintenanceService.isDataChange = true;" />
+          </div>
+
+          <div class="col-xl col-lg col-md-6 col-sm-6 col-12 mt-2">
+            <label>CIRA-2021 Scoring Trend</label>
+            <select class="form-control dateBox" id="ext-rev-scoring-trend" [(ngModel)]="externalReviewerExt.ciraCode"
+              (ngModelChange)="setCIRACode()">
+              <option [ngValue]=null>--Select--</option>
+              <option *ngFor="let type of lookUpData?.extReviewerCira" [value]="type.ciraCode">
+                {{type.description}}</option>
+            </select>
+          </div>
+
+          <div class="col-xl col-lg col-md-6 col-sm-6 col-12 mt-2">
+            <label>Originality </label>
+            <select class="form-control dateBox" id="ext-rev-originality"
+              [(ngModel)]="externalReviewerExt.orginalityCode" (ngModelChange)="setOriginality()">
+              <option [ngValue]=null>--Select--</option>
+              <option *ngFor="let type of lookUpData?.extReviewerOriginality" [value]="type.orginalityCode">
+                {{type.description}}</option>
+            </select>
+          </div>
+
+          <div class="col-xl col-lg col-md-6 col-sm-6 col-12 mt-2">
+            <label>Thoroughness</label>
+            <select class="form-control dateBox" id="ext-rev-thoroughness"
+              [(ngModel)]="externalReviewerExt.thoroughnessCode" (ngModelChange)="setThoroughness()">
+              <option [ngValue]=null>--Select--</option>
+              <option *ngFor="let type of lookUpData?.extReviewerThoroughness" [value]="type.thoroughnessCode">
+                {{type.description}}</option>
+            </select>
+          </div>
+
+          <div class="col-lg-12 col-md-12 col-sm-6 col-12 mt-2">
+            <label class="d-block" for="reviewer-full-name">
+              COI With</label>
+            <app-elastic [options]="elasticSearchOptions" [clearField]="clearField" (selectedResult)="selectedCOIWith($event)"
+              [placeHolder]="'Type here for COI With'"></app-elastic>
+            <div class="invalid-feedback d-block mb-3" *ngIf="coiAlreadyExistMsg">
+              {{coiAlreadyExistMsg}}
+            </div>
+            <div class="col mb-0 pl-0 fileChips" *ngIf="coiWithPersons.length" style="margin-left: 2px;">
+              <ng-container *ngFor="let person of coiWithPersons; let i=index">
+                <span class="mb-0" *ngIf="person?.actionType == 'I' || person?.actionType == null">
+                  {{person?.person?.fullName}}
+                  <i class="fa fa-close hand-cursor" id="attachment-dlt" aria-hidden="true" title="Remove this keyword"
+                    (click)="deleteFromCOI(i, person?.coiWithPersonId)"></i>
+                </span>
+              </ng-container>
+            </div>
+          </div>
+          <div class="col-lg-12 col-md-12 col-sm-12 col-12 mt-2">
+            <label class="d-block" for="reviewer-disciplinaryField">Disciplinary Field</label>
+            <input class="form-control dateBox" type="text" id="reviewer-disciplinaryField" placeholder="Enter Disciplinary Field"
+              [(ngModel)]="externalReviewerExt.disciplinaryField"
+              (ngModelChange)="_extReviewerMaintenanceService.isDataChange = true;" />
+          </div>
+
+          <div class="col-lg-12 col-md-12 col-sm-12 col-12 mt-2">
+            <label class="d-block" for="reviewer-urlProfile">URL Profile</label>
+            <input class="form-control dateBox" type="text" id="reviewer-urlProfile" placeholder="Enter URL Profile"
+              [(ngModel)]="externalReviewerExt.urlProfile"
+              (ngModelChange)="_extReviewerMaintenanceService.isDataChange = true;" />
+          </div>
+
+          <div class="col-lg-12 col-md-12 col-sm-6 col-12 mt-2">
+            <label class="d-block" for="reviewer-full-name">
+              <span class="mandatory">*</span>Scopus Profile</label>
+            <input class="form-control dateBox" type="text" id="ext_rev-scopus-profile"
+              placeholder="Enter Scopus Profile" [(ngModel)]="externalReviewerExt.scopusUrl"
+              [ngClass]="(map.get('scopusProfile')) ? 'is-invalid d-block' : ''" />
+            <div class="invalid-feedback d-block mb-2" *ngIf="(map.get('scopusProfile'))">
+              Please enter Scopus Profile.
+            </div>
+          </div>
+
+          <div class="col-lg-12 col-md-12 col-sm-6 col-12 mt-2 mb-3">
+            <label><span class="mandatory">*</span>Specialism Keywords</label>
+            <app-endpoint-search id="specialization-keywords" [httpOptions]="keywordHttpOptions" [clearField]="clearKeywordField"
+              [placeHolder]="'Type here for Keyword or add your own Keyword'" (onSelect)="keywordChangeHandler($event)"
+              [addSearchText]="true" [isError]="(map.get('keywords')) ? 'is-invalid d-block' : ''"
+              (onNewValueSelect)="addKeywordToDatabase($event)">
+            </app-endpoint-search>
+            <div class="invalid-feedback d-block mb-3" *ngIf="map.get('keywords')">
+              Please select one keyword
+            </div>
+            <div class="invalid-feedback d-block mb-3" *ngIf="keywordAlreadyExistMsg">
+              {{keywordAlreadyExistMsg}}
+            </div>
+            <div class="col mb-0 pl-0 fileChips" *ngIf="externalReviewerSpecializations.length > 0" style="margin-left: 2px;">
+              <ng-container *ngFor="let keyword of externalReviewerSpecializations; let i=index">
+                <span class="mb-0" *ngIf="keyword.actionType == 'I' || keyword.actionType == null">
+                  {{keyword?.extReviewerSpecialization?.description}}
+                  <i class="fa fa-close hand-cursor" id="attachment-dlt" aria-hidden="true" title="Remove this keyword"
+                    (click)="deleteFromKeyword(i)"></i>
+                </span>
+              </ng-container>
+            </div>
+          </div>
+          <div class="col-12" *ngIf="_extReviewerMaintenanceService.mode == 'edit'">
+            <div class="row flex-column flex-sm-row justify-content-md-end justify-content-center mr-0">
+              <button class="btn btn-secondary mb-3 mb-sm-0 mr-sm-3 btn-sm"
+                [routerLink]="['/fibi/maintain-external-reviewer/external-reviewer-list']"
+                (click)="_extReviewerMaintenanceService.navigationUrl = '/fibi/maintain-external-reviewer'">Cancel</button>
+              <button class="btn btn-primary-sub btn-sm" (click)="saveAdditionalDetails()">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional details view -->
+      <div *ngIf="_extReviewerMaintenanceService.mode === 'view'">
+        <div class="card-body gridSkin">
+          <div class="row">
+            <div class="col-xl col-lg col-md-6 col-sm-6 col-12">
+              <label class="d-sm-block">H-Index</label>
+              <span [ngClass]="externalReviewerExt?.hIndex != null ? '' : 'noDataExists'">
+                {{externalReviewerExt?.hIndex != null ? externalReviewerExt?.hIndex : 'No Data'}}
+              </span>
+            </div>
+            <div class="col-xl col-lg col-md-6 col-sm-6 col-12">
+              <label class="d-sm-block">Supplier DOF</label>
+              <span [ngClass]="externalReviewerExt?.supplierDof ? '' : 'noDataExists'">
+                {{externalReviewerExt?.supplierDof ? externalReviewerExt?.supplierDof : 'No
+                Data'}} </span>
+            </div>
+            <div class="col-xl col-lg col-md-6 col-sm-6 col-12">
+              <label class="d-sm-block">CIRA-2021 Scoring Trend</label>
+              <span [ngClass]="externalReviewerExt?.ciraCode ? '' : 'noDataExists'">
+                {{externalReviewerExt?.extReviewerCira ?
+                externalReviewerExt?.extReviewerCira?.description : 'No Data'}} </span>
+            </div>
+            <div class="col-xl col-lg col-md-6 col-sm-6 col-12">
+              <label class="d-sm-block">Originality</label>
+              <span [ngClass]="externalReviewerExt?.orginalityCode ? '' : 'noDataExists'">
+                {{externalReviewerExt?.extReviewerOriginality ?
+                externalReviewerExt?.extReviewerOriginality?.description : 'No Data'}} </span>
+            </div>
+            <div class="col-xl col-lg col-md-6 col-sm-6 col-12">
+              <label class="d-sm-block">Throughness</label>
+              <span [ngClass]="externalReviewerExt?.thoroughnessCode ? '' : 'noDataExists'">
+                {{externalReviewerExt?.extReviewerThoroughness ?
+                externalReviewerExt?.extReviewerThoroughness.description : 'No Data'}} </span>
+            </div>
+            <div class="col-lg-12 col-md-12 col-sm-12 col-12">
+              <label class="d-sm-block">COI With</label>
+              <div class="col mb-0 pl-0 fileChips" *ngIf="coiWithPersons.length" style="margin-left: 2px;">
+                <ng-container *ngFor="let person of coiWithPersons; let i=index">
+                  <span class="mb-0" *ngIf="person?.actionType == 'I' || person?.actionType == null">
+                    {{person?.person?.fullName}}
+                  </span>
+                </ng-container>
+              </div>
+              <span *ngIf="!coiWithPersons.length" class="noDataExists"> No Data</span>
+            </div>
+            <div class="col-lg-12 col-md-12 col-sm-12 col-12">
+              <label class="d-sm-block">Disciplinary Field</label>
+              <span [ngClass]="externalReviewerExt?.disciplinaryField ? '' : 'noDataExists'">
+                {{externalReviewerExt?.disciplinaryField ?
+                externalReviewerExt?.disciplinaryField : 'No Data'}} </span>
+            </div>
+            <div class="col-lg-12 col-md-12 col-sm-12 col-12">
+              <label class="d-sm-block">URL Profile</label>
+              <span *ngIf="!externalReviewerExt?.urlProfile" class="noDataExists">No Data</span>
+              <span *ngIf="externalReviewerExt?.urlProfile">
+                <a href="{{externalReviewerExt?.urlProfile}}">{{externalReviewerExt?.urlProfile}}</a>
+              </span>
+            </div>
+            <div class="col-lg-12 col-md-12 col-sm-12 col-12">
+              <label class="d-sm-block">Scopus Profile</label>
+              <span *ngIf="!externalReviewerExt?.scopusUrl" class="noDataExists">No Data</span>
+              <span *ngIf="externalReviewerExt?.scopusUrl">
+                <a href="{{externalReviewerExt?.scopusUrl}}">{{externalReviewerExt?.scopusUrl}}</a>
+              </span>
+            </div>
+            <div class="col-12">
+              <label class="d-block">Specialism Keywords</label>
+              <div class="form-row">
+                <div class="col-12">
+                  <div class="fileChips" style="word-break: break-all;"
+                    *ngIf="externalReviewerSpecializations?.length > 0">
+                    <span *ngFor="let keyword of externalReviewerSpecializations;let i = index" class="p-2">
+                      {{keyword?.extReviewerSpecialization?.description}}
+                    </span>
+                  </div>
+                  <span class="noDataExists"
+                    *ngIf="externalReviewerSpecializations?.length == 0 || externalReviewerSpecializations == null">No
+                    keywords
+                    added</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

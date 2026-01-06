@@ -1,0 +1,3 @@
+
+ALTER TABLE `entity_stage_details`
+ADD COLUMN `IS_SYSTEM_DUPLICATE` VARCHAR(1) NULL;

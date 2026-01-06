@@ -1,0 +1,3 @@
+SET SQL_SAFE_UPDATES = 0;
+UPDATE DYN_ELEMENT_CONFIG SET INSTRUCTION = 'In submitting this FCOI disclosure, I certify that <strong>I agree to</strong> abide by the Institute’s FCOI policy and guidelines. <strong>I further certify</strong> that the information provided in this disclosure, including responses to screening questions, list of my pertinent Engagements and Significant Financial Interests and possible relationship to my sponsored activity, is an accurate and current statement of my reportable outside interests and activities.' WHERE (UI_REFERENCE_ID = 'coi-discl-cert-cnfrm-text');
+SET SQL_SAFE_UPDATES = 1;

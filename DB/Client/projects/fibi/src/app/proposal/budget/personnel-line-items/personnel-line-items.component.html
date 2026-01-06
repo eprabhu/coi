@@ -1,0 +1,147 @@
+<div class="budget-person-outer pl-4 pr-4">
+    <div class="budget-person p-2">
+        <div class="form-row budget-person-head m-0">
+            <div class="col-2">Persons</div>
+            <div class="col">Start Date</div>
+            <div class="col">End Date</div>
+            <div class="col">Salary({{_commonService.currencyFormat}})</div>
+            <div class="col">Effort%</div>
+            <div class="col">Applied Salary({{_commonService.currencyFormat}})</div>
+            <div class="col">
+                <ng-container i18n="@@PROPOSAL_COST-SHARE_PERCENTAGE">Cost-Share%</ng-container>
+            </div>
+            <div class="col">
+                <ng-container i18n="@@PROPOSAL_COST-SHARE">Cost-Share</ng-container>
+            </div>
+            <div class="col">Fund Requested</div>
+            <div *ngIf="!_budgetDataService.isBudgetViewMode" class="col-1">Actions</div>
+        </div>
+        <div *ngFor="let person of lineItemData.personsDetails;let personIndex = index" class="form-row mb-2">
+            <div class="col-2">
+                <select class="form-control mr-3 select-box p-0" id="personNameId" [(ngModel)]="person.budgetPersonId"
+                    [ngClass]="{'lineItem-mandatory': personValidation[personIndex]?.personMsg}"
+                    (ngModelChange)="setPersonObject(person)" [disabled]="_budgetDataService.isBudgetViewMode"
+                    (change)="triggerPersonsModal($event, person)">
+                    <option [value]="null">--Select--</option>
+                    <option *ngFor="let budgetPerson of personsResultData.budgetPersonList"
+                        [value]="budgetPerson.budgetPersonId">
+                        <ng-container
+                            *ngIf="budgetPerson.personType === 'N' || budgetPerson.personType === 'P' || budgetPerson.personType === 'E'">
+                            {{budgetPerson?.personName}} ({{budgetPerson?.jobCode?.jobTitle}})
+                        </ng-container>
+                        <ng-container *ngIf="budgetPerson.personType === 'T'">
+                            {{budgetPerson?.tbnPerson?.personName}} ({{budgetPerson?.jobCode?.jobTitle}})
+                        </ng-container>
+                    </option>
+                    <option value="otherPersons">Add other persons</option>
+                </select>
+                <div class="invalid-feedback d-block text-left" *ngIf="personValidation[personIndex]?.personMsg">
+                    <span class="mandatory">{{personValidation[personIndex]?.personMsg}}</span>
+                </div>
+            </div>
+            <div class="col">
+                <span class="dateField">
+                    <input matInput [matDatepicker]="perstDate" placeholder="{{datePlaceHolder}}" id="budget-start-date"
+                        [ngClass]="{'lineItem-mandatory': personValidation[personIndex]?.stDateMsg}"
+                        class="budgetDate-width form-control"
+                        [disabled]="_budgetDataService.isBudgetViewMode" [(ngModel)]="person.startDate"
+                        (keypress)="_commonService._keyPress($event, 'date')" (ngModelChange)="genericCalculations(person, lineItemData, currentPeriodData, budgetData);
+            setUnsavedChanges(true)" (click)="perstDate.open()" />
+                    <i class="fa fa-calendar fa-large insidePicker hand-cursor" aria-hidden="true"
+                        (click)="perstDate.open()"></i>
+                    <mat-datepicker #perstDate (opened)="setFocusToElement('budget-start-date')"></mat-datepicker>
+                </span>
+                <div class="invalid-feedback d-block text-left" *ngIf="personValidation[personIndex]?.stDateMsg">
+                    <span class="mandatory">{{personValidation[personIndex]?.stDateMsg}}</span>
+                </div>
+            </div>
+            <div class="col">
+                <span class="dateField">
+                    <input matInput [matDatepicker]="perendDate" placeholder="{{datePlaceHolder}}" id="budget-end-date"
+                        [ngClass]="{'lineItem-mandatory': personValidation[personIndex]?.endDateMsg}"
+                        class="budgetDate-width form-control"
+                        [disabled]="_budgetDataService.isBudgetViewMode" [(ngModel)]="person.endDate"
+                        (keypress)="_commonService._keyPress($event, 'date')" (ngModelChange)="genericCalculations(person, lineItemData, currentPeriodData, budgetData);
+            setUnsavedChanges(true)" (click)="perendDate.open()" />
+                    <i class="fa fa-calendar fa-large insidePicker hand-cursor" aria-hidden="true"
+                        (click)="perendDate.open()"></i>
+                    <mat-datepicker #perendDate (opened)="setFocusToElement('budget-end-date')"></mat-datepicker>
+                </span>
+                <div class="invalid-feedback d-block text-left" *ngIf="personValidation[personIndex]?.endDateMsg">
+                    <span class="mandatory">{{personValidation[personIndex]?.endDateMsg}}</span>
+                </div>
+            </div>
+            <div class="col">
+                <input type="text" appCurrencyFormat class="form-control text-right" [(ngModel)]="person.salary"
+                    disabled [initialValue]="person.salary">
+            </div>
+            <div class="col">
+                <input class="form-control" type="number" step="any" [(ngModel)]="person.percentageEffort"
+                    (keypress)="inputRestriction($event)" id="personEffortId"
+                    placeholder="eg: 100, 99.99, 10.22, 25 etc" [disabled]="_budgetDataService.isBudgetViewMode"
+                    [ngClass]="{'lineItem-mandatory': personValidation[personIndex]?.effortMsg}" (ngModelChange)="genericCalculations(person, lineItemData, currentPeriodData, budgetData);
+          setUnsavedChanges(true)" (keyup)="setLimitKeyPressObject(personIndex, person, 'EFFORT');" />
+                <div class="invalid-feedback d-block text-left" *ngIf="personValidation[personIndex]?.effortMsg">
+                    <span class="mandatory">{{personValidation[personIndex]?.effortMsg}}</span>
+                </div>
+            </div>
+            <div class="col">
+                <input type="text" appCurrencyFormat class="form-control text-right"
+                    [(ngModel)]="person.salaryRequested" disabled [initialValue]="person.salaryRequested">
+            </div>
+            <div class="col">
+                <input class="form-control" type="number" step="any" [(ngModel)]="person.costSharingPercentage"
+                    (keypress)="inputRestriction($event)" placeholder="eg: 100, 99.99, 10.22, 25 etc"
+                    [ngClass]="{'lineItem-mandatory': personValidation[personIndex]?.personChargedMsg}"
+                    [disabled]="_budgetDataService.isBudgetViewMode" (ngModelChange)="genericCalculations(person, lineItemData, currentPeriodData, budgetData);
+          setUnsavedChanges(true)" (keyup)="setLimitKeyPressObject(personIndex, person, 'PERSONCOSTSHARE');" />
+                <div class="invalid-feedback d-block text-left" *ngIf="personValidation[personIndex]?.personChargedMsg">
+                    <span class="mandatory">{{personValidation[personIndex]?.personChargedMsg}}</span>
+                </div>
+            </div>
+            <div class="col">
+                <input type="text" appCurrencyFormat class="form-control text-right"
+                    [(ngModel)]="person.costSharingAmount" disabled [initialValue]="person.costSharingAmount">
+            </div>
+            <div class="col">
+                <input class="form-control text-right" type="text" appCurrencyFormat disabled
+                    [(ngModel)]="person.sponsorRequestedAmount" [initialValue]="person.sponsorRequestedAmount">
+            </div>
+            <div class="col-1" *ngIf="!_budgetDataService.isBudgetViewMode">
+                <span>
+                    <i class="fa fa-trash hand-cursor hoverColor action-icons" title="Delete person" aria-hidden="true"
+                        (click)="deletePerson(person, personIndex)"></i>
+                    <button *ngIf="personIndex == lineItemData.personsDetails.length-1" title="Add Personnel"
+                        class="personAddBtn font hoverColor" (click)="addMultiplePerson();">
+                        <i Class="fa fa-user-plus fa-large action-icons" aria-hidden="true"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ADD PERSON TO PERSON LIST MODAL -->
+<div class="modal fade mySkinDialog" id="budgrtPersonAddModal" role="dialog" data-backdrop="static"
+    data-keyboard="false">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header ct-footer-padding">
+                <h4 class="modal-title">Add Person
+                </h4>
+                <button id="addPersonCloseId" type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body ct-modal-padding">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <app-personnel (isPersonAdded)='setAddedPerson($event)' [isNested]="true"> </app-personnel>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ADD PERSON TO PERSON LIST MODAL ENDS -->

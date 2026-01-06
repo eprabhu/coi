@@ -1,0 +1,656 @@
+<div class="card mySkinDialog mt-3 mb-3" *ngIf="resultMapArray.length > 0">
+  <div class="card-content">
+    <div *ngIf="workFlowResult?.workflow?.workflowStartDate" class="card-body gridSkin">
+      <div class="row">
+        <!-- <div class="col">
+            <label>Status</label>
+            <span class="d-block">{{workFlowResult[this.workFlowDetailKey]?.awardWorkflowStatus?.description}}</span>
+          </div> -->
+        <div *ngIf="workFlowDetails?.principalInvestigator" class="col-lg col-md-4 col-sm-6 col-12">
+          <label>Principal Investigator</label>
+          <span class="d-sm-block">{{workFlowDetails?.investigator?.fullName}}
+            {{workFlowDetails?.principalInvestigator}}</span>
+        </div>
+        <!-- <div class="col-lg col-md-4 col-sm-6 col-12">
+          <label>Lead Unit</label>
+          <span class="d-sm-block">{{workFlowDetails?.homeUnitName}} {{workFlowDetails?.leadUnit?.unitName}}</span>
+        </div> -->
+        <div *ngIf="workFlowResult?.workflowList?.length > 0" class="col-lg col-md-4 col-sm-6 col-12">
+          <label for="routelog-version-dashboard">Workflow Version</label>
+          <select class="form-control w-50 d-block" id="routelog-version-dashboard" [(ngModel)]="versionHistorySelected"
+            (ngModelChange)="routeLogVersionChange()">
+            <option *ngFor="let version of workFlowResult?.workflowList" [value]="version.workflowSequence">
+              {{version.workflowSequence}}</option>
+          </select>
+        </div>
+        <div *ngIf="workflowStartDate" class="col-lg col-md-4 col-sm-6 col-12">
+          <label>Workflow Start Date</label>
+          <span class="d-sm-block">{{workflowStartDate | dateFormatterWithTimeZone:
+            'long'}}</span>
+        </div>
+        <div *ngIf="workflowEndDate" class="col-lg col-md-4 col-sm-6 col-12">
+          <label>Workflow End Date</label>
+          <span class="d-sm-block">{{workflowEndDate | dateFormatterWithTimeZone:
+            'long'}}</span>
+        </div>
+        <div *ngIf="workFlowDetails?.submitUserFullName" class="col-lg col-md-4 col-sm-6 col-12">
+          <label>Submitted By</label>
+          <span class="d-sm-block">{{workflowCreatedBy}}
+          </span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<div class="mySkinDialog card" id="routeLogBody">
+  <div class="no-data-container" *ngIf="resultMapArray.length == 0">
+    <span class="no-data-icon-outer">
+      <div class="no-data-icon">
+        <i class="fa fa-file-o" aria-hidden="true"></i>
+        <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+      </div>
+    </span>
+    <h4>There is no information in this section.</h4>
+  </div>
+  <div *ngIf="resultMapArray.length > 0 && workFlowResult.workflow" class="view-details-outer card border ">
+    <div class="row view-details" *ngFor="let map of resultMapArray; let k = index">
+      <div class="col-12 ">
+        <h5 class="card-header inner-card-header d-flex align-items-center pt-3 pb-1 px-4">
+          <span class="d-inline-block title-line-height col">{{map.mapId}} - {{map.mapName}} - {{map.description}}
+            <span class="badge badge-success p-2"
+              *ngIf="versionHistorySelected == latestVersion && map.mapType=='E' && map?.isScoringPanel">Scoring
+              Panel</span>
+            <span class="badge badge-secondary p-2"
+              *ngIf="versionHistorySelected == latestVersion && map.mapType=='E' && !map?.isScoringPanel">Non-Scoring
+              Panel</span>
+          </span>
+          <button *ngIf="versionHistorySelected == latestVersion && addApproverRight && map.mapType!='E' &&
+              isStopActive(getMapListBasedOnMapNumber(map?.mapNumber) , map?.mapNumber)"
+            class="btn btn-secondary btn-sm text-right ml-auto col-auto" id="add-approver-btn" (click)="setSeqStopFocus(k);"
+            class="btn btn-tertiary btn-sm text-right ml-auto col-auto" id="add-seq-stop-btn">
+            <i class="fa fa-user-plus mr-2" aria-hidden="true"></i>Add New Sequential Stop</button>
+        </h5>
+        <div class="card-body">
+          <div [@slideInOut] *ngIf="stopWidgetOpen[k]" class="col-12 mt-2 z-index">
+            <div class="card" [@fadeDown]>
+              <h5 class="card-header inner-card-header">Add Sequential Stop
+                <i aria-hidden="true" class="fa fa-times float-right comments-icon hand-cursor"
+                  (click)="stopWidgetOpen[k] = false;stopMap.clear();closeStop()" aria-hidden="true"></i>
+              </h5>
+              <div class="card-body">
+                <div class="form-row">
+                  <!-- <div class="form-group col-4">
+                    <input type="text" id="seq-stop-name"  [ngClass]="stopMap.has('stopName') ? 'is-invalid d-block' : ''"
+                    placeholder="Stop Name" [(ngModel)]="sequentialStopObject.stopName" class="form-control" />
+                    <div *ngIf="stopMap.has('stopName')" class="invalid-feedback d-block">
+                      {{stopMap.get('stopName')}}</div>
+                  </div> -->
+                  <div class="form-group col-8">
+                    <div class="searchBox ">
+                      <app-elastic [options]="elasticPrimarySearchOptions" [placeHolder]="'Search Primary Approver'"
+                        (selectedResult)="selectedPrimaryApprover($event,k)" [clearField]="primaryClearField"
+                        [isError]="(stopMap.get('primaryApprover')) ? true : false">
+                      </app-elastic>
+                    </div>
+                  </div>
+                  <div *ngIf="sequentialStopObject.approverPersonId" class="form-group col-auto">
+                    <button (click)="addSequentialStop(map, k);" class="btn btn-primary-sub btn-sm"> <a>
+                        Add Stop</a></button>
+                  </div>
+                </div>
+                <div class="col-12 viewMode resultCard p-0" *ngIf="isPersonCard[k]">
+                  <button class="closeResultCard" id="award-close-elastic-result" (click)="isPersonCard[k] = false;">
+                    <i class="fa fa-times" aria-hidden="true"></i>
+                  </button>
+                  <div class="row shadow-medium bg-light">
+                    <div class="col-lg-3 col-md-6 col-12">
+                      <label>Name</label><span>
+                        <a>{{sequentialStopPersonObject?.full_name}}</a>
+                        <span *ngIf="sequentialStopPersonObject.isExternalUser" class="badge badge-warning ml-2">External</span>
+                      </span>
+                    </div>
+                    <div class="col-lg-3 col-md-6 col-12">
+                      <label>Designation</label> <span>
+                        <a>{{sequentialStopPersonObject?.primary_title ? sequentialStopPersonObject?.primary_title :
+                          'Not Available'}}</a>
+                      </span>
+                    </div>
+                    <div class="col-lg-3 col-md-6 col-12">
+                      <label>Home Unit</label> <span>
+                        <a>{{sequentialStopPersonObject?.homeUnit ? sequentialStopPersonObject?.homeUnit :
+                          'Not Available'}}</a>
+                      </span>
+                    </div>
+                    <div class="col-lg-3 col-md-6 col-12">
+                      <label>Email Address</label> <span>
+                        <a>{{sequentialStopPersonObject?.email_addr}}</a>
+                      </span>
+                    </div>
+                    <div class="col-lg-3 col-md-6 col-12">
+                      <label>Phone Number</label> <span>
+                        <a>{{sequentialStopPersonObject?.phone_nbr ? sequentialStopPersonObject?.phone_nbr : 'Not
+                          Available' }}</a>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="map.mapType!='E' ||(map.mapType=='E' && (map.isLoginPerson || isShowEvaluationMap))">
+            <ng-container *ngFor="let detailMapIndex of workflowDetailsMap; let index =index">
+              <div class="w-100 stripped-color p-0" *ngFor="let workflow of detailMapIndex; let i = index;">
+                <ng-container *ngIf="map?.mapNumber == workflow?.mapNumber">
+                  <ng-container
+                    *ngIf="(map.mapType!='E') || (map.mapType=='E' && (isShowEvaluationMap || workflow.approverPersonId === personId))">
+                    <div
+                      *ngIf="workflow.stopName !== null || (map.mapType=='E' && (map.isLoginPerson && !isShowEvaluationMap))"
+                      class="col-md-12 p-0">
+                      <h5 class="card-header d-flex align-items-center py-2 px-4">
+                        <span class="d-inline-block card-title-height">{{workflow?.stopName ? workflow?.stopName :
+                          'Stop' + workflow.approvalStopNumber}}
+                        </span>
+                        <span class="d-inline-block icon-hover ml-2"
+                          *ngIf="!workflow.stopName || (map.mapType=='E' && (map.isLoginPerson && !isShowEvaluationMap))">
+                          <a class="tooltip "><i class="fa fa-info-circle fa-med" aria-hidden="true"></i>
+                            <div class="tooltiptext-left card card-inner p-15 text-left">
+                              <span class="font-cv font-weight-bold">
+                                You have no permission to view the complete panel
+                              </span>
+                            </div>
+                          </a>
+                        </span>
+                        <button
+                          *ngIf=" map.mapType!='E' && isStopActive(detailMapIndex, map?.mapNumber) && addApproverRight && (versionHistorySelected == latestVersion)"
+                          class="btn btn-secondary btn-sm text-right ml-auto" id="add-approver-btn"
+                          (click)="setApproverFlagAndFocus(index, i, detailMapIndex)">
+                          <i aria-hidden="true" class="fa fa-user-plus mr-2"></i>
+                          <ng-container i18n="@@WORKFLOW_ADD_NEW_APPROVER">Add New Approver</ng-container>
+                        </button>
+                      </h5>
+                    </div>
+                    <div [@slideInOut] *ngIf="approverWidgetOpen[index][i]" class="col-12 mt-2 z-index">
+                      <div class="card" [@fadeDown]>
+                        <h5 class="card-header inner-card-header">
+                          <ng-container i18n="@@WORKFLOW_ADD_APPROVER">Add Approver</ng-container>
+                          <i aria-hidden="true" class="fa fa-times float-right comments-icon hand-cursor"
+                            (click)="closeApprover(index,i)" aria-hidden="true"></i>
+                        </h5>
+                        <div class="card-body">
+                          <div class="form-row">
+                            <div class="form-group col">
+                              <div class="searchBox memberSearchBox">
+                                <app-elastic [options]="elasticSearchOptions" [placeHolder]="'Search Person'"
+                                  (selectedResult)="selectedPerson($event,index,i)" [clearField]="clearField">
+                                </app-elastic>
+                              </div>
+                            </div>
+                            <div class="form-group col-2 ">
+                              <button *ngIf="approverFlag" (click)="addAlternateApprover(workflow,'approver');approverWidgetOpen[index][i] = !approverWidgetOpen[index][i];
+                              isAlternatePersonCard[index][i] = !isAlternatePersonCard[index][i]
+                              ;" class="btn btn-primary-sub btn-sm"> <a>
+                                  Add </a></button>
+                            </div>
+                          </div>
+                          <div class="col-12 viewMode resultCard p-0" *ngIf="isAlternatePersonCard[index][i]">
+                            <button class="closeResultCard" id="award-close-elastic-result"
+                              (click)="isAlternatePersonCard[index][i] = false;">
+                              <i class="fa fa-times" aria-hidden="true"></i>
+                            </button>
+                            <div class="row shadow-medium bg-light">
+                              <div class="col-lg-3 col-md-6 col-12">
+                                <label>Name</label><span>
+                                  <a>{{alternatePersonApprover?.full_name}}</a>
+                                  <span *ngIf="alternatePersonApprover.isExternalUser" class="badge badge-warning ml-2">External</span>
+                                </span>
+                              </div>
+                              <div class="col-lg-3 col-md-6 col-12">
+                                <label>Designation</label> <span>
+                                  <a>{{alternatePersonApprover?.primary_title ? alternatePersonApprover?.primary_title :
+                                    'Not Available'}}</a>
+                                </span>
+                              </div>
+                              <div class="col-lg-3 col-md-6 col-12">
+                                <label>Home Unit</label> <span>
+                                  <a>{{alternatePersonApprover?.homeUnit ? alternatePersonApprover?.homeUnit :
+                                    'Not Available'}}</a>
+                                </span>
+                              </div>
+                              <div class="col-lg-3 col-md-6 col-12">
+                                <label>Email Address</label> <span>
+                                  <a>{{alternatePersonApprover?.email_addr}}</a>
+                                </span>
+                              </div>
+                              <div class="col-lg-3 col-md-6 col-12">
+                                <label>Phone Number</label> <span>
+                                  <a>{{alternatePersonApprover?.phone_nbr ? alternatePersonApprover?.phone_nbr : 'Not
+                                    Available' }}</a>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div class="row pt-3 pb-3 flex-column flex-md-row"
+                        [ngClass]="{'view-details-inner-outer ':(workflow.primaryApproverFlag),
+                                'pl-0': (workflow.primaryApproverFlag) ,'tree-mode': !workflow.primaryApproverFlag && !(map.mapType=='E' && (!isShowEvaluationMap && workflow.approverPersonId === personId)) ,
+                       'background-highlight':  (workflow.approverPersonName == workflow.updateUserFullName) && (workflow?.approvalStatusCode == 'A' ||  workflow?.workflowStatus?.approveStatusCode == 'O'),
+                       'rejected-highlight':  (workflow.approverPersonName == workflow.updateUserFullName) && (workflow?.approvalStatusCode == 'R' ||  workflow?.workflowStatus?.approveStatusCode == 'J')  }">
+                        <!-- [ngClass]="(workflow.primaryApproverFlag)  ?'':'pl-0 pl-md-5 tree-mode'" -->
+                        <div class="col-md-2 align-items-center  d-flex justify-content-start">
+                          <span *ngIf="(workflow?.approvalStatusCode == 'A' ||  workflow?.workflowStatus?.approveStatusCode == 'O')
+                        &&  workflow?.approverPersonName != workflow?.updateUserFullName"
+                            class="approved-status text-center d-block">
+                            <label class="d-block approval-font"><ng-container i18n="@@WORKFLOW_APPROVED_BY">Approved by</ng-container>
+                              {{workflow?.updateUserFullName}}</label>
+                          </span>
+                          <span *ngIf="(workflow?.approvalStatusCode == 'J' || workflow?.approvalStatusCode == 'R') && 
+                         workflow?.approverPersonName != workflow?.updateUserFullName"
+                            class="rejected-status text-center d-block">
+                            <label class="d-block rejected-font">
+                              <ng-container i18n="@@WORKFLOW_REJECTED_BY">Rejected by</ng-container>
+                              {{workflow?.updateUserFullName}}
+                            </label>
+                          </span>
+                          <span *ngIf="(workflow?.approvalStatusCode == 'K' || workflow?.approvalStatusCode == 'B') 
+                        && !workflow.primaryApproverFlag" class="bypass-circle text-center d-block">
+                            <label class="d-block bypass-font">Bypassed by {{workflow?.updateUserFullName}} </label>
+                          </span>
+                          <span *ngIf="(workflow?.approvalStatusCode == 'C') && !workflow.primaryApproverFlag"
+                            class="withdraw-circle text-center d-block">
+                            <label class="d-block withdraw-font"><ng-container i18n="@@COMMON_WITHDRAWED_BY">Withdrawn by</ng-container> {{workflow?.updateUserFullName}} </label>
+                          </span>
+                          <span *ngIf="(workflow?.approvalStatusCode == 'A' ||  workflow?.workflowStatus?.approveStatusCode == 'O')
+                       &&  workflow?.approverPersonName == workflow?.updateUserFullName"
+                            class="approved-status text-center">
+                            <i aria-hidden="true" class="fa fa-check-circle-o mt-1 mr-3"></i>
+                            <label class="d-block approval-font"><ng-container i18n="@@WORKFLOW_APPROVED_BY">Approved by</ng-container> <strong
+                                class="d-block">{{workflow?.updateUserFullName}}</strong></label>
+                          </span>
+                          <span *ngIf="(workflow?.approvalStatusCode == 'J' || workflow?.approvalStatusCode == 'R') && 
+                        workflow?.approverPersonName == workflow?.updateUserFullName"
+                            class="rejected-status text-center ">
+                            <i aria-hidden="true" class="fa fa-times-circle-o mt-1 mr-3"></i>
+                            <label class="d-block rejected-font">
+                              <ng-container i18n="@@WORKFLOW_REJECTED_BY">Rejected by</ng-container> <strong
+                                class="d-block">{{workflow?.updateUserFullName}}</strong>
+                            </label>
+                          </span>
+                          <span
+                            *ngIf="(workflow?.approvalStatusCode == 'K' || workflow?.approvalStatusCode == 'B') && workflow.primaryApproverFlag"
+                            class="bypass-circle text-center ">
+                            <i aria-hidden="true" class="fa fa-random mt-1 mr-3"></i>
+                            <label class="d-block bypass-font">Bypassed by <strong
+                                class="d-block">{{workflow?.updateUserFullName}}</strong></label>
+                          </span>
+                          <span *ngIf="(workflow?.approvalStatusCode == 'C'  && workflow.primaryApproverFlag)"
+                            class="withdraw-circle text-center ">
+                            <i aria-hidden="true" class="fa fa-sort-amount-asc mt-1 mr-3"></i>
+                            <label class="d-block withdraw-font"><ng-container i18n="@@COMMON_WITHDRAWED_BY">Withdrawn by</ng-container> 
+                              <strong class="d-block">{{workflow?.updateUserFullName}}</strong></label>
+                          </span>
+                          <div>
+                            <span *ngIf="workflow?.approvalStatusCode == 'W'" class="warning-status">
+                              <label *ngIf="map.mapType !='E'"
+                                class="d-block text-warning">{{workflow?.workflowStatus?.approveStatus}}</label>
+                              <label *ngIf="map.mapType =='E'" class="d-block text-warning">Waiting for
+                                evaluation</label>
+                            </span>
+                            <span *ngIf="workflow?.approvalStatusCode == 'T'" class="to-be-submitted-status">
+                              <label class="d-block text-info">{{workflow?.workflowStatus?.approveStatus}}</label>
+                            </span>
+                          </div>
+                        </div>
+                        <div class=" content-center" [ngClass]="{'col-auto': !(workflow.primaryApproverFlag) }">
+                        </div>
+                        <div class="align-items-center col-12 col-lg col-md-7 d-flex">
+                          <div>
+                            <div class="d-inline-block">
+                              <label><i class="fa fa-user font-color mr-1" aria-hidden="true"></i>
+                              </label>
+                              <span>{{workflow?.approverPersonName}} </span> 
+                              <span class="badge badge-light text-black-50 secondary-background-color" *ngIf="workflow.delegatedPersonName">
+                                <i aria-hidden="true" class="fa fa-angle-right" aria-hidden="true"></i>
+                                <i aria-hidden="true" class="fa fa-user" aria-hidden="true"></i>
+                                 Delegate of {{workflow.delegatedPersonName}}</span>
+                              <!-- -->
+                              <span *ngIf="workflow.primaryApproverFlag" class="badge badge-info">
+                                <i aria-hidden="true" class="fa fa-flag" aria-hidden="true"></i>
+                                <ng-container i18n="@@WORKFLOW_PRIMARY_APPROVER">Primary Approver</ng-container>
+                              </span>
+
+                            </div>
+                            <div *ngIf="workflow?.approvalDate &&  (workflow?.approverPersonName == workflow?.updateUserFullName ||
+                             (workflow?.approvalStatusCode == 'B' && workflow.primaryApproverFlag))"
+                              class="detailed-items d-inline-block ml-md-5 ml-0">
+                              <label><i class="fa fa-calendar font-color" aria-hidden="true"></i></label>
+                              <span>{{workflow?.approvalDate | dateFormatterWithTimeZone: 'long'}}</span>
+                            </div>
+                            <div class="ml-2 mt-2" *ngIf="!workflow.isReviewerCanScore && workflow?.approvalComment && 
+                                (workflow?.approvalStatusCode != 'B' || (workflow?.approvalStatusCode == 'B' && workflow?.primaryApproverFlag))">
+                              <i aria-hidden="true" class="fa fa-quote-left comment-icon position-absolute"></i>
+                              <span class="font-weight-lighter italian f-13 new-line-property"
+                                *ngIf="workflow?.approvalComment">{{workflow?.approvalComment}}</span>
+                            </div>
+                            <div *ngIf="workflow?.workflowDetailExt?.feedbackTypeCode">
+                              <span class="badge rounded-pill badge-{{getBadgeByStatusCode(workflow?.workflowDetailExt?.feedbackTypeCode)}}">
+                                {{workflow?.workflowDetailExt?.workflowFeedbackType?.description}}</span>       
+                            </div>
+                            <div *ngIf="!workflow.isReviewerCanScore">
+                              <div class="fileChips regularFont">
+                                <span
+                                  *ngFor="let attachment of workflow.workflowAttachments;let attachIndex = index">{{attachment.fileName}}
+                                  <i aria-hidden="true" class="fa fa-download hand-cursor font-color"
+                                    id="prop-review-attach-dwnld" title="Download File"
+                                    (click)="downloadRouteAttachment(attachment)"></i>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-lg-auto col-12 btn-align-flex text-right">
+                          <div class="text-right btn-budget-container ">
+                            <a *ngIf="(map.mapType=='E' && (workflow?.approvalStatusCode == 'A' || workflow?.approvalStatusCode == 'W'))"
+                              class="btn btn-sm btn-tertiary btn-budget-transparent mt-0 " data-toggle="modal"
+                              data-target="#addEvaluationScoringModalView" title="Score"
+                              (click)="fetchScoringCriterias(workflow.approverPersonId, workflow.workflowDetailId); approverName = workflow.approverPersonName;">
+                              <i aria-hidden="true" class="fa fa-star mr-2"></i>View Ratings
+                            </a><a *ngIf="workflow.primaryApproverFlag && (versionHistorySelected == latestVersion)
+                                   &&((workflow?.approvalStatusCode == 'W' || workflow?.approvalStatusCode == 'T') 
+                                   && workflow?.approvalStatusCode !== 'B') && bypassReviewerRight && 
+                                   isStopActive(detailMapIndex, map?.mapNumber)"
+                              class="btn btn-sm btn-tertiary btn-budget-transparent mt-0" data-toggle="modal"
+                              data-target="#bypassConfirmModal"
+                              (click)="workflowDetail = workflow;alternateWidgetOpen[index][i] = false; closeApprover(index,i);closeStop()"
+                              id="create-award-btn" title="Bypass Reviewer" tabindex="0">
+                              <i aria-hidden="true" class="fa fa-random mr-2"></i>Bypass Reviewer
+                            </a><a *ngIf="workflow.primaryApproverFlag && workflow?.workflowStatus?.approveStatusCode !== 'B' 
+                                   && workflow?.workflowStatus?.approveStatusCode !== 'K' &&  workflow?.workflowStatus?.approveStatusCode !== 'A' 
+                                   && workflow?.workflowStatus?.approveStatusCode !== 'O' &&(versionHistorySelected == latestVersion) 
+                                   && isStopActive(detailMapIndex, map?.mapNumber) && addApproverRight"
+                              class="btn btn-sm btn-tertiary mt-0 btn-budget-transparent"
+                              (click)="setAlternateApproverFlagAndFocus(index, i, detailMapIndex);"
+                              id="create-award-btn" title="Add Alternate Approver" tabindex="0"
+                              i18n-title="@@WORKFLOW_ADD_ALTERNATE_APPROVER_TLP">
+                              <i aria-hidden="true" class="fa fa-user-plus mr-2"></i>
+                              <ng-container i18n="@@WORKFLOW_ALTERNATE_APPROVER">Alternate Approver</ng-container>
+                            </a>
+                          </div>
+                        </div>
+                        <div [@slideInOut] *ngIf="alternateWidgetOpen[index][i]" class="col-12 mt-2 z-index">
+                          <div class="card" [@fadeDown]>
+                            <h5 class="card-header inner-card-header">
+                              <ng-container i18n="@@WORKFLOW_ADD_ALTERNATE_APPROVER">Add Alternate Approver
+                              </ng-container>
+                              <i class="fa fa-times float-right comments-icon hand-cursor"
+                                (click)="closeApprover(index,i)" aria-hidden="true"></i>
+                            </h5>
+                            <div class="card-body">
+                              <div class="form-row">
+                                <div class="form-group col">
+                                  <div class="searchBox memberSearchBox">
+                                    <app-elastic [options]="elasticSearchOptions" [placeHolder]="'Search Person'"
+                                      (selectedResult)="selectedPerson($event,index,i)" [clearField]="clearField">
+                                    </app-elastic>
+                                  </div>
+
+                                </div>
+                                <div class="form-group col-2 ">
+                                  <button *ngIf="approverFlag" (click)="addAlternateApprover(workflow,'alternate');alternateWidgetOpen[index][i] = !alternateWidgetOpen[index][i];
+                                  isAlternatePersonCard[index][i]= !isAlternatePersonCard[index][i]"
+                                    class="btn btn-primary-sub btn-sm"> <a>
+                                      Add </a></button>
+                                </div>
+                              </div>
+                              <div class="col-12 viewMode resultCard p-0" *ngIf="isAlternatePersonCard[index][i]">
+                                <button class="closeResultCard" id="award-close-elastic-result"
+                                  (click)="isAlternatePersonCard[index][i] = false;">
+                                  <i class="fa fa-times" aria-hidden="true"></i>
+                                </button>
+                                <div class="row shadow-medium bg-light">
+                                  <div class="col-lg-3 col-md-6 col-12">
+                                    <label>Name</label><span>
+                                      <a>{{alternatePersonApprover?.full_name}}</a>
+                                      <span *ngIf="alternatePersonApprover.isExternalUser" class="badge badge-warning ml-2">External</span>
+                                    </span>
+                                  </div>
+                                  <div class="col-lg-3 col-md-6 col-12">
+                                    <label>Designation</label> <span>
+                                      <a>{{alternatePersonApprover?.primary_title ?
+                                        alternatePersonApprover?.primary_title : 'Not Available'}}</a>
+                                    </span>
+                                  </div>
+                                  <div class="col-lg-3 col-md-6 col-12">
+                                    <label>Home Unit</label> <span>
+                                      <a>{{alternatePersonApprover?.homeUnit ?
+                                        alternatePersonApprover?.homeUnit : 'Not Available'}}</a>
+                                    </span>
+                                  </div>
+                                  <div class="col-lg-3 col-md-6 col-12">
+                                    <label>Email Address</label> <span>
+                                      <a>{{alternatePersonApprover?.email_addr}}</a>
+                                    </span>
+                                  </div>
+                                  <div class="col-lg-3 col-md-6 col-12">
+                                    <label>Phone Number</label> <span>
+                                      <a>{{alternatePersonApprover?.phone_nbr ? alternatePersonApprover?.phone_nbr :
+                                        'Not Available' }}</a>
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </ng-container>
+                </ng-container>
+
+              </div>
+            </ng-container>
+          </div>
+          <div *ngIf="(map.mapType=='E' && !isShowEvaluationMap && !map.isLoginPerson)">
+            <div class="noDataOnChart noDataExists">
+              You have no permission to view this panel
+            </div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="k < resultMapArray.length - 1" class=" col-12 text-center py-3 bg-color">
+        <span class="arrow-down"> <img alt="Map Sepeartion" src="{{deployUrl}}assets/images/down-arrow.svg"
+            aria-hidden="true">
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Confirmation Modal -->   
+<div class="modal fade mySkinDialog" id="bypassConfirmModal" tabindex="-1" role="dialog"
+    aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+    <div class = "modal-dialog modal-lg"
+        role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="skippedSchedulesLongTitle">
+                    <span>Bypass {{setBypassHeader()}}
+                    </span>
+                </h5>
+                <button type="button" id="prop-approve-dismiss-btn" class="close" data-dismiss="modal" (click)="closeBypassModal()"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-inner-scroll">
+                <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 viewMode resultCard" 
+                     *ngIf="workFlowDetailKey !== 'claim' && workFlowDetailKey !== 'awardProgressReport'">
+                    <div class="row">
+                      <div class="col" *ngIf="workFlowDetailKey === 'award'">
+                        <label class="block-display">
+                          Award Number
+                        </label>
+                        <span>{{workFlowResult[this.workFlowDetailKey]?.awardNumber}}</span>
+                      </div>
+                      <div class="col" *ngIf="workFlowDetailKey !== 'agreementHeader'">
+                          <label class="block-display">
+                            {{workFlowDetailKey === 'task' ? 'Task Id' : workFlowDetailKey === 'serviceRequest' ? 'Reporter' :
+                              'Principal Investigator'}}
+                          </label>
+                          <span>{{getModuleStatus('PI')}}</span>
+                      </div>
+                      <div class="col"  *ngIf="workFlowDetailKey === 'agreementHeader'">
+                        <label class="block-display">
+                          Category
+                        </label>
+                        <span>{{getModuleStatus('category')}}</span>
+                      </div>
+                      <div class="col" *ngIf="workFlowDetailKey === 'agreementHeader'">
+                        <label class="block-display">
+                          Type of Agreement
+                        </label>
+                        <span>{{getModuleStatus('type')}}</span>
+                      </div>
+                      <div class="col">
+                          <label class="block-display">
+                            {{workFlowDetailKey === 'task' ? 'Assignee' : workFlowDetailKey === 'serviceRequest' ? 'Department' :
+                            'Lead Unit'}}</label>
+                          <span>{{getModuleStatus('leadUnit')}}</span>
+                      </div>
+                      <div class="col">
+                          <label class="block-display">
+                            {{workFlowDetailKey === 'task' ? 'Task type' : 
+                            'Status'}}</label>
+                          <span>{{getModuleStatus('status')}}</span>
+                      </div>
+                    </div>
+                </div>
+                <label class="mySkinDialog ">
+                    <p class="m-0">
+                        <strong><span class="mandatory">*</span>Comments</strong>
+                    </p>
+                </label>
+                <textarea appAutoGrow id="prop-approve-comments" placeholder=""
+                  class="col-12 col-lg-12 commentBox form-control auto-grow-height" rows="2" cols="20" appLengthValidator
+                  [isShowLimiter]='true' [limit]=2000 [(ngModel)]="workflowDetail.approveComment"
+                  [ngClass]="isEmptyComments?'is-invalid d-block':''"></textarea>
+                    <div class="invalid-feedback d-block" *ngIf="isEmptyComments">*Please add comments.</div>
+            </div>
+            <div class="modal-footer">
+              <button id="award-sumbit-no-btn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" (click)="closeBypassModal()">No</button>
+              <button id="award-sumbit-bypass-btn" (click)="bypassReviewer(workflowDetail)" type="button" class="btn btn-primary-sub btn-sm ">Bypass</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- scoring criteria modal -->
+<div class="modal fade mySkinDialog" id="addEvaluationScoringModalView" tabindex="-1" role="dialog"
+  aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header position-relative">
+        <h5 class="modal-title">Scoring Criteria: {{approverName}} </h5>
+        <span class="out-line" *ngIf="isViewExpand">
+          <button class="btn btn-tertiary mt-0 btn-small pointer" title="Expand All"
+            (click)="toggleComments()">{{!isExpandall ? "Expand All" : "Collapse All"}}</button>
+        </span>
+        <button type="button" class="close" id="closeViewModal" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="no-data-container" *ngIf="scoringCriteriaList?.length == 0">
+          <span class="no-data-icon-outer">
+            <div class="no-data-icon">
+              <i class="fa fa-file-o" aria-hidden="true"></i>
+              <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+            </div>
+          </span>
+          <h4>There is no information in this section.</h4>
+        </div>
+        <section *ngIf="scoringCriteriaList.length > 0" class="mb-3 scoring-header-shadow">
+          <div class="p-2 table-scroll">
+            <div class="card questionnaire-card mb-3 p-2"
+              *ngFor="let criteria of scoringCriteriaList; let criteriaIndex = index">
+              <div class="row pb-2 align-items-center">
+                <div class="col">
+                  <label>{{criteriaIndex + 1}}: {{criteria.scoringCriteria?.description}}</label>
+                </div>
+                <div class="col-4 d-flex justify-content-between align-items-center">
+                  <div>
+                    <ng-container *ngIf="criteria.score || criteria.score == 0">
+                      <span class="badge text-center score-box p-0 ml-5">
+                        <span class="d-block p-1 score-label">Score</span>
+                        <span class="d-block text-center text-white score-text">{{criteria?.score}}</span>
+                      </span>
+                    </ng-container>
+                  </div>
+                  <div *ngIf="criteria?.workflowReviewerComments.length">
+                    <span class="anchor-link fs-1" id="{{'comment' + criteriaIndex}}"
+                      (click)="criteria.isOpen = !criteria.isOpen; scrollToComments(criteriaIndex);checkConditionArray()"
+                      title="Click here to view comments or atatchments">
+                      <a>
+                        <i aria-hidden="true" class="fa fa-paperclip rounded-icon mr-1" tabindex="0"></i>
+                        Comments &amp; Attachments</a>
+                    </span>
+                  </div>
+                  <div *ngIf="!criteria?.workflowReviewerComments.length">
+                    <span class="noDataExists regularFont fw-500 mb-0">#No comments added</span>
+                  </div>
+                </div>
+              </div>
+              <ng-container *ngIf="criteria.isOpen">
+                <div class="mt-2 bg-color-cmnt p-15" *ngIf="criteria?.workflowReviewerComments?.length">
+                  <div
+                    *ngFor="let comment of scoringCriteriaList[criteriaIndex].workflowReviewerComments; let commentIndex = index"
+                    class="comment-message">
+                    <div class="comment-message-logo pr-2">
+                      <i class="fa fa-user-circle fa-2x txt-big mr-1 text-secondary" aria-hidden="true"></i>
+                    </div>
+                    <div class="comment-message-body pt-1">
+                      <div class="comment-inner-head">
+                        <div class="comment-inner-head-left">
+                          <span
+                            class="text-black font-weight-bold txt-medium">{{scoringCriteriaList[criteriaIndex].updatedUserFullName}}</span>
+                          &nbsp;&nbsp;
+                          <span class="fw-700 text-primary txt-medium" *ngIf="comment.isPrivate">Private</span>
+                          <p class="d-inline ml-10 txt-medium text-secondary font-weight-light">
+                            {{comment.updateTimeStamp | dateFormatterWithTimeZone : 'long'}}</p>
+                        </div>
+                      </div>
+                      <div class="comment-inner-body pt-1">
+                        <div>
+                          <i aria-hidden="true" class="fa fa-quote-left comment-icon"></i>
+                          <sub> <span class="f-13  text-content-color new-line-property" [innerHTML]="comment.comment"></span>
+                          </sub>
+                        </div>
+                        <div class="fileChips" style="word-break: break-all;"
+                          *ngFor="let file of comment.workflowReviewerAttachments; let fileIndex = index">
+                          <span><strong>{{file.fileName}}</strong>
+                            <i class="fa fa-download hand-cursor font-color" aria-hidden="true"
+                              title="Download attachment" (click)="downloadAttachments(file)"></i>
+                          </span>
+                        </div>
+                      </div>
+                      <hr *ngIf="(criteria?.workflowReviewerComments?.length - 1) != commentIndex">
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
+
+            </div>
+          </div>
+
+        </section>
+        <div *ngIf="scoringCriteriaList.length > 0" class="row pt-3">
+          <div class="col-12 text-right">
+            <button class="btn btn-secondary" title="Close" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

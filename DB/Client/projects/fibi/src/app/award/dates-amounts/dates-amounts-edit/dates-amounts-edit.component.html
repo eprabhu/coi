@@ -1,0 +1,347 @@
+<!-- Last updated by Greeshma on 05-05-2020 -->
+<!-- Transactions -->
+<div id="Award108" class="card mt-3 mb-3">
+    <div class="card-header px-4">
+        <h4 class="card-title">
+            History of Transactions
+            <div class="float-right">
+                <button class="btn btn-tertiary btn-sm mr-5 mt-0 button-right" id="add-btn" data-toggle="modal"
+                    data-target="#add-transaction-modal">
+                    Add New Transaction
+                </button>
+                <button class="updown-arrow" (click)="isTransactionHistory = !isTransactionHistory">
+                    <i aria-hidden="true"
+                        [ngClass]="!isTransactionHistory?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                        class="fa-large"></i>
+                </button>
+            </div>
+        </h4>
+    </div>
+    <div class="noDataOnChart noDataExists p-2" *ngIf="transactionList.length == 0">
+        <div class="no-data-container">
+            <span class="no-data-icon-outer">
+                <div class="no-data-icon">
+                    <i aria-hidden="true" class="fa fa-file-o"></i>
+                    <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                </div>
+            </span>
+            <h4>There is no information in this section.</h4>
+        </div>
+    </div>
+<!-- Transactions ends -->
+<!-- Transactions  History-->
+    <div class="card-body" *ngIf="transactionList.length > 0 && !isTransactionHistory">
+        <div class="table-responsive x-overflow">
+            <table class="table tableSkin grid2">
+                <caption class="sr-only">Dates & Amounts Transactions</caption>
+                <thead>
+                    <th scope="col">Transaction Type</th>
+                    <th scope="col">
+                        <ng-container i18n="@@AWARD_PROPOSAL_NUMBER">Proposal Number</ng-container>
+                    </th>
+                    <th scope="col">
+                        <ng-container i18n="@@AWARD_SOURCE_AWARD">Source Award</ng-container>
+                    </th>
+                    <th scope="col">
+                        <ng-container i18n="@@AWARD_DESTINATION_AWARD">Destination Award</ng-container>
+                    </th>
+                    <th scope="col">Notice Date</th>
+                    <th scope="col">Obligation Start Date</th>
+                    <th scope="col">Obligation End Date</th>
+                    <th scope="col">Obligated Change({{_commonService.currencyFormat}})</th>
+                    <th scope="col">Obligated Total({{_commonService.currencyFormat}})</th>
+                    <th scope="col">Anticipated Change({{_commonService.currencyFormat}})</th>
+                    <th scope="col">Anticipated Total({{_commonService.currencyFormat}})</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Updated By</th>
+                    <th style="width: 10%;" scope="col">Actions</th>
+                </thead>
+                <tbody>
+                    <ng-container *ngFor="let transaction of transactionList; let index=index;let last = last">
+                        <tr id="{{index}}">
+                            <td>{{transaction?.awardAmountTransaction?.awardTransactionType?.description}}</td>
+                            <td>{{transaction?.awardAmountTransaction?.fundingProposalNumber}}</td>
+                            <td>{{transaction?.awardAmountTransaction?.sourceAwardNumber}}</td>
+                            <td>{{transaction?.awardAmountTransaction?.destinationAwardNumber}}</td>
+                            <td>{{transaction?.awardAmountTransaction?.noticeDate| dateFormatter}}</td>
+                            <td>{{transaction?.currentFundEffectiveDate| dateFormatter}}</td>
+                            <td>{{transaction?.obligationExpirationDate| dateFormatter}}</td>
+                            <td>{{transaction?.obligatedChange
+                                |currency:_commonService.currencyFormat:'symbol-narrow':'1.2-2'}}
+                            </td>
+                            <td>{{transaction?.obliDistributableAmount
+                                |currency:_commonService.currencyFormat:'symbol-narrow':'1.2-2'}}
+                            </td>
+                            <td>{{transaction?.anticipatedChange|currency:_commonService.currencyFormat:'symbol-narrow':'1.2-2'}}
+                            </td>
+                            <td>{{transaction?.antDistributableAmount
+                                |currency:_commonService.currencyFormat:'symbol-narrow':'1.2-2'}}
+                            </td>
+                            <td>
+                                <span [ngClass]="{
+                                'text-warning' :transaction?.awardAmountTransaction?.transactionStatusCode == 'P',
+                                'text-success' : transaction?.awardAmountTransaction?.transactionStatusCode == 'A',
+                                'text-danger' : transaction?.awardAmountTransaction?.transactionStatusCode == 'V'}">
+                                    {{transaction?.awardAmountTransaction?.awardTransactionStatus?.description}}
+                                </span>
+                            </td>
+                            <td><span>{{transaction?.updateUserFullName}}
+                                on {{transaction?.updateTimestamp | dateFormatterWithTimeZone : 'long'}} </span></td>
+                            <td>
+                                <ul class="actionButtonGroup">
+                                    <li>
+                                        <div class="dropdown">
+                                            <a id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true"
+                                                aria-expanded="false" tabindex="0">
+                                                <i class="fa fa-commenting-o hand-cursor comment-icon hoverColor mr-1"
+                                                    aria-hidden="true" title="Comment"></i>
+                                            </a>
+                                            <div class="dropdown-menu dropdown-menu-right"
+                                                aria-labelledby="dropdownMenuLink">
+                                                <div>
+                                                    {{transaction?.awardAmountTransaction?.comments ?
+                                                    transaction?.awardAmountTransaction?.comments : 'Not Available'}}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li *ngIf="last && datesAndAmountsData?.isDatesAndAmountsEditable
+                                    && transaction?.awardAmountTransaction?.transactionStatusCode == 'P'"><a id="edit-btn"
+                                            (click)="editTransaction(transaction, index)" tabindex="0"><i
+                                                aria-hidden="true" data-toggle="modal" data-target="#add-transaction-modal" class="fa fa-pencil "
+                                                title="Edit this transaction"></i></a>
+                                    </li>
+                                    <li *ngIf="last && datesAndAmountsData?.isDatesAndAmountsEditable
+                                    && transaction?.awardAmountTransaction?.transactionStatusCode == 'P' && !transaction.isEditable"><a
+                                            data-toggle="modal" data-target="#deleteTransaction"
+                                            (click)="deleteIndex = index" id="delete-btn" tabindex="0">
+                                            <i class="fa fa-trash-o pointer" aria-hidden="true"
+                                                title="Remove this transaction"></i></a>
+                                    </li>
+                                    <!-- <li>
+                                        <span  class="d-inline-block icon-hover">
+                                            <a class="tooltip "><i class="fa fa-info-circle fa-med" aria-hidden="true"></i>
+                                                <div class="tooltiptext-right card card-inner p-15 text-left">
+                                                    <span class="font-cv">Updated By</span>
+                                                    <span class="font-cv font-weight-bold">{{transaction?.updateUserFullName}}
+                                                        on {{transaction?.updateTimestamp | dateFormatterWithTimeZone : 'long'}} </span>
+                                                   
+                                                </div>
+                                            </a>
+                                        </span>
+                                    </li> -->
+                                </ul>
+                            </td>
+                        </tr>
+                    </ng-container>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<!-- Transactions History ends -->
+<!-- Delete modal -->
+<div class="modal fade mySkinDialog" id="deleteTransaction" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" id="prop-dlt-member-dismiss"
+                    type="button">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-dismiss="modal" data-toggle="modal"
+                    type="button">Cancel</button>
+                <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button"
+                    (click)="deleteAwardTransaction (deleteIndex)">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Delete modal ends -->
+
+<!-- Add New Transaction Modal -->
+<div class="modal fade mySkinDialog" id="add-transaction-modal" role="dialog" aria-labelledby="skippedSchedulesTitle"
+    aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{awardAmountInfo?.awardAmountInfoId ? 'Update' : 'Add'}} New Transaction</h5>
+                <button type="button" class="close" (click)="resetTransactionObject();" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body py-1 px-3">
+                <app-award-overview-modal-card></app-award-overview-modal-card>
+                <div class="w-100">
+                    <div class="form-row">
+                        <div class="col-lg-4 col-md-4 col-sm-6 col-12">
+                            <label for="transaction-type"><span class="mandatory">*</span>Transaction Type</label>
+                            <select id="transaction-type" class="form-control"
+                                [ngClass]="{'is-invalid block-display' : (map.get('transactionType'))}"
+                                [(ngModel)]="awardAmountInfo.awardAmountTransaction.awardTransactionType"
+                                (ngModelChange)="commonData.isAwardDataChange = true">
+                                <option value=null>--Select--</option>
+                                <option [ngValue]="transactionTypes"
+                                    *ngFor="let transactionTypes of awardTransactionTypes"
+                                    [hidden]="transactionTypes.isActive != true">
+                                    {{transactionTypes.description}}
+                                </option>
+                            </select>
+                            <div *ngIf="(map.get('transactionType'))" class="invalid-feedback block-display">
+                                {{map.get('transactionType')}}</div>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-6 col-12">
+                            <label for="proposal-number">
+                                <ng-container i18n="@@AWARD_PROPOSAL_NUMBER">Proposal Number</ng-container>
+                            </label>
+                            <select id="proposal-number" class="form-control"
+                                [(ngModel)]="awardAmountInfo.awardAmountTransaction.fundingProposalNumber"
+                                (ngModelChange)="commonData.isAwardDataChange = true">
+                                <option [ngValue]=null>--Select--</option>
+                                <option [ngValue]="fundingProposals.proposal.proposalNumber"
+                                    *ngFor="let fundingProposals  of instituteProposalList">
+                                    {{fundingProposals?.proposal?.proposalNumber}}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-6 col-12">
+                            <label for="source-award"><span
+                                    *ngIf="awardAmountInfo.awardAmountTransaction.destinationAwardNumber"
+                                    class="mandatory">*</span>
+                                <ng-container i18n="@@AWARD_SOURCE_AWARD">Source Award</ng-container>
+                            </label>
+                            <select id="source-award" class="form-control"
+                                [ngClass]="{'is-invalid block-display' : (map.get('sourceAward'))}"
+                                [(ngModel)]="awardAmountInfo.awardAmountTransaction.sourceAwardNumber"
+                                (ngModelChange)="commonData.isAwardDataChange = true">
+                                <option [ngValue]=null>--Select--</option>
+                                <option [value]='source' *ngFor="let source  of sourceList">
+                                    {{source}}
+                                </option>
+                            </select>
+                            <div *ngIf="(map.get('sourceAward'))" class="invalid-feedback block-display">
+                                {{map.get('sourceAward')}}</div>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-6 col-12">
+                            <label for="destination-award"><span
+                                    *ngIf="awardAmountInfo.awardAmountTransaction.sourceAwardNumber"
+                                    class="mandatory">*</span>
+                                <ng-container i18n="@@AWARD_DESTINATION_AWARD">Destination Award</ng-container>
+                            </label>
+                            <select id="destination-award" class="form-control"
+                                [ngClass]="{'is-invalid block-display' : (map.get('destinationDuplication')||map.get('destinationAward'))}"
+                                [(ngModel)]="awardAmountInfo.awardAmountTransaction.destinationAwardNumber"
+                                (ngModelChange)="commonData.isAwardDataChange = true">
+                                <option [ngValue]=null>--Select--</option>
+                                <option [value]='destination' *ngFor="let destination  of destinationList">
+                                    {{destination}}
+                                </option>
+                            </select>
+                            <div *ngIf="(map.get('destinationDuplication'))" class="invalid-feedback block-display">
+                                {{map.get('destinationDuplication')}}</div>
+                            <div *ngIf="(map.get('destinationAward'))" class="invalid-feedback block-display">
+                                {{map.get('destinationAward')}}</div>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-6">
+                            <label for="award-start-date">Obligation Start Date</label>
+                            <span class="dateField">
+                                <input matInput [matDatepicker]="obligationstDt" class="d-inline-block form-control"
+                                    placeholder="{{datePlaceHolder}}" id="award-start-date"
+                                    [(ngModel)]="awardAmountInfo.currentFundEffectiveDate"
+                                    (ngModelChange)="validateDateAndAmount();commonData.isAwardDataChange = true"
+                                    (keypress)="_commonService._keyPress($event, 'date');"
+                                    (click)="obligationstDt.open()">
+                                <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor"
+                                    title="open calendar" (click)="obligationstDt.open()" tabindex="0"></span>
+                                <mat-datepicker #obligationstDt
+                                    (opened)="setFocusToElement('award-start-date')"></mat-datepicker>
+                            </span>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-6">
+                            <label for="award-end-date">Obligation End Date</label>
+                            <span class="dateField">
+                                <input matInput [matDatepicker]="obligationendDt" class="d-inline-block form-control"
+                                    placeholder="{{datePlaceHolder}}" id="award-end-date"
+                                    [(ngModel)]="awardAmountInfo.obligationExpirationDate"
+                                    (ngModelChange)="commonData.isAwardDataChange = true"
+                                    [ngClass]="{'is-invalid block-display' : (map.get('date'))}"
+                                    (ngModelChange)="validateDateAndAmount()"
+                                    (keypress)="_commonService._keyPress($event, 'date');"
+                                    (click)="obligationendDt.open()">
+                                <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor"
+                                    title="open calendar" (click)="obligationendDt.open()" tabindex="0"></span>
+                                <mat-datepicker #obligationendDt
+                                    (opened)="setFocusToElement('award-end-date')"></mat-datepicker>
+                            </span>
+                            <div *ngIf="(map.get('date'))" class="invalid-feedback block-display">
+                                {{map.get('date')}}</div>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-6">
+                            <label for="obligation-change">Obligated Change({{_commonService.currencyFormat}})</label>
+                            <input id="obligation-change" class="form-control" type="text" appCurrencyFormat
+                                allowNegative="true" [initialValue]="awardAmountInfo.obligatedChange"
+                                (change)="amountValidation()"
+                                placeholder="Obligated Change({{_commonService.currencyFormat}})"
+                                [(ngModel)]="awardAmountInfo.obligatedChange"
+                                (ngModelChange)="commonData.isAwardDataChange = true" />
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-12">
+                            <label for="anticipated-change">Anticipated
+                                Change({{_commonService.currencyFormat}})</label>
+                            <input id="anticipated-change" class="form-control" type="text" appCurrencyFormat
+                                allowNegative="true" [initialValue]="awardAmountInfo.obligatedChange"
+                                (change)="amountValidation()"
+                                placeholder="Anticipated Change({{_commonService.currencyFormat}})"
+                                [(ngModel)]="awardAmountInfo.anticipatedChange"
+                                (ngModelChange)="commonData.isAwardDataChange = true" />
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-6">
+                            <label for="award-notice-date">Notice Date</label>
+                            <span class="dateField">
+                                <input matInput [matDatepicker]="noticeDt" class="d-inline-block form-control"
+                                    placeholder="{{datePlaceHolder}}" id="award-notice-date"
+                                    [(ngModel)]="awardAmountInfo.awardAmountTransaction.noticeDate"
+                                    (ngModelChange)="commonData.isAwardDataChange = true"
+                                    (keypress)="_commonService._keyPress($event, 'date');" (click)="noticeDt.open()">
+                                <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor"
+                                    title="open calendar" (click)="noticeDt.open()"></span>
+                                <mat-datepicker #noticeDt (opened)="setFocusToElement('award-notice-date')">
+                                </mat-datepicker>
+                            </span>
+                        </div>
+                        <div class="col-lg-12 col-md-12 col-12">
+                            <label for="comment">Comment</label>
+                            <textarea id="comment" class="form-control" placeholder="Comment" rows="2"
+                                [(ngModel)]="awardAmountInfo.awardAmountTransaction.comments" appLengthValidator
+                                (ngModelChange)="commonData.isAwardDataChange = true" [isShowLimiter]='true'
+                                [limit]=255>
+                </textarea>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-12">
+                            <span class="mandatory fw-500 d-block" *ngFor="let item of warningMsg">
+                                {{item}}
+                            </span>
+                            <span class="mandatory fw-500 d-block" *ngFor="let item of amountWarningMsg">
+                                {{item}}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer mt-3">
+                <button class="btn btn-secondary btn-sm  btn-xs mr-2" data-dismiss="modal"
+                    (click)="resetTransactionObject();">Cancel</button>
+                <button (click)="saveTransaction()" class="btn btn-primary-sub btn-xs mt-3 mt-sm-0" id="add-btn">
+                    {{awardAmountInfo?.awardAmountInfoId ? 'Update' : 'Add'}} Transaction
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

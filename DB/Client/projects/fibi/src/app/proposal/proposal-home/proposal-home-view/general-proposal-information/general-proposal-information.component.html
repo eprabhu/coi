@@ -1,0 +1,241 @@
+<div class="card my-3" id="general-proposal-information">
+  <div class="card-header px-4">
+      <h4 class="card-title">
+          General Proposal Information
+          <span class="d-inline-block float-right icon-hover">
+              <a class="tooltip "><i class="fa fa-info-circle fa-med hand-cursor" aria-hidden="true"></i>
+                  <div class="tooltiptext-right card card-inner p-15 text-left">
+                      <span class="font-cv">Created By: </span><span
+                          class="font-cv font-weight-bold">{{result?.proposal?.createUserFullName}}
+                          on {{result?.proposal?.createTimeStamp | dateFormatterWithTimeZone: 'long'}}</span>
+                      <span class="font-cv">Last Updated By: </span><span
+                          class="font-cv font-weight-bold">{{result?.proposal?.lastUpdateUserFullName}}
+                          on {{result?.proposal?.updateTimeStamp | dateFormatterWithTimeZone: 'long'}}</span>
+                      <span class="font-cv" *ngIf="result?.proposal?.proposalStatus?.statusCode != 1">Submitted By:
+                      </span><span *ngIf="result?.proposal?.proposalStatus?.statusCode != 1"
+                          class="font-cv font-weight-bold">{{result?.proposal?.submitUserFullName}} on {{result?.proposal?.submissionDate
+                            | dateFormatterWithTimeZone: 'long'}}</span>
+                      <span class="font-cv" *ngIf="result?.proposal?.proposalStatus?.statusCode == 12">
+                          <ng-container i18n="@@COMMON_WITHDRAWED_BY">Withdrawn By</ng-container>:
+                      </span><span *ngIf="result?.proposal?.proposalStatus?.statusCode == 12"
+                          class="font-cv font-weight-bold">{{result?.proposal?.lastUpdateUserFullName}}
+                          on {{result?.proposal?.updateTimeStamp | dateFormatterWithTimeZone: 'long'}}</span>
+                    <span *ngIf="result?.proposal?.sourceProposalId" class="font-cv">Copied From<span class="font-cv font-weight-bold">
+                        <a class="hand-cursor anchor-link" (click)="openProposal(result.proposal.sourceProposalId)">
+                            #{{result?.proposal?.sourceProposalId}}
+                            {{result?.proposal?.sourceProposalTitle}}</a></span>
+                    </span>
+                  </div>
+              </a>
+          </span>
+      </h4>
+  </div>
+  <div class="card-body">
+      <div class="gridSkin">
+          <div class="row" *ngIf="_proposalService.proposalSectionConfig['353']?.isActive && result?.grantCall != null">
+              <!-- Title of Grant Call -->
+              <div class="col-lg-10 col-12">
+                  <label class="d-block">Title of Grant Call</label>
+                  <span>{{result?.grantCall?.grantCallId}} - {{result?.grantCall?.grantCallName}}</span>
+              </div>
+              <!-- View Grant Call Details -->
+              <div class="col-lg-2 col-12 mt-lg-5 no-hover-effect" *ngIf="result?.proposal?.grantCallId != null">
+                  <span class="actionButtonGroup d-inline-block float-left">
+                      <a id="prop-eyeIcon-view-btn" title="Click here to view {{result?.grantCall?.grantCallName}}"
+                          (click)="showGrantDetails = true;" class="anchor-link " tabindex="0">
+                          View Grant Call Details
+                      </a>
+                  </span>
+              </div>
+          </div>
+          <div class="row" *ngIf="result?.proposal?.awardNumber && _proposalService.proposalSectionConfig['354']?.isActive">
+              <!-- Linked Award -->
+              <div class="col-lg-10 col-12">
+                  <label class="d-block"><ng-container i18n="@@PROPOSAL_LINK_AWARD">Title of Award</ng-container></label>
+                  <span>{{result?.proposal?.awardNumber}} - {{result?.proposal?.awardTitle}}</span>
+              </div>
+              <!-- View Award Details -->
+              <div class="col-lg-2 col-12 mt-lg-5 no-hover-effect">
+                  <span class="actionButtonGroup d-inline-block float-left">
+                      <a id="award-details" title="Click here to view {{result?.proposal?.awardTitle}}"
+                          class="anchor-link position-absolute fs-14" target="_blank" tabindex="0"
+                          [routerLink]="['/fibi/award/overview']" [queryParams]="{awardId:result?.proposal?.awardId}"
+                          tabindex="0">
+                          <ng-container i18n="@@PROPOSAL_VIEW_AWARD">View Award Details</ng-container>
+                      </a>
+                  </span>
+              </div>
+          </div>
+          <div class="row">
+              <div class="col-12 ml-1">
+                  <label class="d-block" title="Master Proposal Number"><ng-container i18n="@@COMMON_MASTER_PROPOSAL">Master Proposal</ng-container>#</label>
+                  <span *ngIf="result?.proposal?.baseProposalNumber">
+                      {{result?.proposal?.baseProposalNumber}} - {{result?.proposal?.baseProposalTitle}}
+                  </span>
+                  <span
+                  *ngIf="result?.proposal?.baseProposalNumber == null || result?.proposal?.baseProposalNumber == 'null' || result?.proposal?.baseProposalNumber == ''"
+                  class="noDataExists">No <ng-container i18n="@@COMMON_MASTER_PROPOSAL">Master Proposal</ng-container> Specified</span>
+              </div>
+          </div>
+          <div class="row">
+              <!-- Proposal Title -->
+              <div class="col-12">
+                  <label class="d-block">Proposal Title</label>
+                  <span>{{result?.proposal?.title}}</span>
+              </div>
+              <!-- Proposal Type -->
+              <div class="col-lg-3 col-sm-6 col-12">
+                  <label class="d-block">Proposal Type</label>
+                  <span>{{result?.proposal?.proposalType?.description}}</span>
+              </div>
+              <div class="col-lg-3 col-sm-6 col-12">
+                  <!-- Type of Grant -->
+                  <label class="d-block"><ng-container i18n="@@COMMON_TYPE_OF_GRANT">Type of Grant</ng-container></label>
+                  <span>{{result?.proposal?.grantCallType?.description}}</span>
+              </div>
+              <div class="col-lg-3 col-sm-6 col-12">
+                  <!-- Category -->
+                  <label class="d-block"><ng-container i18n="@@COMMON_CATEGORY_PROPOSAL">Category</ng-container></label>
+                  <span>{{result?.proposal?.activityType?.description}}</span>
+              </div>
+              <div class="col-lg-3 col-sm-6 col-12">
+                  <!-- Anticipated Award Type -->
+                  <label class="d-block">Anticipated Award Type</label>
+                  <span>{{result?.proposal?.awardType?.description}}</span>
+                  <span *ngIf="!result?.proposal?.awardType" class="noDataExists">No Anticipated Award Type
+                      Specified</span>
+              </div>
+              <!-- SMU Specific change-->
+              <!-- <div class="col-lg-3 col-sm-6 col-12">
+                      <label class="d-block">Discipline Cluster</label>
+                      <span>{{result?.proposal?.disciplineCluster?.description}}</span>
+                      <span *ngIf="!result?.proposal?.disciplineCluster?.description == null" class="noDataExists">No Discipline Cluster Specified</span>
+                  </div> -->
+
+              <!-- Sponsor -->
+              <div class="col-lg-3 col-sm-6 col-12">
+                  <label class="d-block"><ng-container i18n="@@COMMON_SPONSOR">Sponsor</ng-container></label>
+                  <span>{{result?.proposal?.sponsorName}}</span>
+                  <span *ngIf="result?.proposal?.sponsorName == null" class="noDataExists">
+                    <ng-container i18n="@@COMMON_NO_SPONSOR_SPECIFIED_ERR">No Sponsor Specified</ng-container></span>
+              </div>
+              <!-- Proposed Start Date -->
+              <div class="col-lg-3 col-sm-6 col-12">
+                  <label class="d-block">Proposed Start Date</label>
+                  <span>{{result?.proposal?.startDate | dateFormatter}}</span>
+              </div>
+              <!-- Proposed End Date -->
+              <div class="col-lg-3 col-sm-6 col-12">
+                  <label class="d-block">Proposed End Date</label>
+                  <span>{{result?.proposal?.endDate | dateFormatter}}</span>
+              </div>
+              <!-- Duration -->
+              <div class="col-lg-3 col-sm-6 col-12">
+                  <label class="d-block">Duration</label>
+                  <span>
+                      <strong>{{result?.proposal?.duration}}</strong>
+                    </span>
+              </div>
+              <!-- Prime Sponsor -->
+              <div class="col-lg-3 col-sm-6 col-12">
+                  <label class="d-block">Prime Sponsor</label>
+                  <span>{{result?.proposal?.primeSponsorName}}</span>
+                  <span *ngIf="result?.proposal?.primeSponsorName == null" class="noDataExists">No Prime Sponsor
+                      Specified</span>
+              </div>
+              <!-- Sponsor Proposal ID -->
+              <div class="col-lg-3 col-sm-6 col-12">
+                  <label class="d-block"><ng-container i18n="@@COMMON_SPONSOR_PROPOSAL_ID">Sponsor Proposal ID</ng-container></label>
+                  <span>{{result?.proposal?.externalFundingAgencyId}}</span>
+                  <span class="noDataExists" *ngIf="result?.proposal?.externalFundingAgencyId == null">
+                    <ng-container i18n="@@PROPOSAL_NO_SPONSOR_PROPOSAL_ID_ERR">No Sponsor Proposal ID Specified</ng-container></span>
+              </div>
+              <!-- Sponsor Deadline Date -->
+              <div class="col-lg-3 col-sm-6 col-12">
+                  <label class="d-block">Sponsor Deadline Date</label>
+                  <span>{{result?.proposal?.sponsorDeadlineDate | dateFormatter}}</span>
+                  <span
+                      *ngIf="result?.proposal?.sponsorDeadlineDate == null || result?.proposal?.sponsorDeadlineDate == 0"
+                      class="noDataExists">No Sponsor Deadline Date Specified</span>
+                  <div *ngIf="result?.proposal?.proposalStatus?.statusCode != '11' && proposalDataBindObj?.dateWarningList?.has('deadlineDate')" class="invalid-feedback d-block">
+                        {{proposalDataBindObj?.dateWarningList?.get('deadlineDate')}}</div>
+              </div>
+              <!-- Internal Deadline Date -->
+              <div class="col-lg-3 col-sm-6 col-12">
+                  <label class="d-block">Internal Deadline Date</label>
+                  <span
+                      *ngIf="result?.proposal?.internalDeadLineDate">{{result?.proposal?.internalDeadLineDate | dateFormatter}}</span>
+                  <span
+                      *ngIf="result?.proposal?.internalDeadLineDate == null || result?.proposal?.internalDeadLineDate == 0"
+                      class="noDataExists">No Internal Deadline Date Specified</span>
+                  <div *ngIf="result?.proposal?.proposalStatus?.statusCode != '11' && proposalDataBindObj?.dateWarningList?.has('internalDeadline')"
+                      class="invalid-feedback d-block">
+                      {{proposalDataBindObj?.dateWarningList?.get('internalDeadline')}}</div>
+              </div>
+              <!-- Master Proposal # -->
+              <!-- <div class="col-lg-3 col-md-4 col-6 col-12">
+                  <label class="d-block" title="Master Proposal Number"><ng-container i18n="@@COMMON_MASTER_PROPOSAL">Master Proposal</ng-container>#</label>
+                  <span>{{result?.proposal?.baseProposalNumber}}</span>
+                  <span
+                      *ngIf="result?.proposal?.baseProposalNumber == null || result?.proposal?.baseProposalNumber == 'null'"
+                      class="noDataExists">No <ng-container i18n="@@COMMON_MASTER_PROPOSAL">Master Proposal</ng-container> Number Specified</span>
+              </div> -->
+              <!-- Funding Opportunity Number -->
+              <div class="col-lg-3 col-md-4 col-6 col-12">
+                  <label class="d-block">Funding Opportunity Number</label>
+                  <span>{{result?.proposal?.programAnnouncementNumber}}</span>
+                  <span *ngIf="result?.proposal?.programAnnouncementNumber == null" class="noDataExists">No
+                      Funding
+                      Opportunity Number Specified</span>
+              </div>
+              <!-- CFDA -->
+              <div class="col-lg-3 col-md-4 col-6 col-12">
+                  <label class="d-block"
+                      title="CFDA (Catalogue of Federal Domestic Assistance Number) is a five-digit number assigned in the awarding document to most grants and cooperative agreements funded by the Federal government.">CFDA
+                      Number</label>
+                  <span>{{result?.proposal?.cfdaNumber}}</span>
+                  <span *ngIf="result?.proposal?.cfdaNumber == null" class="noDataExists">No CFDA Specified</span>
+              </div>
+              <!-- Keywords Of Research -->
+              <div class="col-12">
+                  <label class="d-block">Keywords Of Research</label>
+                  <div class="form-row">
+                      <div class="col-12">
+                          <div class="fileChips" style="word-break: break-all;"
+                              *ngIf="result?.proposal?.proposalKeywords?.length > 0">
+                              <ng-container *ngFor="let keyword of result?.proposal?.proposalKeywords;let i = index">
+                                  <span
+                                      *ngIf="keyword?.keyword == null; else nonDatabaseKeywords">{{keyword?.scienceKeyword?.description}}
+                                  </span>
+                                  <ng-template #nonDatabaseKeywords>
+                                      <span>{{keyword?.keyword}}
+                                      </span>
+                                  </ng-template>
+                              </ng-container>
+                          </div>
+                          <span class="noDataExists" *ngIf="result?.proposal?.proposalKeywords?.length == 0">No
+                              keywords
+                              added</span>
+                      </div>
+                  </div>
+              </div>
+          </div>
+          <div class="row">
+              <!-- Abstract -->
+              <div class="form-group col-12">
+                  <label class="d-block">Abstract</label>
+                  <ng-container>
+                      <div class="ck-content">
+                          <span [innerHTML]="result?.proposal?.abstractDescription | safe"></span>
+                      </div>
+                  </ng-container>
+                  <div class="noDataExists" *ngIf="result?.proposal?.abstractDescription == null">No abstract for
+                      this proposal
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+</div>
+<!-- grant details view modal -->
+<app-grant-details-view *ngIf="showGrantDetails" (showGrantDetails)="setGrantDetailsValue($event)" [grantCallId]="result?.proposal?.grantCallId"></app-grant-details-view>

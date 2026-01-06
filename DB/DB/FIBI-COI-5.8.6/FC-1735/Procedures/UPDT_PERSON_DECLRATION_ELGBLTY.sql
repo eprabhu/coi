@@ -1,0 +1,120 @@
+DELIMITER //
+CREATE PROCEDURE UPDT_PERSON_DECLRATION_ELGBLTY(
+    IN AV_PROJECT_NUMBER VARCHAR(20),
+    IN AV_MODULE_CODE INT
+)
+BEGIN
+
+    DECLARE done INT DEFAULT 0;
+    DECLARE LS_PERSON_ID VARCHAR(40);
+    DECLARE LS_ELIGIBLE CHAR(1) DEFAULT 'N';
+
+    -- Cursor to get all key persons of the incoming project
+    DECLARE PER_CUR CURSOR FOR
+		SELECT KEY_PERSON_ID AS PERSON_ID
+		FROM COI_INT_STAGE_AWARD_PERSON
+		WHERE AV_MODULE_CODE = 1 AND PROJECT_NUMBER = AV_PROJECT_NUMBER
+		UNION ALL
+		SELECT KEY_PERSON_ID AS PERSON_ID
+		FROM COI_INT_STAGE_PROPOSAL_PERSON
+		WHERE AV_MODULE_CODE = 2 AND PROJECT_NUMBER = AV_PROJECT_NUMBER
+		UNION ALL
+		SELECT KEY_PERSON_ID AS PERSON_ID
+		FROM COI_INT_STAGE_DEV_PROPOSAL_PERSON
+		WHERE AV_MODULE_CODE = 3 AND PROPOSAL_NUMBER = AV_PROJECT_NUMBER;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    OPEN PER_CUR;
+
+    person_loop: LOOP
+        FETCH PER_CUR INTO LS_PERSON_ID;
+        IF done = 1 THEN 
+            LEAVE person_loop;
+        END IF;
+
+        SET LS_ELIGIBLE = 'N';
+
+        IF EXISTS (
+            SELECT 1
+            FROM COI_INT_STAGE_AWARD A 
+            JOIN COI_INT_STAGE_AWARD_PERSON P
+                 ON A.PROJECT_NUMBER = P.PROJECT_NUMBER
+            WHERE P.KEY_PERSON_ID = LS_PERSON_ID
+              AND (A.PROJECT_STATUS_CODE <> '5' OR A.PROJECT_STATUS <> 'Closed')
+              AND A.SPONSOR_CODE IN (
+                    SELECT SPONSOR_CODE 
+                    FROM DECLARATION_SPONSOR_REQUREMNTS 
+                    WHERE DECLARATION_TYPE_CODE = '1'
+              )
+        ) THEN 
+            SET LS_ELIGIBLE = 'Y';
+        END IF;
+
+        IF LS_ELIGIBLE = 'N' THEN
+            IF EXISTS (
+                SELECT 1
+                FROM COI_INT_STAGE_DEV_PROPOSAL D
+                JOIN COI_INT_STAGE_DEV_PROPOSAL_PERSON DP
+                     ON D.PROPOSAL_NUMBER = DP.PROPOSAL_NUMBER
+                WHERE DP.KEY_PERSON_ID = LS_PERSON_ID
+                  AND D.PROPOSAL_STATUS_CODE = '1'
+                  AND D.SPONSOR_CODE IN (
+                        SELECT SPONSOR_CODE 
+                        FROM DECLARATION_SPONSOR_REQUREMNTS 
+                        WHERE DECLARATION_TYPE_CODE = '1'
+                  )
+            ) THEN 
+                SET LS_ELIGIBLE = 'Y';
+            END IF;
+        END IF;
+
+        IF LS_ELIGIBLE = 'N' THEN
+            IF EXISTS (
+                SELECT 1
+                FROM COI_INT_STAGE_PROPOSAL IP
+                JOIN COI_INT_STAGE_PROPOSAL_PERSON PP
+                     ON IP.PROJECT_NUMBER = PP.PROJECT_NUMBER
+                WHERE PP.KEY_PERSON_ID = LS_PERSON_ID
+                  AND IP.PROJECT_STATUS_CODE = '1'
+                  AND IP.SPONSOR_CODE IN (
+                        SELECT SPONSOR_CODE 
+                        FROM DECLARATION_SPONSOR_REQUREMNTS 
+                        WHERE DECLARATION_TYPE_CODE = '1'
+                  )
+            ) THEN 
+                SET LS_ELIGIBLE = 'Y';
+            END IF;
+        END IF;
+
+        IF EXISTS (
+            SELECT 1 
+            FROM DECLARATION_PERSON_ELIGIBILITY
+            WHERE PERSON_ID = LS_PERSON_ID
+              AND DECLARATION_TYPE_CODE = '1'
+        ) THEN
+
+            UPDATE DECLARATION_PERSON_ELIGIBILITY
+               SET CAN_CREATE_DECLARATION = LS_ELIGIBLE,
+                   UPDATED_BY = LS_PERSON_ID,
+                   UPDATE_TIMESTAMP = NOW()
+             WHERE PERSON_ID = LS_PERSON_ID
+               AND DECLARATION_TYPE_CODE = '1';
+
+        ELSE
+
+            INSERT INTO DECLARATION_PERSON_ELIGIBILITY
+                (PERSON_ID, DECLARATION_TYPE_CODE, CAN_CREATE_DECLARATION,
+                 UPDATED_BY, UPDATE_TIMESTAMP)
+            VALUES
+                (LS_PERSON_ID, '1', LS_ELIGIBLE,
+                 LS_PERSON_ID, NOW());
+
+        END IF;
+
+    END LOOP;
+
+    CLOSE PER_CUR;
+
+END
+//

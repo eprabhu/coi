@@ -1,0 +1,354 @@
+<div class="card rounded-0">
+    <div class="card-content">
+        <div class="card-header py-2" *ngIf="!isCreateMode">
+            <h4 class="card-title d-flex align-items-center justify-content-md-end">
+                <span class="header-btn-with-info">
+                    <button class="btn btn-sm btn-primary m-0" (click)="isCreateMode = true;getSubmodules();">
+                        Create New Meta Rule
+                    </button>
+                    <button class="btn btn-sm btn-primary m-0" (click)="createRule()">
+                        Create New Rule
+                    </button>
+                </span>
+            </h4>
+        </div>
+        <div class="card-header" *ngIf="isCreateMode">
+            <h4 class="align-items-center card-title d-flex">
+                <span [ngClass]="metaRuleDesc ? '' : 'noDataExists'" *ngIf="!isEditDescription">
+                    {{metaRuleDesc ? metaRuleDesc : 'Description for meta rule'}}
+                </span>
+                <button class="ml-2 btn more-btn ml-3" *ngIf="!isEditDescription && metaRulesDto.length > 0"
+                    (click)="isEditDescription = true">
+                    <i class="fa fa-pencil pointer p-0" aria-hidden="true" title="Edit Description">
+                    </i>
+                </button>
+                <span class="full-width" *ngIf="isEditDescription">
+                    <textarea appAutoGrow appLengthValidator [isShowLimiter]='true' rows="1" [limit]=200 rows="1"
+                        class="form-control" id="clauses" [(ngModel)]="metaRuleDesc"
+                        placeHolder="Type here for meta rule description"></textarea>
+                </span>
+                <div class="align-items-center d-flex ml-auto" [ngClass]="isEditDescription ? 'mb-3' : ''">
+                    <button class="ml-2 btn more-btn mr-2 ml-2" *ngIf="isEditDescription"
+                        (click)="createMetaRule();isEditDescription = false">
+                        <i class="fa fa-floppy-o pointer p-0" aria-hidden="true" title="Save Description">
+                        </i>
+                    </button>
+                    <button class="ml-2 btn more-btn mr-2" *ngIf="isEditDescription" (click)="cancelEdit()">
+                        <i class="fa fa-times pointer p-0" aria-hidden="true" title="Cancel Edit">
+                        </i>
+                    </button>
+                    <button class="btn more-btn" title="Back" (click)="clearMetaRule()">
+                        <i class="fa fa-reply" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </h4>
+        </div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col">
+                    <label class="block-display"> <span class="mandatory">*</span>Meta Rule at</label>
+                    <div class="searchBox inline-block" id="">
+                        <app-autocompleter [completerOptions]="ruleService?.completerUnitListOptions"
+                            [clearField]="clearField" [placeHolder]="'Search department'"
+                            [isError]="(map.get('unit')) ? true : false" (onSelect)="onValueSelect($event, 'unit')"
+                            [isDisabled]="isSearchDone && isCreateMode"></app-autocompleter>
+                        <div *ngIf="map.has('unit')">
+                            <span class="mandatory">{{map.get('unit')}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group col">
+                    <label class="block-display"> <span class="mandatory">*</span>
+                        {{isCreateMode ? 'Rule applies to module' : 'Rule applies to'}}
+                    </label>
+                    <div class="searchBox inline-block">
+                        <app-autocompleter [completerOptions]="ruleService?.completerModuleListOptions"
+                            [clearField]="clearField"
+                            [placeHolder]=" isCreateMode ? ' Search Module' : 'Search Module / Sub Module '"
+                            [isError]="(map.get('module')) ? true : false" (onSelect)="onValueSelect($event, 'module')"
+                            [isDisabled]="isSearchDone && isCreateMode"></app-autocompleter>
+                        <div *ngIf="map.has('module')">
+                            <span class="mandatory">{{map.get('module')}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group col" *ngIf="isCreateMode">
+                    <label class="block-display">Rule applies to sub module</label>
+                    <div class="searchBox inline-block">
+                        <app-autocompleter [completerOptions]="completerSubModuleOptions"
+                            [placeHolder]="'Search Sub Module'" [isDisabled]="isSearchDone && isCreateMode"
+                            (onSelect)="onSubModuleSelect($event)"></app-autocompleter>
+                    </div>
+                </div>
+                <div class="form-group col">
+                    <label class="block-display"> <span class="mandatory">*</span>Rule is used for</label>
+                    <div class="searchBox inline-block">
+                        <app-autocompleter [completerOptions]="ruleService?.completerRuleListOptions"
+                            [isError]="(map.get('rule')) ? true : false" [clearField]="clearField"
+                            [placeHolder]="'Search Rule'" (onSelect)="onValueSelect($event, 'condition')"
+                            [isDisabled]="disableSearch">
+                        </app-autocompleter>
+                        <div *ngIf="map.has('rule')">
+                            <span class="mandatory">{{map.get('rule')}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group col-1 mt-3 ml-0" *ngIf="!isCreateMode">
+                    <button class="btn btn-primary btn-sm mt-3 form-control" aria-expanded="false"
+                        id="search-person-role" (click)="fetchMetaRules('search');">Search</button>
+                </div>
+            </div>
+            <div class="form-row" *ngIf="isCreateMode && (!isSearchDone || metaRulesDto?.length == 0)">
+                <div class="col-10">
+                    <label> Description </label>
+                    <textarea appAutoGrow class="form-control"
+                        [ngClass]="map.has('description') ? 'lineItem-mandatory' : ''" name="abstract"
+                        [(ngModel)]="metaRuleDesc" rows="1" placeholder="Description" appLengthValidator
+                        [isShowLimiter]='true' [limit]=200></textarea>
+                </div>
+                <div class="align-items-center col-2 d-flex justify-content-md-end mt-2">
+                    <button class="btn btn-secondary btn-sm mr-3" (click)="clearMetaRule()">
+                        Cancel
+                    </button>
+                    <button class="btn btn-sm btn-primary-sub m-0" data-toggle="modal"
+                        (click)="clearModal();fetchMetaRules('addNewRule')">
+                        Add Node
+                    </button>
+                </div>
+            </div>
+            <div class="form-row" *ngIf="isSearchDone && (!metaRulesDto || metaRulesDto?.length == 0)">
+                <div class="col-12">
+                    <div class="no-data-container p-3">
+                        <span class="no-data-icon-outer">
+                            <div class="no-data-icon">
+                                <i class="fa fa-file-o" aria-hidden="true"></i>
+                                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                            </div>
+                        </span>
+                        <h4 class="text-content-color">There is no information in this section.</h4>
+                    </div>
+                </div>
+            </div>
+            <ul class="unit-tree ui-tree mt-3" *ngIf="isSearchDone && metaRulesDto?.length > 0">
+                <ng-template #recursiveList let-metaRulesDto>
+                    <li *ngFor="let node of metaRulesDto; let index=index" class="child-li pointer">
+                        <div class="container-fluid unit-tree-blocks" [id]="node.metaRuleDetailId"
+                            [ngClass]="selectedNode?.ruleId === node?.ruleId && selectedNode?.metaRuleDetailId === node?.metaRuleDetailId ? 'highlight-node': ''"
+                            [title]="node?.ruleName" data-toggle="modal">
+                            <div class="row justify-content-between align-items-center p-1" id="{{node.ruleName}}">
+                                <div class="u-content-middle unit-no">
+                                    <span>
+                                        <i [ngClass]="(!node.visible)?'fa fa-chevron-down u-down-arrow':'fa fa-chevron-right u-left-arrow'"
+                                            (click)="node.visible = !node.visible" aria-hidden="true"
+                                            id="i{{node.metaRuleDetailId}}"></i>
+                                        <span class="uh-ml" (click)="listClick($event, node, index)">
+                                            <span (click)="node.visible = !node.visible">
+                                                <span *ngIf="node?.nodeCondition === 'N'"
+                                                    class="badge badge-pill badge-info p-2">NEXT</span>
+                                                <span *ngIf="node?.nodeCondition === 'T'"
+                                                    class="badge badge-pill badge-success p-2">IF TRUE</span>
+                                                <span *ngIf="node?.nodeCondition === 'F'"
+                                                    class="badge badge-pill badge-danger p-2">IF FALSE</span>
+                                                {{node?.ruleName}}
+                                            </span>
+                                        </span>
+                                    </span>
+                                </div>
+                                <div class="u-icons dropdown text-right p-0 ">
+                                    <i class="fa fa-eye pointer mx-2" aria-hidden="true" title="View {{node.ruleName}}"
+                                        (click)="viewRule(node);selectedNode = node">
+                                    </i>
+                                    <i class="fa fa-ellipsis-v u-action-icon dropdown-toggle pointer btn-dropdown-xs"
+                                        id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
+                                        (click)="selectedNode = node" aria-expanded="false" title="Actions"
+                                        aria-hidden="true"></i>
+                                    <div class="action-bar dropdown-icons">
+                                        <div class="dropdown-menu mr-2"
+                                            [attr.aria-labelledby]="'dropdownMenuButton'+ index">
+                                            <a class="dropdown-item"
+                                                (click)="clearModal();addNewNode(node); node.visible=false;"
+                                                title="Click to add new rule">
+                                                <i class="fa fa-plus" aria-hidden="true"></i>Add New Node
+                                            </a>
+                                            <a class="dropdown-item" (click)="deleteNode(node);node.visible=false;"
+                                                title="Click to delete node">
+                                                <i class="fa fa-trash-o" aria-hidden="true"></i>Delete Node
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="showInputField"></span>
+                        </div>
+                        <ul *ngIf="node?.childNodes?.length > 0" id="ul{{node.metaRuleDetailId}}"
+                            [ngClass]="{ 'subfolder': selectedNode == node, 'd-none': node?.visible }">
+                            <ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: node.childNodes }">
+                            </ng-container>
+                        </ul>
+                    </li>
+                </ng-template>
+                <ng-container *ngTemplateOutlet="recursiveList; context:{ $implicit: metaRulesDto }">
+                </ng-container>
+                <button id="scrollUpBtn" title="Go to top">
+                    <i class="fa fa-angle-double-up top-arrow" aria-hidden="true"></i>
+                </button>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!--Modal to add new node-->
+<div class="modal fade mySkinDialog" tabindex="-1" id="addNewRule" tabindex="-1" role="dialog" data-backdrop="static"
+    data-keyboard="false" aria-labelledby="addNewRule" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add new node</h5>
+                <button type="button" id="create-budget-close-btn" class="close" (click)="clearModal()"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" *ngIf="ruleList?.length>0">
+                <div class="text-center" *ngIf="metaRulesDto && metaRulesDto.length > 0">
+                    <input type="radio" [disabled]="!showIfTrue" class="radio-inline" name="metaRuleCondition" value="T"
+                        [(ngModel)]="selectedOption">
+                    If True
+                    <input type="radio" [disabled]="!showIfFalse" class="radio-inline" name="metaRuleCondition"
+                        value="F" [(ngModel)]="selectedOption">
+                    If False
+                    <input type="radio" [disabled]="!showNext" class="radio-inline" name="metaRuleCondition" value="N"
+                        [(ngModel)]="selectedOption">
+                    Next
+                </div>
+                <div *ngIf="warningMessage" class="success-banner p-2 mb-3 d-flex align-items-center">
+                    <i aria-hidden="true" class="fa fa-info-circle info-icon mr-2"></i>
+                    <em>{{warningMessage}}</em>
+                </div>
+                <div class="form-group searchBox">
+                    <input type="text" placeholder="Search by Description"
+                        class="ng-pristine ng-valid ng-touched form-control" [(ngModel)]="searchText ">
+                    <a *ngIf="!searchText" class="searchButton">
+                        <i class="fa fa-search fa-med mr-4 pt-2 hand-icon" aria-hidden="true"></i>
+                    </a>
+                    <a *ngIf="searchText" class="searchButton" (click)="searchText=''">
+                        <i class="fa fa-close" aria-hidden="true"></i>
+                    </a>
+                </div>
+                <div class="card">
+                    <div class="table-data-scroll">
+                        <div class="table-responsive">
+                            <table class="table tableSkin mb-0">
+                                <caption class="sr-only">Business Rule</caption>
+                                <thead>
+                                    <tr class="header-border sticky-top">
+                                        <th>Select</th>
+                                        <th scope="col" class="table-border-bottom hand-icon"
+                                            (click)="sortBy('DESCRIPTION')">
+                                            Business Rules<i aria-hidden="true" class="hand-icon"
+                                                [ngClass]="((column=='DESCRIPTION' )? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        *ngFor="let rule of ruleList
+                                                        | SearchFilter : searchText : ['DESCRIPTION']
+                                                        | orderBy: {property: column, direction: direction} ; let index=index">
+                                        <td>
+                                            <li class="nolist">
+                                                <input type="radio" class="radio-inline" name="selectedRule"
+                                                    [value]="rule.RULE_ID" [(ngModel)]="selectedCriteria.ruleId">
+                                            </li>
+                                        </td>
+                                        <td>{{rule.DESCRIPTION}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body" *ngIf="ruleList?.length == 0">
+                <div class="no-data-container p-3">
+                    <span class="no-data-icon-outer">
+                        <div class="no-data-icon">
+                            <i class="fa fa-file-o" aria-hidden="true"></i>
+                            <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                        </div>
+                    </span>
+                    <h4 class="text-content-color">There is no information in this section.</h4>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="clearModal()">Cancel</button>
+                <button type="button" *ngIf="ruleList?.length > 0" class="btn btn-primary-sub"
+                    (click)="prepareMetaRuleObject()">Add</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Modal for delete confirmation-->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="deleteConfirmationModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{deleteObject?.isChildAvailable ? 'Unable to delete meta rule':'Delete Node'}}
+                </h5>
+                <button id="metarule-delete-close-btn" type="button" class="close" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div *ngIf="deleteObject?.isChildAvailable" class="alert alert-danger fs-12">
+                    <i class="fa fa-exclamation-circle icon text-danger mr-3" aria-hidden="true"></i>
+                    Cannot be deleted because the selected node has one or more child nodes.
+                </div>
+                <p *ngIf="!deleteObject?.isChildAvailable">
+                    <span> Are you sure you want to delete </span>
+                    <span class="bold"> {{deleteObject?.ruleName}}</span>
+                    <span> ? </span>
+                </p>
+            </div>
+            <div class="modal-footer" *ngIf="deleteObject?.isChildAvailable">
+                <button id="metarule-delete-no-btn" type="button" class="btn btn-primary-sub btn-sm" data-dismiss="modal"
+                    data-toggle="modal">Ok</button>
+            </div>
+            <div class="modal-footer" *ngIf="!deleteObject?.isChildAvailable">
+                <button id="metarule-delete-no-btn" type="button" class="btnSkin btn-secondary" data-dismiss="modal"
+                    data-toggle="modal">No</button>
+                <button id="metarule-delete-btn" type="button" class="btn btn-primary-sub btn-sm" (click)="deleteRule()"
+                    data-toggle="modal">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Modal for add node warning modal-->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="addWarningModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Unable to add new node</h5>
+                <button id="metarule-delete-close-btn" type="button" class="close" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger fs-12">
+                    <i class="fa fa-exclamation-circle icon text-danger mr-3" aria-hidden="true"></i>
+                    Maximum node is defined.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="metarule-delete-no-btn" type="button" class="btn btn-primary-sub btn-sm" data-dismiss="modal"
+                    data-toggle="modal">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<app-rule-view *ngIf="showRule" [ruleId]="currentRuleId" (emitCloseModal)="closeModal($event)"></app-rule-view>

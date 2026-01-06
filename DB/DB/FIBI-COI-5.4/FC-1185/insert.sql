@@ -1,0 +1,8 @@
+INSERT INTO `entity_action_type` (`ACTION_TYPE_CODE`, `MESSAGE`, `DESCRIPTION`, `UPDATE_TIMESTAMP`, `UPDATE_USER`)
+VALUES ('22', 'Entity modification <b>cancelled</b> by <b>{ADMIN_NAME}</b>', 'Entity Modification Cancellation', now(), 'quickstart');
+INSERT INTO `dyn_subsection_config` (`SUB_SECTION_CODE`, `SECTION_CODE`, `DESCRIPTION`, `IS_ACTIVE`, `UPDATE_TIMESTAMP`, `UPDATE_USER`) VALUES ('2640', 'GE2609', 'Entity Cancel Modification Modal', 'Y', now(), 'admin');
+INSERT INTO `dyn_element_config` (`ELEMENT_ID`, `UI_REFERENCE_ID`, `DESCRIPTION`, `SUB_SECTION_CODE`, `SECTION_CODE`, `HELP`, `UPDATE_USER`, `UPDATE_TIMESTAMP`) VALUES ('1791', 'coi-entity-cancel-modify-modal', 'Entity Cancel Modification Modal', '2640', 'GE2609', 'You are about to cancel entity modification', 'admin', now());
+INSERT INTO `dyn_element_config` (`ELEMENT_ID`, `UI_REFERENCE_ID`, `DESCRIPTION`, `SUB_SECTION_CODE`, `SECTION_CODE`, `HELP`, `UPDATE_USER`, `UPDATE_TIMESTAMP`) VALUES ('1792', 'coi-entity-cancel-modify-desc', 'Entity Cancel Modification Description', '2640', 'GE2609', 'Please enter the description', 'admin', now());
+INSERT INTO `dyn_subsection_config` (`SUB_SECTION_CODE`, `SECTION_CODE`, `DESCRIPTION`, `IS_ACTIVE`, `UPDATE_TIMESTAMP`, `UPDATE_USER`) VALUES ('2641', 'GE2609', 'Entity Modification Confirm Modal', 'Y', now(), 'admin');
+INSERT INTO dyn_element_config` (`ELEMENT_ID`, `UI_REFERENCE_ID`, `DESCRIPTION`, `SUB_SECTION_CODE`, `SECTION_CODE`, `HELP`, `UPDATE_USER`, `UPDATE_TIMESTAMP`) VALUES ('1793', 'coi-entity-modify-cnfrm-modal', 'Entity Modify Confirm Modal', '2641', 'GE2609', 'You are about to modify the entity', 'admin', now());
+

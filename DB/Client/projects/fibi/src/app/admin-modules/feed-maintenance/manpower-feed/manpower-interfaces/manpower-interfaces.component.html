@@ -1,0 +1,425 @@
+<div class="card mb-3">
+    <div class="card-content">
+        <div class="card-body">
+            <div class="form-row">
+                <div class="col-md col-12">
+                    <label class="d-block">From</label>
+                    <span class="dateField">
+                        <input matInput [matDatepicker]="startDate" type="text" placeholder="From" id="batch-details-start-date"
+                            class="form-control d-inline-block" autocomplete="off" [(ngModel)]="searchObject.startDate"
+                            (keypress)="_commonService._keyPress($event, 'date');" (click)="startDate.open()" />
+                        <i aria-hidden="true" id="start-date-icon"
+                            class="fa fa-calendar fa-large insidePicker hand-cursor"
+                            (click)="startDate.open()"></i>
+                        <mat-datepicker #startDate (opened)="setFocusToElement('start-date')"></mat-datepicker>
+                    </span>
+                </div>
+                <div class="col-md col-12">
+                    <label class="d-block">To</label>
+                    <span class="dateField">
+                        <input type="text" matInput [matDatepicker]="endDate" placeholder="To" id="batch-details-end-date" (click)="endDate.open()"
+                            class="form-control d-inline-block" autocomplete="off" [(ngModel)]="searchObject.endDate"
+                            (keypress)="_commonService._keyPress($event, 'date');" />
+                        <i aria-hidden="true" id="end-date-icon"
+                            class="fa fa-calendar fa-large insidePicker hand-cursor"
+                            (click)="endDate.open()"></i>
+                        <mat-datepicker #endDate (opened)="setFocusToElement('end-date')"></mat-datepicker>
+                    </span>
+                </div>
+                <div class="col-md col-12">
+                    <label class="d-block">Award #</label>
+                    <input type="text" class="form-control" placeholder="Award Number"
+                        [(ngModel)]="searchObject.awardNumber" id="batch-details-award-number"
+                        (keyup.enter)="searchObject.advancedSearch = 'A';resetAllProperties();fetchAwardRetriggerList();">
+                </div>
+                <div class="col-md-auto col-12 mt-20 text-right">
+                    <button class="btn btn-secondary btn-sm btn-xs" (click)="resetAndSearch();">Clear</button>
+                    <button class="btn btn-primary btn-sm btn-xs"
+                        (click)="searchObject.advancedSearch = 'A';resetAllProperties();fetchAwardRetriggerList();">Search</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-content">
+        <ng-container class="border border-dark"
+            *ngIf="awardRetriggerList?.workdayInterfaceLogDtos == null || awardRetriggerList?.workdayInterfaceLogDtos?.length == 0">
+            <div class=" table no-data-container m-auto">
+                <span class="no-data-icon-outer">
+                    <div class="no-data-icon">
+                        <i class="fa fa-file-o" aria-hidden="true"></i>
+                        <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                    </div>
+                </span>
+                <h4>There is no information in this section.</h4>
+            </div>
+        </ng-container>
+        <div class="table-responsive">
+            <table class="table tableSkin mb-0"
+                *ngIf="awardRetriggerList?.workdayInterfaceLogDtos != null && awardRetriggerList?.workdayInterfaceLogDtos?.length != 0">
+                <thead class="header-border">
+                    <tr class="header-border">
+                        <th class="text-center" scope="col" style="width: 10%;" tabindex="0">Award #</th>
+                        <th class="text-center" scope="col" style="width: 25%;" tabindex="0">Title</th>
+                        <th class="text-center" scope="col" style="width: 40%;" tabindex="0">Interface error
+                            message<br>(errors in the sequence order)
+                        </th>
+                        <th class="text-center" scope="col" style="width: 20%;" tabindex="0">Action
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <ng-container>
+                        <ng-container *ngFor="let log of awardRetriggerList?.workdayInterfaceLogDtos; let i = index">
+                            <tr (mouseenter)="isHover = i" (mouseleave)="isHover = -1"
+                                [ngClass]="{'borderBoxHeading' : (isFeedExpand && isFeedExpand[i]), 'focused-row' : (isHover == i && isFeedExpand && !isFeedExpand[i])}" id="{{i}}">
+                                <td>{{log?.awardNumber}}</td>
+                                <td>{{log?.awardTitle}}</td>
+                                <td>{{log?.errorMessage}}</td>
+                                <td class="text-right">
+                                    <button class="btn btn-sm btn-secondary mr-3" *ngIf="log?.isReInterfaceNeeded"
+                                        data-target="#award_retrigger_modal" data-toggle="modal"
+                                        title="Re-trigger all interfaces against this award ( {{log?.awardNumber}} )"
+                                        (click)="awardRetriggerIndex = i; retriggerAwardNumber = log?.awardNumber; isFeedExpand = []; selectUserAction('1')">Re-trigger
+                                        All Interfaces</button>
+                                    <a id="project-expand-btn" (click)="openFeedRow(i,log?.awardNumber)" type="button"
+                                        class="m-2">
+                                        <i [ngClass]="isFeedExpand[i] ?'fa fa-angle-up':'fa fa-angle-down '"
+                                            title="{{isFeedExpand[i] ? 'close feed' : 'open feed'}}" aria-hidden="true"
+                                            class="fa-large"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr *ngIf="isFeedExpand[i]">
+                                <td colspan="12">
+                                    <ng-container>
+                                        <div class="row ml-1">
+                                            <ul class="subTabs">
+                                                <li [ngClass]="selectedTab == 'award_interface' ? 'active' : ''">
+                                                    <a class="subTabLink"
+                                                        (click)="selectedTab = 'award_interface'; fetchErrorData(log?.awardNumber, 'award_interface')">
+                                                        Award Interface</a>
+                                                </li>
+                                                <li
+                                                    [ngClass]="selectedTab == 'position_request_interface' ? 'active' : ''">
+                                                    <a class="subTabLink"
+                                                        (click)="selectedTab = 'position_request_interface'; fetchErrorData(log?.awardNumber, 'position_request_interface')">
+                                                        Position Request Interface</a>
+                                                </li>
+
+                                            </ul>
+                                            <ng-container *ngIf="selectedTab == 'award_interface'"
+                                                class="border border-dark">
+                                                <div class=" table no-data-container m-auto"
+                                                    *ngIf="feedError.length == 0">
+                                                    <span class="no-data-icon-outer">
+                                                        <div class="no-data-icon">
+                                                            <i class="fa fa-file-o" aria-hidden="true"></i>
+                                                            <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                                                        </div>
+                                                    </span>
+                                                    <h4>There is no information in this section.</h4>
+                                                </div>
+                                                <table class="table tableSkin mb-0 card-inner mr-4"
+                                                    *ngIf="feedError.length != 0">
+                                                    <thead class="header-border">
+                                                        <th class="text-center" scope="col" style="width: 2%;"
+                                                            tabindex="0">Interface Type</th>
+                                                        <th class="text-center" scope="col" style="width: 2%;"
+                                                            tabindex="0">Interface Date</th>
+                                                        <th class="text-center" scope="col" style="width: 2%;"
+                                                            tabindex="0">Status</th>
+                                                        <th class="text-center" scope="col" style="width: 5%;"
+                                                            tabindex="0">Message</th>
+                                                        <th class="text-center" scope="col" style="width: 2%;"
+                                                            tabindex="0">User Action</th>
+                                                        <th class="text-center" scope="col" style="width: 4%;"
+                                                            tabindex="0">Action</th>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr
+                                                            *ngFor="let error of feedError; let index=index;let last = last;">
+                                                            <td class="text-center">{{error?.interfaceTypeName}}</td>
+                                                            <td class="text-center">{{error?.interfaceTimestamp |
+                                                                dateFormatterWithTimeZone:'long'}}</td>
+                                                            <td class="text-center">
+                                                                <i aria-hidden="true" class="fa"
+                                                                    [ngClass]="error?.messageType == 'SUCCESS' ? 'fa-check-circle text-success' : 'fa-times-circle text-danger'"></i>
+                                                                {{error?.messageType}}
+                                                            </td>
+                                                            <td>{{error?.errorMessage}}</td>
+                                                            <td class="text-center">{{error?.userActionName ? error?.userActionName : '-'}}</td>
+                                                            <td class="text-center">
+                                                                <button
+                                                                    *ngIf="error?.interfaceStatusCode == '2' && error?.messageType != 'RESP_PENDING' && error?.messageType != 'SUCCESS' && !error?.userActionCode && last"
+                                                                    class="btn btn-sm btn-primary-sub mr-1 d-inline"
+                                                                    data-target="#syncAwardManpowerAPI"
+                                                                    data-toggle="modal" (click)="workdayManpowerInterfaceId = error?.workdayManpowerInterfaceId; manualUpdateIndex = index;
+                                                                    selectUserAction('2')">Manual Update
+                                                                </button>
+                                                                <button class="btn btn-sm btn-primary-sub d-inline mr-1"
+                                                                    *ngIf="error?.interfaceStatusCode == '2' && error?.messageType != 'RESP_PENDING' && error?.messageType != 'SUCCESS' && !error?.userActionCode && last"
+                                                                    data-target="#syncAwardManpowerAPI"
+                                                                    data-toggle="modal"
+                                                                    (click)="workdayManpowerInterfaceId = error?.workdayManpowerInterfaceId; selectUserAction('1')">Re-trigger</button>
+                                                                <!-- <button class="btn btn-sm btn-primary-sub mr-3 d-inline"
+                                                                    *ngIf="last && error?.messageType != 'RESP_PENDING' && error?.userActionCode == null">Manual
+                                                                    Update</button> -->
+
+                                                                <div class="dropdown ml-3 d-inline mr-1"
+                                                                    *ngIf="error?.comments">
+                                                                    <a class="position-relative" id="dropdownMenuLink"
+                                                                        data-toggle="dropdown" aria-haspopup="true"
+                                                                        aria-expanded="false">
+                                                                        <i class="fa fa-commenting-o hand-cursor hoverColor"
+                                                                            aria-hidden="true" title="Comments"></i>
+                                                                        <div class="dropdown-menu details-comment-patch dropdown-menu-right fs-14"
+                                                                            aria-labelledby="dropdownMenuLink">
+                                                                            <div>
+                                                                                {{error?.comments}}
+                                                                            </div>
+                                                                        </div>
+                                                                    </a>
+                                                                </div>
+                                                                <span *ngIf="error?.interfaceStatusCode != '2' && !error?.comments"
+                                                                    class="noDataExists">No Action</span>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </ng-container>
+                                            <div class=" my-3 table"
+                                                *ngIf="selectedTab == 'position_request_interface'">
+                                                <div class="row">
+                                                    <ng-container
+                                                        *ngIf="positionDetails.length == 0 && positionReqInterfaceError.length == 0">
+                                                        <div class="no-data-container m-auto">
+                                                            <span class="no-data-icon-outer">
+                                                                <div class="no-data-icon">
+                                                                    <i class="fa fa-file-o" aria-hidden="true"></i>
+                                                                    <i class="fa fa-times-circle-o"
+                                                                        aria-hidden="true"></i>
+                                                                </div>
+                                                            </span>
+                                                            <h4>There is no information in this section.</h4>
+                                                        </div>
+                                                    </ng-container>
+                                                    <div class="col-2 pr-2" *ngIf="positionDetails.length != 0">
+                                                        <div class="table-responsive scrollable-table">
+                                                            <table class="table tableSkin grid3"
+                                                                aria-describedby="institute-proposal-attachment_id">
+                                                                <thead style="height: 58px">
+                                                                    <th scope="col" title="linked Proposal list" class="text-center">
+                                                                        Position Details</th>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <ng-container *ngIf="positionDetails.length != 0">
+                                                                        <tr *ngFor="let id of positionDetails"
+                                                                            class="grid3 hand-cursor position-background">
+                                                                            <td (click)="ID = id" class="px-2"
+                                                                                [ngClass]="{'active': id.resourceUniqueId === ID.resourceUniqueId}"
+                                                                                (click)="getPositionErrorDetails(id.resourceUniqueId)">
+                                                                                <div
+                                                                                    class="d-flex justify-content-between align-items-center">
+                                                                                    <span>
+                                                                                        <span
+                                                                                            [ngClass]="id?.positionId ? 'font-weight-bold' : 'font-weight-normal'">
+                                                                                            {{id?.positionId ?
+                                                                                            id.positionId :
+                                                                                            'Unassigned'}}
+                                                                                        </span>
+
+                                                                                        <br>
+                                                                                        ({{id?.resourceUniqueId}})
+                                                                                    </span>
+                                                                                    <span
+                                                                                        *ngIf="id?.resourceUniqueId == ID?.resourceUniqueId"
+                                                                                        class="float-right">
+                                                                                        <i aria-hidden="true"
+                                                                                            class="fa-large fa fa-arrow-right"></i>
+                                                                                    </span>
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </ng-container>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-10 pl-0 pr-5"
+                                                        *ngIf="positionReqInterfaceError.length != 0">
+                                                        <div class="table-responsive">
+                                                            <table class="table tableSkin mb-0">
+                                                                <thead class="header-border">
+                                                                    <th class="text-center" scope="col"
+                                                                        style="width: 8%;" tabindex="0">
+                                                                        Interface Type</th>
+                                                                    <th class="text-center" scope="col"
+                                                                        style="width: 10%;" tabindex="0">
+                                                                        Interface Date</th>
+                                                                    <th class="text-center" scope="col"
+                                                                        style="width: 12%;" tabindex="0">Status
+                                                                    </th>
+                                                                    <th class="text-center" scope="col"
+                                                                        style="width: 20%;" tabindex="0">Message</th>
+                                                                    <th class="text-center" scope="col"
+                                                                        style="width: 12%;" tabindex="0">User Action
+                                                                    </th>
+                                                                    <th class="text-center" scope="col"
+                                                                        style="width: 25%;" tabindex="0">Action
+                                                                    </th>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <ng-container
+                                                                        *ngIf="positionReqInterfaceError.length != 0">
+                                                                        <tr
+                                                                            *ngFor="let error of positionReqInterfaceError; let i=index">
+                                                                            <td class="text-left">
+                                                                                {{error?.interfaceTypeName}}
+                                                                            </td>
+                                                                            <td class="text-left">
+                                                                                {{error?.interfaceTimestamp |
+                                                                                dateFormatterWithTimeZone:'long' }}</td>
+                                                                            <td class="text-left">
+                                                                                <i aria-hidden="true"
+                                                                                    class="fa {{getStatusIconForCode(error?.interfaceStatusCode)}}"></i>
+                                                                                {{error?.interfaceStatusName}}
+                                                                            </td>
+                                                                            <td>
+                                                                                {{error?.errorMessage}}
+                                                                            </td>
+                                                                            <td class="text-center">
+                                                                                {{error?.userActionName ? error?.userActionName : '-'}}
+                                                                            </td>
+                                                                            <td class="text-center">
+                                                                                <div class="dropdown ml-3 d-inline mr-2"
+                                                                                    *ngIf="error?.comments">
+                                                                                    <a class="position-relative"
+                                                                                        id="dropdownMenuLink"
+                                                                                        data-toggle="dropdown"
+                                                                                        aria-haspopup="true"
+                                                                                        aria-expanded="false">
+                                                                                        <i class="fa fa-commenting-o hand-cursor hoverColor"
+                                                                                            aria-hidden="true"
+                                                                                            title="Comments"></i>
+                                                                                        <div class="dropdown-menu details-comment-patch dropdown-menu-right fs-14"
+                                                                                            aria-labelledby="dropdownMenuLink">
+                                                                                            <div>
+                                                                                                {{error?.comments}}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </a>
+                                                                                </div>
+                                                                                <button
+                                                                                    class="btn btn-sm btn-primary-sub m-2 "
+                                                                                    *ngIf="error?.interfaceStatusCode == '2' && error?.messageType != 'RESP_PENDING' && error?.messageType != 'SUCCESS' && !error?.userActionCode"
+                                                                                    (click)="workdayManpowerInterfaceId = error?.workdayManpowerInterfaceId; manualUpdateIndex = i; callSyncAPI(error, '2');">
+                                                                                    Manual Update</button>
+                                                                                <button
+                                                                                    class="btn btn-sm btn-primary-sub"
+                                                                                    *ngIf="error?.interfaceStatusCode == '2' && error?.messageType != 'RESP_PENDING' && error?.messageType != 'SUCCESS' && !error?.userActionCode"
+                                                                                    (click)="callSyncAPI(error, '1')">Re-interface</button>
+
+                                                                                <span
+                                                                                    *ngIf="error?.interfaceStatusCode != '2' && !error?.comments"
+                                                                                    class="noDataExists">No
+                                                                                    Action</span>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </ng-container>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </ng-container>
+                                </td>
+                            </tr>
+                        </ng-container>
+                    </ng-container>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 mt-4"
+            *ngIf="awardRetriggerList?.workdayInterfaceLogDtos != null && awardRetriggerList?.workdayInterfaceLogDtos?.length != 0">
+            <nav class="pagination justify-content-end">
+                <app-pagination [totalCount]="pageCount" (pageChangeEvent)="actionsOnPageChange($event)">
+                </app-pagination>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation modal -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="syncAwardManpowerAPI" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="positionRetriggerConfirmation" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{userAction?.manpowerUserAction}}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="clearAPIData()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div *ngIf="userAction?.description"
+                    class="success-banner px-3d-flex justify-content-between align-items-center ng-star-inserted">
+                    <div>
+                        <i aria-hidden="true" class="fa fa-info-circle mr-1 info-icon"></i>
+                        <em class="ng-star-inserted"> {{userAction?.description}}</em>
+                    </div>
+                    <button aria-label="Close" class="close close-button" type="button">
+                    </button>
+                </div>
+                <ng-container>
+                    <label class="d-block"><span class="mandatory">*</span>Comments</label>
+                    <textarea class="form-control" [(ngModel)]="actionComment" placeholder="Comments"></textarea>
+                    <span class="mandatory" *ngIf="validationMap.has('comment')">*
+                        {{validationMap.get('comment')}}</span>
+                </ng-container>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="clearAPIData()">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="userAction?.manpowerUserActionCode == '1' ? reTrigger() :
+                        updateManpowerInterfaceManually()">{{userAction?.manpowerUserAction}}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- award re-trigger confirmation modal -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="award_retrigger_modal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="positionRetriggerConfirmation" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Are you sure want to re-trigger the details of this award
+                    ({{retriggerAwardNumber}})
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true" (click)="clearAwardTriggerData()">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div *ngIf="userAction?.description"
+                    class="success-banner px-3 d-flex justify-content-between align-items-center ng-star-inserted">
+                    <div>
+                        <i aria-hidden="true" class="fa fa-info-circle mr-1 info-icon"></i>
+                        <em class="ng-star-inserted"> {{userAction?.description}}</em>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                    (click)="clearAwardTriggerData()">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="retriggerAllAwardManpowerInterface()">
+                    {{userAction?.manpowerUserAction}} {{retriggerObject?.manpowerInterfaceType?.description}}</button>
+            </div>
+        </div>
+    </div>
+</div>

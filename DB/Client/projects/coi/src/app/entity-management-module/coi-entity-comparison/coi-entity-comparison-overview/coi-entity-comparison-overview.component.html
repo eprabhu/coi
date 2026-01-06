@@ -1,0 +1,287 @@
+<div class="d-flex flex-column gap-3 pt-2">
+    <!-- Basic Details -->
+    <app-coi-section-card customClass="coi-entity-section-card overflow-hidden" [uniqueId]="overviewTabSection.get('BASIC_DETAILS')?.sectionId">
+        <ng-container card-header-icon><mat-icon aria-hidden="true" class="coi-mat-icon-size">{{ overviewTabSection.get('BASIC_DETAILS')?.sectionIcon }}</mat-icon></ng-container>
+        <ng-container card-header-content><span>{{ overviewTabSection.get('BASIC_DETAILS')?.sectionName }}</span></ng-container>
+        <ng-container card-body>
+            <app-coi-entity-field-section-compare [fieldConfig]="entityFieldConfigs"
+                [leftSideComparisonData]="leftSideEntityDetails" [rightSideComparisonData]="rightSideEntityDetails">
+            </app-coi-entity-field-section-compare>
+        </ng-container>
+    </app-coi-section-card>
+
+    <!-- Company Details -->
+    <app-coi-section-card customClass="coi-entity-section-card overflow-hidden" [uniqueId]="overviewTabSection.get('COMPANY_DETAILS')?.sectionId">
+        <ng-container card-header-icon><mat-icon aria-hidden="true" class="coi-mat-icon-size">{{ overviewTabSection.get('COMPANY_DETAILS')?.sectionIcon }}</mat-icon></ng-container>
+        <ng-container card-header-content><span>{{ overviewTabSection.get('COMPANY_DETAILS')?.sectionName }}</span></ng-container>
+        <ng-container card-body>
+            <div class="row row-gap-3">
+                <!-- Industry Details -->
+                <div class="col-12">
+                    <div class="card overflow-hidden">
+                        <div class="card-header"><span class="coi-text-dark">{{ companyDetailsSubSection.get('INDUSTRY_DETAILS')?.sectionName }}</span></div>
+                        <div class="card-body">
+                            <div class="row row-gap-3">
+                                <ng-container *ngFor="let industry of industryDetails?.NO_CHANGE">
+                                    <div class="col-12">
+                                        <div class="card coi-entity-details-card p-2 shadow-sm">
+                                            <div class="coi-text-light">
+                                                <span class="d-block">{{ industry?.industryCategoryType?.formattedIndustryCategoryType }}</span>
+                                                <span class="d-block fw-500">
+                                                    <ng-container *ngFor="let industryCategoryCode of industry?.industryCategoryCodes; let isLast = last;">
+                                                        <span>{{ groupedRightSideIndustry?.[industry?.industryCategoryTypeCode]?.entries?.[industryCategoryCode]?.industryCategoryCode?.formattedIndustryCategoryDescription }}</span>
+                                                        <span *ngIf="groupedRightSideIndustry?.[industry?.industryCategoryTypeCode]?.entries?.[industryCategoryCode]?.isPrimary" class="badge primary-pill fs-13 fw-500 ms-1 rounded-4 text-primary">Primary</span>
+                                                        <span *ngIf="!isLast" class="mx-1">|</span>
+                                                    </ng-container>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                                <ng-container *ngFor="let config of industryDetails?.UPDATE">
+                                    <div class="col-12">
+                                        <div class="card coi-entity-details-card p-2 shadow-sm">
+                                            <span class="d-block coi-text-light">{{ config?.industryCategoryType?.formattedIndustryCategoryType }}</span>
+                                            <div class="d-inline-flex flex-wrap column-gap-1 row-gap-2 coi-text-light pt-1">
+                                                <ng-container *ngFor="let industryCategoryCode of config?.industryCategoryCodes; let isLast = last;">
+                                                    <app-coi-field-compare
+                                                        [valueLeft]="groupedLeftSideIndustry?.[config?.industryCategoryTypeCode]?.entries?.[industryCategoryCode]?.industryCategoryCode?.formattedIndustryCategoryDescription"
+                                                        [valueRight]="groupedRightSideIndustry?.[config?.industryCategoryTypeCode]?.entries?.[industryCategoryCode]?.industryCategoryCode?.formattedIndustryCategoryDescription">
+                                                    </app-coi-field-compare>
+                                                    <ng-container *ngIf="groupedLeftSideIndustry?.[config?.industryCategoryTypeCode]?.entries?.[industryCategoryCode]?.isPrimary 
+                                                        || groupedRightSideIndustry?.[config?.industryCategoryTypeCode]?.entries?.[industryCategoryCode]?.isPrimary"
+                                                        >
+                                                        <span [ngClass]="{
+                                                            'primary-pill': !(groupedLeftSideIndustry?.[config?.industryCategoryTypeCode]?.entries?.[industryCategoryCode]?.isPrimary 
+                                                                            && groupedRightSideIndustry?.[config?.industryCategoryTypeCode]?.entries?.[industryCategoryCode] 
+                                                                            && !groupedRightSideIndustry?.[config?.industryCategoryTypeCode]?.entries?.[industryCategoryCode]?.isPrimary) 
+                                                                            || !(groupedLeftSideIndustry?.[config?.industryCategoryTypeCode]?.entries?.[industryCategoryCode] 
+                                                                            && !groupedLeftSideIndustry?.[config?.industryCategoryTypeCode]?.entries?.[industryCategoryCode]?.isPrimary 
+                                                                            && groupedRightSideIndustry?.[config?.industryCategoryTypeCode]?.entries?.[industryCategoryCode]?.isPrimary),
+                                                            'coi-comparison-bg coi-comparison-bg-red': groupedLeftSideIndustry?.[config?.industryCategoryTypeCode]?.entries?.[industryCategoryCode]?.isPrimary 
+                                                                                                        && groupedRightSideIndustry?.[config?.industryCategoryTypeCode]?.entries?.[industryCategoryCode] 
+                                                                                                        && !groupedRightSideIndustry?.[config?.industryCategoryTypeCode]?.entries?.[industryCategoryCode]?.isPrimary,
+                                                            'coi-comparison-bg coi-comparison-bg-green': groupedLeftSideIndustry?.[config?.industryCategoryTypeCode]?.entries?.[industryCategoryCode] 
+                                                                                                        && !groupedLeftSideIndustry?.[config?.industryCategoryTypeCode]?.entries?.[industryCategoryCode]?.isPrimary 
+                                                                                                        && groupedRightSideIndustry?.[config?.industryCategoryTypeCode]?.entries?.[industryCategoryCode]?.isPrimary
+                                                        }" class="d-flex align-items-center badge fs-12 fw-500 rounded-4 text-primary">Primary</span>
+                                                    </ng-container>
+                                                    <span *ngIf="!isLast" class="mx-1">|</span>
+                                                </ng-container>
+                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                                <ng-container *ngFor="let industry of industryDetails?.ADD">
+                                    <div class="col-12">
+                                        <div class="coi-text-light coi-comparison-bg coi-comparison-bg-green p-2 shadow-sm">
+                                            <span class="d-block">{{ industry?.industryCategoryType?.formattedIndustryCategoryType }}</span>
+                                            <span class="d-block fw-500">
+                                                <ng-container *ngFor="let industryCategoryCode of industry?.industryCategoryCodes; let isLast = last;">
+                                                    <span>{{ groupedRightSideIndustry?.[industry?.industryCategoryTypeCode]?.entries?.[industryCategoryCode]?.industryCategoryCode?.formattedIndustryCategoryDescription }}</span>
+                                                    <span *ngIf="groupedRightSideIndustry?.[industry?.industryCategoryTypeCode]?.entries?.[industryCategoryCode]?.isPrimary" class="badge primary-pill fs-13 fw-500 ms-1 rounded-4 text-primary">Primary</span>
+                                                    <span *ngIf="!isLast" class="mx-1">|</span>
+                                                </ng-container>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                                <ng-container *ngFor="let industry of industryDetails?.DELETE">
+                                    <div class="col-12">
+                                        <div class="coi-text-light coi-comparison-bg coi-comparison-bg-red p-2 shadow-sm">
+                                            <span class="d-block">{{ industry?.industryCategoryType?.formattedIndustryCategoryType }}</span>
+                                            <span class="d-block fw-500">
+                                                <ng-container *ngFor="let industryCategoryCode of industry?.industryCategoryCodes; let isLast = last;">
+                                                    <span>{{ groupedLeftSideIndustry?.[industry?.industryCategoryTypeCode]?.entries?.[industryCategoryCode]?.industryCategoryCode?.formattedIndustryCategoryDescription }}</span>
+                                                    <span *ngIf="groupedLeftSideIndustry?.[industry?.industryCategoryTypeCode]?.entries?.[industryCategoryCode]?.isPrimary" class="badge primary-pill fs-13 fw-500 ms-1 rounded-4 text-primary">Primary</span>
+                                                    <span *ngIf="!isLast" class="mx-1">|</span>
+                                                </ng-container>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                                <ng-container *ngIf="!industryDetails?.NO_CHANGE?.length && !industryDetails?.UPDATE?.length && !industryDetails?.ADD?.length && !industryDetails?.DELETE?.length">
+                                    <app-no-information customClass="overflow-hidden rounded-3 mt-0" [isBorderNeeded]="false"></app-no-information>
+                                </ng-container>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Registration Details -->
+                <div class="col-12">
+                    <div class="card overflow-hidden">
+                        <div class="card-header"><span class="coi-text-dark">{{ companyDetailsSubSection.get('REGISTRATION_DETAILS')?.sectionName }}</span></div>
+                        <div class="card-body">
+                            <div class="row row-gap-3">
+                                <ng-container *ngFor="let registration of registrationDetails?.NO_CHANGE">
+                                    <div class="col-12">
+                                        <div class="card coi-entity-details-card p-2 shadow-sm">
+                                            <div class="coi-text-light">
+                                                <span class="d-block">{{ registration?.registrationType ? registration?.registrationType?.description : registration?.registrationTypeDescription }}</span>
+                                                <span class="fw-600">{{ registration?.regNumber }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                                <ng-container *ngFor="let config of registrationDetails?.UPDATE">
+                                    <div class="col-12">
+                                        <div class="card coi-entity-details-card p-2 shadow-sm">
+                                            <span class="d-block coi-text-light">{{ config?.leftSideDetails?.registrationType ? config?.leftSideDetails?.registrationType?.description : config?.leftSideDetails?.registrationTypeDescription }}</span>
+                                            <app-coi-field-compare
+                                                [valueLeft]="config?.leftSideDetails?.regNumber"
+                                                [valueRight]="config?.rightSideDetails?.regNumber">
+                                            </app-coi-field-compare>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                                <ng-container *ngFor="let registration of registrationDetails?.ADD">
+                                    <div class="col-12">
+                                        <div class="coi-text-light coi-comparison-bg coi-comparison-bg-green p-2 shadow-sm">
+                                            <span class="d-block">{{ registration?.registrationType ? registration?.registrationType?.description : registration?.registrationTypeDescription }}</span>
+                                            <span class="fw-500">{{ registration?.regNumber }}</span>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                                <ng-container *ngFor="let registration of registrationDetails?.DELETE">
+                                    <div class="col-12">
+                                        <div class="coi-text-light coi-comparison-bg coi-comparison-bg-red p-2 shadow-sm">
+                                            <span class="d-block">{{ registration?.registrationType ? registration?.registrationType?.description : registration?.registrationTypeDescription }}</span>
+                                            <span class="fw-500">{{ registration?.regNumber }}</span>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                                <ng-container *ngIf="!registrationDetails?.NO_CHANGE?.length && !registrationDetails?.UPDATE?.length && !registrationDetails?.ADD?.length && !registrationDetails?.DELETE?.length">
+                                    <app-no-information customClass="overflow-hidden rounded-3 mt-0" [isBorderNeeded]="false"></app-no-information>
+                                </ng-container>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Additional Details -->
+                <div class="col-12">
+                    <div class="card overflow-hidden">
+                        <div class="card-header"><span class="coi-text-dark">{{ companyDetailsSubSection.get('ADDITIONAL_ADDRESS')?.sectionName }}</span></div>
+                        <div class="card-body">
+                            <div class="row row-gap-2">
+                                <ng-container *ngFor="let address of additionalAddress?.NO_CHANGE">
+                                    <div class="col-12">
+                                        <div class="card coi-entity-details-card p-2 shadow-sm">
+                                            <div class="coi-text-light">
+                                                <span class="d-block">{{ address?.entityAddressType?.description }}</span>
+                                                <span class="fw-600">{{ getEntityFullAddress(address) }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                                <ng-container *ngFor="let config of additionalAddress?.UPDATE">
+                                    <div class="col-12">
+                                        <div class="card coi-entity-details-card p-2 shadow-sm">
+                                            <span class="d-block coi-text-light">{{ config?.leftSideDetails?.entityAddressType?.description }}</span>
+                                            <app-coi-field-compare [customClass]="'flex-column'"
+                                                [valueLeft]="getEntityFullAddress(config?.leftSideDetails)"
+                                                [valueRight]="getEntityFullAddress(config?.rightSideDetails)">
+                                            </app-coi-field-compare>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                                <ng-container *ngFor="let address of additionalAddress?.ADD">
+                                    <div class="col-12">
+                                        <div class="coi-text-light coi-comparison-bg coi-comparison-bg-green p-2 shadow-sm">
+                                            <span class="d-block">{{ address?.entityAddressType?.description }}</span>
+                                            <span class="fw-500">{{ getEntityFullAddress(address) }}</span>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                                <ng-container *ngFor="let address of additionalAddress?.DELETE">
+                                    <div class="col-12">
+                                        <div class="coi-text-light coi-comparison-bg coi-comparison-bg-red p-2 shadow-sm">
+                                            <span class="d-block">{{ address?.entityAddressType?.description }}</span>
+                                            <span class="fw-500">{{ getEntityFullAddress(address) }}</span>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                                <ng-container *ngIf="!additionalAddress?.NO_CHANGE?.length && !additionalAddress?.UPDATE?.length && !additionalAddress?.ADD?.length && !additionalAddress?.DELETE?.length">
+                                    <app-no-information customClass="overflow-hidden rounded-3 mt-0" [isBorderNeeded]="false"></app-no-information>
+                                </ng-container>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Other Details -->
+                <div class="col-12">
+                    <div class="card overflow-hidden">
+                        <div class="card-header"><span class="coi-text-dark">{{ companyDetailsSubSection.get('OTHER_DETAILS')?.sectionName }}</span></div>
+                        <div class="card-body">
+                            <app-coi-entity-field-section-compare [fieldConfig]="entityOtherDetailsFieldConfigs"
+                                [leftSideComparisonData]="leftSideEntityDetails" [rightSideComparisonData]="rightSideEntityDetails">
+                            </app-coi-entity-field-section-compare>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+    </app-coi-section-card>
+
+    <!-- Entity Risk -->
+    <app-coi-entity-risk-comparison [leftSideRiskDetails]="leftSideEntityDetails?.entityRisks"
+        [rightSideRiskDetails]="rightSideEntityDetails?.entityRisks"
+        [sectionDetails]="overviewTabSection.get('ENTITY_RISK')">
+    </app-coi-entity-risk-comparison>
+
+
+    <!-- Other Reference ID -->
+    <app-coi-section-card customClass="coi-entity-section-card overflow-hidden" [uniqueId]="overviewTabSection.get('OTHER_REFERENCE_IDS')?.sectionId">
+        <ng-container card-header-icon><mat-icon aria-hidden="true" class="coi-mat-icon-size">{{ overviewTabSection.get('OTHER_REFERENCE_IDS')?.sectionIcon }}</mat-icon></ng-container>
+        <ng-container card-header-content><span>{{ overviewTabSection.get('OTHER_REFERENCE_IDS')?.sectionName }}</span></ng-container>
+        <ng-container card-body>
+            <div class="row row-gap-2">
+                <ng-container *ngFor="let referenceData of externalReferences?.NO_CHANGE">
+                    <div class="col-12">
+                        <div class="coi-card-regular p-3 shadow-sm mt-0">
+                            <div class="coi-text-light">
+                                <span class="d-block">{{ referenceData?.entityExternalIdType ? referenceData?.entityExternalIdType?.description : referenceData?.entityExternalIdTypeDescription }} - <span class="fw-600">{{referenceData?.externalId}}</span></span>
+                                <span class="fw-600">{{ referenceData?.description }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </ng-container>
+                <ng-container *ngFor="let config of externalReferences?.UPDATE">
+                    <div class="col-12">
+                        <div class="coi-card-regular p-3 shadow-sm mt-0">
+                            <span class="d-block coi-text-light">{{ config?.leftSideDetails?.entityExternalIdType ? config?.leftSideDetails?.entityExternalIdType?.description : config?.leftSideDetails?.entityExternalIdTypeDescription }} - 
+                                <app-coi-field-compare
+                                    [valueLeft]="config?.leftSideDetails?.externalId"
+                                    [valueRight]="config?.rightSideDetails?.externalId">
+                                </app-coi-field-compare>
+                            </span>
+                            <app-coi-field-compare [customClass]="'pt-1'"
+                                [valueLeft]="config?.leftSideDetails?.description"
+                                [valueRight]="config?.rightSideDetails?.description">
+                            </app-coi-field-compare>
+                        </div>
+                    </div>
+                </ng-container>
+                <ng-container *ngFor="let referenceData of externalReferences?.ADD">
+                    <div class="col-12">
+                        <div class="coi-text-light coi-comparison-bg coi-comparison-bg-green p-3 shadow-sm">
+                            <span class="d-block">{{ referenceData?.entityExternalIdType ? referenceData?.entityExternalIdType?.description : referenceData?.entityExternalIdTypeDescription }} - <span class="fw-500">{{referenceData?.externalId}}</span></span>
+                            <span class="fw-500">{{ referenceData?.description }}</span>
+                        </div>
+                    </div>
+                </ng-container>
+                <ng-container *ngFor="let referenceData of externalReferences?.DELETE">
+                    <div class="col-12">
+                        <div class="coi-text-light coi-comparison-bg coi-comparison-bg-red p-3 shadow-sm">
+                            <span class="d-block">{{ referenceData?.entityExternalIdType ? referenceData?.entityExternalIdType?.description : referenceData?.entityExternalIdTypeDescription }} - <span class="fw-500">{{referenceData?.externalId}}</span></span>
+                            <span class="fw-500">{{ referenceData?.description }}</span>
+                        </div>
+                    </div>
+                </ng-container>
+                <ng-container *ngIf="!externalReferences?.NO_CHANGE?.length && !externalReferences?.UPDATE?.length && !externalReferences?.ADD?.length && !externalReferences?.DELETE?.length">
+                    <app-no-information customClass="overflow-hidden rounded-3 mt-0" [isBorderNeeded]="false"></app-no-information>
+                </ng-container>
+            </div>
+        </ng-container>
+    </app-coi-section-card>
+</div>

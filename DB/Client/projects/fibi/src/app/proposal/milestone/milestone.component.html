@@ -1,0 +1,173 @@
+<!-- Last updated by jobin on 28-02-2020 -->
+<!-- Milestones in Proposal -->
+<div class="card mb-3">
+    <div class="card-header p-2 px-4">
+        <h4 class="card-title milestone-title" id="milestoneProposal">Milestone
+            <button *ngIf="mode !== 'view'" class="btn btn-tertiary btn-sm mt-0 button-right float-right" id="add-btn"
+                data-toggle="modal" data-target="#add-milestone-modal">
+                Add Milestone
+            </button>
+            <button (click)="isShowMilestone = !isShowMilestone" class="updown-arrow" id="project-expand-btn">
+                <i [ngClass]="isShowMilestone?'fa fa-angle-double-up':'fa fa-angle-double-down'" aria-hidden="true"
+                    class="fa-large"></i>
+            </button>
+        </h4>
+    </div>
+    <div *ngIf="isShowMilestone" class="card-content">
+        <div class="card-body p-2">
+            <div class="noDataOnChart noDataExists p-2" *ngIf="result?.proposalMileStones?.length == 0">
+                <div class="no-data-container">
+                  <span class="no-data-icon-outer">
+                    <div class="no-data-icon">
+                      <i aria-hidden="true" class="fa fa-file-o"></i>
+                      <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                    </div>
+                  </span>
+                  <h4>There is no information in this section.</h4>
+                </div>
+              </div>
+            <div class="table-responsive">
+                <table *ngIf="isShowMilestone && result?.proposalMileStones?.length > 0"
+                    aria-describedby="milestoneProposal" class="table tableSkin grid2">
+                    <thead class="thead-light">
+                        <th (click)="sortBy('mileStone')" class="hand-cursor" scope="col" style="width:72%">
+                            <span title="Click to sort by Research Milestone">Research Milestone</span>
+                            <i [ngClass]="((column == 'mileStone')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"
+                                aria-hidden="true"></i>
+                        </th>
+                        <th (click)="sortBy('startMonth')" class="hand-cursor" scope="col" style="width:10%">
+                            <span title="Click to sort by Start Month">Start Month</span>
+                            <i [ngClass]="((column == 'startMonth')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"
+                                aria-hidden="true"></i>
+                        </th>
+                        <th (click)="sortBy('duration')" class="hand-cursor" scope="col" style="width:13%">
+                            <span title="Click to sort by Duration">Duration (months)</span>
+                            <i [ngClass]="((column == 'duration')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"
+                                aria-hidden="true"></i>
+                        </th>
+                        <th *ngIf="mode !== 'view'" scope="col" style="width:5%">Actions</th>
+                    </thead>
+                    <tbody>
+                        <tr
+                            *ngFor="let milestones of result?.proposalMileStones | orderBy: {property: column, direction: direction} ; let index = index ">
+                            <td class="text-break text-justify" style="width:72%">{{ milestones.mileStone }}
+                            </td>
+                            <td style="width:10%">{{ milestones.startMonth }}</td>
+                            <td style="width:13%">{{ milestones.duration }}</td>
+                            <td *ngIf="mode !== 'view'" style="width:5%">
+                                <ul class="actionButtonGroup">
+                                    <li><a data-toggle="modal" data-target="#add-milestone-modal" 
+                                        (click)="editMilestone(milestones, index)" id="edit-btn"><i
+                                                aria-hidden="true" class="fa fa-pencil "
+                                                title="Edit this milestone"></i></a>
+                                    </li>
+                                    <li>
+                                        <a href="#" data-toggle="modal" data-target="#deleteMilestoneModal"
+                                            (click)="setMilestoneDeletionObject(milestones.proposalMileStoneId, result.proposal.proposalId)"
+                                            id="delete-btn"><i aria-hidden="true" class="fa fa-trash-o pointer"
+                                            title="Remove this milestone"></i></a>
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DELETE MILESTONE WARNING MODAL -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="deleteMilestoneModal" tabindex="-1" role="dialog"
+    aria-labelledby="deleteMilestoneModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete</h5>
+                <button type="button" id="prop-milestone-dismiss" class="close" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this item?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="prop-milestone-close-btn" class="btn btn-secondary"
+                    data-dismiss="modal">No</button>
+                <button type="button" id="prop-milestone-delete" class="btn btn-primary-sub btn-sm"
+                    (click)="deleteMilestone()" data-dismiss="modal">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Milestone Modal -->
+<div class="modal fade mySkinDialog" id="add-milestone-modal" role="dialog" aria-labelledby="skippedSchedulesTitle"
+    aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{editIndex !== null ? 'Update' : 'Add'}} Milestone</h5>
+                <button type="button" class="close" (click)="cancelMilestone()" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body py-1 px-3">
+                <app-proposal-overview-modal-card></app-proposal-overview-modal-card>
+                <div class="w-100">
+                    <div class="form-row">
+                        <div class="col-12 mb-0 mt-3">
+                            <label><span class="mandatory">*</span>Research Milestone</label>
+                            <span>
+                                <input (ngModelChange)="isDataChangeFlag = true;"
+                                    [(ngModel)]="proposalMileStone.mileStone" [isShowLimiter]='true' [limit]="1000"
+                                    [ngClass]="mandatoryList?.has('mileStone') ? 'is-invalid d-block' : ''"
+                                    [styleList]="'p2 float-right word-count'" appLengthValidator autocomplete="off"
+                                    class="form-control dateBox" id="milestone-title"
+                                    placeholder="(eg.Milestone-1, Milestone-2)">
+                            </span>
+                            <span *ngIf="mandatoryList?.has('mileStone')" class="invalid-feedback d-block">* Please
+                                provide a
+                                milestone</span>
+                        </div>
+                       <div class="col-lg col-sm-6 col-12 position-relative">
+                          <label><span class="mandatory">*</span>Start Month</label>
+                          <input (keypress)="milestoneValueInput($event)"
+                              (ngModelChange)="isDataChangeFlag = true"
+                              [(ngModel)]="proposalMileStone.startMonth"
+                              [ngClass]="mandatoryList?.has('startMonth')||mandatoryList?.has('isValidStartMonthPattern') ? 'is-invalid d-block' : ''" autocomplete="off"
+                              class="form-control dateBox" id="start-month" placeholder="(eg.0,1)" type="number" />
+                          <div *ngIf="mandatoryList?.has('startMonth')" class="invalid-feedback d-block">*
+                              Please provide a start month
+                          </div>
+                          <div *ngIf="mandatoryList?.has('isValidStartMonthPattern')" class="invalid-feedback d-block">*
+                              Please enter a number between 0 and 100. Decimals are not accepted.
+                          </div>
+                      </div>
+                      <div class="col-lg col-sm-6 col-12 position-relative">
+                          <label><span class="mandatory">*</span>Duration (months)</label>
+                          <input (keypress)="milestoneValueInput($event)"
+                              [(ngModel)]="proposalMileStone.duration"
+                              [ngClass]="mandatoryList?.has('duration')|| mandatoryList?.has('isValidDurationPattern')? 'is-invalid d-block' : ''" autocomplete="off"
+                              class="form-control dateBox" id="duration" placeholder="(eg.1,2)" type="number" />
+                          <div *ngIf="mandatoryList?.has('duration')" class="invalid-feedback d-block">*
+                              Please provide a valid duration
+                          </div>
+                          <div *ngIf="mandatoryList?.has('isValidDurationPattern')" class="invalid-feedback d-block">*
+                              Please enter a number between 0 and 100. Decimals are not accepted.
+                          </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer mt-3">
+                <button class="btn btn-secondary btn-sm  btn-xs mr-2" data-dismiss="modal"
+                    (click)="cancelMilestone()">Close</button>
+                <button (click)="setMilestoneObject()" class="btn btn-primary-sub btn-xs mt-3 mt-sm-0" id="add-btn">
+                    {{editIndex !== null ? 'Update' : 'Add'}}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,100 @@
+<div class="table-responsive">
+    <table class="table tableSkin mb-0">
+        <caption class="sr-only">Questionnaire</caption>
+        <thead>
+            <tr class="header-border">
+                <th scope="col" class="hand-cursor" style="width:20%" (click)="sortBy('QUESTIONNAIRE_NUMBER') "
+                    title="Click to sort by Questionnaire Id"> Questionnaire No:
+                    <i aria-hidden="true" [ngClass]="((column == 'QUESTIONNAIRE_NUMBER') ? (isReverse ? 
+                    'fa fa-sort-numeric-asc sortIcon' : 'fa fa-sort-numeric-desc sortIcon') : 
+                    'fa fa-sort-numeric-asc blrcolor')"></i>
+                </th>
+                <th scope="col" class="hand-cursor" style="width:30%" (click)="sortBy('QUESTIONNAIRE_LABEL') "
+                    title="Click to sort by Title">Title
+                    <i aria-hidden="true" [ngClass]="((column == 'QUESTIONNAIRE_LABEL') ? 
+                    (isReverse ? 'fa fa-sort-alpha-asc sortIcon' : 
+                    'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                </th>
+                <th scope="col" style="width:10%">Active Version</th>
+                <th scope="col" class="hand-cursor" style="width:20%" (click)="sortBy('UPDATE_TIMESTAMP')"
+                    title="Click to sort by Updated Time">
+                    Last Updated By
+                    <i aria-hidden="true" [ngClass]="((column == 'UPDATE_TIMESTAMP') ? (isReverse ? 
+                    'fa fa-sort-numeric-asc sortIcon' : 'fa fa-sort-numeric-desc sortIcon') : 
+                    'fa fa-sort-numeric-asc blrcolor')"></i>
+                </th>
+                <!-- <th scope="col">Usage Count</th> -->
+                <th scope="col" class="text-center">Actions</th>
+                <th scope="col" class="hand-cursor text-right" (click)="sortBy('IS_FINAL')" title="Click to sort by Yes or No">
+                    Active?
+                    <i aria-hidden="true" [ngClass]="((column == 'IS_FINAL') ? (isReverse ? 'fa fa-sort-alpha-asc sortIcon' :
+                    'fa fa-sort-alpha-desc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr
+                *ngFor="let questionnaire of questionnaireList | orderBy: {property: column, direction: direction}; let index = index;">
+                <ng-container *ngIf="questionnaire.TRIGGER_POST_EVALUATION !== 'Y'">
+                    <td> <span class="position-relative"><label
+                                *ngIf="questionnaire.ACTIVE_QUESTIONNAIRE_VERSION && questionnaire.PENDING_ANSWERED_COUNT"
+                                class="position-absolute list-indicator"><span class="badge badge-info">New</span>
+                            </label>
+                            <label>{{questionnaire.QUESTIONNAIRE_NUMBER}} </label>
+                            <!-- <span *ngIf="questionnaire.ACTIVE_QUESTIONNAIRE_VERSION" class="badge badge-success">active</span>
+                    <span *ngIf="questionnaire.PENDING_ANSWERED_COUNT" class="badge badge-warning">pending</span>
+ -->
+
+                        </span>
+                    </td>
+                    <td>{{questionnaire.QUESTIONNAIRE_LABEL}}</td>
+                    <td>{{questionnaire.ACTIVE_QUESTIONNAIRE_VERSION ? questionnaire.ACTIVE_QUESTIONNAIRE_VERSION:
+                        questionnaire.PENDING_QUESTIONNAIRE_VERSION}}
+                    </td>
+                    <td>{{questionnaire.UPDATE_USER}} on {{questionnaire.UPDATE_TIMESTAMP |
+                        dateFormatterWithTimeZone:'long'}}</td>
+                    <!-- <td>{{questionnaire.ANSWERED_COUNT}}</td> -->
+                    <td class="text-center">
+                        <ul class="actionButtonGroup">
+                            <li>
+                                <a class="mr-2"
+                                    (click)="openQuestionnaire(questionnaire.ACTIVE_QUESTIONNAIRE_ID ? questionnaire.ACTIVE_QUESTIONNAIRE_ID : questionnaire.PENDING_QUESTIONNAIRE_ID, 0,'T','F')">
+                                    <i class="fa fa-eye" aria-hidden="true"></i>
+                                </a>
+                                <a class="mr-2"
+                                    (click)="openQuestionnaire((questionnaire.PENDING_QUESTIONNAIRE_VERSION ? questionnaire.PENDING_QUESTIONNAIRE_ID : questionnaire.ACTIVE_QUESTIONNAIRE_ID),(questionnaire.PENDING_QUESTIONNAIRE_VERSION ? questionnaire.PENDING_ANSWERED_COUNT : questionnaire.ACTIVE_ANSWERED_COUNT),'F','F')"><i
+                                        class="fa fa-pencil" aria-hidden="true"></i>
+                                </a>
+                                <a class="mr-2"
+                                    (click)="copyQuestionnaire(questionnaire.ACTIVE_QUESTIONNAIRE_ID ? questionnaire.ACTIVE_QUESTIONNAIRE_ID : questionnaire.PENDING_QUESTIONNAIRE_ID)">
+                                    <i aria-hidden="true" class="fa fa-copy"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </td>
+                    <td>
+                        <div class="d-inline-block float-right">
+                            <a *ngIf="questionnaire.IS_FINAL == 'N'">
+                                <label class="switch">
+                                    <input type="checkbox"
+                                        (click)="updateQuestionnaireStatus(index,(questionnaire.ACTIVE_QUESTIONNAIRE_ID ? questionnaire.ACTIVE_QUESTIONNAIRE_ID : questionnaire.PENDING_QUESTIONNAIRE_ID), 'Y','questionnaireList')">
+                                    <span class="slider round"><small class="deactivate-text">No</small></span>
+                                </label>
+                            </a>
+                        </div>
+                        <div class="d-inline-block float-right">
+                            <a *ngIf="questionnaire.IS_FINAL == 'Y'">
+                                <label class="switch">
+                                    <input type="checkbox"
+                                        (click)="updateQuestionnaireStatus(index,(questionnaire.ACTIVE_QUESTIONNAIRE_ID ? questionnaire.ACTIVE_QUESTIONNAIRE_ID : questionnaire.PENDING_QUESTIONNAIRE_ID), 'N', 'questionnaireList')"
+                                        checked>
+                                    <span class="slider round"><small>Yes</small></span>
+                                </label>
+                            </a>
+                        </div>
+                    </td>
+                </ng-container>
+            </tr>
+        </tbody>
+    </table>
+</div>

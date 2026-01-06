@@ -1,0 +1,87 @@
+<section class="card coi-card-regular mt-0" aria-label="Consulting Form">
+    <div class="card-body">
+        <div class="row">
+            <!-- Entity Fields -->
+            <div *ngIf="!isFormLoading" class="col-12 d-flex flex-column gap-2">
+                <ng-container *ngIf="isFormEditMode">
+                    <div id="{{CONSULTING_ENTITY_FIELD_ELEMENT_ID}}">
+                        <!-- label with help text -->
+                        <div class="d-flex pb-1">
+                            <label [for]="CONSULTING_ENTITY_FIELD_ELEMENT_ID + '-elastic'" class="coi-text-dark"><span class="mandatory">*</span>Entity Name</label>
+                            <app-common-help-text [subSectionId]="" [elementId]="'consulting-entity-name'"></app-common-help-text>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <!-- elastic search -->
+                            <app-elastic [uniqueId]="CONSULTING_ENTITY_FIELD_ELEMENT_ID + '-elastic'"
+                                class="w-100" [options]="entitySearchOptions"
+                                [placeHolder]="'Type here to search / add an Engagement Name'" [clearField]="clearField"
+                                [isDisabled]="!isFormEditMode" (selectedResult)="selectedEvent($event)"
+                                [addNewValue]="'ALLOW_ALL'" (newValueSelect)="addNewEntity($event)">
+                            </app-elastic>
+                        </div>
+                        <!-- information -->
+                        <div>
+                            <app-common-information [subSectionId]="" [elementId]="'consulting-entity-name'"></app-common-information>
+                        </div>
+                    </div>
+                </ng-container>
+                <!-- Entity Card -->
+                <ng-container *ngIf="consultingService.consultingEntity?.entityName">
+                    <app-shared-entity-info-card [entityDetails]="consultingService.consultingEntity" [isEditMode]="false"
+                        [customClass]="'coi-card-highlight mt-0'" [triggeredFrom]="'CONSULTING_FORM'">
+                    </app-shared-entity-info-card>
+                </ng-container>
+            </div>
+            <!-- Form Builder -->
+            <app-form-builder-view *ngIf="formList?.length; else showNoFormConfigure"
+                [isAutoSaveEnabled]="true"
+                [externalEvents]="consultingService.formBuilderEvents"
+                (builderStatus)="formBuilderDataChanged($event)"
+                [validationConfig]="consultingService.validationConfig">
+            </app-form-builder-view>
+            <!-- no data card -->
+            <ng-template #showNoFormConfigure>
+                <app-no-information *ngIf="!isFormLoading">
+                    <span>{{ noFormDataMessage }}</span>
+                </app-no-information>
+            </ng-template>
+            <!-- Submit Btn -->
+            <div *ngIf="isFormEditMode && !isFormLoading" class="coi-custom-submit-box d-flex justify-content-center py-4">
+                <button (click)="triggerSubmit()" 
+                    id="coi-consulting-form-submit-btn"
+                    title="Click here to submit your consulting form"
+                    aria-label="Click here to submit your consulting form"
+                    class="d-flex align-items-center justify-content-center btn btn-primary fs-14 ps-3 pe-4">
+                    <mat-icon class="flex-shrink-0" aria-hidden="true">done</mat-icon>
+                    <span class="ms-2">Submit</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Version Modal -->
+<app-common-modal [modalConfig]="versionModalConfig" (modalAction)="versionModalPostConfirmation($event)">
+    <!-- header -->
+    <ng-container modal-header>
+        <span>{{versionModalHeader}}</span>
+    </ng-container>
+    <!-- body -->
+    <ng-container modal-body>
+        <span class="d-block coi-text-dark">{{versionModalMsg}}</span>
+    </ng-container>
+</app-common-modal>
+
+<!-- Engagements Details Modal -->
+<app-common-modal [modalConfig]="entityConfirmModalConfig" (modalAction)="entityConfirmModalAction($event)">
+    <!-- header -->
+    <ng-container modal-header>
+        <span>{{ entityDetails?.entityName }}</span>
+    </ng-container>
+    <!-- body -->
+    <ng-container modal-body>
+        <app-shared-entity-info-card [entityDetails]="entityDetails"
+            [isEditMode]="false" [triggeredFrom]="'CONSULTING_FORM'">
+        </app-shared-entity-info-card>
+    </ng-container>
+</app-common-modal>

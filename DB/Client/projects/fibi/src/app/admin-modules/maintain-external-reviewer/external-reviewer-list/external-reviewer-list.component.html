@@ -1,0 +1,443 @@
+<div class="card mb-15 mt-3 rounded-0">
+    <div class="card-content">
+        <div class="card-header py-2">
+            <h4 class="card-title align-items-center d-flex">
+                <span class="mr-auto">External Reviewer Maintenance</span>
+                <a title="Add New external reviewer" class="btn btn-primary  mt-0 mr-3" id="create-proposal-btn"
+                    [routerLink]="['/fibi/maintain-external-reviewer/external-reviewer-details']"
+                    queryParamsHandling='merge' [queryParams]="{mode:'create'}" *ngIf="isMaintainReviewer">
+                    Create New External Reviewer
+                </a>
+                <a class="tooltip-helptext"> <i class="fa fa-info-circle ct-icon-right float-right hand-cursor"
+                        aria-hidden="true" (click)="isShowHelpInfo = !isShowHelpInfo"></i></a>
+            </h4>
+        </div>
+
+        <div *ngIf="isShowHelpInfo" class="mx-4 mt-3">
+            <div class="col-12">
+                <div class="p-2 row success-banner">
+                    <div class="col-auto pl-2 pr-3">
+                        <i aria-hidden="true" class="fa fa-info-circle mr-1 info-icon"></i>
+                    </div>
+                    <div class="col px-0"><em>This module lists the external reviewer data. There are options to create
+                            a
+                            new external and to modify the existing external data.</em>
+                    </div>
+                    <div class="col-auto pr-2">
+                        <button aria-label="Close" class="close close-button " data-dismiss="modal" id="modal-close"
+                            type="button" (click)="isShowHelpInfo = false">
+                            <span aria-hidden="true" class="d-block">×</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="row justify-content-center">
+                <div class="form-group col-8 searchBox">
+                    <app-elastic [options]="externalReviewerElasticConfig"
+                        [placeHolder]="'Search: Reviewer #, Full Name, Country, Email Address, Affiliation Institution, Specialism Keywords, Academic Rank, H-Index'"
+                        (selectedResult)="selectExternalElasticResult($event)"></app-elastic>
+                </div>
+                <div class="col-auto">
+                    <a id="show-advance-search" href="#collapseExternal"
+                        class="btn btn-sm btn-tertiary float-right mt-0" (click)="clearSearch()" data-toggle="collapse"
+                        role="button" aria-expanded="false" aria-controls="collapseExternal">
+                        <i class="fa fa-sliders" aria-hidden="true"></i> Advanced Search
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="collapse w-100" id="collapseExternal">
+                <div class=" col-12">
+                    <div class="card">
+                        <div class="card-body gridSkin">
+
+                            <div class="form-row">
+                                <div class="form-group col-md-3 col-sm-6 col-12">
+                                    <label for="adv-search-person-id">Reviewer #</label>
+                                    <input type="text" id="adv-search-person-id" placeholder="Reviewer #"
+                                        class=" form-control" [(ngModel)]="tempExtRequestObject.property6">
+                                </div>
+                                <div class="form-group col-md-3 col-sm-6 col-12">
+                                    <label for="adv-search-firstname">First Name</label>
+                                    <input type="text" id="adv-search-firstname" placeholder="First Name" maxlength="60"
+                                        class=" form-control" [(ngModel)]="tempExtRequestObject.property1">
+                                </div>
+
+                                <div class="cform-group col-md-3 col-sm-6 col-12">
+                                    <label for="adv-search-lastname">Last Name</label>
+                                    <input type="text" id="adv-search-lastname" placeholder="Last Name" maxlength="60"
+                                        class=" form-control" [(ngModel)]="tempExtRequestObject.property2">
+                                </div>
+                                <div class="form-group col-md-3 col-sm-6 col-12">
+                                    <label for="adv-search-fullname">Full Name</label>
+                                    <input type="text" id="adv-search-fullname" placeholder="Full Name" maxlength="60"
+                                        class=" form-control" [(ngModel)]="tempExtRequestObject.property3">
+
+                                </div>
+                                <div class="form-group col-md-3 col-sm-6 col-12">
+                                    <label >Affiliated Institution</label>
+                                    <app-autocompleter [completerOptions]="affiliatedInstitutionSearchOptions" [clearField]="clearAffiliatedInstitution"
+                                      [placeHolder]="'Search for Affiliated Institution'" (onSelect)="onAffiliatedInstitutionSelect($event)"></app-autocompleter>
+                                  </div>
+                                <div class="form-group col-md-3 col-sm-6 col-12">
+                                    <label for="adv-search-email">Primary Email</label>
+                                    <input type="text" id="adv-search-email" placeholder="Primary Email" maxlength="60"
+                                        class=" form-control" [(ngModel)]="tempExtRequestObject.property4">
+                                </div>
+                                <div class="form-group col-md-3 col-sm-6 col-12">
+
+                                    <label for="adv-search-signed-date">Agreement Signed Date</label>
+                                    <span class="dateField">
+                                        <input matInput [matDatepicker]="advSearchSignedDate"
+                                            [(ngModel)]="tempExtRequestObject.property5" autocomplete="off"
+                                            class="form-control" id="adv-search-signed-date"
+                                            (keypress)="_commonService._keyPress($event, 'date');"
+                                            (click)="advSearchSignedDate.open()" maxlength="60"
+                                            placeholder = "{{datePlaceHolder}}" type="text"
+                                            (keyup.enter)="loadExternalReviewers()" />
+                                        <span id="award-sub-date-icon" aria-hidden="true" title="Open Calender"
+                                            class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                            (click)="advSearchSignedDate.open()"></span>
+                                        <mat-datepicker #advSearchSignedDate (opened)="setFocusToElement('adv-search-signed-date')"
+                                            (keyup.enter)="loadExternalReviewers()">
+                                        </mat-datepicker>
+                                    </span>
+                                </div>
+
+                                <div class="form-group col-md-3 col-sm-6 col-12">
+                                    <label for="adv-search-expiry-date">Agreement Expiry Date</label>
+                                    <span class="dateField">
+                                        <input matInput [matDatepicker]="advSearchExpiryDate"
+                                            [(ngModel)]="tempExtRequestObject.property7" autocomplete="off"
+                                            class="form-control" id="adv-search-expiry-date"
+                                            (keypress)="_commonService._keyPress($event, 'date');"
+                                            (click)="advSearchExpiryDate.open()" maxlength="60"
+                                            placeholder = "{{datePlaceHolder}}" type="text"
+                                            (keyup.enter)="loadExternalReviewers()" />
+                                        <span id="award-sub-date-icon" aria-hidden="true" title="Open Calender"
+                                            class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                            (click)="advSearchExpiryDate.open()"></span>
+                                        <mat-datepicker #advSearchExpiryDate (opened)="setFocusToElement('adv-search-expiry-date')"
+                                            (keyup.enter)="loadExternalReviewers()">
+                                        </mat-datepicker>
+                                    </span>
+                                </div>
+
+                                <div class="form-group col-md-3 col-sm-6 col-12">
+                                    <label for="adv-search-country">Country</label>
+                                    <span id="adv-search-country">
+                                        <app-endpoint-search [httpOptions]="countrySearchHttpOptions"
+                                            [clearField]="clearCountryField" [placeHolder]="'Type here for country'"
+                                            (onSelect)="countryChangeFunction($event)">
+                                        </app-endpoint-search>
+                                    </span>
+                                </div>
+
+                                <div class="form-group col-md-3 col-sm-6 col-12">
+                                    <label for="adv-search-external-reviewer-status">Status</label>
+                                    <select [(ngModel)]="tempExtRequestObject.property8"
+                                        id="adv-search-external-reviewer-status" class="hand-icon form-control">
+                                        <option value=''>Select Status</option>
+                                        <option value='A'>Active</option>
+                                        <option value='I'>Inactive</option>
+                                    </select>
+
+                                </div>
+                                <div class="form-group col-md-3 col-sm-6 col-12">
+                                    <label for="adv-search-external-reviewer-academic-area">Academic Area 1</label>
+                                    <app-look-up [options]='academicAreaTypeOptions'
+                                        [selectedLookUpList]="lookupValues['property11']"
+                                        (selectedResult)="onLookupSelect($event, 'property11')">
+                                    </app-look-up>
+                                </div>
+
+                                <div class="form-group col-md-3 col-sm-6 col-12">
+                                    <label  for="adv-search-external-reviewer-academic-subarea">Academic Area 2</label>
+                                    <app-look-up [options]='subAcademicAreaTypeOptions'
+                                        [selectedLookUpList]="lookupValues['property10']"
+                                        (selectedResult)="onLookupSelect($event, 'property10')">
+                                    </app-look-up>
+                                </div>
+
+                                <div class="form-group col-md-3 col-sm-6 col-12">
+                                    <label for="adv-search-external-reviewer-index">H-Index</label>
+                                    <app-look-up [options]='hIndexTypeOptions' [selectedLookUpList]="lookupValues['property13']"
+                                        (selectedResult)="onLookupSelect($event, 'property13')">
+                                    </app-look-up>
+                                </div>
+
+                                <div class="form-group col-md-3 col-sm-6 col-12">
+                                    <label for="adv-search-specialism-keyword">Specialism Keywords</label>
+                                    <app-look-up [options]='specializationTypeOptions' [selectedLookUpList]="lookupValues['property14']"
+                                        (selectedResult)="onLookupSelect($event, 'property14')">
+                                    </app-look-up>
+                                </div>
+
+                                <div class="form-group col-md-3 col-sm-6 col-12">
+                                    <label for="adv-search-academic-rank">Academic Rank</label>
+                                    <app-look-up [options]='academicRankTypeOptions' [selectedLookUpList]="lookupValues['property15']"
+                                        (selectedResult)="onLookupSelect($event, 'property15')">
+                                    </app-look-up>
+                                </div>
+
+                                <div class="form-group col align-items-end d-flex justify-content-end">
+                                    <button id="adv-search-clear-proposal" title="Clear"
+                                        (click)="clearSearch(); extRequestObject.currentPage = 1; loadExternalReviewers(); "
+                                        class="btn btn-secondary btn-sm btn-xs mr-sm-2 mr-0">Clear</button>
+                                    <button id="adv-search-proposal" title="Search"
+                                        class="btn btn-primary btn-sm btn-xs"
+                                        (click)="extRequestObject.currentPage = 1; loadExternalReviewers();">Search</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- External advance search  List -->
+<div class="card card-table-box rounded-0">
+    <div class="card-content">
+        <div class="card-body">
+            <div *ngIf="externalReviewerList.length" class="table-responsive">
+                <table class="table tableSkin mb-0">
+                    <thead>
+                        <tr class="header-border">
+
+                            <th style="width: 11%" scope="col" id="sortby-reviewer-id"
+                                (click)="sortResult('externalReviewerId')">
+                                <span class="hand-cursor" title="Click to sort by reviewer-id">Reviewer #</span>
+                                <span class="fa-stack">
+                                    <i *ngIf="!extRequestObject.sort['externalReviewerId']"
+                                        class="fa fa-sort-numeric-asc blrcolor" aria-hidden="true"></i>
+                                    <i [ngClass]="extRequestObject.sort['externalReviewerId'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"
+                                        aria-hidden="true"></i>
+                                    <i [ngClass]="extRequestObject.sort['externalReviewerId'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"
+                                        aria-hidden="true"></i>
+                                </span>
+                            </th>
+
+                            <!-- <th style="width: 9%" scope="col" id="sortby-first-name" (click)="sortResult('firstName')">
+                                <span class="hand-cursor" title="Click to sort by first name">First
+                                    Name</span>
+                                <span class="fa-stack">
+                                    <i *ngIf="!extRequestObject.sort['firstName']" class="fa fa-sort-alpha-asc blrcolor"
+                                        aria-hidden="true"></i>
+                                    <i [ngClass]="extRequestObject.sort['firstName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                                        aria-hidden="true"></i>
+                                    <i [ngClass]="extRequestObject.sort['firstName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                                        aria-hidden="true"></i>
+                                </span>
+                            </th>
+                            <th style="width: 9%" scope="col" id="sortby-last-name" (click)="sortResult('lastName')">
+                                <span class="hand-cursor" title="Click to sort by last name">Last Name</span>
+                                <span class="fa-stack">
+                                    <i *ngIf="!extRequestObject.sort['lastName']" class="fa fa-sort-alpha-asc blrcolor"
+                                        aria-hidden="true"></i>
+                                    <i [ngClass]="extRequestObject.sort['lastName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                                        aria-hidden="true"></i>
+                                    <i [ngClass]="extRequestObject.sort['lastName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                                        aria-hidden="true"></i>
+                                </span>
+                            </th> -->
+                            <th style="width: 10%" scope="col" id="sortby-passport-name"
+                                (click)="sortResult('passportName')">
+                                <span class="hand-cursor" title="Click to sort by full name">Full
+                                    Name</span>
+                                <span class="fa-stack">
+                                    <i *ngIf="!extRequestObject.sort['passportName']"
+                                        class="fa fa-sort-alpha-asc blrcolor" aria-hidden="true"></i>
+                                    <i [ngClass]="extRequestObject.sort['passportName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                                        aria-hidden="true"></i>
+                                    <i [ngClass]="extRequestObject.sort['passportName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                                        aria-hidden="true"></i>
+                                </span>
+                            </th>
+                            <th style="width: 11%" scope="col" id="sortby-h-index"
+                            (click)="sortResult('hindex')">
+                            <span class="hand-cursor" title="Click to sort by h-index">H-Index</span>
+                            <span class="fa-stack">
+                                <i *ngIf="!extRequestObject.sort['hindex']"
+                                    class="fa fa-sort-numeric-asc blrcolor" aria-hidden="true"></i>
+                                <i [ngClass]="extRequestObject.sort['hindex'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"
+                                    aria-hidden="true"></i>
+                                <i [ngClass]="extRequestObject.sort['hindex'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"
+                                    aria-hidden="true"></i>
+                            </span>
+                        </th>
+                            <th style="width: 16%" scope="col" id="sortby-academicrank" (click)="sortResult('academicRank.description')">
+                                <span class="hand-cursor" title="Click to sort by Academic Rank">Academic Rank</span>
+                                <span class="fa-stack">
+                                    <i *ngIf="!extRequestObject.sort['academicRank.description']" class="fa fa-sort-alpha-asc blrcolor"
+                                        aria-hidden="true"></i>
+                                    <i [ngClass]="extRequestObject.sort['academicRank.description'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                                        aria-hidden="true"></i>
+                                    <i [ngClass]="extRequestObject.sort['academicRank.description'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                                        aria-hidden="true"></i>
+                                </span>
+                            </th>
+                            <th style="width: 16%" scope="col" id="sortby-country" (click)="sortResult('countryDetails.countryName')">
+                                <span class="hand-cursor" title="Click to sort by Academic Rank">Country</span>
+                                <span class="fa-stack">
+                                    <i *ngIf="!extRequestObject.sort['countryDetails.countryName']" class="fa fa-sort-alpha-asc blrcolor"
+                                        aria-hidden="true"></i>
+                                    <i [ngClass]="extRequestObject.sort['countryDetails.countryName'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                                        aria-hidden="true"></i>
+                                    <i [ngClass]="extRequestObject.sort['countryDetails.countryName'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                                        aria-hidden="true"></i>
+                                </span>
+                            </th>
+                            <th scope="col" id="sortby-country">
+                                <span class="hand-cursor">Specialism Keywords</span>
+                            </th>
+                            <th style="width: 12%" scope="col" (click)="sortResult('agreementEndDate')">
+                                <span class="hand-cursor" title="Click to sort by agreement expiry date">Agreement
+                                    Expiry</span>
+                                <span class="fa-stack">
+                                    <i *ngIf="!extRequestObject.sort['agreementEndDate']"
+                                        class="fa fa-sort-numeric-asc blrcolor" aria-hidden="true"></i>
+                                    <i [ngClass]="extRequestObject.sort['agreementEndDate'] === 'asc' ? 'fa fa-sort-numeric-asc sortIcon' : 'blrcolor'"
+                                        aria-hidden="true"></i>
+                                    <i [ngClass]="extRequestObject.sort['agreementEndDate'] === 'desc' ? 'fa fa-sort-numeric-desc sortIcon' : ''"
+                                        aria-hidden="true"></i>
+                                </span>
+                            </th>
+                            <th style="width: 7%" scope="col" (click)="sortResult('status')">
+                                <span class="hand-cursor" title="Click to sort by status ">Status</span>
+                                <span class="fa-stack">
+                                    <i *ngIf="!extRequestObject.sort['status']" class="fa fa-sort-alpha-asc blrcolor"
+                                        aria-hidden="true"></i>
+                                    <i [ngClass]="extRequestObject.sort['status'] === 'asc' ? 'fa fa-sort-alpha-asc sortIcon' : 'blrcolor'"
+                                        aria-hidden="true"></i>
+                                    <i [ngClass]="extRequestObject.sort['status'] === 'desc' ? 'fa fa-sort-alpha-desc sortIcon' : ''"
+                                        aria-hidden="true"></i>
+                                </span>
+                            </th>
+                            <th style="width: 5%" scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let externalReviewer of externalReviewerList; let i =index" class="pull-up"
+                            [@itemAnim]>
+                            <td [routerLink]="['/fibi/maintain-external-reviewer/external-reviewer-details']"
+                                queryParamsHandling='merge'
+                                [queryParams]="{externalReviewerId:externalReviewer?.externalReviewerId,mode:'view'}">{{
+                                externalReviewer.externalReviewerId }}</td>
+
+                            <!-- <td [routerLink]="['/fibi/maintain-external-reviewer/external-reviewer-details']" queryParamsHandling='merge'
+                            [queryParams]="{externalReviewerId:externalReviewer?.externalReviewerId,mode:'view'}">{{externalReviewer.firstName}}</td>
+
+                            <td [routerLink]="['/fibi/maintain-external-reviewer/external-reviewer-details']" queryParamsHandling='merge'
+                            [queryParams]="{externalReviewerId:externalReviewer?.externalReviewerId,mode:'view'}">{{externalReviewer.lastName}}</td> -->
+
+                            <td [routerLink]="['/fibi/maintain-external-reviewer/external-reviewer-details']"
+                                queryParamsHandling='merge'
+                                [queryParams]="{externalReviewerId:externalReviewer?.externalReviewerId,mode:'view'}">
+                                {{externalReviewer.passportName}}</td>
+
+                            <td [routerLink]="['/fibi/maintain-external-reviewer/external-reviewer-details']" queryParamsHandling='merge'
+                                [queryParams]="{externalReviewerId:externalReviewer?.externalReviewerId,mode:'view'}">{{
+                                externalReviewer.hindex }}</td>
+
+                            <td [routerLink]="['/fibi/maintain-external-reviewer/external-reviewer-details']"
+                                queryParamsHandling='merge'
+                                [queryParams]="{externalReviewerId:externalReviewer?.externalReviewerId,mode:'view'}">
+                                {{externalReviewer?.academicRank?.description}}</td>
+                            
+                            <td [routerLink]="['/fibi/maintain-external-reviewer/external-reviewer-details']"
+                                queryParamsHandling='merge'
+                                [queryParams]="{externalReviewerId:externalReviewer?.externalReviewerId,mode:'view'}">
+                                {{externalReviewer?.countryDetails?.countryName}}</td>
+                            <td>
+                                <span *ngIf="!isReadMore[i] && externalReviewer?.specialismKeywords?.length > 50 else showFullInfo">
+                                    <span [routerLink]="['/fibi/maintain-external-reviewer/external-reviewer-details']" queryParamsHandling='merge'
+                                        [queryParams]="{externalReviewerId:externalReviewer?.externalReviewerId,mode:'view'}">
+                                        {{externalReviewer?.specialismKeywords | slice:0:50}}
+                                    </span>
+                                    <span (click)="isReadMore[i] = !isReadMore[i]" class="hand-cursor fibiDefaultColor italian">...Read more
+                                        <i aria-hidden="true" [ngClass]="isReadMore[i]?'fa fa-angle-double-left':'fa fa-angle-double-right'"></i>
+                                    </span>
+                                </span>
+                                <ng-template #showFullInfo>
+                                    <span [routerLink]="['/fibi/maintain-external-reviewer/external-reviewer-details']" queryParamsHandling='merge'
+                                        [queryParams]="{externalReviewerId:externalReviewer?.externalReviewerId,mode:'view'}">
+                                        {{externalReviewer?.specialismKeywords}}
+                                    </span>
+                                    <i *ngIf="externalReviewer?.specialismKeywords?.length > 50" (click)="isReadMore[i] = !isReadMore[i]"
+                                        aria-hidden="true" class="hand-cursor fibiDefaultColor italian">
+                                        Show Less
+                                        <i aria-hidden="true" [ngClass]="isReadMore[i]?'fa fa-angle-double-left':'fa fa-angle-double-right'"></i>
+                                    </i>
+                                </ng-template>
+                            </td>
+
+                            <td [routerLink]="['/fibi/maintain-external-reviewer/external-reviewer-details']"
+                                queryParamsHandling='merge'
+                                [queryParams]="{externalReviewerId:externalReviewer?.externalReviewerId,mode:'view'}">
+                                {{externalReviewer.agreementEndDate | dateFormatter}}</td>
+
+                            <td [routerLink]="['/fibi/maintain-external-reviewer/external-reviewer-details']"
+                                queryParamsHandling='merge'
+                                [queryParams]="{externalReviewerId:externalReviewer?.externalReviewerId,mode:'view'}">
+                                <span class="badge badge-pill"
+                                    [ngClass]="externalReviewer.status === 'A' ? 'badge-success' : 'badge-secondary'">
+                                    {{externalReviewer.status === 'A' ? 'Active' : 'Inactive'}}
+                                </span>
+                            </td>
+
+                            <td style="padding: 0px !important;">
+                                <ul class="actionButtonGroup">
+                                    <li>
+                                        <a title="View {{externalReviewer.passportName}}" class="pointer" id="view-external-btn">
+                                            <i class="fa fa-eye pointer" aria-hidden="true"
+                                                [routerLink]="['/fibi/maintain-external-reviewer/external-reviewer-details']"
+                                                queryParamsHandling='merge'
+                                                [queryParams]="{externalReviewerId:externalReviewer?.externalReviewerId,mode:'view'}"></i>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a *ngIf="isMaintainReviewer" title="Edit {{externalReviewer.passportName}}" id="edit-external-btn">
+                                            <i class="fa fa-pencil" aria-hidden="true"
+                                                [routerLink]="['/fibi/maintain-external-reviewer/external-reviewer-details']"
+                                                queryParamsHandling='merge'
+                                                [queryParams]="{externalReviewerId:externalReviewer?.externalReviewerId,mode:'edit'}"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div *ngIf="(externalReviewerList?.length == 0 || !externalReviewerList)" class="no-data-container">
+                <span class="no-data-icon-outer">
+                    <div class="no-data-icon">
+                        <i aria-hidden="true" class="fa fa-file-o"></i>
+                        <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                    </div>
+                </span>
+                <h4>There is no information in this section.</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12"
+        *ngIf="externalReviewerList !== null && externalReviewerList?.length !== 0 ">
+        <div>
+            <nav class="pagination justify-content-end">
+                <app-pagination [totalCount]="result.totalExtReviewer"
+                    (pageChangeEvent)="actionsOnPageChange($event);" >
+                </app-pagination>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="footerPush"></div>

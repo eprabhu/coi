@@ -1,0 +1,132 @@
+<!-- Special Review Advance Search modal -->
+
+<div class="modal fade show mySkinDialog" tabindex="-1" id="addNewReview" data-backdrop="static" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title">
+                Protocol Type -	{{reviewType?.description}} 
+              </h5>
+              <button type="button" class="close" data-dismiss="modal" id="special-review-dissmiss-btn" aria-label="Close"
+              (click)="emitReviewData();">
+          <span aria-hidden="true">&times;</span>
+        </button>
+          </div>
+          <div class="modal-body p-3">
+              <div class="col-12 p-0">
+                  <div class="form-row">
+                        <div class="col-lg-4 col-sm-4 col-12">
+                          <label for="prop-special-review-protocolnumber">Protocol Title</label>
+                          <input id="prop-special-review-protocolnumber" 
+                          [(ngModel)]="linkComplianceObject.title"
+                          step="any" class="form-control" maxlength="20">
+                        </div>
+
+                        <div class="col-lg-4 col-sm-4 col-12">
+                          <label for="prop-special-review-protocolnumber"> Protocol Number</label>
+                          <input id="prop-special-review-protocolnumber" 
+                          [(ngModel)]="linkComplianceObject.protocolNumber"
+                          step="any" class="form-control" maxlength="20">
+                        </div>
+                        
+                        <div class="col-lg-4 col-sm-4 col-12">
+                          <label for="prop-special-revw-appovaltyp">Protocol Status</label>
+                          <select class="form-control" id="prop-special-revw-appovaltyp"
+                            [ngClass]="map.get('approvalStatus') ? 'is-invalid d-block' : ''"
+                            [(ngModel)]="linkComplianceObject.protocolStatusCode">
+                            <option [value]=null>--Select--</option>
+                            <option *ngFor="let type of specialReviewApprovalTypes" [ngValue]="type.protocolStatusCode" [hidden]="type.isActive != true">{{type.description}}
+                            </option>
+                          </select>
+                          <div class="invalid-feedback d-block font-weight-normal" *ngIf="map.get('approvalStatus')">Please
+                            provide a status</div>
+                        </div>
+                        </div>
+                        <div class="form-row mt-2">
+                        <div class="col-lg-4 col-sm-6 col-12">
+                          <label>Funding Source</label>
+                                  <app-endpoint-search [httpOptions]="fundingSearchOptions" [isDisabled]="isExtensionEnabled"
+                                      [placeHolder]="'Type here for Funding Source'" (onSelect)="fundingSourceSearch($event)">
+                                  </app-endpoint-search>
+                      </div>
+
+                        <div class="col-lg-4 col-md-6 col-12">
+                          <label class="d-none d-sm-inline-block">Investigator</label>
+                          <span class="float-right">
+                              <input class="radio-inline" id="employee" type="radio" name='emp' [value]="true"
+                                  [(ngModel)]="isEmployeeFlag" [checked]="true" (ngModelChange)="changeMemberType()">
+                              <label for="employee">
+                                  Employee
+                              </label>
+                              <input class="radio-inline" id="non-employee" type="radio" name='emp' [value]="false"
+                                  [(ngModel)]="isEmployeeFlag" (ngModelChange)="changeMemberType()">
+                              <label for="non-employee">
+                                  Non-Employee
+                              </label>
+                          </span>
+                          <app-elastic [placeHolder]="isEmployeeFlag ? 'Search an employee': 'Search a non-employee' "
+                              (selectedResult)="selectedFilter($event)" [clearField]="clearInvestigatorField"
+                              (keyup)="emptyValidationKeyup($event)" [options]="elasticPersonSearchOptions">
+                          </app-elastic>
+                      </div>
+                     
+                        <div class="col-lg-4 col-sm-2 col-12">
+                          <label for="prop-special-revw-expdt"> Expiration Date</label>
+                          <span class="dateField"><input matInput [matDatepicker]="expDt" id="prop-special-revw-expdt"
+                              placeholder="{{datePlaceHolder}}" (click)="expDt.open()"
+                              [ngClass]="specialReviewDateWarningMsg != null ? 'is-invalid d-block' : ''" 
+                              [(ngModel)]="linkComplianceObject.expirationDate"
+                              class="form-control d-inline-block" (keypress)="_commonService._keyPress($event, 'date')"> <i
+                              class="fa fa-calendar fa-large hand-cursor insidePicker"  aria-hidden="true" (click)="expDt.open()"></i>
+                            <mat-datepicker #expDt (opened)="setFocusToElement('prop-special-revw-expdt')"></mat-datepicker>
+                          </span>
+                          <div class="invalid-feedback d-block font-weight-normal" *ngIf="specialReviewDateWarningMsg != null">
+                            {{specialReviewDateWarningMsg}}</div>
+                        </div>
+                        <div class="col-lg-3 mt-20 ml-lg-auto text-right">
+                          <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" (click)="emitReviewData();">Cancel</button>
+                          <button type="button" class="btn btn-primary-sub btn-sm" (click)="loadProtocolDetail();">Search Protocol</button></div>
+                      </div>
+                      <div *ngIf="searchProtocolList?.length" class="scrollable-table mt-2 px-2" >
+                        <table class="table tableSkin grid2">
+                          <thead class="thead-light">
+                            <th scope="col">Protocol Number</th>
+                            <th scope="col">Protocol Title</th>
+                            <th scope="col">Protocol Status</th>
+                            <th scope="col">Funding Source</th>
+                            <th scope="col">Investigator Name</th> 
+                            <th scope="col">Expiration Date</th> 
+                            <th scope="col">Actions</th>
+                          </thead>
+                          <tbody>
+                            <tr *ngFor="let protocol of searchProtocolList">
+
+                              <td>{{protocol?.protocolNumber}}</td>
+                              <td>{{protocol?.title}}</td>
+                              <td>{{protocol?.acProtocolStatus?.description || protocol?.irbProtocolStatus?.description}}</td>
+                              <td>{{protocol?.fundingSource}}</td>
+                              <td>{{protocol?.fullName}}</td>
+                              <td>{{protocol?.expirationDate | dateFormatter}}</td> 
+                              <td>
+                                <button type="button" class="btn btn-primary-sub btn-sm" data-dismiss="modal" (click)="emitReviewData(protocol)">Link</button>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                  </div>
+              </div>
+              <div class="fileChips d-inline-block mb-2" style="word-break: break-all;">
+              </div>
+          </div> 
+          <div class="no-data-container" *ngIf="isSearch && !searchProtocolList?.length">
+            <span class="no-data-icon-outer">
+                <div class="no-data-icon">
+                    <i class="fa fa-file-o" aria-hidden="true"></i>
+                    <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                </div>
+            </span>
+            <h4>There is no information in this section.</h4>
+        </div>
+      </div>
+  </div>
+</div>

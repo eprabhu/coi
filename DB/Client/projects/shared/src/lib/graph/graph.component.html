@@ -1,0 +1,111 @@
+<button type="button" class="btn btn-primary btn-sm" hidden="true" id="d3GraphModalbutton" data-bs-toggle="modal"
+    data-bs-target="#d3GraphModal"></button>
+
+<div class="modal modal-coi fade mySkinDialog" id="d3GraphModal" tabindex="-1" role="dialog"
+    aria-labelledby="skippedSchedulesTitle" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="true">
+    <div class="modal-dialog modal-custom-width modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="mb-0 modal-title fs-16">
+                    <span (click)="isShowFilter = !isShowFilter;hideToolTipAndCard()" class="col-auto me-2">
+                        <button class="btn btn-sm btn-outline-dark info-btn"><i class="fa fa-info" aria-hidden="true"></i></button>
+                    </span>
+                    {{graphDataService.graphTypeConfiguration.header}} {{graphDetail.name}}</h4>
+                <div class="container" *ngIf="isShowFilter">
+                    <div class="success-banner px-3 my-4 mx-4 d-flex justify-content-between align-items-center " *ngIf="graphDataService.graphTypeConfiguration.additional_info">
+                        <div class="p-3">
+                            {{graphDataService.graphTypeConfiguration.additional_info}}
+                        </div>
+                    </div>
+                    <div class="success-banner2 px-3 my-4 mx-4 d-flex justify-content-between align-items-center" *ngIf="graphDataService.graphTypeConfiguration.action_info">
+                        <div class="p-3">
+                            <div class="mt-2">{{graphDataService.graphTypeConfiguration.action_info}}</div>
+                        </div>
+                    </div>
+                    <div class="dropdown-wrapper">
+                        <span *ngFor="let node of graphDataService.graphMetaData.nodes | keyvalue" class="card-color py-2 px-3 rounded-2 d-flex flex-end">
+                            <img [src]="getLinkForAdditionalImage(node.value.image)" [alt]="node.key.name" class="image-frame mr-2">
+                            <span>{{node.value.name}}</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <div *ngIf="!showtimeLine" (click)="showtimeLine = true;hideToolTipAndCard();" class="timeline-btn mr-2" title="View graph history">
+                        <button tabindex="0" role="button" id="add-new-entity" title="Click here to view history" class="btn btn-outline-grey d-inline-flex align-items-center justify-content-center col">
+                            <!-- <img class="image-container me-1" alt="icon representing timeline"
+                            src="./assets/images/g_timeline.png"> -->
+                            <mat-icon class="me-1">update</mat-icon>
+                            History
+                        </button>
+                    </div>
+                    <button type="button" data-bs-dismiss="modal" class="btn-close" id="graph-modal-dismiss-btn"
+                        aria-label="Close" (click)="popOverEvents.next(false); clearGraph();"></button>
+                </div>
+            </div>
+            <div class="timeline" appDrag *ngIf="showtimeLine && eventHistory.length">
+                <h3 class="fs-16">History <span>
+                    <button type="button" class="btn-close float-end fs-12" id="history-close"aria-label="Close" (click)="showtimeLine =false;hideToolTipAndCard()"></button></span></h3>
+                <ng-container>
+                    <app-timeline [history]="eventHistory" [selectedEventIndex]="selectedEventIndex"
+                        (historySelectEvent)=unlinkFromGraph($event)></app-timeline>
+                </ng-container>
+            </div>
+            <div class="modal-body modal-custom-height p-0">
+                <div id="chart-container" class="cursor-all-scroll"></div>
+            </div>
+        </div>
+    </div>
+
+    <app-dynamic-popover [positionDetails]="popOverPositions" [showPopupEvent]="popOverEvents">
+        <div class="card" id="dynamic-popover-card">
+            <ng-container *ngIf="cardData.label === 'Person'">
+                <app-person-card [data]="cardData"
+                    [imagePath]="graphDataService.getLinkForImage('Person')"></app-person-card>
+            </ng-container>
+            <ng-container *ngIf="cardData.label === 'Unit'">
+                <app-unit-card [data]="cardData" [imagePath]="graphDataService.getLinkForImage('Unit')"></app-unit-card>
+            </ng-container>
+            <ng-container *ngIf="cardData.label === 'Award'">
+                <app-award-card [data]="cardData"
+                    [imagePath]="graphDataService.getLinkForImage('Award')"></app-award-card>
+            </ng-container>
+            <ng-container *ngIf="cardData.label === 'COIDisclosure'">
+                <app-coi-card [data]="cardData" [imagePath]="graphDataService.getLinkForImage()"></app-coi-card>
+            </ng-container>
+            <ng-container *ngIf="cardData.label === 'Country'">
+                <app-country-card [data]="cardData"
+                    [imagePath]="graphDataService.getLinkForImage('Country')"></app-country-card>
+            </ng-container>
+            <ng-container *ngIf="cardData.label === 'Entity'">
+                <app-entity-card [data]="cardData"
+                    [imagePath]="getImageForEntity(cardData)"></app-entity-card>
+            </ng-container>
+            <ng-container *ngIf="cardData.label === 'Proposal'">
+                <app-proposal-card [data]="cardData"
+                    [imagePath]="graphDataService.getLinkForImage('Proposal')"></app-proposal-card>
+            </ng-container>
+            <ng-container *ngIf="cardData.label === 'Sponsor'">
+                <app-sponsor-card [data]="cardData"
+                    [imagePath]="graphDataService.getLinkForImage('Sponsor')"></app-sponsor-card>
+            </ng-container>
+            <ng-container *ngIf="cardData.label === 'TravelDisclosure'">
+                <app-travel-card [data]="cardData"
+                    [imagePath]="graphDataService.getLinkForImage('TravelDisclosure')"></app-travel-card>
+            </ng-container>
+            <button type="button" aria-label="Close" (click)="hideToolTipAndCard()" class="modal-close btn-close fs-12"></button>
+            <hr>
+            <div class="interests" *ngIf="cardData.elementId">
+                <p class="interests_title">Show Connections : </p>
+                <ng-container *ngFor="let relation of relations">
+                    <span class="interests_item">
+                        <input type="checkbox" class="mr-2"
+                            [(ngModel)]="selectedRelations[cardData.elementId][relation.id]" id="{{relation.id}}"
+                            (click)="drillDownEvent($event, relation)">
+                        <label class="form-check-label" for="{{relation.id}}">{{relation.description}}</label>
+                    </span>
+                </ng-container>
+            </div>
+        </div>
+    </app-dynamic-popover>
+
+    <app-tooltip [tooltipPositionDetails]="tooltipPositionDetails" [openTooltipEvent]="openTooltipEvent"></app-tooltip>

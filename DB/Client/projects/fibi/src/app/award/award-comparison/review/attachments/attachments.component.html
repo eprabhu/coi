@@ -1,0 +1,177 @@
+<div id="Award103" class="card mt-3" *ngIf="result != null">
+  <div class="card-header px-4">
+      <h4 class="card-title align-items-center d-flex">
+          <div class="mr-auto">Attachments</div>
+          <div class="mr-5">
+              <button id="attachmentExpandBtn" class="updown-arrow btnPositionFullWidget"
+                  (click)="isAttachmentListOpen = !isAttachmentListOpen">
+                  <i [ngClass]="isAttachmentListOpen?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                      class="fa-large" aria-hidden="true"></i>
+              </button>
+          </div>
+      </h4>
+  </div>
+  <div class="card-content" *ngIf="isAttachmentListOpen">
+      <div class="card-body">
+          <div class="no-data-container" *ngIf="newAttachments?.length == 0">
+                  <span class="no-data-icon-outer">
+                          <div class="no-data-icon">
+                              <i class="fa fa-file-o" aria-hidden="true"></i>
+                              <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                          </div>
+                      </span>
+                      <h4>There are no items to show in this view.</h4>
+          </div>
+          <div class="table-responsive" *ngIf="newAttachments?.length > 0">
+              <table class="table tableSkin grid2">
+                  <caption class="sr-only">Attachments List</caption>
+                  <thead class="d-none">
+                      <tr>
+                          <th scope="col"></th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      <tr>
+                          <th scope="col" style="width: 20%;" class="hand-cursor" id="sort-by-attach-type"
+                              title="Click to sort by Document  Type">
+                              <label>Document Type
+                              </label>
+                          </th>
+                          <th scope="col" style="width: 23%;" class="hand-cursor" id="sort-by-attach-desc"
+                              title="Click to sort by Description">
+                              <label>Description
+                              </label>
+                          </th>
+                          <th scope="col" class="hand-cursor" id="sort-by-attach-name"
+                              title="Click to sort by File Name">
+                              <label>File Name
+                              </label>
+                          </th>
+                          <th scope="col" class="hand-cursor" id="sort-by-attach-status"
+                              title="Click to sort by Status">
+                              <label>Status
+                              </label>
+                          </th>
+                          <th scope="col" class="hand-cursor" id="sort-by-attach-update"
+                              title="Click to sort by Update User">
+                              <label>Updated by
+                              </label>
+                          </th>
+                          <th scope="col" style="width: 12%;">Actions</th>
+                      </tr>
+                      <ng-container *ngFor="let attachment of temporaryAttachments;let i = index">
+                          <tr *ngIf="((!isShowConfidentialAttachment && !attachment?.attachmentType?.isPrivate) || isShowConfidentialAttachment)" 
+                          [ngClass]="{ 'delete-background': attachment.status == -1, 'add-background': attachment.status == 1}">
+                              <td >
+                                <span class="d-block" title = "{{attachment?.attachmentType?.description}}" [innerHTML] ="attachment?.attachmentType?.description | customTagRemover: currentMethod"></span>
+                                <span *ngIf="attachment?.attachmentType?.isPrivate" class="badge bg-danger badge-info text-white">Confidential</span>
+                            </td>
+                              <td title="{{attachment?.description}}" [innerHTML]=' attachment?.description | slice:0:30 | customTagRemover: currentMethod'>
+                              </td>
+                              <td title="{{attachment?.fileName}}" [innerHTML] = 'attachment?.fileName |
+                              slice:0:30 | customTagRemover: currentMethod'>
+                              </td>
+                              <td [innerHTML]= 'attachment?.narrativeStatus?.description | customTagRemover: currentMethod'></td>
+                              <td>
+                                  <span [innerHTML] = 'attachment.lastUpdateUserFullName | customTagRemover: currentMethod'> on</span>
+                                  <span [innerHTML] = "dateFormatter.parseDate(attachment.updateTimestamp, 'long', true) | customTagRemover: currentMethod"></span>
+                              </td>
+                              <td>
+                                  <ul class="actionButtonGroup">
+                                      <li>
+                                          <a (click)="downloadAwardAttachments(attachment)" id="award-doc-dwnlod-btn"
+                                              title="Click here to download {{(attachment?.fileName?.length > 20)?(attachment?.fileName | slice:0:20)+'...':(attachment?.fileName)}}">
+                                              <i class="fa fa-download pointer" aria-hidden="true"></i>
+                                          </a>
+                                      </li>
+                                      <li >
+                                          <a id="award-doc-version-btn" *ngIf="result.isReplaceAttachmentEnabled"
+                                              (click)="getVersion(attachment.documentId, attachment.fileName, attachment.versionNumber )"
+                                              title="Click here to view file versions" data-toggle="modal"
+                                              data-target="#award-doc-version-modal">
+                                              <img class="version-icon" alt="versions icon"
+                                              src="{{deployMap}}assets/images/version-icons.png"
+                                                  aria-hidden="true">
+                                          </a>
+                                      </li>
+                                  </ul>
+                              </td>
+                          </tr>
+                      </ng-container>
+                  </tbody>
+              </table>
+          </div>
+      </div>
+      <div class="p-3">
+        <app-comment-box [sectionCode]="103" [awardId]="comparisonDetails.baseAwardId" [awardNumber]="comparisonDetails.awardNumber"
+          [sequenceNumber]="comparisonDetails.sequenceNumber" [awardSequenceStatus]="comparisonDetails.awardSequenceStatus"></app-comment-box>
+      </div>
+  </div>
+</div>
+<!--document version modal-->
+<div class="modal fade mySkinDialog" *ngIf="isShowAttachmentVersionModal" tabindex="-1" id="award-doc-version-modal"
+    tabindex="-1" role="dialog" aria-labelledby="versionModalTitle" aria-hidden="true">
+    <div [ngClass]="(attachmentVersions.length == 0)?'modal-dialog':'modal-dialog modal-lg'" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 *ngIf="attachmentVersions.length > 0" class="modal-title"
+                    title="{{(fileName?.length>55)?(fileName):''}}">Versions
+                    of {{(fileName?.length > 55)?(fileName | slice:0:55)+'...':(fileName)}}</h5>
+                <h5 *ngIf="attachmentVersions.length == 0" class="modal-title"
+                    title="{{(fileName?.length>35)?(fileName):''}}">Versions
+                    of {{(fileName?.length > 35)?(fileName | slice:0:28)+'...':(fileName)}}</h5>
+                <button type="button" id="award-version-close" class="close"
+                    (click)="isShowAttachmentVersionModal = false" data-dismiss="modal"
+                    id="award-doc-version-dlt-dismiss" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" *ngIf="attachmentVersions.length > 0">
+                <table id="doc-version-table" class="table table-responsive tableSkin"
+                    [ngClass]="(attachmentVersions.length > 8)? 'version-table-scroll' : 'version-table-noscroll'">
+                    <caption class="sr-only">Attachment Versions</caption>
+                    <thead *ngIf="attachmentVersions.length > 0">
+                        <tr>
+                            <th scope="col" style="width: 5%;">Version</th>
+                            <th scope="col">File Name</th>
+                            <th scope="col">Updated By</th>
+                            <th scope="col" style="width: 5%;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody *ngIf="attachmentVersions.length > 0">
+                        <tr *ngFor="let version of attachmentVersions">
+                            <td style="width: 5%;">
+                                <span>{{version.versionNumber}}</span>
+                            </td>
+                            <td>
+                                <span title="{{(version?.fileName?.length>40)?(version?.fileName):''}}">{{(version?.fileName?.length
+                                    > 40)?(version?.fileName | slice:0:40)+'...':(version?.fileName)}}</span>
+                            </td>
+                            <td>
+                                <span>{{version.lastUpdateUserFullName}} on
+                                    {{version.updateTimestamp | dateFormatterWithTimeZone  : 'long'}}</span>
+                            </td>
+                            <td style="width: 5%;">
+                                <ul class="actionButtonGroup">
+                                    <li>
+                                        <a (click)="downloadAwardAttachments(version)" id="award-doc-dwnlod-btn"
+                                            title="Click here to download {{(version?.fileName?.length > 20)?(version?.fileName | slice:0:20)+'...':(version?.fileName)}}">
+                                            <i class="fa fa-download pointer" aria-hidden="true"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-body" *ngIf="attachmentVersions.length == 0">
+                <p>There are no versions found</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="grant-doc-dlt-no-btn" class="btn btn-secondary mr-2" data-dismiss="modal"
+                    data-toggle="modal" (click)="isShowAttachmentVersionModal = false">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

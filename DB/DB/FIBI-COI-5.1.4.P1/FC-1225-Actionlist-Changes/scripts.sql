@@ -1,0 +1,3 @@
+
+UPDATE `MESSAGE` SET `DESCRIPTION` = 'Create Financial Disclosure' WHERE (`MESSAGE_TYPE_CODE` = '163');
+UPDATE `MESSAGE` SET `DESCRIPTION` = 'Revise Financial Disclosure' WHERE (`MESSAGE_TYPE_CODE` = '164');

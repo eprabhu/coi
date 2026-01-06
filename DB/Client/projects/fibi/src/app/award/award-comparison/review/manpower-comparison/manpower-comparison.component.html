@@ -1,0 +1,309 @@
+<div id="Award131" class="card mt-3">
+  <div class="card-header px-4">
+    <h4 class="card-title">Manpower
+      <button id="costShareExpandBtn" class="updown-arrow" (click)="isManpowerWidgetOpen = !isManpowerWidgetOpen">
+        <i [ngClass]="isManpowerWidgetOpen?'fa fa-angle-double-up':'fa fa-angle-double-down'" class="fa-large"
+          aria-hidden="true"></i>
+      </button>
+    </h4>
+  </div>
+  <div *ngIf="isManpowerWidgetOpen" class="card-content">
+    <div class="card-body">
+      <div *ngIf="manpowerOther?.length || manpowerEOM?.length || manpowerRSS?.length" class="card ">
+        <div class="shadow-lg mb-3" *ngIf="manpowerEOM?.length && canViewStaff">
+          <div class="card">
+            <div class="category-header py-2">
+              <div><span class="font-bold ml-3">Staff</span></div>
+            </div>
+          </div>
+          <div class="p-3" [ngClass]="{'delete-background': Staff.status == -1,'add-background': Staff.status == 1}"
+            *ngFor="let Staff of manpowerEOM; let staffIndex = index">
+            <div class="ml-2">
+              <div class="form-row mb-2">
+                <div class="col-lg-3 col-sm-6 col-12 no-hover-effect py-0">
+                  <label class="d-sm-block">WBS Number</label>
+                  <span *ngIf="Staff?.budgetReferenceTypeCode == '1'" class="content-color"
+                    [innerHTML]='Staff?.budgetReferenceNumber | customTagRemover: currentMethod'></span>
+                  <span *ngIf="Staff?.budgetReferenceTypeCode == '2'" class="noDataExists">No WBS
+                    Generated</span>
+                </div>
+                <div class="col-lg-3 col-sm-6 col-12 no-hover-effect py-0">
+                  <label class="d-sm-block">Cost Element</label>
+                  <span class="content-color" [innerHTML]='Staff?.costElement | customTagRemover: currentMethod | customTagRemover: currentMethod'></span>
+                </div>
+                <div class="col-lg-2 col-sm-6 col-12 no-hover-effect py-0">
+                  <label class="d-sm-block">Approved Head Count</label>
+                  <span class="mr-3 pl-5 content-color" [innerHTML]='Staff?.approvedHeadCount | customTagRemover: currentMethod'></span>
+                </div>
+                <div class="col-lg-2 col-sm-6 col-12 no-hover-effect py-0">
+                  <label class="d-sm-block">Actual Head Count</label>
+                  <span class="content-color pl-5 mr-3" [innerHTML]='Staff?.actualHeadCount | customTagRemover: currentMethod'></span>
+                </div>
+                <div class="col-lg-2 col-sm-6 col-12 no-hover-effect py-0">
+                  <label class="d-sm-block">Budget Amount</label>
+                  <span class="text-right content-color pl-5"
+                    [innerHTML]='currencyFormatter.parseCurrency(Staff?.budgetAmount) | customTagRemover: currentMethod'></span>
+                </div>
+                <span class="collapse-category">
+                  <i *ngIf="!isShowEOMAllDetails[Staff?.awardManpowerId]" class="fa fa-chevron-down collapse-arrow"
+                    (click)="showResourceDetails(Staff); isShowEOMAllDetails[Staff?.awardManpowerId] = true;"
+                    aria-hidden="true"></i>
+                  <i *ngIf="isShowEOMAllDetails[Staff?.awardManpowerId]" class="fa fa-chevron-up collapse-arrow"
+                    (click)="isShowEOMAllDetails[Staff?.awardManpowerId] = false;" aria-hidden="true"></i>
+                </span>
+                <ng-container *ngIf="isShowEOMAllDetails[Staff?.awardManpowerId]" class="pt-2">
+                  <div class="col-lg-3 col-sm-6 col-12 no-hover-effect">
+                    <label class="d-sm-block">Uncommitted Amount</label>
+                    <span class="content-color pl-5" [innerHTML]='Staff?.unCommittedAmount ? (currencyFormatter.parseCurrency(Staff?.unCommittedAmount) | customTagRemover: currentMethod) : (currencyFormatter.parseCurrency("0.00") | customTagRemover: currentMethod)'></span>
+                  </div>
+                  <div class="col-8 no-hover-effect">
+                    <label class="d-sm-block">Description</label>
+                    <span class="content-color">{{Staff?.budgetCategory}}</span>
+                  </div>
+                </ng-container>
+              </div>
+              <div
+                *ngIf="manpowerResourceDetails[Staff?.awardManpowerId]?.length && isShowEOMAllDetails[Staff?.awardManpowerId]"
+                class="table-responsive custom-overflow mt-2">
+                <div class="font-bold mt-3" style="color: #2058a0;">New Hire Requests </div>
+                <table class="table tableSkin table-bordered grid2">
+                  <caption class="sr-only">Manpower Category Details</caption>
+                  <thead class="text-center">
+                    <tr>
+                      <th scope="col" width="6%" class="px-1">Position Id</th>
+                      <th scope="col" width="13%">RISE Status</th>
+                      <th scope="col" width="11%" class="px-0">Workday Position ID Status</th>
+                      <th scope="col" width="11%" class="px-0">Job Requisition ID </th>
+                      <th scope="col" width="6%">Planned Job Profile</th>
+                      <th scope="col" width="7%" class="px-1">Proposed Base Salary</th>
+                      <th scope="col" width="6%">Cost Allocation %</th>
+                      <th scope="col" width="10%">Plan Start Date</th>
+                      <th scope="col" width="6%">Plan End Date</th>
+                      <th scope="col" width="6%">Duration</th>
+                      <th scope="col" width="6%">Multi Account</th>
+                      <th scope="col" width="9%">Main Account</th>
+                      <th scope="col" width="9%">Proposed Commitment Amount</th>
+
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr [ngClass]="{'delete-background': resource.status == -1,
+                      'add-background': resource.status == 1}"
+                      *ngFor="let resource of manpowerResourceDetails[Staff?.awardManpowerId]; let resourceIndex = index">
+                      <td class="text-center p-1 " [ngClass]="resource?.positionId ? '' : 'noDataExists'" 
+                          [innerHTML]='resource?.positionId | customTagRemover: currentMethod'></td>
+                      <td
+                        class="text-center p-1  text-{{getPositionStatusClass(resource.manpowerPositionStatus?.positionStatusCode)}}" 
+                        [innerHTML]="resource?.manpowerPositionStatus ? (resource.manpowerPositionStatus.description | customTagRemover: currentMethod) : ''">
+                      </td>
+                      <td
+                        class="text-center p-1 text-{{getJobRequisitionStatusClass(resource?.workdayPositionRequisition?.jobRequisitionStatus)}}"
+                        [innerHTML]="resource?.workdayPositionRequisition ? (resource.workdayPositionRequisition.jobRequisitionStatus | customTagRemover: currentMethod) : '-'">
+                      </td>
+                      <td class="text-center p-1" [innerHTML]="resource?.workdayPositionRequisition ? (resource.workdayPositionRequisition.jobRequisitionId | customTagRemover: currentMethod) : '-'">
+                      </td>
+                      <td class="text-center p-1 " [innerHTML]="resource?.manpowerPlanJobProfileType ? (resource.manpowerPlanJobProfileType.description | customTagRemover: currentMethod) : ''">
+                      </td>
+                      <td class="text-center p-1 ">
+                        <span *ngIf="resource?.plannedBaseSalary != null" [innerHTML]='resource?.plannedBaseSalary ? (currencyFormatter.parseCurrency(resource?.plannedBaseSalary) | customTagRemover: currentMethod) : (currencyFormatter.parseCurrency("0.00") | customTagRemover: currentMethod)'></span>
+                      </td>
+                      <td class="text-center p-1">
+                        <span [innerHTML]="resource?.costAllocation ? (resource.costAllocation | customTagRemover: currentMethod) : '-' "></span>
+                      </td>
+                      <td class="text-center p-1">
+                        <span [innerHTML]="resource?.planStartDate ? (dateFormatter.parseDate(resource?.planStartDate) | customTagRemover: currentMethod) : (dateFormatter.parseDate(resource?.planStartDate) | customTagRemover: currentMethod)"></span>
+                      </td>
+                      <td class="text-center p-1">
+                        <span [innerHTML]="resource?.planEndDate ? (dateFormatter.parseDate(resource?.planEndDate) | customTagRemover: currentMethod) : (dateFormatter.parseDate(resource?.planEndDate) | customTagRemover: currentMethod)"></span>
+                      </td>
+                      <td class="text-center p-1 ">
+                        <span [innerHtml]="resource?.planDuration ? (resource.planDuration | customTagRemover: currentMethod) : ''"></span>
+                      </td>
+                      <td class="text-center p-1">
+                        <span [innerHTML]="resource?.isMultiAccount | customTagRemover: currentMethod"></span>
+                      </td>
+                      <td class="text-center p-1">
+                        <span [innerHTML]="resource?.isMainAccount | customTagRemover: currentMethod"></span>
+                      </td>
+                      <td class="text-center p-1">
+                        <span *ngIf="resource?.plannedSalary  != null" [innerHTML]='resource?.plannedSalary ? (currencyFormatter.parseCurrency(resource?.plannedSalary) | customTagRemover: currentMethod) : (currencyFormatter.parseCurrency("0.00") | customTagRemover: currentMethod)'></span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div
+                *ngIf="!manpowerResourceDetails[Staff?.awardManpowerId]?.length && isShowEOMAllDetails[Staff?.awardManpowerId]"
+                class="f-14 text-center">
+                <span class="noDataExists">No Hire Request Added</span>
+              </div>
+            </div>
+            <hr *ngIf="staffIndex != manpowerEOM?.length-1">
+          </div>
+        </div>
+
+        <!-- students section  -->
+
+
+        <div class="shadow-lg mb-3 p-0" *ngIf="manpowerRSS?.length && canViewStudent">
+          <div class="card">
+            <div class="category-header py-2">
+              <div><span class="font-bold ml-3">Student</span></div>
+            </div>
+          </div>
+          <div class="p-3" [ngClass]="{'delete-background': Student.status == -1,
+          'add-background': Student.status == 1}" *ngFor="let Student of manpowerRSS; let studentIndex = index">
+            <div class="ml-2 ">
+              <div class="row">
+
+                <div class="col-11">
+                  <div class="form-row">
+                    <div class="col-lg-3 col-sm-6 col-12 no-hover-effect py-0">
+                      <label class="d-sm-block">WBS Number</label>
+                      <span *ngIf="Student?.budgetReferenceTypeCode == '1'" class="content-color"
+                        [innerHTML]='Student?.budgetReferenceNumber | customTagRemover: currentMethod'></span>
+                      <span *ngIf="Student?.budgetReferenceTypeCode == '2'" class="noDataExists">No WBS
+                        Generated</span>
+                    </div>
+                    <div class="col-lg-3 col-sm-6 col-12 no-hover-effect py-0">
+                      <label class="d-sm-block">Cost Element</label>
+                      <span class="content-color" [innerHTML]='Student?.costElement | customTagRemover: currentMethod'></span>
+                    </div>
+                    <div class="col-lg-4 col-sm-6 col-12 no-hover-effect py-0">
+                      <label class="d-sm-block">Approved Head Count</label>
+                      <span class="mr-3 pl-5 content-color" [innerHTML]='Student?.approvedHeadCount | customTagRemover: currentMethod'></span>
+                    </div>
+                    <div class="col-lg-2 col-sm-6 col-12 no-hover-effect py-0">
+                      <label class="d-sm-block">Budget Amount</label>
+                      <span class="text-right content-color pl-5"
+                        [innerHTML]='currencyFormatter.parseCurrency(Student?.budgetAmount) | customTagRemover: currentMethod'></span>
+                    </div>
+
+                  </div>
+
+                  <div class="form-row mt-1">
+                    <div *ngIf="isShowRSSAllDetails[Student?.awardManpowerId]" class="col no-hover-effect">
+                      <label class="d-sm-block">Description</label>
+                      <span class="content-color">{{Student?.budgetCategory}}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-1">
+                  <span class="collapse-category float-right">
+                    <i *ngIf="!isShowRSSAllDetails[Student?.awardManpowerId]" class="fa fa-chevron-down collapse-arrow"
+                      (click)="isShowRSSAllDetails[Student?.awardManpowerId] = true; showResourceDetails(Student)" aria-hidden="true"></i>
+                    <i *ngIf="isShowRSSAllDetails[Student?.awardManpowerId]" class="fa fa-chevron-up collapse-arrow"
+                      (click)="isShowRSSAllDetails[Student?.awardManpowerId] = false" aria-hidden="true"></i>
+                  </span>
+                </div>
+              </div>
+
+              <div *ngIf="manpowerStudentDetails[Student?.awardManpowerId] && isShowRSSAllDetails[Student?.awardManpowerId]"
+                class="table-responsive custom-overflow mt-2">
+                <table class="table tableSkin table-bordered grid2">
+                  <caption class="sr-only">Manpower Category Details</caption>
+                  <thead class="text-center">
+                    <tr>
+                      <th scope="col" width="13%">Name</th>
+                      <th scope="col" width="10%">Charged Start Date</th>
+                      <th scope="col" width="10%">Charged End Date</th>
+                      <th scope="col" width="10%">Cost Allocation %</th>
+                      <th scope="col" width="13%">Committed Amount</th>
+                      <th scope="col" width="9%">Expense</th>
+                      <th scope="col" width="9%">Actual Committed</th>
+                      <th scope="col" width="9%">Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr [ngClass]="{'delete-background': resource.status == -1,
+                      'add-background': resource.status == 1}"
+                      *ngFor="let resource of manpowerStudentDetails[Student?.awardManpowerId]; let resourceIndex = index">
+                      <td [innerHTML]='resource?.fullName ? (resource?.fullName | customTagRemover: currentMethod) : "Unassigned"'></td>
+                      <td [innerHTML]='dateFormatter.parseDate(resource?.chargeStartDate) | customTagRemover: currentMethod'></td>
+                      <td [innerHTML]='dateFormatter.parseDate(resource?.chargeEndDate) | customTagRemover: currentMethod'></td>
+                      <td class="text-center" [innerHTML]='resource?.costAllocation | customTagRemover: currentMethod'></td>
+                      <td class="text-center"
+                        [innerHTML]='resource?.committedCost ? (currencyFormatter.parseCurrency(resource?.committedCost) | customTagRemover: currentMethod) : (currencyFormatter.parseCurrency("0.00") | customTagRemover: currentMethod)'>
+                      </td>
+                      <td *ngIf="resourceIndex == 0" class="text-center"
+                        [rowSpan]="Student?.awardManpowerResource?.length"
+                        [innerHTML]='Student?.expenseAmount ? (currencyFormatter.parseCurrency(Student?.expenseAmount) | customTagRemover: currentMethod) : (currencyFormatter.parseCurrency("0.00") | customTagRemover: currentMethod)'>
+                      </td>
+                      <td *ngIf="resourceIndex == 0" class="text-center"
+                        [rowSpan]="Student?.awardManpowerResource?.length"
+                        [innerHTML]='Student?.sapCommittedAmount ? (currencyFormatter.parseCurrency(Student?.sapCommittedAmount) | customTagRemover: currentMethod) : (currencyFormatter.parseCurrency("0.00") | customTagRemover: currentMethod)'>
+                      </td>
+                      <td *ngIf="resourceIndex == 0" class="text-center"
+                        [rowSpan]="Student?.awardManpowerResource?.length"
+                        [innerHTML]='Student?.balance ? (currencyFormatter.parseCurrency(Student?.balance) | customTagRemover: currentMethod) : (currencyFormatter.parseCurrency("0.00") | customTagRemover: currentMethod)'>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div *ngIf="!manpowerStudentDetails[Student?.awardManpowerId] && isShowRSSAllDetails[Student?.awardManpowerId]"
+                class="f-14 text-center">
+                <span class="noDataExists">No Hire Request Added</span>
+              </div>
+
+              <hr *ngIf="studentIndex != manpowerRSS?.length-1">
+            </div>
+          </div>
+        </div>
+        <div  class="shadow-lg p-0 mb-3" *ngIf="manpowerOther?.length && canViewOthers">
+            <div class="card">
+              <div class="category-header py-2">
+                <div><span class="font-bold ml-3">Others</span> </div>
+              </div>
+              <div class="m-3">
+                <div *ngIf="manpowerOther?.length" class="table-responsive custom-overflow">
+                  <table class="table tableSkin table-bordered grid2">
+                    <caption class="sr-only">Manpower Category Details</caption>
+                    <thead class="text-center">
+                      <tr>
+                        <th scope="col" width="20%">Resource Name</th>
+                        <th scope="col" width="10%">Actual Start Date</th>
+                        <th scope="col" width="10%">Actual End Date</th>
+                        <th scope="col" width="20%">Home Department</th>
+                        <th scope="col" width="10%">Resource Type</th>
+                        <th scope="col" width="10%">Candidate Type</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let resource of manpowerOther; let resourceIndex = index"
+                      [ngClass]="{'delete-background': resource.status == -1, 'add-background': resource.status == 1}">
+                        <td [innerHTML]='resource?.fullName | customTagRemover: currentMethod'></td>
+                        <td [innerHTML]='dateFormatter.parseDate(resource?.chargeStartDate) | customTagRemover: currentMethod'></td>
+                        <td [innerHTML]='dateFormatter.parseDate(resource?.chargeEndDate) | customTagRemover: currentMethod'></td>
+                        <td [innerHTML]='resource?.department | customTagRemover: currentMethod'></td>
+                        <td [innerHTML]='resource?.manpowerResourceType?.description | customTagRemover: currentMethod'></td>
+                        <td [innerHTML]='resource?.resourceName | customTagRemover: currentMethod'></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div *ngIf="!manpowerOther?.length" class="f-14 text-center">
+                  <span class="noDataExists">No Hire Request Added</span>
+                </div>
+              </div>
+            </div>
+        </div>
+        <ng-container *ngIf="!(manpowerOther || manpowerEOM || manpowerRSS) || ((manpowerOther || manpowerEOM || manpowerRSS)
+        && !(canViewOthers && canViewStaff && canViewStudent))">
+          <div class="mt-5 no-data-container">
+            <span class="mt-5 no-data-icon-outer">
+              <div class="no-data-icon">
+                <i class="fa fa-file-o" aria-hidden="true"></i>
+                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+              </div>
+            </span>
+            <h4>There is no information in this section.</h4>
+          </div>
+        </ng-container>
+      </div>
+      <app-comment-box [sectionCode]="131" [awardId]="comparisonDetails.baseAwardId"
+        [awardNumber]="comparisonDetails.awardNumber" [sequenceNumber]="comparisonDetails.sequenceNumber">
+      </app-comment-box>
+    </div>
+  </div>
+

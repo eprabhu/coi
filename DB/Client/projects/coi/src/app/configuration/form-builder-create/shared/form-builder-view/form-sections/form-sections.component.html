@@ -1,0 +1,94 @@
+<div [ngClass]="sectionDetails?.sectionName ? 'section' : 'py-1'">
+  <div *ngIf="sectionDetails?.sectionName" class="d-flex align-items-center justify-content-between section-header fb-fs-16 form-builder-sticky-header"
+   [attr.aria-expanded]="isShowSectionDetails" [attr.aria-controls]="'section-content-' + sectionDetails?.sectionId">
+  
+    <span>{{ sectionDetails?.sectionName }}</span>
+  
+    <span>
+      <span *ngIf="totalFormFields" class="fs-13 text-primary fw-500 fb-questionnaire-count-container">
+        {{ answeredFormFields }}/{{ totalFormFields }} Answered
+        <a *ngIf="hasMandatoryQuestion" id="mandatory-count-{{sectionDetails?.sectionId}}"
+          [ngClass]="unansweredMandatoryFields.length ? 'text-danger' : 'text-success'" class="hand-cursor"
+          (click)="scrollToMandatoryQuestion()" title="Go to mandatory question"
+          aria-label="Go to mandatory question" tabindex="0">
+          ({{ unansweredMandatoryFields.length }} mandatory remaining)
+        </a>
+      </span>
+  
+      <button id="SectionExpandBtn-{{sectionDetails?.sectionId}}"
+        [title]="isShowSectionDetails ? 'Click here to collapse Section Details' : 'Click here to expand Section Details'"
+        [attr.aria-label]="isShowSectionDetails ? 'Click here to collapse Section Details' : 'Click here to expand Section Details'"
+        [attr.aria-expanded]="isShowSectionDetails" [attr.aria-controls]="'section-content-' + sectionDetails?.sectionId"
+        class="section-show-hide-btn ml-2" type="button" (click)="showSectionDetails()">
+        <i [ngClass]="isShowSectionDetails ? 'fa fa-angle-up' : 'fa fa-angle-down'" class="fa-large fw-600"
+          aria-hidden="true"></i>
+      </button>
+    </span>
+  </div>
+
+  <div *ngIf="isShowSectionDetails" [@heightAnimation]>
+    <div *ngIf="sectionDetails.sectionHeader && isFormEditable" class="d-flex info fb-section-info fb-info-box" [id]="headerId">
+        <img class="float-left fb-mr-5" src="{{this.deployMap}}assets/images/fb-image/FB-section-info-icon.svg" alt="Form builder section info icon">
+        <!-- <span [innerHTML]="sectionDetails.sectionHeader | safe"></span> -->
+    </div>
+    <div [ngClass]="{'content': sectionDetails?.sectionName !== ''}">
+      <ng-container *ngFor="let component of sectionDetails.sectionComponent">
+        <div *ngIf="component.componentHeader" class="info fb-info-box ck-content text-break" [innerHTML]="component.componentHeader | safe">
+        </div>
+        <!-- <button *ngIf="!isFormEditable && component.componentId && canShowComments(component)" class="mt-0 btn btn-primary-icon btn-sm float-end btn-sm add-activity-button mr-15 d-flex pt-2" id="add-opa-review-comments"
+        (click)="setCommentDetails(null, sectionDetails.sectionId, component.componentId,$event)" title="Comments" type="button">
+          <mat-icon>rate_review</mat-icon>
+        </button> -->
+        <div *ngIf="(['SE','NE','DE','CB','RB','ES','AS','SD','UD','TE','CE','PT','CR','AT','QN'].includes(component.componentType)) && component.componentRefId !== ''"
+        [id]="component.componentId">
+          <app-data-layer
+            [component]="component"
+            [fbConfiguration]="fbConfiguration"
+            [formBuilderId]="formBuilderId"
+            [isFormEditable]="isFormEditable"
+            [saveEventForChildComponent]="saveEventForChildComponent"
+            (answerChangeEvent)="handleAnswerChangeEvent()"
+            (updatedQuestionnaire)="updateEmittedQuestionnaire($event)"
+          ></app-data-layer>
+        </div>
+  
+        <!-- Rich Text Editor -->
+        <div *ngIf="component.componentType === 'RT'">
+          <div class="ck-content text-break" [innerHTML]="component?.componentData | safe"></div>
+        </div>
+        <div *ngIf="component.componentType === 'PE' && component.componentRefId !== ''" [id]="component.componentId">
+          <app-PE-layer
+            [component]="component"
+            [fbConfiguration]="fbConfiguration"
+            [formBuilderId]="formBuilderId"
+            [isFormEditable]="isFormEditable"
+            [saveEventForChildComponent]="saveEventForChildComponent"
+            [externalActionEventForChildComponent]="externalActionEventForChildComponent"
+            (emitActionEvent)="emitActionEvents($event)"
+            [sectionName]="sectionDetails.sectionName">
+          </app-PE-layer>
+        </div>
+  
+        <!-- Horizontal line component -->
+        <div *ngIf="component.componentType === 'HL'">
+           <div class="line" [style]="component.componentData"></div>
+        </div>
+  
+        <!-- Break Line -->
+        <div *ngIf="component.componentType === 'BR'">
+           <!-- to be developed -->
+        </div>
+        <div *ngIf="component.componentFooter" class="info fb-info-box ck-content text-break" [innerHTML]="component.componentFooter | safe">
+          {{component.componentFooter}}
+        </div>
+      </ng-container>
+    </div>
+  
+    <div *ngIf="sectionDetails.sectionFooter" class="info fb-info-box ck-content text-break" [innerHTML]="sectionDetails.sectionFooter | safe">
+    </div>
+  </div>
+</div>
+
+<button id="scrollToMandatoryQuestion-btn-{{sectionDetails?.sectionId}}" class="d-none" tabindex="-1"
+  (click)="scrollToMandatoryQuestion()" aria-hidden="true">
+</button>

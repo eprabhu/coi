@@ -1,0 +1,300 @@
+<!-- Created and last updated by Ramlekshmy on 13-11-2019 -->
+<!--Review Summary Details-->
+<div class="card my-3">
+    <div [ngClass]="(moduleDetails?.isShowAssignBtn) ? 'card-header py-2 px-4' : 'card-header px-4'">
+        <h4 class="card-title d-flex align-items-center justify-content-between">
+            <span>Summary</span>
+            <span *ngIf="moduleDetails?.isShowAssignBtn">
+                <a title="Request New Review" (click)="showRequestModal.isRequestNewReview = true;"
+                    class="btn btn-sm btn-primary float-right mr-5 mt-0" id="prop-pre-review-req-btn" tabindex="0"><span
+                        class="d-md-inline-block d-none">Request New</span>
+                    Review
+                </a>
+            </span>
+        </h4>
+        <button id="review-summary-ExpandBtn" class="updown-arrow"
+            (click)="isPreReviewSummaryWidgetOpen = !isPreReviewSummaryWidgetOpen">
+            <i aria-hidden="true"
+                [ngClass]="isPreReviewSummaryWidgetOpen?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                class="fa-large"></i>
+        </button>
+    </div>
+    <div class="card-body" *ngIf="isPreReviewSummaryWidgetOpen">
+        <div class="gridSkin block-display-span">
+            <div class="no-data-container" *ngIf="preReviews?.length == 0 || preReviews == null">
+                    <span class="no-data-icon-outer">
+                            <div class="no-data-icon">
+                                <i class="fa fa-file-o" aria-hidden="true"></i>
+                                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                            </div>
+                        </span>
+                        <h4>There is no information in this section.</h4>
+            </div>
+            <ng-container *ngIf="(preReviews?.length > 0)">
+                <div class="col-12 p-0">
+                    <div class="table-responsive">
+                        <table class="table tableSkin grid2">
+                            <caption class="sr-only">Pre Review</caption>
+                            <tbody>
+                                <tr>
+                                    <th class="hand-cursor" id="sort-by-pre-review-type" title="Click to sort by Type"
+                                        (click)="isReverse = !isReverse;sortReviewTable('reviewSectionTypeCode')" tabindex="0">
+                                        Type<i aria-hidden="true"
+                                            [ngClass]="((sortBy == 'reviewSectionTypeCode')  ? (isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')" ></i>
+                                    </th>
+                                    <th class="hand-cursor" id="sort-by-pre-reviewer-name"
+                                        title="Click to sort by Reviewer"
+                                        (click)="isReverse = !isReverse;sortReviewTable('reviewerFullName')" tabindex="0">
+                                        Reviewer<i aria-hidden="true"
+                                            [ngClass]="((sortBy == 'reviewerFullName')  ? (isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                                    </th>                                   
+                                    <th class="hand-cursor" id="sort-by-pre-review-startdate"
+                                        title="Click to sort by Request Date"
+                                        (click)="isReverse = !isReverse;sortReviewTable('requestDate')" tabindex="0">
+                                        Request Date<i aria-hidden="true"
+                                            [ngClass]="((sortBy == 'requestDate')  ? (isReverse ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                                    </th>
+                                    <th class="hand-cursor" id="sort-by-pre-review-enddate"
+                                        title="Click to sort by Completion Date"
+                                        (click)="isReverse = !isReverse;sortReviewTable('completionDate')" tabindex="0">
+                                        Completion Date<i aria-hidden="true"
+                                            [ngClass]="((sortBy == 'completionDate')  ? (isReverse ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                                    </th>
+                                    <th class="hand-cursor" id="sort-by-pre-review-status"
+                                    title="Click to sort by Status"
+                                    (click)="isReverse = !isReverse;sortReviewTable('reviewStatusCode')" tabindex="0">
+                                    Status<i aria-hidden="true"
+                                        [ngClass]="((sortBy == 'reviewStatusCode')  ? (isReverse ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                                </th>
+                                </tr>
+                                <tr *ngFor="let review of preReviews;let i = index" id="pre-review-details-expand"
+                                    [ngClass]="highlight[i] && !isShowAllReviews?'review-summary-in-progress':''"
+                                    (click)="selectedIndex = i;selectedReview = review;filterReviews(); isShowAllReviews = false;">
+                                    <td>{{review?.preReviewSectionType?.description}}</td>
+                                    <td>{{review?.reviewerFullName}}</td>                                    
+                                    <td>{{review?.requestDate | dateFormatter}}</td>
+                                    <td>{{review?.completionDate | dateFormatter}}</td>
+                                    <td><span
+                                        [ngClass]="review?.preReviewStatus?.reviewStatusCode == '2'?'complete bg-success fw-500 py-1 rounded-icon': review?.preReviewStatus?.reviewStatusCode == '1'?'in-progress-status bg-info fw-500 py-1 rounded-icon':'bg-danger fw-500 py-1 revision-req-status rounded-icon'">{{review?.preReviewStatus?.description}}</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+</div>
+<div class="row" *ngIf="(preReviews?.length > 0)">
+    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 show-all-review">
+        <button title="Show All Reviews" class="addBtn font attachBtn" id="prop-show-all-review-btn"
+            (click)="showAllReviews();">
+            <i aria-hidden="true"
+                [ngClass]="isShowAllReviews?'fa fa-angle-double-up':'fa fa-angle-double-down'"></i>&nbsp;<span>Show All
+                Reviews</span>
+        </button>
+    </div>
+</div>
+<!-- review log-->
+<ng-container *ngIf="preReviews?.length >0">
+    <ng-container *ngFor="let reviewers of preReviews; let reviewIndex = index">
+        <div *ngIf="highlight[reviewIndex]" class="card mb-3">
+            <div class="card-header px-4 py-2" [ngClass]="isReviewTypeOpen[reviewIndex]?'':'pb-0'">
+                <h4 class="card-title font-weight-normal" [ngClass]="isReviewTypeOpen[reviewIndex]?'':'mb-0'">
+                    <div class="row justify-content-between align-items-center">
+                        <span>
+                            <div class="col-auto">
+                                Review Details by
+                                <label class="ml-1">{{reviewers?.reviewerFullName}}
+                                    ({{reviewers?.preReviewSectionType?.description}})</label>
+                            </div>
+                            <div class="col-auto">
+                                <span><label>Requested on</label>
+                                    <span class="f-12">{{reviewers?.requestDate | dateFormatter}}</span></span>
+                                <span class="float-right ml-3" *ngIf="reviewers?.reviewStatusCode == '2'">
+                                    <label>Completed on</label>
+                                    <span class="f-12">{{reviewers?.completionDate | dateFormatter}}</span>
+                                    <span>by {{reviewers?.reviewerFullName}}</span>
+                                </span>
+                            </div>
+                        </span>
+                        <span>
+                            <div class="col-auto mr-5">
+                                <span
+                                    [ngClass]="reviewers?.reviewStatusCode == '2'?'complete bg-success fw-500 rounded-icon':reviewers?.reviewStatusCode == '1'?'in-progress-status bg-info fw-500 rounded-icon':'bg-danger fw-500 revision-req-status rounded-icon'">{{reviewers?.preReviewStatus?.description}}</span>
+                            </div>
+                        </span>
+                    </div>
+                </h4>
+            </div>
+            <button id="review-log-expand-btn" class="updown-arrow"
+                (click)="isReviewTypeOpen[reviewIndex] = !isReviewTypeOpen[reviewIndex]">
+                <i aria-hidden="true" class="fa-large margin-top-5"
+                    [ngClass]="isReviewTypeOpen[reviewIndex]?'fa fa-angle-double-up':'fa fa-angle-double-down'"></i>
+            </button>
+            <div class="card-body" *ngIf="isReviewTypeOpen[reviewIndex]">
+                <div class="block-display-span">
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <span class="bg-light text-muted ml-2 p-2">{{reviewers?.requestorFullName}} requested :
+                                "{{reviewers?.requestorComment}}"</span>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm col-12">
+                            <span class="fs-15 fw-600 ml-2">Review Comments</span>
+                        </div>
+                        <div class="col-sm col-12 review-actions text-right mt-2 mt-sm-0"
+                            *ngIf="moduleDetails?.isShowActionBtns && reviewers?.preReviewStatus?.reviewStatusCode == '1'">
+                            <button *ngIf="isWriteReview || reviewers?.reviewerPersonId == personId"
+                                title="Write a Review" id="prop-pre-write-review-btn" class="btn btn-primary-sub btn-xs"
+                                (click)="reviewerReview = reviewers;isAddComment = true;setCommentsModalFlag()"
+                                data-toggle="modal" data-target="#reviewActionModal">Write a Review</button>
+                            <ng-container *ngIf="reviewers?.reviewerPersonId == personId">
+                                <button id="prop-pre-return-review-btn" title="Return to Applicant"
+                                    class="btn btn-secondary btn-xs"
+                                    (click)="reviewerReview = reviewers;isAddComment=false;clearCommentsModal();setCommentsModalFlag();actionType='DISAPPROVE';"
+                                    data-toggle="modal" data-target="#reviewActionModal">Return to
+                                    Applicant</button>
+                                <button id="prop-pre-complete-review-btn" title="Complete Review"
+                                    class="btn btn-primary-sub btn-xs"
+                                    (click)="reviewerReview = reviewers;isAddComment=false;clearCommentsModal();setCommentsModalFlag();actionType='APPROVE';"
+                                    data-toggle="modal" data-target="#reviewActionModal">Complete Review</button>
+                            </ng-container>
+                        </div>
+                    </div>
+                    <div class="row text-center"
+                        *ngIf="reviewers?.preReviewComments?.length == 0 || reviewers?.preReviewComments == null">
+                        <div class="col-12">
+                            <span class="noDataExists">No comments added yet.</span>
+                        </div>
+                    </div>
+                    <ng-container *ngFor="let comments of reviewers.preReviewComments;let index = index">
+                        <div *ngIf="reviewers?.preReviewComments?.length"
+                            class="comment-message">
+                            <!-- Comment Logo -->
+                            <div class="comment-message-logo pr-2">
+                                <i class="fa fa-user-circle fa-2x txt-big mr-1 text-secondary" aria-hidden="true"></i>
+                            </div>
+                            <div class="comment-message-body pt-1">
+                                <div class="comment-inner-head">
+                                    <div class="comment-inner-head-left">
+                                        <!-- full name of commenter -->
+                                        <span class="text-black font-weight-bold txt-medium">{{comments?.fullName}}</span>
+                                        &nbsp;&nbsp;
+                                        <!-- Private? -->
+                                        <span *ngIf="comments?.isPrivateComment == true" class="fw-700 text-primary txt-medium">
+                                            Private</span>
+                                        <!-- time -->
+                                        <p class="d-inline ml-10 txt-medium text-secondary font-weight-light">
+                                            {{comments?.updateTimeStamp | dateFormatterWithTimeZone: 'long'}}</p>
+                                    </div>
+                                </div>
+                                <div class="comment-inner-body pt-1">
+                                    <!-- display comment -->
+                                    <div>
+                                        <i aria-hidden="true" class="fa fa-quote-left comment-icon"></i>
+                                        <sub> <span class="f-13  text-content-color"
+                                                title="{{(comments?.reviewComment?.length>80)?(comments?.reviewComment):''}}"
+                                                [innerHTML]="comments?.reviewComment"></span>
+                                        </sub>
+                                    </div>
+                                    <!-- display Attachment -->
+                                    <div class="col-xl-12 col-lg-12 col-md-6 col-sm-12 col-12" *ngIf="comments?.preReviewAttachments?.length>0">
+                                        <div class="fileChips regularFont">
+                                            <span *ngFor="let attachment of comments?.preReviewAttachments;let attachIndex = index">{{attachment.fileName}}
+                                                <i aria-hidden="true" class="fa fa-download hand-cursor" id="prop-review-attach-dwnld" title="Download File"
+                                                    (click)="downloadAttachments($event, attachment.fileName, comments?.preReviewAttachments)"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr *ngIf="( reviewers?.preReviewComments?.length - 1) != index">
+                            </div>
+                        </div>
+                    </ng-container>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+</ng-container>
+<!-- Add comments and attachments modal -->
+<div class="modal fade mySkinDialog" id="reviewActionModal" tabindex="-1" data-backdrop="static" data-keyboard="false"
+    role="dialog" aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><span>{{moduleDetails?.name}} #{{preReviewReq?.moduleItemKey}} -
+                        {{moduleDetails?.title}}</span></h5>
+                <button type="button" id="prop-addPreReview-dismiss-btn" class="close" data-dismiss="modal"
+                    (click)="uploadedFile = [];assignReviewWarning = null;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card mb-3">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-12">
+                                    <span class="fs-14"> Review by {{_commonService?.getCurrentUserDetail('fullName')}}
+                                        ({{reviewerReview?.preReviewSectionType?.description}}) -
+                                        {{reviewerReview?.preReviewStatus?.description}} on
+                                        {{reviewerReview?.requestDate | dateFormatter}}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <textarea id="prop-review-comments" placeholder="Write your comments"
+                                class="col-12 col-lg-12 mb-2 commentBox comments-box" rows="2" cols="20"
+                                [(ngModel)]="reviewRequestObject.reviewComment" appLengthValidator
+                                [isShowLimiter]='true' [limit]=4000></textarea>
+                            <app-file-drop [multiple]="true" (filesDropEvent)="fileDrop($event)"></app-file-drop>
+                            <div class="fileChips regularFont">
+                                <span *ngFor="let item of uploadedFile; let i=index">{{item.name}} <i
+                                        class="fa fa-close hand-cursor" aria-hidden="true" title="Remove File"
+                                        id="prop-review-attach-remove" (click)="deleteFromUploadedFileList(item)"></i>
+                                </span>
+                            </div>
+                            <div *ngIf="assignReviewWarning != null"><span
+                                    class="mandatory font">{{assignReviewWarning}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-6"><span class="calc-check"><input type="checkbox"
+                            [(ngModel)]='reviewRequestObject.isPrivateComment' /></span><label><span
+                            class="font pl-1">Private Comment</span></label></div>
+                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-6 text-right">
+                    <button type="button" *ngIf="isAddComment" id="prop-add-review-btn" title="Add Review"
+                        class="btn btn-primary-sub btn-sm rate-float" (click)="addPreReview()">Add Review</button>
+                    <ng-container *ngIf="!isAddComment">
+                        <button type="button" id="prop-completePreReview-cancel-btn" class="btn btn-secondary btn-sm"
+                            title="Close" data-dismiss="modal">Close</button>
+                        <button type="button" *ngIf="actionType === 'APPROVE'" id="prop-completePreReview-btn"
+                            title="Complete Review" class="btn btn-primary-sub btn-sm"
+                            (click)="completeReturnReview(actionType)">Complete
+                            Review</button>
+                        <button type="button" *ngIf="actionType === 'DISAPPROVE'" id="prop-returnPreReview-btn"
+                            title="Return Review" class="btn btn-primary-sub btn-sm"
+                            (click)="completeReturnReview(actionType)">Return
+                            Review</button>
+                    </ng-container>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ASSIGN REVIEWER -->
+<app-add-review *ngIf="showRequestModal.isRequestNewReview" [moduleDetails]="moduleDetails"
+    [showRequestModal]="showRequestModal" [preReviews]="preReviews" [preReviewReq]="preReviewReq"
+    (filterResults)="filterReviewDetails($event);">
+</app-add-review>

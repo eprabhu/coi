@@ -1,0 +1,20 @@
+DROP TABLE IF EXISTS coi_project_award_history;
+CREATE TABLE coi_project_award_history (
+  ID int NOT NULL AUTO_INCREMENT,
+  AWARD_NUMBER varchar(12) NOT NULL,
+  MESSAGE varchar(500) DEFAULT NULL,
+  COMMENT varchar(500) DEFAULT NULL,
+  UPDATED_BY varchar(60) NOT NULL,
+  UPDATE_TIMESTAMP timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (ID)
+);
+
+DROP TABLE IF EXISTS coi_int_stage_award_status;
+CREATE TABLE coi_int_stage_award_status (
+  STATUS_CODE int NOT NULL,
+  DESCRIPTION varchar(200) DEFAULT NULL,
+  UPDATE_TIMESTAMP datetime DEFAULT NULL,
+  UPDATED_BY varchar(60) DEFAULT NULL,
+  IS_ACTIVE varchar(1) DEFAULT 'Y',
+  PRIMARY KEY (STATUS_CODE)
+);

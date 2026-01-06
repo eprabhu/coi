@@ -1,0 +1,183 @@
+<div class="card overflow-hidden" [id]="ADDITIONAL_ADDRESS.sectionId">
+    <div class="px-3 my-1 d-flex align-items-center">
+        <div class="col fs-16 my-2">
+            <label for="coi-entity-addirional-address">
+                <span>{{ADDITIONAL_ADDRESS.sectionName}}</span>
+                <app-common-help-text [subSectionId]="ADDITIONAL_ADDRESS.sectionId" [elementId]="'coi-entity-addirional-address'"></app-common-help-text>
+            </label>
+        </div>
+        <div class="col-auto" *ngIf="additionalAddresses.length && isEditMode">
+            <button id="additional-address-add-button"
+                class="btn btn-primary fs-14 d-inline-flex" title="Click here to add address"
+                aria-label="Click here to add address" (click)="addIndustryDetails()">
+                <mat-icon>add</mat-icon>Add Address
+            </button>
+        </div>
+    </div>
+    <div *ngIf="!additionalAddresses.length">
+        <app-no-information [isBorderNeeded]="false" [canShowAddButton]="isEditMode" [buttonName]="'Add Address'" (buttonAction)="addIndustryDetails($event)"></app-no-information>
+    </div>
+    <div *ngIf="additionalAddresses.length">
+        <div class="card mx-3 px-2 py-1 coi-entity-details-card" *ngFor="let address of additionalAddresses; let isLast = last;let i = index" [ngClass]="isLast ? 'mb-3' : 'mb-2'">
+            <div class="d-flex">
+                <div class="col-md-9 col-lg-10 coi-text-light fs-14">
+                    {{address?.entityAddressType?.description}}
+                    <span class="fw-600 d-flex">{{getEntityFullAddress(address)}}</span>
+                </div>
+                <div *ngIf="isEditMode && (!isDunsViewMode || (isDunsViewMode && ![MAILING_ADDRESS].includes(address?.addressTypeCode)))" class="col-md-3 col-lg-2 d-flex align-items-center justify-content-end mb-auto">
+                    <button class="btn btn-primary-icon d-flex align-items-center justify-content-center rounded-circle p-2 m-1" (click)="editAddress(address, i)"
+                        title="Click here to update address" aria-label="Click here to update address">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0">edit</mat-icon>
+                    </button>
+                    <button class="btn btn-primary-icon d-flex align-items-center justify-content-center rounded-circle p-2 m-1"
+                        title="Click here to delete address" aria-label="Click here to delete address" (click)="confirmDelete(address, i)">
+                        <mat-icon aria-hidden="true" class="flex-shrink-0">delete</mat-icon>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add additional Address Modal -->
+<div class="modal modal-xl fade mySkinDialog" data-bs-backdrop="static" id="addAdditionalAddress" role="dialog">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">{{isEditIndex != null ? 'Update': 'Add'}} Address</h4>
+                <app-common-help-text *ngIf="isEditIndex !== null" [subSectionId]="ADDITIONAL_ADDRESS.sectionId" [elementId]="'coi-entity-address-update'"></app-common-help-text>
+                <app-common-help-text *ngIf="isEditIndex === null" [subSectionId]="ADDITIONAL_ADDRESS.sectionId" [elementId]="'coi-entity-address-add'"></app-common-help-text>
+				<button type="button" class="btn-close" id="coi-add-additional-address-close-btn" title="Click here to close" data-bs-dismiss="modal"
+					aria-label="Click here to close" (click)="clearAdditionalAddress()"></button>
+			</div>
+			<div class="modal-body">
+                <div class="row mt-2 mb-3">
+                    <div class="col-6">
+                        <label class="fs-14 fw-500 pb-1 coi-label-help" for="coi-entity-address-type">
+                            <span class="mandatory me-1">*</span>
+                            Address Type
+                            <app-common-help-text [subSectionId]="ADDITIONAL_ADDRESS.sectionId" [elementId]="'coi-entity-address-type'"></app-common-help-text>
+                        </label>
+                        <app-look-up (selectedResult)="onAddressTypeSelect($event)" [options]="addressTypOptions" [uniqueId]="'coi-entity-address-type'"
+                            [isError]="mandatoryList?.has('addressTypeCode')" [selectedLookUpList]="selectedAddressType" [defaultValue]="addressTypeDefaultValue"
+                            [isDisabled]="isEditIndex!=null" [isExternalArray]="true" [externalArray]="addressTypeLookup">
+                        </app-look-up>
+                        <span *ngIf="mandatoryList?.has('addressTypeCode')" class="invalid-feedback d-inline fs-13">
+                            {{mandatoryList?.get('addressTypeCode')}}
+                        </span>
+                    </div>
+                    <div class="col-6">
+                        <label class="fs-14 fw-500 pb-1 coi-label-help" for="coi-entity-add-country">
+                            <span class="mandatory me-1">*</span>
+                            Country
+                            <app-common-help-text [subSectionId]="ADDITIONAL_ADDRESS.sectionId" [elementId]="'coi-entity-add-country'"></app-common-help-text>
+                        </label>
+                        <app-endpoint-search [clearField]="clearCountryField" [uniqueId]="'coi-entity-add-country'"
+                                             [httpOptions]="countrySearchOptions" (onSelect)="selectedCountryEvent($event)"
+                                             class="w-100 mt-4" [isError]="mandatoryList?.has('countryCode')">
+                        </app-endpoint-search>
+                        <div *ngIf="mandatoryList?.has('countryCode')" class="invalid-feedback d-block fs-13">
+                            {{mandatoryList?.get('countryCode')}}
+                        </div>
+                    </div>
+                </div>
+				<div class="row mt-2 mb-3">
+                    <div class="col-12">
+                        <label class="fs-14 fw-500 pb-1 coi-label-help" for="coi-entity-add-address-1">
+                            <span class="mandatory me-1">*</span>
+                            Address Line 1
+                            <app-common-help-text [subSectionId]="ADDITIONAL_ADDRESS.sectionId" [elementId]="'coi-entity-add-address-1'"></app-common-help-text>
+                        </label>
+                        <textarea appAutoGrow rows="1" class="form-control fs-13" id="coi-entity-add-address-1"
+                        [ngClass]="(mandatoryList?.has('addressLine1')) ? 'is-invalid d-block' : ''"
+                        [(ngModel)]="additionalAddressObj.addressLine1" appLengthValidator [limit]="500" [styleList]="'float-end word-count'"></textarea>
+                        <span *ngIf="mandatoryList?.has('addressLine1')" class="invalid-feedback d-inline fs-13">
+                            {{mandatoryList?.get('addressLine1')}}
+                        </span>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <label class="fs-14 fw-500 pb-1 coi-label-help" for="coi-entity-add-address-2">
+                            Address Line 2
+                            <app-common-help-text [subSectionId]="ADDITIONAL_ADDRESS.sectionId" [elementId]="'coi-entity-add-address-2'"></app-common-help-text>
+                        </label>
+                        <textarea appAutoGrow rows="1" class="form-control fs-13" id="coi-entity-add-address-2"
+                        [ngClass]="(mandatoryList?.has('addressLine2')) ? 'is-invalid d-block' : ''"
+                        [(ngModel)]="additionalAddressObj.addressLine2" appLengthValidator [limit]="500" [styleList]="'float-end word-count'"></textarea>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-4">
+                        <label class="fs-14 fw-500 pb-1 coi-label-help" for="coi-entity-add-city">
+                            <span class="mandatory me-1">*</span>
+                            City
+                            <app-common-help-text [subSectionId]="ADDITIONAL_ADDRESS.sectionId" [elementId]="'coi-entity-add-city'"></app-common-help-text>
+                        </label>
+                        <input type="text" class="form-control fs-13" id="coi-entity-add-city" [(ngModel)]="additionalAddressObj.city"
+                               [ngClass]="(mandatoryList?.has('city')) ? 'is-invalid d-block' : ''"
+                               appLengthValidator [limit]=30 [styleList]="'float-end word-count'">
+                        <span *ngIf="mandatoryList?.has('city')" class="invalid-feedback d-inline fs-13">
+                            {{mandatoryList?.get('city')}}
+                        </span>
+                    </div>
+                    <div class="col-4">
+                        <label class="fs-14 fw-500 pb-1 coi-label-help" for="coi-entity-add-state">
+                            <span *ngIf="isAddressMandatory" class="mandatory me-1">*</span>
+                            State/Province/Region
+                            <app-common-help-text [subSectionId]="ADDITIONAL_ADDRESS.sectionId" [elementId]="'coi-entity-add-state'"></app-common-help-text>
+                        </label>
+                        <app-endpoint-search [clearField]="clearStateField" [uniqueId]="'coi-entity-add-state'"
+                            [httpOptions]="stateSearchOption" (onSelect)="selectedStateEvent($event)" [searchLimiterOptions]="stateSearchLimiterOptions"
+                            class="w-100 mt-4" [isError]="mandatoryList?.has('state')" [canEmitSearchText]="canEmitStateSearchText">
+                        </app-endpoint-search>
+                        <span *ngIf="mandatoryList?.has('state')" class="invalid-feedback d-inline fs-13">
+                            {{mandatoryList?.get('state')}}
+                        </span>
+                    </div>
+                    <div class="col-4">
+                        <label class="fs-14 fw-500 pb-1 coi-label-help" for="coi-entity-add-postCode">
+                            <span *ngIf="isAddressMandatory" class="mandatory me-1">*</span>
+                            ZIP/Postal Code
+                            <app-common-help-text [subSectionId]="ADDITIONAL_ADDRESS.sectionId" [elementId]="'coi-entity-add-postCode'"></app-common-help-text>
+                        </label>
+                        <input type="text" class="form-control fs-13" id="coi-entity-add-postCode" [(ngModel)]="additionalAddressObj.postCode"
+                        [ngClass]="(mandatoryList?.has('postCode')) ? 'is-invalid d-block' : ''"
+                        appLengthValidator [limit]="30" [styleList]="'float-end word-count'">
+                        <span *ngIf="mandatoryList?.has('postCode')" class="invalid-feedback d-inline fs-13">
+                            {{mandatoryList?.get('postCode')}}
+                        </span>
+                    </div>
+                </div>
+                <!-- <div class="row mb-3">
+                    <div class="col-4">
+                        <label class="fs-14 fw-500 pb-1 coi-label-help" for="coi-entity-type">
+                            Phone Number
+                        </label>
+                        <input type="text" class="form-control fs-13" id="coi-entity-city" [(ngModel)]="additionalAddressObj.city"
+                        [ngClass]="(mandatoryList?.has('city')) ? 'is-invalid d-block' : ''">
+                    </div>
+                </div> -->
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-outline-secondary" id="coi-add-additional-address-cancel-btn" data-bs-dismiss="modal" type="button"
+				title="Click to cancel" (click)="clearAdditionalAddress()">Cancel
+				</button>
+				<button class="btn btn-primary me-0" id="coi-add-additional-address-add-btn" type="button"
+					title="Click here to {{isEditIndex != null ? 'update': 'add'}} address"
+                    attr.aria-label="Click here to {{isEditIndex != null ? 'update': 'add'}} address"
+                    (click)="isEditIndex != null ? editIndustry(): addIndustry()">{{isEditIndex != null ? 'Update': 'Add'}} Address
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<app-common-modal [modalConfig]="modalConfig" (modalAction)="postConfirmation($event)">
+    <ng-container modal-header>
+        <span>Confirmation<app-common-help-text [subSectionId]="ADDITIONAL_ADDRESS.sectionId" [elementId]="'coi-entity-adt-address-delete'"></app-common-help-text></span>
+    </ng-container>
+    <ng-container modal-body>
+        <p>Are you sure you want to delete <strong>{{addressTypeDefaultValue}}</strong>?</p>
+    </ng-container>
+</app-common-modal>

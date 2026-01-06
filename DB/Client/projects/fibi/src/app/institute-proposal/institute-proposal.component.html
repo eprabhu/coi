@@ -1,0 +1,619 @@
+<div class="push4slideMenu pageMinHeight" id="scrollToTop">
+	<div class="container-fluid pushFixedHeaderFooter">
+		<div class="headerPush"></div>
+		<section class="row">
+			<div class="col-12">
+				<div class="sticky-top-nav mb-3 header-outline" id="stickyIpHeader">
+					<div class="row">
+						<div class="text-left col-11">
+							<h2 *ngIf="result?.instProposal?.proposalId" title="{{result?.instProposal?.title}}"
+								class="title-primary fs-20 text-justify">
+								Institute Proposal #{{result?.instProposal?.proposalNumber}}:
+								{{(result?.instProposal?.title.length>200)?(result?.instProposal?.title | slice:0:200)+'...':(result?.instProposal?.title)}}
+							 (Version
+								:{{result?.instProposal?.sequenceNumber}})
+							</h2>
+						</div>
+						<div class="col-1"
+						*ngIf="_commonService.isEnableLock && !webSocket.isLockAvailable('IP' + '#' + result?.instProposal?.proposalId) && webSocket.isServerAvailable">
+						<span *ngIf="result?.instProposal?.proposalId" class=" blink icon-hover text-right">
+							<a class="tooltip "><i class="fa fa-lock fs-20" aria-hidden="true"></i>
+								<div class="tooltiptext-right card card-inner p-15 text-left">
+									<span class="font-cv">Locked</span>
+									<span class="font-cv font-weight-bold">This document has a lock currently owned
+										by {{webSocket.currentLockedModule['IP' + '#' + result?.instProposal?.proposalId]?.currentUser}} as
+										of
+										{{webSocket.currentLockedModule['IP' + '#' + result?.instProposal?.proposalId]?.createTimeStamp |
+										date: 'medium'}}
+									</span>
+								</div>
+							</a>
+						</span>
+					</div>						
+					</div>
+					<div class="row">
+						<!-- Proposal ID: , IP No -->
+						<div class="col-auto pr-0" *ngIf="result?.devProposalIds">
+							<span class="badge-title bg-transparent mr-2 pl-0">
+								<i class="fa fa-file text-primary" aria-hidden="true"></i>
+								<a class="anchor-link"
+									title="click here to view {{result?.devProposalIds[0]}}-{{result?.instProposal?.title}}"
+									(click)="showDevProposals();">
+									<ng-container i18n="@@IP_INSTITUTE_DEVELOPMENT_PROPOSAL_NUMBER"> Development
+										Proposal Number
+									</ng-container>: #{{result?.devProposalIds[0]}}
+								</a>
+							</span>
+						</div>
+						<div class="col-12 col-lg">
+							<div class="float-left d-inline-block">
+								<span class="badge-title bg-transparent px-0 fs-14-nav"
+									*ngIf="result?.instProposal?.principalInvestigator">
+									<i class="fa fa-user text-primary mr-1" aria-hidden="true"></i>
+									PI : {{result?.instProposal?.principalInvestigator}}
+								</span>
+								<span class="badge-title bg-transparent px-1 px-md-3 px-lg-4 fs-14-nav"
+									*ngIf="result?.instProposal?.unit?.unitName">
+									<i class="fa fa-home text-primary mr-1" aria-hidden="true"></i>
+									Lead Unit : {{concatUnitNumberAndUnitName(result?.instProposal?.unit?.unitNumber, result?.instProposal?.unit?.unitName)}}
+								</span>
+								<span class="badge-title bg-transparent px-1 fs-14-nav"
+									*ngIf="result?.instProposal?.statusCode">
+									<i class="fa fa-bookmark text-primary mr-1" aria-hidden="true"></i>
+									<span class="d-none d-md-inline-block">
+										Institute Proposal Status :
+									</span>
+									<span
+										class="status-badge-{{getBadgeByStatusCode(result?.instProposal?.statusCode)}} fs-14-nav px-0 bg-transparent">
+										{{result?.instProposal?.instProposalStatus.description}}</span>
+								</span>
+							</div>
+							<span *ngIf="result?.instProposal?.proposalSequenceStatus"
+								class="badge-title bg-transparent px-1 fs-14-nav  float-right">
+								<i class="fa fa-bookmark text-primary mr-1" aria-hidden="true"></i>
+								<span class="d-none d-md-inline-block">Version Status : </span>
+								<span
+									class="status-badge-{{getVersionStatusCode(result?.instProposal?.proposalSequenceStatus)}} fs-14-nav px-0 bg-transparent"
+									title="{{result?.instProposal?.proposalSequenceStatus}}">{{result?.instProposal?.proposalSequenceStatus}}
+								</span>
+							</span>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-lg col-auto pr-0">	
+							<div class="collapse navbar-toggleable-xs mt-5 mt-lg-0 mb-1" id="navbarResponsive">				
+							<ul class="menu-responsive tabs fit-content tabs-collapsed">
+								<li routerLinkActive="active" *ngIf=" _instituteService.ipSectionConfig['IP207']?.isActive ">
+									<a [routerLink]="['/fibi/instituteproposal/ip-comparison']" queryParamsHandling='merge'>
+										<ng-container>Institute Proposal</ng-container>
+									</a>
+								</li>
+								<li routerLinkActive="active"
+									*ngIf="_instituteService.ipSectionConfig['IP201'].isActive">
+									<a [routerLink]="['/fibi/instituteproposal/overview']" queryParamsHandling='merge'>
+										<ng-container i18n="@@IP_INSTITUTE_PROPOSAL">General</ng-container>
+									</a>
+								</li>
+								<li routerLinkActive="active"
+									*ngIf="_instituteService.ipSectionConfig['IP205']?.isActive">
+									<a [routerLink]="['/fibi/instituteproposal/other-information']" queryParamsHandling='merge'
+									>
+										Other Information
+									</a>
+								</li>
+								<li routerLinkActive="active"
+									*ngIf="_instituteService.ipSectionConfig['IP202'].isActive">
+									<a [routerLink]="['/fibi/instituteproposal/attachments']"
+										queryParamsHandling='merge'>
+										Attachments </a>
+								</li>
+								<li routerLinkActive="active"
+									*ngIf="_instituteService.ipSectionConfig['IP206'].isActive">
+									<a [routerLink]="['/fibi/instituteproposal/comments']"
+										queryParamsHandling='merge'>
+										Comments</a>
+								</li>
+								<li routerLinkActive="active"
+									*ngIf="_instituteService.ipSectionConfig['IP204'].isActive">
+									<a [routerLink]="['/fibi/instituteproposal/budget']" queryParamsHandling='merge'>
+										Budget</a>
+								</li>
+								<li routerLinkActive="active"
+									*ngIf="_instituteService.ipSectionConfig['IP203'].isActive">
+									<a [routerLink]="['/fibi/instituteproposal/medusa']" queryParamsHandling='merge'>
+										Medusa</a>
+								</li>
+								<li routerLinkActive="active"
+									*ngIf="_instituteService.ipSectionConfig['IP203'].isActive">
+									<a [routerLink]="['/fibi/instituteproposal/history']" queryParamsHandling='merge'>
+										History</a>
+								</li>
+							</ul>
+							</div>						
+						</div>
+						<div class="col-lg-auto col-12 my-2">
+							<button #mainHeaders id="responsiveColapse"
+							class="navbar-toggler hidden-sm-up px-0 d-inline-block d-lg-none float-left mt-2"
+							type="button" data-toggle="collapse" data-target="#navbarResponsive"
+							aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+							<i class="fa fa-bars f-14 text-muted mx-colr" aria-hidden="true"
+								title="Click for more pages"></i>
+						</button>
+						<span class="float-right">
+							<button *ngIf="result?.instProposal?.instProposalStatus?.canCreateAward && canCreateAward && !isPendingVersionAvailable"
+								title="Create New Award" class="btn btn-sm btn-primary" (click)="createNewAward(result.instProposal)"
+								id="create-award-btn" i18n-title="@@COMMON_CREATE_NEW_AWARD_TLP">
+								<ng-container i18n="@@COMMON_CREATE_NEW_AWARD">Create New Award</ng-container>
+							</button>
+							<button *ngIf="isSubmitEnabled" title="Cancel Modification #{{result?.instProposal?.proposalId}}" id="ip-cancel-btn"
+								class="btn btn-sm btn-secondary" id="ip-cancel-btn" data-toggle="modal" data-target="#cancelIPConfirmationModal"
+								tabindex="0">Cancel
+							</button>
+							<button class="btn btn-primary-sub btn-sm" *ngIf="isShowSave"
+							(click)="initiateSaveInChildComponents()">Save</button>
+							<button *ngIf="isSubmitEnabled" title="Submit proposal variation"
+								class="btn btn-sm btn-primary" id="create-award-btn" (click)="checkForUnsavedChanges()">
+								Submit
+							</button>
+							<button title="Back to Institute proposal" class="btn more-btn" (click)="openGoBackModal();"
+								id="prop-go-back-btn">
+								<i class="fa fa-reply" aria-hidden="true"></i>
+							</button>
+							<span *ngIf="result.instProposal.proposalId != null" #moreOptionsBtn
+								class="position-relative">
+								<button title="More Actions" class="btn more-btn"
+									(click)="isShowMoreOptions = !isShowMoreOptions; isShowReviewActions = false;">
+									<i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+								</button>
+								<ul id="moreOptions-list" class="more-options-box"
+									*ngIf="isShowMoreOptions">
+									<li title="Modify Institute Proposal" *ngIf="result.instProposal.proposalSequenceStatus === 'ACTIVE' && isModifyIp && !isPendingVersionAvailable">
+										<a class="dropdown-item" href="" id="award-edit-btn"
+											(click)="isShowMoreOptions = !isShowMoreOptions"
+											title="Modify Institute Proposal #{{result.instProposal.proposalId}}" data-toggle="modal"
+											data-target="#editConfirmModal" tabindex="0">
+											<i class="fa fa-pencil" aria-hidden="true"></i>
+											Modify Institute Proposal
+										</a>
+									</li>
+										<li title="Print Institute Proposal" *ngIf="result?.instProposal?.proposalId">
+											<a class="dropdown-item hand-cursor" id="print-btn"
+												(click)="isShowMoreOptions = !isShowMoreOptions; validationMap.clear(); this.getPrintTemplates($event);">
+												<i class="fa fa-print" aria-hidden="true"></i>
+												Print Institute Proposal</a>
+										</li>
+									<li *ngIf="result.instProposal.proposalSequenceStatus === 'ACTIVE'"><span class="separator"></span></li>
+									<li *ngIf="result.instProposal.proposalSequenceStatus === 'ACTIVE' && isModifyIp && !isPendingVersionAvailable" title="Review Actions" class="dropdown-submenu">
+										<a class="dropdown-item hand-cursor" id="notify-btn"
+											(mouseenter)="isShowReviewActions = !isShowReviewActions;"
+											[ngClass]=" isShowReviewActions ? 'active' : ''">
+											<i class="fa fa-angle-left" aria-hidden="true"></i>Review Actions</a>
+										<ul *ngIf="isShowReviewActions" class="submenu more-options-box"
+											(mouseleave)="isShowReviewActions = !isShowReviewActions;">
+											<ng-container
+												*ngFor="let reviewTypes of result.instituteProposalActionTypes">
+												<li [title]="reviewTypes?.description" *ngIf="reviewTypes.statusCode">
+													<a class="dropdown-item hand-cursor" data-toggle="modal"
+														data-target="#ConfirmSubmitReviewModal"
+														id="submit-department-btn"
+														(click)="isShowReviewActions = !isShowReviewActions;isShowMoreOptions= false; currentActionType = reviewTypes">
+														<i class="fa fa-file-text-o"
+															aria-hidden="true"></i>{{reviewTypes.description}}</a>
+												</li>
+											</ng-container>
+										</ul>
+									</li>
+								</ul>
+							</span>
+						</span>
+						</div>
+					</div>
+				</div>
+				<div *ngIf="result?.instProposal?.proposalSequenceStatus ==='ACTIVE' && isPendingVersionAvailable">
+					<div class="card notice-box my-3">
+						<div class="card-content">
+							<div class="gridSkin mb-0">
+								<div class="row">
+									<div class="col-11 py-1">
+										<span class="text-secondary d-block mb-2">{{cardMessage}}</span>
+									</div>
+									<div class="col-1 py-1 d-flex flex-row-reverse">
+										<div class="align-items-left d-flex">
+											<a id="project-expand-btn"
+												(click)="isModifyCardActive = !isModifyCardActive">
+												<i [ngClass]="isModifyCardActive?'fa fa-angle-double-up':'fa fa-angle-double-down '"
+													aria-hidden="true" class="fa-large"></i>
+											</a>
+										</div>
+									</div>
+								</div>
+								<div>
+									<div *ngIf="isModifyCardActive">
+										<span class="mr-2">
+											<a class="anchor-link ml-3" title="View Institute Proposal {{alternateIP?.proposalId}}"
+											(click)="gotoPendingIp(alternateIP?.proposalId)"><span *ngIf="isCurrentIPPending">Modification</span><span *ngIf="!isCurrentIPPending">Active Version</span>
+											<i aria-hidden="true" class="fa fa-external-link-square mr-1"></i>
+											</a>
+										</span><span *ngIf="isCurrentIPPending">by {{alternateIP.createUserFullName}} on
+											{{alternateIP.createTimeStamp | dateFormatterWithTimeZone:'long'}}</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<router-outlet></router-outlet>
+			</div>
+		</section>
+		<div class="footerPush"></div>
+	</div>
+</div>
+
+<div class="modal fade mySkinDialog" id="ConfirmSubmitReviewModal" role="dialog">
+	<div class="modal-dialog modal-md">
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-header ct-footer-padding">
+				<h4 class="modal-title">Confirmation
+				</h4>
+				<button type="button" class="close" data-dismiss="modal" id="dissmiss-btn" aria-label="Close"
+					(click)="description = ''">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body ct-modal-padding">
+				<div class="row mt-2 mb-0">
+					<div class="col-lg-12">
+						<label for="">Comment</label>
+						<textarea id="prop-area-of-research-desc" name="description" autocomplete="off"
+							[(ngModel)]="description" class="form-control" appLengthValidator
+							placeholder="Please add your comments here"></textarea>
+					</div>
+					<div class="col-lg-12">
+						<p>Are you sure you want to change status to {{currentActionType.description}}?</p>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer ct-footer-padding">
+				<button id="nego-sumbit-no-btn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
+					(click)="description = ''">No</button>
+				<button type="button" class="btn btn-primary-sub btn-sm" (click)="changeIPStatus()">Submit</button>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="modal fade mySkinDialog" id="ConfirmSubmitModal" role="dialog">
+	<div class="modal-dialog modal-md">
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-header ct-footer-padding">
+				<h4 class="modal-title">Confirmation
+				</h4>
+				<button type="button" class="close" data-dismiss="modal" id="dissmiss-btn" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body ct-modal-padding">
+				<div class="row mt-2 mb-0">
+					<div class="col-lg-12">
+						<p>Are you sure you want to submit?</p>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer ct-footer-padding">
+				<button id="nego-sumbit-no-btn" type="button" class="btn btn-secondary btn-sm"
+					data-dismiss="modal">No</button>
+				<button type="button" class="btn btn-primary-sub btn-sm" (click)="submitAdminCorrection()"
+					data-dismiss="modal">Submit</button>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="modal fade mySkinDialog" id="editConfirmModal" role="dialog" aria-hidden="true" data-backdrop="static"
+	data-keyboard="false">
+	<div class="modal-dialog modal-lg">
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-header ct-footer-padding">
+				<h4 class="modal-title">Modification <span>{{result?.instProposal?.proposalNumber}}:
+					{{(result?.instProposal?.title.length>200)?(result?.instProposal?.title | slice:0:200)+'...':(result?.instProposal?.title)}}
+				 (Version
+					:{{result?.instProposal?.sequenceNumber}})</span>
+				</h4>
+				<button type="button" class="close" id="dissmiss-btn" aria-label="Close" data-dismiss="modal"
+					(click)="description = '';hasDescriptionValidation = false">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body ct-modal-padding">
+				<div class="row mt-2 mb-0">
+					<div class="col-lg-12">
+						<p>Are you sure you want to modify this Institute Proposal?</p>
+					</div>
+					<div class="col-lg-12">
+						<label><span class="mandatory">*</span>Description</label>
+						<textarea id="prop-area-of-research-desc" name="description" autocomplete="off"
+							[(ngModel)]="description" class="form-control" appLengthValidator
+							placeholder="Please add your comments here" [ngClass]="hasDescriptionValidation?'is-invalid d-block':''"></textarea>
+							<div class="invalid-feedback d-block" *ngIf="hasDescriptionValidation">*Please add comments.</div>
+					</div>
+				
+				</div>
+			</div>
+			<div class="modal-footer ct-footer-padding">
+				<button id="nego-sumbit-no-btn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
+					(click)="description = '';hasDescriptionValidation = false">Cancel</button>
+				<button type="button" class="btn btn-primary-sub btn-sm"
+					(click)="createAdminCorrection()">Create</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<button id="instituteProposalTabChangebutton" [hidden]="true" data-toggle="modal"
+	data-target="#instituteProposalTabChangeConfirmModal"></button>
+
+<div class="modal fade mySkinDialog" tabindex="-1" id="instituteProposalTabChangeConfirmModal" tabindex="-1"
+	role="dialog" data-backdrop="static" data-keyboard="false" aria-labelledby="instituteProposalTabChange"
+	aria-hidden="true">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Confirmation</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+                <p>You have unsaved changes in <strong>{{autoSaveService.getUnsavedChanges()}}.</strong>
+                    Do you want to leave the page without saving?</p>
+            </div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Stay on Page</button>
+				<button type="button" class="btn btn-primary-sub btn-sm" (click)="navigateUsingRedirectRoute()"
+					data-dismiss="modal">Leave Page</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade show mySkinDialog" tabindex="-1" id="BR_MODAL" role="dialog" aria-hidden="true">
+	<div class="modal-dialog" [ngClass]='BRValidation.error.length || BRValidation.warning.length ? "modal-lg" : ""'
+		role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" *ngIf="BRValidation.error.length || BRValidation.warning.length">Validation</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<div class="col-12">
+						<div *ngIf="BRValidation?.error?.length || BRValidation?.warning?.length">
+							<ng-container *ngFor="let msg of BRValidation?.error">
+								<div class="alert alert-danger p-2" role="alert">
+									<i class="fa fa-exclamation-circle icon text-danger" aria-hidden="true"></i>
+									<strong>Error:</strong>
+									{{msg.validationMessage}}
+								</div>
+							</ng-container>
+							<ng-container *ngFor="let msg of BRValidation?.warning">
+								<div class="alert alert-warning p-2" role="alert">
+									<i class="fa fa-exclamation-triangle icon text-warning" aria-hidden="true"></i>
+									<strong> Warning: </strong>{{msg.validationMessage}}
+								</div>
+							</ng-container>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- Development Proposals List Modal -->
+<div class="modal fade show mySkinDialog" id="devProposalListModal" role="dialog" aria-hidden="true">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">Development Proposals
+				</h4>
+				<button class="close" aria-label="Close" data-dismiss="modal" type="button">
+					<span aria-hidden="true" title="Close">×</span>
+				</button>
+			</div>
+			<div class="modal-body pt-3">
+				<div class="success-banner px-3 mb-3 d-flex justify-content-between align-items-center">
+					<div>
+						<i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i>
+						<em>List of Development Proposals that were merged. </em>
+					</div>
+				</div>
+				<div class="u-tree-outer">
+					<ul class="unit-tree ui-tree subfolder">
+						<li class="child-li">
+							<div class="container-fluid">
+								<div class="row">
+									<div class="col-lg-2 md-box">
+										<span><i aria-hidden="true" class="fa fa-chevron-down u-down-arrow"></i></span>
+									</div>
+									<div class="col-lg-10 u-content-middle unit-tree-blocks f-13">
+										<span class="uh-ml">#{{result?.instProposal?.proposalNumber}}:
+											{{result?.instProposal?.title}}</span>
+									</div>
+								</div>
+							</div>
+							<ul class="subfolder">
+								<li class="child-li pointer"
+									*ngFor="let proposal of result?.devProposalIds; let i=index">
+									<div class="container-fluid"
+										title="Click to view proposal #{{proposal}}">
+										<div class="row">
+											<div id="{{proposal}}"
+												class="col-lg-10 u-content-middle unit-tree-blocks pointer f-13">
+												<span class="badge-title bg-transparent mr-2 pl-0 uh-ml">
+													<i class="fa fa-file text-primary" aria-hidden="true"></i>
+													<a title="click here to view proposal {{proposal}}"
+														(click)="navigateToDevProposal(proposal);">
+														<ng-container i18n="@@IP_INSTITUTE_DEVELOPMENT_PROPOSAL_NUMBER">
+															Development Proposal Number
+														</ng-container>: #{{proposal}}
+													</a>
+												</span>
+											</div>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- print IP Modal -->
+<div class="modal fade show mySkinDialog " tabindex="-1" id="printIPModal" role="dialog" aria-hidden="true">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Print Institute Proposal #{{this.result.instProposal.proposalId}} -
+					{{result?.instProposal?.title}}</h5>
+				<button type="button" class="close" data-dismiss="modal" (click)="closePrintModal();"
+					aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body scrollable-print-template-modal">
+				<div>
+					<label class="mb-3 text-muted">Choose a template to print the institute proposal </label>
+					<div *ngFor="let template of printTemplates; let index = index" class="mb-3">
+						<span class="d-flex align-items-center">
+							<input class="print-modal-check-box" type="checkbox" id="{{template.fileName}}"
+								name="template-{{template.letterTemplateTypeCode}}"
+								(ngModelChange)="selectedTemplates($event, template)" [(ngModel)]="isChecked[index]">
+							<label for={{template.fileName}} class="ml-3">
+								<span class="fs-15">{{template.fileName.split('.')[0]}}</span>
+								-( <em class="text-primary">{{template.printFileType}}</em> )
+							</label>
+						</span>
+					</div>
+					<div>
+						<span class="text-danger small "
+							*ngIf="validationMap.has('selectTemplate')">{{validationMap.get('selectTemplate')}}</span>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal" data-toggle="modal"
+					(click)="closePrintModal();">Cancel</button>
+				<button type="button" class="btn btn-primary-sub btn-sm" (click)="initiateDownload();">Print</button>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- Submit without save confirmation modal-->
+<div class="modal fade mySkinDialog" tabindex="-1" id="ipSubmitWithoutSaveModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="submitChange" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>You have unsaved changes in <strong>{{autoSaveService.getUnsavedChanges()}}.</strong>
+                    Do you want to Submit this Institute Proposal without the changes?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="evaluateValidation()" data-dismiss="modal">Continue to Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Cancel admin correction Ip Confirmation modal -->
+<div class="modal fade mySkinDialog" id="cancelIPConfirmationModal" role="dialog">
+	<div class="modal-dialog modal-md">
+		<div class="modal-content">
+			<div class="modal-header ct-footer-padding">
+				<h4 class="modal-title">Confirmation
+				</h4>
+				<button type="button" class="close" data-dismiss="modal" id="dissmiss-btn" aria-label="Close"
+					(click)="description = ''">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body ct-modal-padding">
+				<div class="row mt-2 mb-0">
+					<div class="col-lg-12">
+						<p>Are you sure you want to cancel this Modification?</p>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer ct-footer-padding">
+				<button id="nego-sumbit-no-btn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">No</button>
+				<button type="button" class="btn btn-primary-sub btn-sm" (click)="cancelAdminCorrection()"
+					data-dismiss="modal">Cancel</button>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- Modify Ip blocker notification -->
+<div class="modal fade mySkinDialog" id="modifyIpWarningModal" role="dialog">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header ct-footer-padding">
+				<h4 class="modal-title">Notification
+				</h4>
+				<button type="button" (click)="description='';closeModifyBlockingModal(alternateIP)" class="close" data-dismiss="modal" id="dissmiss-btn" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body ct-modal-padding">
+				<div class="row mt-2 mb-0">
+					<div class="col-lg-12">
+						<p>{{blockingModificationMessage}}</p>
+					</div>
+				</div>	
+			</div>
+			<div class="modal-footer ct-footer-padding">
+				<button id="refresh-btn" type="button" class="btn btn-primary-sub btn-sm" (click)="description='';closeModifyBlockingModal(alternateIP)" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div> 
+
+<div class="modal fade show mySkinDialog" id="invalidActionModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Invalid Action</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+			<div class="form-row">
+				<div class="col-1">
+					<i class="fa fa-2x fa-exclamation-triangle text-warning position-person-inpur-box" aria-hidden="true"></i>
+				</div>
+				<div class="col-11">
+					<p>
+						You have tried to perform an action that is not valid for the current state of this Institute Proposal. The likely cause is that
+						somebody has changed the Institute Proposal recently. Please click the Refresh button to proceed further.
+					</p>
+				</div>
+			</div>
+            <div class="modal-footer">
+                <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button" (click)="reload()"
+                    >OK</button>
+            </div>
+        </div>
+    </div>
+  </div>

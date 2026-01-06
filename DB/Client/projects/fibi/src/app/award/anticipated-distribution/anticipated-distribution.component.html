@@ -1,0 +1,204 @@
+<div *ngIf="_commonData?.awardSectionConfig['196']?.isActive" class="modal fade show mySkinDialog modal-opacity"
+    id="anticipated-distribution-modal" role="dialog" data-backdrop="static" data-keyboard="false"
+    aria-labelledby="skippedSchedulesTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Anticipated Funding Distribution</h5>
+                <button type="button" id="anticipated-distribution-modal-close-btn" class="close" aria-label="Close"
+                    (click)="emitData()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col">
+                        <label class="d-sm-block">Award Number</label>
+                        <span class="content-color">{{awardResult.award.awardNumber}}</span>
+                    </div>
+                    <div class="col">
+                        <label class="d-sm-block">
+                            <ng-container i18n="@@COMMON_AWARD_EFFECTIVE_DATE">Award Effective Date
+                            </ng-container>
+                        </label>
+                        <span class="content-color">{{awardResult.award.beginDate | dateFormatter}}</span>
+                    </div>
+                    <div class="col">
+                        <label class="d-sm-block">
+                            <ng-container i18n="@@COMMON_FINAL_EXPIRATION_DATE">Final Expiration Date
+                            </ng-container>
+                        </label>
+                        <span class="content-color">{{awardResult.award.finalExpirationDate | dateFormatter}}</span>
+                    </div>
+                    <div class="col">
+                        <label class="d-sm-block">Obligated Total</label>
+                        <span class="content-color">{{amountInformation?.obligatedTotal | customCurrency}}</span>
+                    </div>
+                    <div class="col">
+                        <label class="d-sm-block">Anticipated Total</label>
+                        <span class="content-color">{{amountInformation?.anticipatedTotal | customCurrency}}</span>
+                    </div>
+                    <div *ngIf="isEdit" class="col add-period d-flex justify-content-end align-items-center">
+                        <span class="budget-actions hand-cursor" title="Add New Period" (click)="addPeriod()">
+                            <i class="fa fa-plus icon-actions" aria-hidden="true"></i>
+                            Add Period
+                        </span>
+                    </div>
+                </div>
+                <div *ngIf="anticipatedPeriods?.length; else noAnticipatedPeriods" class="scrollable-table mt-3">
+                    <table class="table budget-table tableStyle table-head-color">
+                        <caption class="d-none">Anticipated Funding Distribution</caption>
+                        <thead class="fs-13">
+                            <th scope="col" style="width:8%">Period #</th>
+                            <th scope="col" style="width:10%">Start Date</th>
+                            <th scope="col" style="width:10%">End Date</th>
+                            <th scope="col" style="width:12%">Direct Cost</th>
+                            <th scope="col" style="width:12%">Indirect Cost</th>
+                            <th scope="col" style="width:12%">Anticipated Cost</th>
+                            <th scope="col" style="width:7%">Actions</th>
+                        </thead>
+                        <tbody>
+                            <ng-container *ngFor="let period of anticipatedPeriods; let index = index">
+                                <tr id="period-{{index}}">
+                                    <td>
+                                        <input type="text" class="dateBox form-control" id="period-number" disabled
+                                            [value]="period?.budgetPeriod" />
+                                    </td>
+                                    <td class="align-top">
+                                        <span class="dateField budget-date">
+                                            <input matInput [matDatepicker]="periodStart" placeholder="{{datePlaceHolder}}" id="period-start-date"
+                                                [disabled]="!isEdit"
+                                                class="budgetDate-width form-control" [(ngModel)]="period.startDate"
+                                                autocomplete="off" [ngClass]="validationMap.get('startDate'+index) ||
+                                                startDatesWarningMap[period.budgetPeriod] ? 'is-invalid d-block' : ''"
+                                                (ngModelChange)="validatePeriodDates(period, 'START-DATE');" (click)="periodStart.open()">
+                                            <i *ngIf="isEdit" class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                                (click)="periodStart.open()" aria-hidden="true"></i>
+                                            <mat-datepicker #periodStart (opened)="setFocusToElement('period-start-date')">
+                                            </mat-datepicker>
+                                        </span>
+                                        <div *ngIf="validationMap.has('startDate'+index)" class="mandatory">
+                                            {{validationMap.get('startDate'+index)}}
+                                        </div>
+                                        <span *ngIf="startDatesWarningMap[period.budgetPeriod]"
+                                            class="invalid-feedback block-display">
+                                            {{startDatesWarningMap[period.budgetPeriod]?.startErrorMessage}}
+                                        </span>
+                                    </td>
+                                    <td class="align-top">
+                                        <span class="dateField budget-date">
+                                            <input matInput [matDatepicker]="periodEnd" placeholder="{{datePlaceHolder}}" id="period-end-date"
+                                                [disabled]="!isEdit" class="budgetDate-width form-control" [(ngModel)]="period.endDate"
+                                                autocomplete="off" [ngClass]="validationMap.get('endDate'+index) ||
+                                                endDatesWarningMap[period.budgetPeriod] ? 'is-invalid d-block' : ''"
+                                                (ngModelChange)="validatePeriodDates(period, 'END-DATE');"
+                                                (click)="periodEnd.open()" />
+                                            <i *ngIf="isEdit" class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                                (click)="periodEnd.open()" aria-hidden="true"></i>
+                                            <mat-datepicker #periodEnd (opened)="setFocusToElement('period-end-date')">
+                                            </mat-datepicker>
+                                        </span>
+                                        <div *ngIf="validationMap.has('endDate'+index)" class="mandatory">
+                                            {{validationMap.get('endDate'+index)}}
+                                        </div>
+                                        <span *ngIf="endDatesWarningMap[period.budgetPeriod]"
+                                            class="invalid-feedback block-display">
+                                            {{endDatesWarningMap[period.budgetPeriod]?.endErrorMessage}}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <input type="text" appCurrencyFormat class="dateBox form-control text-right"
+                                            autocomplete="off" [disabled]="!isEdit" [(ngModel)]="period.totalDirectCost"
+                                            [initialValue]="period.totalDirectCost" (ngModelChange)="calculatePeriodTotalCost(period);
+                                        inputDigitRestriction(period.totalDirectCost, 'directCost', index)"
+                                            [ngClass]="(validationMap.get('directCost'+index)) ? 'is-invalid d-block' : ''" />
+                                        <div *ngIf="validationMap.has('directCost'+index)" class="mandatory">
+                                            {{validationMap.get('directCost'+index)}}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" appCurrencyFormat class="dateBox form-control text-right"
+                                            autocomplete="off" [disabled]="!isEdit"
+                                            [(ngModel)]="period.totalIndirectCost"
+                                            [initialValue]="period.totalIndirectCost" (ngModelChange)="calculatePeriodTotalCost(period);
+                                        inputDigitRestriction(period.totalIndirectCost, 'indirectCost', index)"
+                                            [ngClass]="(validationMap.get('indirectCost'+index)) ? 'is-invalid d-block' : ''" />
+                                        <div *ngIf="validationMap.has('indirectCost'+index)" class="mandatory">
+                                            {{validationMap.get('indirectCost'+index)}}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" appCurrencyFormat class="dateBox form-control text-right"
+                                            autocomplete="off" disabled
+                                            [initialValue]="(convertToValidAmount(period.totalDirectCost) + convertToValidAmount(period.totalIndirectCost))" />
+                                    </td>
+                                    <td class="text-center">
+                                        <i class="fa fa-commenting-o hand-cursor hoverColor mr-2" aria-hidden="true"
+                                            title="Comments" (click)="isShowComment[index] = !isShowComment[index]"></i>
+                                        <i *ngIf="isEdit" aria-hidden="true"
+                                            (click)="isShowComment[index] = false; deleteElement(index)"
+                                            class="fa fa-trash hand-cursor hoverColor mr-1"
+                                            title="Delete Period {{period?.budgetPeriod}}"></i>
+                                    </td>
+                                </tr>
+                                <tr *ngIf="isShowComment[index]">
+                                    <td colspan="100%">
+                                        <label class="d-sm-block pb-2">Comment</label>
+                                        <textarea class="form-control" appLengthValidator [isShowLimiter]='isEdit'
+                                            limit=2000 [(ngModel)]="period.comment" [disabled]="!isEdit">
+                                        </textarea>
+                                    </td>
+                                </tr>
+                                <tr id="delete-confirmation-{{index}}" class="confirmation">
+                                    <td colspan="100%" class="p-0">
+                                        <div class="alert alert-danger d-flex align-items-center mb-0 justify-content-between"
+                                            role="alert">
+                                            <h4><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Are you
+                                                sure you want to delete this anticipation distribution for this period?
+                                            </h4>
+                                            <span>
+                                                <button (click)="cancelDeleteElement(index)" title="Cancel"
+                                                    class="btn btn-outline-secondary">
+                                                    Cancel
+                                                </button>
+                                                <button class="btn btn-outline-danger" title="Delete"
+                                                    (click)="deletePeriod(index, period?.fnaDistributionId)">Delete</button>
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </ng-container>
+                            <tr>
+                                <td colspan="2"></td>
+                                <td class="font-weight-bold text-right">Total</td>
+                                <td class="font-weight-bold text-right">
+                                    {{totalAmount?.totalDirectCost | customCurrency}}</td>
+                                <td class="font-weight-bold text-right">
+                                    {{totalAmount?.totalIndirectCost | customCurrency}}</td>
+                                <td class="font-weight-bold text-right">
+                                    {{totalAmount?.totalCost | customCurrency}}</td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <ng-template #noAnticipatedPeriods>
+                    <div class="no-data-container">
+                        <span class="no-data-icon-outer">
+                            <div class="no-data-icon">
+                                <i class="fa fa-file-o" aria-hidden="true"></i>
+                                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                            </div>
+                        </span>
+                        <h4>There is no information in this section.</h4>
+                    </div>
+                </ng-template>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="emitData()">Cancel</button>
+                <button *ngIf="isEdit && anticipatedPeriods?.length" type="button" class="btn btn-primary-sub"
+                    (click)="saveOrUpdateAnticipatedDistribution()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>

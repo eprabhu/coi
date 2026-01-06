@@ -1,0 +1,1 @@
+\. ./FIBI-COI-5.7.3.P1/FC-1463/Procedures/COI_INT_KC_SPON_ORG_RESPONSE.sql

@@ -1,0 +1,165 @@
+<div class="me-3 ms-3"[@fadeInOutHeight]>
+    <div class="card mt-3 pb-3" >
+        <div class="card-header py-2">
+            <h4 class="card-title d-flex justify-content-between">
+                <span class="d-flex align-items-center">Action List</span>
+                <span>
+                    <ul class="nav nav-pills mb-0 hand-cursor fs-14">
+                        <li class="nav-item pt-2"
+                            (click)="inboxTab = 'PENDING';getActionList(false);isInboxInfo = true;">
+                            <a class="nav-link nav-item " [ngClass]="{active:(inboxTab == 'PENDING')}">Pending</a>
+                        </li>
+                        <li class="nav-item pt-2"
+                            (click)="inboxTab = 'PROCESSED'; getActionList(true);isInboxInfo = true;">
+                            <a class="nav-link nav-item " [ngClass]="{active:(inboxTab == 'PROCESSED')}">Processed</a>
+                        </li>
+                        <li class="ml-2 pt-2">
+                            <a class="switch-view px-3 py-2" (click)="viewInboxSearch = !viewInboxSearch;"><i
+                                    aria-hidden="true" class="fa fa-search " title="Search"></i> </a>
+                        </li>
+                        <li class="ml-2 pt-2 pe-2">
+                            <a class="switch-view px-3 py-2" (click)="clearInboxSearchField();getInboxTab()">
+                                <i class="fa fa-refresh" aria-hidden="true" title="Refresh"></i></a>
+                        </li>
+                        <li class="ml-3 Back-to-Award-List ">
+                            <button type="button" class="btn more-btn fs-14" [routerLink]="['/coi/user-dashboard']"
+                                title="Back to Award List"><i class="fa fa-reply" aria-hidden="true"></i></button>
+                        </li>
+                    </ul>
+                </span>
+            </h4>
+        </div>
+        <div *ngIf="isInboxInfo && actionListEntriesForBanner?.length > 0"
+            class="success-banner px-3 my-2 d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fa fa-info-circle mr-1 info-icon pe-3" aria-hidden="true"></i>
+                <em *ngIf="inboxTab == 'PENDING'">Items awaiting an action</em>
+                <em *ngIf="inboxTab == 'PROCESSED'">Processed list of last 6 months</em>
+            </div>
+            <button type="button" id="modal-close" class="close close-button border-0" data-dismiss="modal"
+                (click)="isInboxInfo = false" aria-label="Click to close">
+                <span class="d-block" aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div *ngIf="viewInboxSearch" class="card inbox-card">
+            <button type="button" id="modal-close" class="btn close-btn no-outline border-0" data-dismiss="modal"
+                (click)="viewInboxSearch = false" aria-label="Click to close">
+                <span class="d-block modal-close" aria-hidden="true">&times;</span>
+            </button>
+            <div class="card-content">
+                <div class="card-body">
+                    <div class="form-row">
+                        <div class="col-12 mb-2">
+                            <label>Module</label>
+                            <select [(ngModel)]="inboxObject.moduleCode" class="form-control wd-100">
+                                <option [ngValue]=null>--Select--</option>
+                                <option [value]="module.moduleCode" *ngFor="let module of moduleList">
+                                    {{module.description}}</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label>Action Date</label>
+                            <div class="d-flex">
+                                <span class="dateField">
+                                    <input matInput [matDatepicker]="fromDt"
+                                        class="d-inline-block form-control action-fromdate"
+                                        [(ngModel)]="inboxObject.fromDate" placeholder="{{datePlaceHolder}}"
+                                        id="from-date" (click)="fromDt.open()">
+                                    <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor"
+                                        title="open calendar" (click)="fromDt.open()"></span>
+                                    <mat-datepicker #fromDt (opened)="setFocusToElement('from-date')">
+                                    </mat-datepicker>
+                                </span>
+                                <span>-</span>
+                                <span class="dateField">
+                                    <input matInput [matDatepicker]="toDt"
+                                        class="d-inline-block form-control action-enddate"
+                                        [(ngModel)]="inboxObject.toDate" placeholder="{{datePlaceHolder}}" id="to-date"
+                                        (click)="toDt.open()">
+                                    <span class="fa fa-calendar fa-large pointer insidePicker hand-cursor"
+                                        title="open calendar" (click)="toDt.open()"></span>
+                                    <mat-datepicker #toDt (opened)="setFocusToElement('to-date')">
+                                    </mat-datepicker>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-3 d-flex justify-content-end">
+                            <div>
+                                <button id="adv-search-clear-grant" class="btn btn-secondary btn-lg btn-xs mr-sm-2 me-3"
+                                    (click)="clearInboxSearchField();getInboxTab()">Clear</button>
+                                <button id="adv-search-grant" class="btn btn-primary btn-lg btn-xs"
+                                    (click)="getInboxTab()">Search</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-content">
+            <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-6 col-12" *ngFor="let logEntries of actionListEntriesForBanner; let i= index">
+                            <div class="card cardSkin mt-3 pull-up">
+                                <div class="card-body"> <div class="row">
+                                    <div class=" notifications col">
+                                        <div (click)="goToActionPath(logEntries?.inbox)">
+                                            <div>
+                                                <span class="tab-styler fw-600"
+                                                    [innerHTML]="logEntries?.message?.description"></span>
+                                                <br>
+                                                <span>
+                                                    <ng-container *ngIf="logEntries?.moduleName.moduleCode === 8">
+                                                        <div class="pt-3 fs-14 text-dark">{{ COMMON_DISCL_LOCALIZE.TERM_COI }} Disclosure by
+                                                            {{logEntries?.updateUser}}</div>
+                                                    </ng-container>
+                                                    <ng-container *ngIf="logEntries?.moduleName.moduleCode === 22">
+                                                        <div class="pt-3 fs-14">OPA Disclosure by
+                                                            {{logEntries?.updateUser}}</div>
+                                                    </ng-container>
+                                                    <ng-container
+                                                        *ngIf="logEntries?.moduleName.moduleCode !== 8 && logEntries?.moduleName.moduleCode !== 22">
+                                                        <div class="pt-3 fs-14">{{logEntries?.userMessage}} by
+                                                            {{logEntries?.updateUser}}</div>
+                                                    </ng-container>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <div class="text-right">
+                                            <!-- <span>{{ logEntries?.arrivalDate| dateFormatterWithTimeZone: 'long' }}</span> -->
+                                            <div class="arrival-time fs-14"><span class="fa fa-clock-o mr-2 pe-2 pt-1"
+                                                    title="message-arrival-time"></span>{{getTimeInterval(logEntries.arrivalDate)}}
+                                            </div>
+                                            <div class="pt-3 float-right arrival-time fs-14"
+                                                [ngClass]="getModuleCodeClass(logEntries?.moduleName.moduleCode)">
+                                                {{ logEntries?.moduleName.description }}
+                                            </div>
+                                            <span
+                                                *ngIf="logEntries?.inbox?.messageTypeCode !== '121' && logEntries?.inbox?.messageTypeCode !== '122' else variation"
+                                                class="{{logEntries?.inbox?.class}} float-right mt-1">
+                                                {{logEntries?.inbox?.name}}</span>
+                                            <ng-template #variation>
+                                                <span class="{{logEntries?.inbox.class}} float-right mt-1">Variation
+                                                    Request</span>
+                                            </ng-template>
+                                        </div>
+                                    </div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div *ngIf="actionListEntriesForBanner?.length === 0" class="no-data-container w-100">
+                        <span class="no-data-icon-outer">
+                            <div class="no-data-icon">
+                                <mat-icon aria-hidden="true" class="no-file">folder_off</mat-icon>
+                            </div>
+                        </span>
+                        <h5 class="fs-16 mt-3">
+                            <span class="default-content">There is no information in this section.</span>
+                        </h5>
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>

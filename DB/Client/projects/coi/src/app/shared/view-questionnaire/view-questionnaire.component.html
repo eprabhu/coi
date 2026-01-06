@@ -1,0 +1,659 @@
+<div class="success-banner px-3 mb-2 d-flex justify-content-between align-items-center"
+	*ngIf="result?.header?.QUESTIONNAIRE_DESCRIPTION && isQuestionnaireInfo">
+	<span><i class="fa fa-info-circle mr-1 info-icon" title = "disclosure screening form" aria-hidden="true"></i>
+		<em class="ml-2" tabindex="-1" [attr.aria-label]="result?.header?.QUESTIONNAIRE_DESCRIPTION">{{result?.header?.QUESTIONNAIRE_DESCRIPTION}}</em></span>
+	<button (click)="isQuestionnaireInfo = false" type="button" id="modal-close" class="btn help-text-close fs-16 p-0 close-button"
+		aria-label="Click to close">
+		<span class="d-block" aria-hidden="true">&times;</span>
+	</button>
+</div>
+<ng-container *ngIf="!isViewMode">
+	<div *ngIf="showSkipMandatoryInfo && questionnaire?.questions?.length" class="alert alert-warning fs-14"
+		role="alert">
+		<i class="fa fa-exclamation-triangle icon text-warning" aria-hidden="true"></i>
+		<span>
+			This questionnaire allows you to skip questions, even if they are marked as mandatory. On clicking 'Save',
+			any
+			unanswered mandatory questions will be highlighted for your reference, but you can still proceed without
+			answering
+			them.
+		</span>
+	</div>
+</ng-container>
+<div *ngIf="result?.header?.ANS_PERSON_FULL_NAME" class="text-right text-end fs-12 p-1">
+	<span><em> Last updated by
+			{{result?.header?.ANS_PERSON_FULL_NAME}} on
+			{{result?.header?.ANS_UPDATE_TIMESTAMP | dateFormatterWithTimeZone: 'long'}}</em></span>
+</div>
+<div *ngIf="!isViewMode" class="text-right text-end p-1 fs-13">
+	<span class="fw-500 mx-1 text-primary">{{totalAnsweredQuestions}}/{{totalQuestionCount}} Answered</span>
+	<span *ngIf="uniqueIdFromUnAnsweredQuestions?.length" tabindex="0"
+		aria-label="Click here to navigate mandatory questions" title="Click here to navigate mandatory questions"
+		(click)="validateMandatoryQuestions()" 
+		class="mx-1 fw-500 hand-cursor text-danger hover-mandatory">({{uniqueIdFromUnAnsweredQuestions.length}}
+		Mandatory remaining)</span>
+</div>
+<div class="col-md-12 users-list-tbl mb-3 px-0"
+	*ngIf="questionnaire?.questions != undefined && questionnaire?.questions != null">
+	<div class="qst-list-padding">
+		<ng-container *ngFor='let question of questionnaire?.questions; let indexQuestion = index; let isLast = last'>
+			<div class="card questionnaire-card mb-4 p-4" [class.is-invalid-border]="questionValidationMap.has('validateQuestion-'+question.QUESTION_ID)"
+				[ngClass]="{'focus-invalid-quest': highlight == question.QUESTION_ID && questionValidationMap.has('validateQuestion-'+question.QUESTION_ID), 'card-active-line': highlight == question.QUESTION_ID}"
+				(click)="highlight = question.QUESTION_ID" *ngIf="question.SHOW_QUESTION == true">
+				<ul [ngSwitch]="true" class="qst-list m-0 p-0">
+					<li *ngSwitchCase="question.ANSWER_TYPE === 'Table'" id="ques_{{question.QUESTION_ID}}">
+						<div *ngIf="question.SHOW_LABEL" class="row qst-category-margin p-0">
+							<div class="col-12 col-sm-12 col-md-12 pl-0">
+								<p class="qst-category">{{question.GROUP_LABEL}}</p>
+							</div>
+						</div>
+						<span *ngIf="question?.IS_MANDATORY === 'Y'" class="mandatory">*</span>
+						<span class="question-font mb-0 d-inline" [class.unset-space]="question?.IS_MANDATORY === 'Y'">
+							 {{question.QUESTION}}</span>
+						<a *ngIf="question.DESCRIPTION || question.HELP_LINK"
+						    (click)="getHelpLink(question.DESCRIPTION, question.HELP_LINK, indexQuestion)"
+							class="tooltip"><i aria-hidden="true" class="fa fa-info-circle ct-icon-right hand-cursor"></i>
+						</a>
+
+
+						<div *ngIf="showHelpMsg[indexQuestion] == true" class="row qst-category-margin">
+							<div class="col-12 col-sm-12 col-md-12 pl-0 qst-helpCard">
+								<button (click)="getHelpLink(question.DESCRIPTION, question.HELP_LINK, indexQuestion)"
+									class="qst-closeResultCard qst-close-help">
+									<i aria-hidden="true" class="fa fa-times"></i>
+								</button>
+								<div class="qst-helpMsg">
+									<label [innerHTML]="helpMsg[indexQuestion]"></label>
+								</div>
+							</div>
+						</div>
+
+								<div *ngIf="question.is_add_row && question.ANSWERS['1'].length !== 0 && !isViewMode" class="text-end mb-1">
+									<button (click)="addNewAnswerRow(question)" class="btn-link" title="Add new row">
+										<i aria-hidden="true" class="fa fa-plus me-2"></i>
+										<span>Add Row</span>
+									</button>
+								</div>
+
+						<div class="overflow-auto">
+							<table class="table tableSkin table-bordered table-question mb-0">
+								<thead>
+									<tr>
+										<ng-container *ngFor=" let option of questionnaire.options">
+											<ng-container *ngIf="question.QUESTION_ID == option.QUESTION_ID">
+												<th class="table-min-width" scope="col">{{option.OPTION_LABEL}}</th>
+											</ng-container>
+										</ng-container>
+										<th *ngIf="!isViewMode && question.ANSWERS['1'].length !== 0" class="action-column text-center"
+											scope="col">Action
+										</th>
+									</tr>
+								</thead>
+								<tbody>
+									<ng-container *ngIf="question.ANSWERS && question.ANSWERS['1']">
+										<tr *ngFor="let answer of question.ANSWERS['1'];let answerIndex = index; trackBy:answerIndex">
+											<ng-container *ngIf="answer.AC_TYPE!== 'D'">
+												<ng-container
+													*ngFor=" let option of question.HEADERS; let columnHeaderIndex = index">
+													<td (click)="gotoTextArea(question.QUESTION_ID,answerIndex, columnHeaderIndex)"
+														class="p-0 align-top">
+														<textarea *ngIf="!isViewMode"
+                                                            (focus)="isShowLimiterInTable[answerIndex + '_' + columnHeaderIndex] = true"
+															[ngModel]="answer['COLUMN_' + (columnHeaderIndex + 1)]"
+                                                            (ngModelChange)="storePreviousValueAndUpdate(answer, 'COLUMN_' + (columnHeaderIndex + 1), $event);
+                                                                     updateTableAnswerAcType(question, answer, answerIndex, columnHeaderIndex);
+                                                                     autoSave(question, debounceRequired)"
+															[id]="'answer'+question.QUESTION_ID+answerIndex+columnHeaderIndex"
+															appAutoGrow class="border-0 form-control table-answers w-100"
+															rows="1" appLengthValidator [isShowLimiter]="isShowLimiterInTable[answerIndex + '_' + columnHeaderIndex]"
+                                                            [limit]=250></textarea>
+														<p *ngIf="isViewMode" class="mb-0 p-2 new-line-property"
+															[innerText]="answer['COLUMN_' + (columnHeaderIndex + 1)]">
+														</p>
+													</td>
+												</ng-container>
+												<td *ngIf="!isViewMode"
+													class="text-center p-0 align-middle text-nowrap action-column">
+													<i (click)="deleteTableRow(question, answer, answerIndex)"
+														aria-hidden="true"
+														class="fa fa-trash-o f-16 mt-2 hand-cursor mx-2 hoverColor"
+														title="delete row"></i>
+												</td>
+											</ng-container>
+										</tr>
+									</ng-container>
+									<tr *ngIf="question.ANSWERS['1'].length === 0">
+										<td class="text-center f-13" colspan="100%">
+											<div class="no-data-container w-100 mt-0 py-2">
+												<span class="no-data-icon-outer">
+													<div class="no-data-icon">
+														<mat-icon aria-hidden="true" class="no-file">folder_off</mat-icon>
+													</div>
+												</span>
+												<h5 class="fs-16 mt-3">
+													<ng-content></ng-content>
+													<span *ngIf="question.is_add_row && !isViewMode; elseShowNoRecord" class="default-content">No records found. Click 'Add Row' to create one.</span>
+													<ng-template #elseShowNoRecord><span class="default-content">No records found.</span></ng-template>
+												</h5>
+												<div *ngIf="question.is_add_row && !isViewMode" class="text-center">
+													<button (click)="addNewAnswerRow(question)" class="btn-link" title="Add new row">
+														<i aria-hidden="true" class="fa fa-plus me-2"></i>
+														<span>Add Row</span>
+													</button>
+												</div>
+											</div>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</li>
+					<!-- Text -->
+					<li *ngSwitchCase="question.ANSWER_TYPE == 'Text'" id="ques_{{question.QUESTION_ID}}">
+						<div class="">
+							<div class="row qst-category-margin p-0"
+								*ngIf="question.SHOW_LABEL && question.GROUP_LABEL != null">
+								<div class="col-12 col-sm-12 col-md-12">
+									<p class="prop-quest-category">{{question.GROUP_LABEL}}</p>
+								</div>
+							</div>
+							<span *ngIf="question?.IS_MANDATORY === 'Y'" class="mandatory">*</span>
+							<span class="question-font mb-2 d-inline" [class.unset-space]="question?.IS_MANDATORY === 'Y'">
+								{{question.QUESTION}}</span>
+							<i *ngIf="question.DESCRIPTION || question.HELP_LINK"
+										(click)="getHelpLink(question.DESCRIPTION, question.HELP_LINK, indexQuestion)"
+										class="fa fa-info-circle" aria-hidden="true"></i>
+							<div class="row qst-category-margin" *ngIf="showHelpMsg[indexQuestion] == true">
+								<div class="col-12 col-sm-12 col-md-12 qst-helpCard">
+									<button class="qst-closeResultCard qst-help-close-btn"
+										(click)="getHelpLink(question.DESCRIPTION, question.HELP_LINK, indexQuestion)">
+										<i aria-hidden="true" class="fa fa-times"></i>
+									</button>
+									<div *ngIf="question.DESCRIPTION || question.HELP_LINK" class="qst-helpMsg">
+										<label [innerHTML]="helpMsg[indexQuestion]"></label>
+									</div>
+								</div>
+							</div>
+							<div class="answer-field p-0 ml-4"
+								*ngFor="let number of getArray(question.NO_OF_ANSWERS); let i = index">
+								<input type="text" [disabled]="isViewMode" class="form-control"
+									id="ans_{{question.QUESTION_ID}}" [ngModel]="question.ANSWERS[i+1]"
+                                       (ngModelChange)="storePreviousValueAndUpdate(question.ANSWERS, i+1, $event);
+													    showChildQuestions(question);
+													    autoSave(question, debounceRequired)" name="name" appLengthValidator
+									[isShowLimiter]='!isViewMode' />
+							</div>
+						</div>
+					</li>
+					<!-- Radio -->
+					<li *ngSwitchCase="question.ANSWER_TYPE == 'Radio'
+                            || question.ANSWER_TYPE == 'Y/N'|| question.ANSWER_TYPE == 'Y/N/NA'"
+						id="ques_{{question.QUESTION_ID}}">
+						<div class="">
+							<div class="row qst-category-margin p-0"
+								*ngIf="question.SHOW_LABEL && question.GROUP_LABEL != null">
+								<div class="col-12 col-sm-12 col-md-12">
+									<p class="prop-quest-category">{{question.GROUP_LABEL}}</p>
+								</div>
+							</div>
+							<span *ngIf="question?.IS_MANDATORY === 'Y'" class="mandatory">*</span>
+							<span class="question-font mb-2 d-inline" [class.unset-space]="question?.IS_MANDATORY === 'Y'">{{question.QUESTION}}</span>
+							<i *ngIf="question.DESCRIPTION || question.HELP_LINK"(click)="getHelpLink(question.DESCRIPTION, question.HELP_LINK, indexQuestion)" class="fa fa-info-circle px-2" aria-hidden="true"></i>
+                            <div class="row qst-category-margin" *ngIf="showHelpMsg[indexQuestion] == true">
+								<div class="col-12 col-sm-12 col-md-12 qst-helpCard">
+									<button class="qst-closeResultCard qst-help-close-btn"
+										(click)="getHelpLink(question.DESCRIPTION, question.HELP_LINK, indexQuestion)">
+										<i aria-hidden="true" class="fa fa-times"></i>
+									</button>
+									<div *ngIf="question.DESCRIPTION || question.HELP_LINK" class="qst-helpMsg">
+										<label [innerHTML]="helpMsg[indexQuestion]"></label>
+									</div>
+								</div>
+							</div>
+							<div *ngFor=" let option of questionnaire.options"
+								class="answer-options answer-field  p-0 ml-4">
+								<span *ngIf="question.QUESTION_ID == option.QUESTION_ID">
+									<input type="radio" [disabled]="isViewMode" name="{{option.QUESTION_ID}}"
+										[value]="option.OPTION_LABEL" [(ngModel)]="question.ANSWERS[1]"
+                                        (ngModelChange)="checkExplanationRequired(option,question);
+														 showChildQuestions(question);
+														 autoSave(question)" /> {{option.OPTION_LABEL}}
+								</span>
+							</div>
+							<ng-container *ngIf="(isViewMode  && question.EXPLANATION[1]) || (!isViewMode && isRadioExplanationRequired[question.QUESTION_ID] && question.ANSWERS[1])">
+								<textarea id="questionnaire-radio-option-explanation-{{indexQuestion}}"
+									appLengthValidator [isShowLimiter]='!isViewMode' [limit] = 4000
+									name="questionnaire-radio-option-explanation-{{indexQuestion}}" role="text" class="d-block form-control w-100 mt-3"
+									[ngModel]="question.EXPLANATION[1]" (ngModelChange)="storePreviousValueAndUpdate(question.EXPLANATION, 1, $event);
+																						 markQuestionnaireAsChanged(true);
+																						 autoSave(question, debounceRequired)"
+									[disabled]="isViewMode" placeholder="Provide any necessary details or explanations as required."></textarea>
+							</ng-container>
+						</div>
+					</li>
+					<!-- Checkbox -->
+					<li *ngSwitchCase="question.ANSWER_TYPE == 'Checkbox'" id="ques_{{question.QUESTION_ID}}">
+						<div class="">
+							<div class="row qst-category-margin p-0"
+								*ngIf="question.SHOW_LABEL && question.GROUP_LABEL != null">
+								<div class="col-12 col-sm-12 col-md-12">
+									<p class="prop-quest-category">{{question.GROUP_LABEL}}</p>
+								</div>
+							</div>
+							<span *ngIf="question?.IS_MANDATORY === 'Y'" class="mandatory">*</span>
+							<span class="question-font mb-2 d-inline" [class.unset-space]="question?.IS_MANDATORY === 'Y'">{{question.QUESTION}}</span>
+							<i *ngIf="question.DESCRIPTION || question.HELP_LINK"
+										(click)="getHelpLink(question.DESCRIPTION, question.HELP_LINK, indexQuestion)"
+										class="fa fa-info-circle" aria-hidden="true"></i>
+							<div class="row qst-category-margin" *ngIf="showHelpMsg[indexQuestion] == true">
+								<div class="col-12 col-sm-12 col-md-12 qst-helpCard">
+									<button class="qst-closeResultCard qst-help-close-btn"
+										(click)="getHelpLink(question.DESCRIPTION, question.HELP_LINK, indexQuestion)">
+										<i aria-hidden="true" class="fa fa-times"></i>
+									</button>
+									<div *ngIf="question.DESCRIPTION || question.HELP_LINK" class="qst-helpMsg">
+										<label [innerHTML]="helpMsg[indexQuestion]"></label>
+									</div>
+								</div>
+							</div>
+							<div class="answer-options answer-field p-0 ml-4"
+								*ngFor=" let option of questionnaire.options; let index=index">
+								<span *ngIf="question.QUESTION_ID == option.QUESTION_ID">
+									<input type="checkbox" [disabled]="isViewMode"
+										[(ngModel)]="question.ANSWERS[option.OPTION_LABEL]"
+										(ngModelChange)="showChildQuestions(question);
+														 autoSave(question)" /> {{option.OPTION_LABEL}}
+
+								</span>
+								<ng-container *ngIf="question.QUESTION_ID == option.QUESTION_ID && ((isViewMode && question.EXPLANATION[option.OPTION_LABEL]) || (!isViewMode && option.REQUIRE_EXPLANATION == 'Y' && question.ANSWERS[option.OPTION_LABEL]))">
+									<textarea id="questionnaire-checkbox-option-explanation-{{index}}"
+										appLengthValidator [isShowLimiter]='!isViewMode' [limit] = 4000
+										name="questionnaire-checkbox-option-explanation-{{index}}" role="text" class="d-block form-control w-100"
+										[ngModel]="question.EXPLANATION[option.OPTION_LABEL]" (ngModelChange)="storePreviousValueAndUpdate(question.EXPLANATION, option.OPTION_LABEL, $event);
+																											   markQuestionnaireAsChanged(true);
+																											   autoSave(question, debounceRequired)"
+										[disabled]="isViewMode" placeholder="Provide any necessary details or explanations as required."></textarea>
+								</ng-container>
+							</div>
+						</div>
+					</li>
+					<!-- Attachment -->
+					<li *ngSwitchCase="question.ANSWER_TYPE == 'Attachment'" id="ques_{{question.QUESTION_ID}}">
+						<div class="">
+							<div class="row qst-category-margin p-0"
+								*ngIf="question.SHOW_LABEL && question.GROUP_LABEL != null">
+								<div class="col-12 col-sm-12 col-md-12">
+									<p class="prop-quest-category">{{question.GROUP_LABEL}}</p>
+								</div>
+							</div>
+							<span *ngIf="question?.IS_MANDATORY === 'Y'" class="mandatory">*</span>
+							<span class="question-font mb-2 d-inline" [class.unset-space]="question?.IS_MANDATORY === 'Y'">{{question.QUESTION}}</span>
+							<i *ngIf="question.DESCRIPTION || question.HELP_LINK"
+										(click)="getHelpLink(question.DESCRIPTION, question.HELP_LINK, indexQuestion)"
+										class="fa fa-info-circle" aria-hidden="true"></i>
+                            <div class="row qst-category-margin answer-field"
+								*ngIf="showHelpMsg[indexQuestion] == true">
+								<div class="col-12 col-sm-12 col-md-12 qst-helpCard">
+									<button class="qst-closeResultCard qst-help-close-btn"
+										(click)="getHelpLink(question.DESCRIPTION, question.HELP_LINK, indexQuestion)">
+										<i aria-hidden="true" class="fa fa-times"></i>
+									</button>
+									<div *ngIf="question.DESCRIPTION || question.HELP_LINK" class="qst-helpMsg">
+										<label [innerHTML]="helpMsg[indexQuestion]"></label>
+									</div>
+								</div>
+							</div>
+							<div class="answer-field p-0 ml-4">
+								<a id="add-attach{{questionnaireDetails?.QUESTIONNAIRE_ID}}"
+									class="mb-3 answer-field cursor-pointer btn btn-primary-outline btn-sm" *ngIf="!isViewMode"
+									(click)="attachmentIndex = indexQuestion" data-bs-toggle="modal"
+									[attr.data-bs-target]="'#AttachmentModal' + questionnaireDetails?.QUESTIONNAIRE_ID">
+									<i aria-hidden="true" class="fa fa-paperclip me-2"></i>Add Attachment</a>
+							</div>
+							<span *ngIf="question.ANSWERS[1]" class="qst-attachment-label answer-field ml-3">
+								<label><strong class="fs-12">{{ question.ANSWERS[1] }}</strong></label>
+								<button class="qst-attachment-cls-btn cursor-pointer" *ngIf="!isViewMode"
+									(click)="deleteAttachment(question, indexQuestion)">
+									<i aria-hidden="true" class="fa fa-times"></i>
+								</button>
+								<button *ngIf="question.ATTACHMENT_ID!=null && question.AC_TYPE != 'I'"
+									class="qst-attachment-cls-btn cursor-pointer"
+									(click)="downloadAttachment(question.ATTACHMENT_ID, question.ANSWERS[1])">
+									<i class="fa fa-download" aria-hidden="true"></i>
+								</button>
+							</span>
+						</div>
+					</li>
+					<!-- Textarea -->
+					<li *ngSwitchCase="question.ANSWER_TYPE == 'Textarea'" id="ques_{{question.QUESTION_ID}}">
+						<div>
+							<div class="row qst-category-margin p-0"
+								*ngIf="question.SHOW_LABEL && question.GROUP_LABEL != null">
+								<div class="col-12 col-sm-12 col-md-12">
+									<p class="prop-quest-category">{{question.GROUP_LABEL}}</p>
+								</div>
+							</div>
+							<span *ngIf="question?.IS_MANDATORY === 'Y'" class="mandatory">*</span>
+							<span class="question-font mb-2 d-inline" [class.unset-space]="question?.IS_MANDATORY === 'Y'">{{question.QUESTION}}</span>
+							<i class="answer-field" *ngIf="question.DESCRIPTION || question.HELP_LINK"
+										(click)="getHelpLink(question.DESCRIPTION, question.HELP_LINK, indexQuestion)"
+										class="fa fa-info-circle" aria-hidden="true"></i>
+                            <div class="row qst-category-margin answer-field"
+                                 *ngIf="showHelpMsg[indexQuestion] == true">
+                                <div class="col-12 col-sm-12 col-md-12 qst-helpCard">
+                                    <button class="qst-closeResultCard qst-help-close-btn"
+                                            (click)="getHelpLink(question.DESCRIPTION, question.HELP_LINK, indexQuestion)">
+                                        <i aria-hidden="true" class="fa fa-times"></i>
+                                    </button>
+                                    <div *ngIf="question.DESCRIPTION || question.HELP_LINK" class="qst-helpMsg">
+                                        <label [innerHTML]="helpMsg[indexQuestion]"></label>
+                                    </div>
+                                </div>
+                            </div>
+							<div class="answer-field p-0 ml-4">
+								<textarea name="name" [disabled]="isViewMode" rows="2" appLengthValidator appAutoGrow
+									[isShowLimiter]='!isViewMode' id="ans_{{question.QUESTION_ID}}"
+									class="question-font mb-2 scheduleBoxes dateBox qst-input-width form-control w-100"
+									[ngModel]="question.ANSWERS[1]"
+                                    (ngModelChange)="storePreviousValueAndUpdate(question.ANSWERS, 1, $event);
+													 showChildQuestions(question);
+													 autoSave(question, debounceRequired)"> </textarea>
+							</div>
+						</div>
+					</li>
+					<!-- Date -->
+					<li *ngSwitchCase="question.ANSWER_TYPE == 'Date'" id="ques_{{question.QUESTION_ID}}">
+						<div>
+							<div class="row qst-category-margin p-0"
+								*ngIf="question.SHOW_LABEL && question.GROUP_LABEL != null">
+								<div class="col-12 col-sm-12 col-md-12">
+									<p class="prop-quest-category">{{question.GROUP_LABEL}}</p>
+								</div>
+							</div>
+							<span *ngIf="question?.IS_MANDATORY === 'Y'" class="mandatory">*</span>
+							<span class="question-font mb-2 d-inline" [class.unset-space]="question?.IS_MANDATORY === 'Y'">{{question.QUESTION}}</span>
+							<i *ngIf="question.DESCRIPTION || question.HELP_LINK"
+										(click)="getHelpLink(question.DESCRIPTION, question.HELP_LINK, indexQuestion)"
+										class="fa fa-info-circle" aria-hidden="true"></i>
+                            <div class="row qst-category-margin answer-field"
+                                 *ngIf="showHelpMsg[indexQuestion] == true">
+                                <div class="col-12 col-sm-12 col-md-12 qst-helpCard">
+                                    <button class="qst-closeResultCard qst-help-close-btn"
+                                            (click)="getHelpLink(question.DESCRIPTION, question.HELP_LINK, indexQuestion)">
+                                        <i aria-hidden="true" class="fa fa-times"></i>
+                                    </button>
+                                    <div class="qst-helpMsg">
+                                        <label [innerHTML]="helpMsg[indexQuestion]"></label>
+                                    </div>
+                                </div>
+                            </div>
+							<div class="answer-field p-0 ml-4">
+								<div class="qst-date-dv">
+                                      <span class="dateField">
+                                        <input matInput [matDatepicker]="questionnaire_date" [disabled]="isViewMode"
+                                          id="ans_{{question.QUESTION_ID}}" (click)="questionnaire_date.open()"
+                                          class="form-control d-inline-block" [(ngModel)]="question.ANSWERS[1]"
+                                         (dateChange)="showChildQuestions(question);updateDateChangeFlag($event, question.ANSWERS[1]);setDateFormat(indexQuestion, question)"
+                                          placeholder="{{question.ANSWERS[1]}}" (keypress)="_commonService._keyPress($event, 'date')">
+                                        <i (click)="questionnaire_date.open()" class="fa fa-calendar fa-large insidePicker hand-cursor"></i>
+                                        <mat-datepicker #questionnaire_date></mat-datepicker>
+                                      </span>
+								</div>
+							</div>
+						</div>
+					</li>
+					<!-- Elastic -->
+					<li *ngSwitchCase="question.ANSWER_TYPE == 'elastic'" id="ques_{{question.QUESTION_ID}}">
+						<div class="">
+							<div class="row qst-category-margin p-0"
+								*ngIf="question.SHOW_LABEL && question.GROUP_LABEL != null">
+								<div class="col-12 col-sm-12 col-md-12">
+									<p class="prop-quest-category">{{question.GROUP_LABEL}}</p>
+								</div>
+							</div>
+							<span *ngIf="question?.IS_MANDATORY === 'Y'" class="mandatory">*</span>
+							<span class="question-font mb-2 d-inline" [class.unset-space]="question?.IS_MANDATORY === 'Y'">{{question.QUESTION}}</span>
+							<i *ngIf="question.DESCRIPTION || question.HELP_LINK"
+										(click)="getHelpLink(question.DESCRIPTION, question.HELP_LINK, indexQuestion)"
+										class="fa fa-info-circle" aria-hidden="true"></i>
+                            <div class="row qst-category-margin" *ngIf="showHelpMsg[indexQuestion] == true">
+                                <div class="col-12 col-sm-12 col-md-12 qst-helpCard">
+                                    <button class="qst-closeResultCard qst-help-close-btn"
+                                            (click)="getHelpLink(question.DESCRIPTION, question.HELP_LINK, indexQuestion)">
+                                        <i aria-hidden="true" class="fa fa-times"></i>
+                                    </button>
+                                    <div *ngIf="question.DESCRIPTION || question.HELP_LINK" class="qst-helpMsg">
+                                        <label [innerHTML]="helpMsg[indexQuestion]"></label>
+                                    </div>
+                                </div>
+                            </div>
+							<div class="answer-field p-0 ml-4">
+								<app-elastic [options]="searchOptions[question.QUESTION_ID + question.ANSWER_TYPE]"
+									[clearField]="clearElasticField" [placeHolder]="question.placeHolder"
+									[isDisabled]="isViewMode" (selectedResult)="onSearchSelectEvent($event, question);">
+								</app-elastic>
+							</div>
+						</div>
+					</li>
+					<!-- Endpoint -->
+					<li *ngSwitchCase="question.ANSWER_TYPE == 'endpoint'" id="ques_{{question.QUESTION_ID}}">
+						<div class="">
+							<div class="row qst-category-margin p-0"
+								*ngIf="question.SHOW_LABEL && question.GROUP_LABEL != null">
+								<div class="col-12 col-sm-12 col-md-12">
+									<p class="prop-quest-category">{{question.GROUP_LABEL}}</p>
+								</div>
+							</div>
+							<span *ngIf="question?.IS_MANDATORY === 'Y'" class="mandatory">*</span>
+							<span class="question-font mb-2 d-inline" [class.unset-space]="question?.IS_MANDATORY === 'Y'">{{question.QUESTION}}</span>
+							<i *ngIf="question.DESCRIPTION || question.HELP_LINK"
+										(click)="getHelpLink(question.DESCRIPTION, question.HELP_LINK, indexQuestion)"
+										class="fa fa-info-circle" aria-hidden="true"></i>
+                            <div class="row qst-category-margin" *ngIf="showHelpMsg[indexQuestion] == true">
+                                <div class="col-12 col-sm-12 col-md-12 qst-helpCard">
+                                    <button class="qst-closeResultCard qst-help-close-btn"
+                                            (click)="getHelpLink(question.DESCRIPTION, question.HELP_LINK, indexQuestion)">
+                                        <i aria-hidden="true" class="fa fa-times"></i>
+                                    </button>
+                                    <div *ngIf="question.DESCRIPTION || question.HELP_LINK" class="qst-helpMsg">
+                                        <label [innerHTML]="helpMsg[indexQuestion]"></label>
+                                    </div>
+                                </div>
+                            </div>
+							<div class="answer-field p-0 ml-4">
+								<app-endpoint-search
+									[httpOptions]="searchOptions[question.QUESTION_ID + question.ANSWER_TYPE]"
+									[placeHolder]="question.placeHolder" [isDisabled]="isViewMode"
+									(onSelect)="onSearchSelectEvent($event, question)">
+								</app-endpoint-search>
+							</div>
+						</div>
+					</li>
+					<!-- System and User Lookups -->
+					<li *ngSwitchCase="question.ANSWER_TYPE == 'SystemLookup' || question.ANSWER_TYPE == 'UserLookup'"
+						id="ques_{{question.QUESTION_ID}}">
+						<div *ngIf="question.SHOW_QUESTION == true" @items>
+							<div class="row qst-category-margin p-0" *ngIf="question.SHOW_LABEL">
+								<div class="col-12 col-sm-12 col-md-12 pl-0">
+									<p class="qst-category">{{question.GROUP_LABEL}}</p>
+								</div>
+							</div>
+							<span *ngIf="question?.IS_MANDATORY === 'Y'" class="mandatory">*</span>
+							<span class="question-font d-inline" [class.unset-space]="question?.IS_MANDATORY === 'Y'">{{question.QUESTION}}</span>
+							<a *ngIf="(question.DESCRIPTION && question.DESCRIPTION) || question.HELP_LINK"  class="tooltip"
+										(click)="getHelpLink(question.DESCRIPTION, question.HELP_LINK, indexQuestion)">
+										<i class="fa fa-info-circle ct-icon-right" aria-hidden="true"></i>
+							</a>
+                            <div class="row qst-category-margin" *ngIf="showHelpMsg[indexQuestion] == true">
+                                <div class="col-12 col-sm-12 col-md-12 pl-0 qst-helpCard">
+                                    <button class="qst-closeResultCard qst-close-help"
+                                            (click)="getHelpLink(question.DESCRIPTION, question.HELP_LINK, indexQuestion)">
+                                        <i class="fa fa-times" aria-hidden="true"></i>
+                                    </button>
+                                    <div class="qst-helpMsg">
+                                        <label [innerHTML]="helpMsg[indexQuestion]"></label>
+                                    </div>
+                                </div>
+                            </div>
+							<div class="ml-4" *ngIf="question.ANSWER_LENGTH === 1; else singleValueSelect">
+								<ng-container *ngIf="!isViewMode">
+									<app-look-up [options]='lookUpOptions[question.QUESTION_ID]' [isDisabled]="isViewMode"
+										[selectedLookUpList]="lookUpValues[question.QUESTION_ID]"
+										(selectedResult)="onSelectLookUpValue($event, question)">
+									</app-look-up>
+								</ng-container>
+									<div *ngIf="question?.ANSWERS && question?.ANSWERS[0]"  class="col mb-0 pl-0 fileChips" style="margin-left: 2px;">
+                                        <ng-container *ngFor="let question of question.ANSWERS | keyvalue">
+											<span class="pl-2 mb-0">{{question?.value?.description}}
+											</span>
+										</ng-container>
+									</div>
+							</div>
+							<ng-template #singleValueSelect>
+								<div class="ml-4">
+									<app-look-up [options]='lookUpOptions[question.QUESTION_ID]'
+										[isDisabled]="isViewMode"
+										[selectedLookUpList]="lookUpValues[question.QUESTION_ID]"
+										(selectedResult)="onSelectLookUpValue($event, question)"
+										[defaultValue]="question.ANSWERS[0] ? question.ANSWERS[0].description : ''">
+									</app-look-up>
+								</div>
+							</ng-template>
+
+						</div>
+					</li>
+				</ul>
+				<div *ngIf="questionValidationMap.has('validateQuestion-'+question.QUESTION_ID)"
+					class="invalid-feedback d-block mt-3">
+					{{question?.MANDATORY_MESSAGE}}
+				</div>
+			</div>
+		</ng-container>
+		<div class="row mt-2">
+			<div class="col-12">
+				<div class="col-12 text-right pr-0">
+					<button class="btn btn-outline-primary fs-14"
+						*ngIf="!isViewMode && questionnaire.questions.length != 0 && isShowSave"
+						(click)="saveQuestionnaire()" id="save">{{saveButtonLabel}}</button>
+				</div>
+			</div>
+		</div>
+		<!-- dock -->
+		<div class="dock-box border mt-3 p-3"
+			*ngIf="uniqueIdFromUnAnsweredQuestions.length !== 0 && isShowDock && !isViewMode && isShowQuestionnaireDock"
+			>
+			<div *ngIf="uniqueIdFromUnAnsweredQuestions.length > 0" class="d-flex align-items-center">
+				<i class="fa fa-question bg-primary dock-question-box mr-2 ms-2" aria-hidden="true" title=""></i>
+				You have <b class="mx-1">{{uniqueIdFromUnAnsweredQuestions.length}}</b> unanswered mandatory question(s).
+				<span tabindex="0" role="button" (click)="isShowDock = !isShowDock" (keyup.enter)="isShowDock = !isShowDock"
+					title="Close unanswered questions dock" aria-label="Close unanswered questions dock" class="hand-cursor ml-2 ms-2 mt-1">
+					<i aria-hidden="true" class="fa fa-times float-right"></i>
+				</span>
+			</div>
+			<div class="mt-0 text-center pt-3">
+				<a *ngIf="uniqueIdFromUnAnsweredQuestions.length > 0" tabindex="0" role="button" 
+					(click)="moveToNextUnansweredQuestion('LEFT')"
+					class="page-link btn btn-tertiary arrow-btn d-inline-block mr-2 hover-arrow-color"
+					aria-label="Previous" title="Move to previous unanswered question">
+					<span aria-hidden="true"><i class="fa fa-angle-double-left" aria-hidden="true"></i></span>
+					<span class="sr-only"></span>
+				</a> 
+				<a *ngIf="uniqueIdFromUnAnsweredQuestions.length > 0" tabindex="0" role="button" 
+					class="page-link btn btn-tertiary arrow-btn d-inline-block mr-4 hover-arrow-color"
+					(click)="moveToNextUnansweredQuestion('RIGHT')" aria-label="Next"
+					title="Move to next unanswered question">
+					<span aria-hidden="true"><i class="fa fa-angle-double-right" aria-hidden="true"></i></span>
+					<span class="sr-only"></span>
+				</a>
+			</div>
+		</div>
+		<div class="show-dock hand-cursor" *ngIf="!isShowDock">
+			<i class="fa fa-question fa-2x bg-primary show-dock-icon" (click)="isShowDock = true" aria-hidden="true"
+				title="You have {{uniqueIdFromUnAnsweredQuestions.length}} unanswered mandatory  questions."></i>
+		</div>
+	</div>
+</div>
+
+<!-- attachment modal -->
+<div class="modal fade mySkinDialog" id="AttachmentModal{{questionnaireDetails?.QUESTIONNAIRE_ID}}" tabindex="-1"
+	role="dialog" aria-labelledby="AttachmentModal" aria-hidden="true">
+	<div class="modal-dialog modal-lg modal-dialog-centered" role="document" appModalDrag>
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="AttachmentModalTitle">Add Attachment</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Click to close" (click)="tempFiles = [];">
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class="col-12">
+					<app-file-drop [multiple]="false" (filesDropEvent)="addFileToTempFiles($event)">
+					</app-file-drop>
+				</div>
+				<div class="upload-table">
+					<table class="table">
+						<caption class="sr-only">Attachment</caption>
+						<thead class="qst-table-head" *ngIf="tempFiles?.length != 0">
+							<th scope="col" class="f-14 p-2">Name</th>
+							<th scope="col" class="f-14 p-2">Type</th>
+						</thead>
+						<tbody class="upload-name-style">
+							<tr *ngFor="let item of tempFiles;let i = index" class="qst-atmt-list">
+								<td class="p-3"><span>{{ item.fileName }}</span></td>
+								<td class="p-3"><span>{{ item.type }}</span></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="d-flex gap-2 justify-content-end mb-3 p-0">
+					<button type="button" (click)="tempFiles = [];" class="btn btn-outline-secondary fs-14" aria-label="Click here to close" title="Close"
+						data-bs-dismiss="modal">Close</button>
+					<button type="button" (click)="addFileToArray();" data-bs-dismiss="modal" aria-label="Click here to add" title="Add"
+						class="btn btn-primary fs-14">Add</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Delete Attachment Modal -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="deleteAttachmentModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" appModalDrag>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Attachment</h5>
+                <button type="button" class="btn btn-close" title="Click here to close"  id="delete-attachment-modal-close" data-bs-dismiss="modal" aria-label="Click here to close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this attachment?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" id="attach-delete-attach-no-btn" data-bs-dismiss="modal"
+					title="Click here to cancel" aria-label="Click here to cancel">Cancel</button>
+                <button type="button" class="btn btn-primary" id="attach-delete-attach-del-btn"
+                    data-bs-dismiss="modal" title="Click here to delete" aria-label="Click here to delete">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Table Row Modal -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="deleteRowModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document" appModalDrag>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Row</h5>
+                <button type="button" class="btn btn-close" title="Click here to close" id="delete-table-modal-close"
+                data-bs-dismiss="modal" aria-label="Click here to close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this row?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" id="row-delete-row-no-btn" data-bs-dismiss="modal"
+					title="Click here to cancel" aria-label="Click here to cancel">Cancel</button>
+                <button type="button" class="btn btn-primary" id="row-delete-row-del-btn"
+                    data-bs-dismiss="modal" title="Click here to delete" aria-label="Click here to delete">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>

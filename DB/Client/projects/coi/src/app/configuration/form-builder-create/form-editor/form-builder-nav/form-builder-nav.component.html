@@ -1,0 +1,304 @@
+<div class="nav-header ">
+    <nav class="d-flex align-items-center fbnav justify-content-between">
+        <div class="d-flex align-items-center">
+            <span class="fb-mr-15">
+                <div>
+                    <span *ngIf="formTitle?.length <= titleLimitObject.title_length" class="fw-500">
+                        {{formTitle}}
+                    </span>
+                    <span *ngIf="formTitle?.length > titleLimitObject.title_length" title="{{formTitle}}" class="fw-500">
+                        {{formTitle |slice:0:titleLimitObject.title_length}}...
+                    </span>
+                    <i (click)="showTitleEditModal()" class="fa fa-pencil hand-cursor"></i>
+                </div>
+                <small *ngIf="formDescription?.length > titleLimitObject.description_length" title="{{formDescription}}">
+                    {{formDescription |slice:0:titleLimitObject.description_length}}...
+                </small>
+                <small *ngIf="formDescription?.length <= titleLimitObject.description_length">
+                    {{formDescription}}
+                </small>
+            </span>
+        </div>
+        <div class="d-flex justify-content-end">
+            <span class="badge-pill status-badge-success f-12 d-flex align-items-center fb-mr-2"
+                  [ngClass]="{'non-Active-version-color': ['ARCHIVE','DRAFT'].includes(formVersionStatus)}">
+                            Version {{ formVersionNumber }}
+                <span *ngIf="['ACTIVE'].includes(formVersionStatus)" class="fb-ml-1">- Published</span>
+                <span *ngIf="['DRAFT'].includes(formVersionStatus)" class="fb-ml-1">- Draft</span>
+            </span>
+            <div class="version-image dropleft dropdown hand-cursor">
+            <button class="p-0 btn" id="FB-dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
+                aria-expanded="false" title="Click here to view all versions" aria-label="Click here to view all versions">
+                <img src="{{deployMap}}assets/images/fb-image/FB-version.svg" alt="View all versions">
+            </button>
+                <ul class="FB-more-otions dropdown-menu p-10">
+                    <div class="more-option-heading d-flex justify-content-between">
+                        <h4>
+                            Versions
+                        </h4>
+                    </div>
+                    <hr class="fb-mb-0 fb-mt-0">
+                    <div class="fb-version-array">
+                        <ng-container *ngFor="let version of formVersionArray">
+                            <li class="dropdown-item d-flex justify-content-between align-items-center flex-wrap">
+                                <span>
+                                    <span>Version {{version.versionNumber}}</span>
+                                    <span *ngIf="['ACTIVE','DRAFT'].includes(version.versionStatus)">-</span>
+                                    <span *ngIf="version.versionStatus === 'ACTIVE'" class="active-version-color">Published</span>
+                                    <span *ngIf="version.versionStatus === 'DRAFT'" class="draft-version-color">Draft</span>
+                                </span>
+                                <i role="button"  tabindex="0" title="Click here to view version {{version.versionNumber}}"
+                                   [routerLink]="['preview']"
+                                   [queryParams]={formBuilderId:version.formBuilderId} aria-label="Click here to view version {{version.versionNumber}}" class="fa fa-eye pointer view-form-icon-color" aria-hidden="true">
+
+                                </i>
+                            </li>
+                        </ng-container>
+                    </div>
+                </ul>
+            </div>
+            <button *ngIf="formVersionStatus === 'DRAFT' && formBuilderService.formBuilderVisibilityMode === 'EDIT'" role="button" id="FB-publish-btn" aria-label="Click here to publish the form" title="Click here to publish the form"
+                class="btn btn-primary-sub btn-sm fb-mr-2" (click)="canFormBePublished()">
+                <i class="fa fa-solid fa-upload"></i>
+                Publish
+            </button>
+            <button id="FB-back-to-form-list" title="Back to form list" aria-label="Back to form list" (click)="navigateToFormList()" class="btn more-btn">
+                <i  aria-hidden="true" class="fa fa-reply"></i>
+            </button>
+        </div>
+    </nav>
+    <div [id]="FB_SECOND_NAV_BAR_ID" class="card fb-mt-2 fb-second-nav-bar">
+        <div class="d-flex justify-content-between align-items-end">
+            <ul class="d-flex m-0 p-0">
+                <li *ngIf="formBuilderService.formBuilderVisibilityMode === 'EDIT'" role="tab" aria-label="Click here to build" class="fw-500 fb-nav-buttons cursor-pointer nav-options-link mx-2"
+                    routerLinkActive="active nav-sub-obtions" tabindex="0" [routerLink]="['editor']"
+                    [queryParams]={formBuilderId:formBuilderId}>Build</li>
+                <hr *ngIf="formBuilderService.formBuilderVisibilityMode === 'EDIT'" class="Fb-nav-btn-hr">
+                <li *ngIf="formBuilderService.formBuilderVisibilityMode === 'EDIT'" role="tab" aria-label="Click here to integrate" class="fw-500 fb-nav-buttons cursor-pointer nav-options-link mx-2"
+                    routerLinkActive="active nav-sub-obtions" tabindex="0" [routerLink]="['integration']"
+                    [queryParams]={formBuilderId:formBuilderId,title:formTitle,formBuilderNumber:formBuilderNumber}>
+                    Integrate</li>
+            </ul>
+            <div class="fb-mr-15 FB-visibility-mode toggle-container">
+                <button id="FB-editBtn" class="toggle-btn active fb-mr-1" routerLinkActive="active"
+                        [routerLink]="['editor']"
+                        [queryParams]={formBuilderId:formBuilderId} title="Click here to edit" aria-label="Click here to edit"
+                        (click)="formBuilderService.formBuilderVisibilityMode = 'EDIT';"
+                        [disabled]="isEditButtonEnabled()">Edit
+                </button>
+                <button id="FB-previewBtn" [routerLink]="['preview']"
+                        [queryParams]={formBuilderId:formBuilderId} routerLinkActive="active" class="toggle-btn"
+                        title="Click here to preview" aria-label="Click here to preview">Preview
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+<div class="modal fade mySkinDialog fb-modal" data-bs-backdrop="static" data-backdrop="static" id="FB-publish-Modal" role="dialog">
+    <div class="modal-dialog" [ngClass]="{'modal-lg':(isFormPublishable && formVersionNumber !== 1) }" appModalDrag>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">{{publisModalHeading}}</h4>
+                <button id="FB-dismiss-publish-modal-btn" type="button" class="close" data-dismiss="modal" title="Click here to close" aria-label="Click here to close"
+                    (click)="closeBtn('#FB-publish-Modal')">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <span *ngIf="!isFormPublishable || (formVersionNumber === 1)" class="fs-14">{{publisModalMsg}} </span>
+                    <ng-container *ngIf="isFormPublishable && formVersionNumber !== 1">
+                        <div class="d-flex p-15 FB-publish-mode-container" [ngClass]="{'FB-publish-mode':(formPublishMode === 'A')}">
+                        <input id="FB-publish-type-1" type="radio" name='FB-publish-type' value='A' class="fb-mr-4"
+                         [(ngModel)]="formPublishMode">
+                            <div>
+                                <h5>Publish for All Users:</h5>
+                                <p class="fw-500">
+                                    When you select this option, the published version will replace the current version for all users.
+                                    All users, including those who have already started filling out or submitted the form, will see this updated version.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="d-flex p-15 fb-mb-2 FB-publish-mode-container" [ngClass]="{'FB-publish-mode':(formPublishMode === 'N')}">
+                            <input id="FB-publish-type-2" type="radio" name='FB-publish-type' value='N' class="fb-mr-4"
+                                   [(ngModel)]="formPublishMode">
+                            <div>
+                                <h5>Publish for New Users:</h5>
+                                <p class="fw-500">
+                                    When you select this option, the published version will only apply to new users. Users who have already submitted the form will continue to see the version they originally accessed.
+                                </p>
+                            </div>
+                        </div>
+                    </ng-container>
+            </div>
+            <div class="modal-footer">
+                <button *ngIf="isFormPublishable" id="FB-cancel-publish-Modal" aria-label="Click here to cancel"
+                    title="Click here to cancel" class="btn btn-secondary btn-sm" id="FB-claim-sumbit-no-btn"
+                    data-dismiss="modal" type="button">Cancel
+                </button>
+                <button *ngIf="isFormPublishable" id="FB-confirm-publish-btn" data-dismiss="modal"
+                    class="btn btn-primary-sub btn-sm" aria-label="Click here to publish" title="Click here to publish" type="button"
+                    (click)="publishForm();closeBtn('#FB-publish-Modal')">Publish</button>
+                <button *ngIf="!isFormPublishable" id="FB-close-publish-Modal" aria-label="Click here to close"
+                    title="Click here to close" data-dismiss="modal" (click)="closeBtn('#FB-publish-Modal')" class="btn btn-primary-sub btn-sm" type="button">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Unsaved changes warning modal -->
+
+<div class="modal fade mySkinDialog fb-modal" data-bs-backdrop="static" data-backdrop="static" id="FB-unSavedChange-warning-Modal" role="dialog">
+    <div class="modal-dialog" appModalDrag>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Unsaved Changes</h4>
+                <button id="FB-dismiss-unsaved-modal-btn" type="button" class="close" aria-label="Click here to close" title="Click here to close"
+                        (click)="closeBtn('#FB-unSavedChange-warning-Modal');
+                        isBackButtonClicked = 'N';this.formBuilderService.formBuilderVisibilityMode = 'EDIT';">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <span class="fs-14">You have unsaved changes. Do you want to leave the page without configuring
+                    form elements?</span>
+            </div>
+            <div class="modal-footer">
+                <button id="FB-cancel-page-switch-Modal" aria-label="Click here to cancel"
+                        (click)="isBackButtonClicked = 'N';closeBtn('#FB-unSavedChange-warning-Modal');
+                        formBuilderService.formBuilderVisibilityMode = 'EDIT';" title="Click here to cancel"
+                        class="btn btn-secondary btn-sm"
+                        type="button">
+                    Cancel
+                </button>
+                <button id="FB-confirm-page-switch-btn" class="btn btn-primary-sub btn-sm"
+                    aria-label="Click here to leave the page" title="Click here to leave the page" type="button"
+                    (click)="removeUnsavedComponentsOnTabSwitch();closeBtn('#FB-unSavedChange-warning-Modal')">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<router-outlet></router-outlet>
+<div class="footerPush"></div>
+
+<div class="modal fade mySkinDialog fb-modal" data-bs-backdrop="static" data-backdrop="static" id="FB-confirm-version-change-Modal" role="dialog">
+    <div class="modal-dialog" appModalDrag>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Create New Version</h4>
+                <button id="FB-dismiss-new-version-modal-btn" type="button" class="close" data-dismiss="modal" title="Click here to close" aria-label="Click here to close"
+                        (click)="closeBtn('#FB-confirm-version-change-Modal')">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <span class="d-flex align-items-center">
+                    <span>
+                    <i aria-hidden="true" class="fa fa-2x fa-exclamation-triangle text-warning fb-pr-3"></i>
+                    </span>
+                    <span class="fs-14"> <b>{{formBuilderService.versionChangeMessage}}</b> <br>Are you sure you want to create a new version ?</span>
+                </span>
+            </div>
+            <div class="modal-footer">
+                <button  id="FB-cancel-Major-change" aria-label="Click here to discard"
+                        title="Click here to discard" class="btn btn-secondary btn-sm"
+                        data-dismiss="modal" type="button">Discard
+                </button>
+                <button  id="FB-approve-Major-change" data-dismiss="modal"
+                        class="btn btn-primary-sub btn-sm" aria-label="Click here to accept" title="Click here to accept" type="button"
+                        (click)="formBuilderService.createFormVersion(); closeModalOnAccept()">Accept</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade mySkinDialog fb-modal" data-bs-backdrop="static" data-backdrop="static" id="FB-questionnaire-version-change-Modal" role="dialog">
+    <div class="modal-dialog modal-xl" appModalDrag>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Create New Version</h4>
+                <button id="FB-dismiss-new-qn-modal-btn" type="button" class="close" data-dismiss="modal" title="Click here to close" aria-label="Click here to close"
+                        (click)="closeBtn('#FB-questionnaire-version-change-Modal')">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div role="alert" class="alert alert-warning fs-13">
+                    <i aria-hidden="true" class="fa fa-exclamation-triangle icon text-warning"></i>
+                    <span>The administrator has updated the following questionnaire(s). Click 'Accept' to create a new form version with the updated questionnaire(s).
+                        <ol>
+                            <li *ngFor="let question of questionnaireVersions"> <a
+                                    >{{question.title}} <i class="fa fa-arrow-circle-up text-primary fb-ml-1"></i></a> </li>
+                        </ol>
+                    </span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button  id="FB-disapprove-questionnaire-version-change" aria-label="Click here to discard"
+                         title="Click here to discard" class="btn btn-secondary btn-sm"
+                         data-dismiss="modal" type="button">Discard
+                </button>
+                <button  id="FB-approve-questionnaire-version-change" data-dismiss="modal"
+                         class="btn btn-primary-sub btn-sm" aria-label="Click here to accept" title="Click here to accept" type="button"
+                         (click)="formBuilderService.questionnaireVersionChange(); closeBtn('#FB-questionnaire-version-change-Modal')">Accept</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade mySkinDialog" id="FB-update-form-modal" role="dialog" tabindex="-1" aria-hidden="true"
+     data-backdrop="static"
+     data-keyboard="false">
+    <div class="modal-dialog modal-lg" appModalDrag>
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Update Form
+                </h4>
+                <button (click)="cancelTitleEdit();" type="button" class="close" id="FB-dismiss-update-modal-btn" aria-label="Click here to close"
+                        title="Click here to close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row fb-mt-2 fb-mb-0">
+                    <div class="col-12">
+                        <div class="fb-mb-3">
+                            <label for="FB-new-form-title"><span class="fb-mandatory">*</span>Title</label>
+                            <input id="FB-new-form-title" name="title" autocomplete="off" class="form-control"
+                                   placeholder="Title" [(ngModel)]="titleObject.title"
+                                   appTailingSpaceRemover appLengthValidator
+                                   [limit]="1000" [ngClass]="{'is-invalid' :formValidationMap.get('title') }">
+                            <span *ngIf="formValidationMap.get('title')"
+                                  class="text-danger fs-14 d-inline-block">
+                                {{ formValidationMap.get('title') }}</span>
+                        </div>
+                        <div class="fb-mb-3">
+                            <label for="FB-new-form-description"><span class="fb-mandatory">*</span>Description</label>
+                            <textarea id="FB-new-form-description" name="description" autocomplete="off"
+                                      class="form-control" [(ngModel)]="titleObject.description"
+                                      placeholder="Description"
+                                      [ngClass]="{'is-invalid' :formValidationMap.get('description') }"
+                                      appTailingSpaceRemover appLengthValidator [limit]="4000"  rows="3">
+                            </textarea>
+                            <span *ngIf="formValidationMap.get('description')"
+                                  class="text-danger fs-14 d-inline-block">
+                                {{formValidationMap.get('description')}}</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="FB-create-form-cancel-button" type="button" class="btn btn-secondary btn-sm" title="Click here to cancel"
+                        aria-label="Click here to cancel" data-dismiss="modal"
+                        (click)="cancelTitleEdit();">Cancel
+                </button>
+                <button id="FB-create-form-Update-button" type="button" class="btn btn-primary-sub btn-sm"
+                        aria-label="Click here to update" title="Click here to update"
+                        (click)="saveTitle()">Update
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

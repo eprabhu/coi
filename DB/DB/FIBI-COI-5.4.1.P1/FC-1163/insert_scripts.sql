@@ -1,0 +1,2 @@
+INSERT INTO `notify_placeholder_header` (`NOTIFY_PLACEHOLDER_HEADER_ID`, `MODULE_CODE`, `SUB_MODULE_CODE`, `QUERY_TYPE`, `ELEMENT_TYPE`, `IS_ACTIVE`, `DESCRIPTION`, `UPDATE_TIMESTAMP`, `UPDATE_USER`, `UNIQUE_DISPLAY_NAME`) VALUES 
+('18', '8', '801', 'U', 'U', 'Y', 'Engagement Url', now(), 'quickstart', 'ENG_URL');

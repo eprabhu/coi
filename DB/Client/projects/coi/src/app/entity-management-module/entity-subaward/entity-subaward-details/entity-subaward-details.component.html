@@ -1,0 +1,521 @@
+<div class="p-3 coi-card-grey-border rounded-2" [id]="sectionId">
+    <div class="row align-items-center mb-2">
+        <div class="col d-flex align-items-center coloured-bg-header">
+            <span class="coi-entity-icon-bg me-2 coi-coloured-icons fs-14 d-inline-flex">
+                <mat-icon class="coi-mat-icon-size" aria-hidden="true">newspaper</mat-icon>
+            </span>
+            <div class="fs-16 fw-medium" id="coi-entity-subaward-details">
+                <span>{{sectionName}}</span>
+                <app-common-help-text [subSectionId]="2612"
+                    [elementId]="'coi-entity-subaward-details'"></app-common-help-text>
+            </div>
+        </div>
+        <!-- Copy checkbox -->
+        <div class="d-inline-flex align-items-center col-auto px-0">
+            <input type="checkbox" [(ngModel)]="subAwardOrg.subAwardOrgFields.isCopy"
+                name="coi-entity-org-copy-data"
+                (ngModelChange)="copyEntityDetailsToOrganization()"
+                [disabled]="commonService?.autoSaveSavingSpinner !== 'HIDE' || commonService?.hasChangesAvailable || isSaving || !isEditMode"
+                [title]="(isEditMode ? 'Click here to ' + (subAwardOrg?.subAwardOrgFields?.isCopy ? 'deselect' : 'select') + ' \'Same as Entity Details\'' : '')"
+                [attr.aria-label]="(isEditMode ? 'Click here to ' + (subAwardOrg?.subAwardOrgFields?.isCopy ? 'deselect' : 'select') + ' \'Same as Entity Details\'' : '')"
+                class="cursor-pointer" id="coi-entity-org-copy-data">
+            <label for="coi-entity-org-copy-data" class="coi-text-dark ps-2"
+                [class.cursor-pointer]="!(commonService?.autoSaveSavingSpinner !== 'HIDE' || commonService?.hasChangesAvailable || isSaving || !isEditMode)"
+                [title]="(isEditMode ? 'Click here to ' + (subAwardOrg?.subAwardOrgFields?.isCopy ? 'deselect' : 'select') + ' \'Same as Entity Details\'' : '')">
+                <span>Same as Entity Details</span>
+            </label>
+            <app-common-help-text [subSectionId]="2612" [elementId]="'coi-entity-org-copy-data'"></app-common-help-text>
+        </div>
+        <!-- Comments -->
+        <div *ngIf="isShowCommentButton" class="col-auto">
+            <button class="d-flex gap-1 align-items-center btn btn-sm btn-tertiary mt-0 lh-1"
+                (click)="openReviewComments()" id="entity-comment-subaward-details" type="button"
+                [disabled]="entityManagementService.reviewCommentsSliderConfig?.isOpenCommentSlider"
+                title="Click here to open review comment" aria-label="Click here to open review comment">
+                <mat-icon aria-hidden="true" class="flex-shrink-0 padding-3px">rate_review</mat-icon>
+                <span>Comments<span *ngIf="commentCount > 0">({{commentCount}})</span></span>
+            </button>
+        </div>
+    </div>
+    <div class="row row-gap-3" [class.pb-3]="isEditMode">
+        <!-- Organization ID -->
+        <div class="position-relative col-xl-6 col-lg-6 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-subaward-orgID">
+                <span>Organization ID</span>
+                <app-common-help-text [subSectionId]="2612"
+                    [elementId]="'coi-entity-subaward-orgID'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="text" id="coi-entity-subaward-orgID" title="Organization ID"
+                aria-label="Organization ID" maxlength="60" autocomplete="off" class="form-control" disabled
+                [(ngModel)]="entitySubAwardService.entitySubAwardOrganization.subAwdOrgDetailsResponseDTO.organizationId" />
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.organizationId">
+                <app-no-data-label [valueToShow]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.organizationId"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- Organization Type -->
+        <div class="position-relative col-xl-6 col-lg-6 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-organization-lookup">
+                <span>Organization Type</span>
+                <app-common-help-text [subSectionId]="2612"
+                    [elementId]="'coi-entity-organization-lookup'"></app-common-help-text>
+            </label>
+            <select *ngIf="isEditMode" [(ngModel)]="selectedOrganizationType.organizationTypeCode" id="coi-entity-organization-lookup"
+                (ngModelChange)="onOrganizationTypeSelect($event)" class="form-control w-100 form-select">
+                <option [value]="null" disabled selected>--Select--</option>
+                <option [value]="organization?.code" *ngFor="let organization of organizationLookup">{{organization?.description}}</option>
+            </select>
+            <span *ngIf="!isEditMode" class="coi-text-light fw-500 text-slice"
+                [title]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.entityOrganizationType?.description">
+                <app-no-data-label [valueToShow]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.entityOrganizationType?.description"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- Organization Name -->
+        <div class="position-relative col-xl-6 col-lg-6 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-org-name">
+                <span>Organization Name</span>
+                <app-common-help-text [subSectionId]="2612" [elementId]="'coi-entity-org-name'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="text" id="coi-entity-org-name" autocomplete="off" class="form-control"
+                [(ngModel)]="subAwardOrg.subAwardOrgFields.organizationName" (ngModelChange)="changeEntityCopyEvent('organizationName')"
+                appLengthValidator [limit]="500" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                [attr.aria-label]="'Please enter the organization name. Current value is ' + (subAwardOrg?.subAwardOrgFields?.organizationName ? '' : 'empty')"/>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.organizationName">
+                <app-no-data-label [valueToShow]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.organizationName"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- Country -->
+        <div class="position-relative col-xl-6 col-lg-6 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-org-country">
+                <span>Country</span>
+                <app-common-help-text [subSectionId]="2612" [elementId]="'coi-entity-org-country'"></app-common-help-text>
+            </label>
+            <ng-container *ngIf="isEditMode">
+                <app-endpoint-search [clearField]="clearCountryField" [uniqueId]="'coi-entity-org-country'"
+                    [httpOptions]="countrySearchOptions" (onSelect)="selectedCountryEvent($event)" [isDisabled]="isOrgAddressViewMode">
+                </app-endpoint-search>
+            </ng-container>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.country?.countryName">
+                <app-no-data-label [valueToShow]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.country?.countryName"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- Organization Address -->
+        <div class="col-12 mt-3">
+            <div class="card p-3">
+                <!-- Organization Address Header -->
+                <h4 class="relation-header px-2 coi-text-darker rounded coi-bg-gray-light">Organization Address</h4>
+                <div class="row row-gap-3" [class.pb-3]="isEditMode">
+                    <!-- Address Line 1 -->
+                    <div class="position-relative col-12">
+                        <label class="d-block coi-text-dark" for="coi-entity-org-address1">
+                            <span>Address Line 1</span>
+                            <app-common-help-text [subSectionId]="2612" [elementId]="'coi-entity-org-address1'"></app-common-help-text>
+                        </label>
+                        <ng-container *ngIf="isEditMode">
+                            <textarea appAutoGrow rows="1" class="form-control" id="coi-entity-org-address1" name="coi-entity-org-address1"
+                                [(ngModel)]="subAwardOrg.subAwardOrgFields.primaryAddressLine1"
+                                (ngModelChange)="changeEntityCopyEvent('primaryAddressLine1');" appLengthValidator [limit]="500"
+                                [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                                [attr.aria-label]="'Please enter the address line 1. Current value is ' + (subAwardOrg?.subAwardOrgFields?.primaryAddressLine1 ? '' : 'empty')"
+                                [disabled]="isOrgAddressViewMode" [isShowLimiter]="!isOrgAddressViewMode">
+                            </textarea>
+                        </ng-container>
+                        <span  *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                            [title]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.primaryAddressLine1">
+                            <app-no-data-label [valueToShow]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.primaryAddressLine1"></app-no-data-label>
+                        </span>
+                    </div>
+
+                    <!-- Address Line 2 -->
+                    <div class="position-relative col-12">
+                        <label class="d-block coi-text-dark" for="coi-entity-org-address2">
+                            <span>Address Line 2</span>
+                            <app-common-help-text [subSectionId]="2612"
+                                [elementId]="'coi-entity-org-address2'"></app-common-help-text>
+                        </label>
+                        <textarea *ngIf="isEditMode" appAutoGrow rows="1" type="text" class="form-control" id="coi-entity-org-address2" name="coi-entity-org-address2"
+                            [(ngModel)]="subAwardOrg.subAwardOrgFields.primaryAddressLine2"
+                            (ngModelChange)="changeEntityCopyEvent('primaryAddressLine2')" appLengthValidator [limit]="500"
+                            [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                            [attr.aria-label]="'Please enter the address line 2. Current value is ' + (subAwardOrg?.subAwardOrgFields?.primaryAddressLine2 ? '' : 'empty')"
+                            [disabled]="isOrgAddressViewMode" [isShowLimiter]="!isOrgAddressViewMode">
+                        </textarea>
+                        <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                            [title]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.primaryAddressLine2">
+                            <app-no-data-label [valueToShow]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.primaryAddressLine2"></app-no-data-label>
+                        </span>
+                    </div>
+
+                    <!-- City -->
+                    <div class="position-relative col-md-12 col-lg-6 col-xl-4">
+                        <label class="d-block coi-text-dark" for="coi-entity-org-city">
+                            <span>City</span>
+                            <app-common-help-text [subSectionId]="2612" [elementId]="'coi-entity-org-city'"></app-common-help-text>
+                        </label>
+                        <input *ngIf="isEditMode" type="text" class="form-control" id="coi-entity-org-city"
+                            [(ngModel)]="subAwardOrg.subAwardOrgFields.city" (ngModelChange)="changeEntityCopyEvent('city')"
+                            appLengthValidator [limit]="30" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                            [attr.aria-label]="'Please enter the city. Current value is ' + (subAwardOrg?.subAwardOrgFields?.city ? '' : 'empty')"
+                            [disabled]="isOrgAddressViewMode" [isShowLimiter]="!isOrgAddressViewMode">
+                        <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                            [title]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.city">
+                            <app-no-data-label [valueToShow]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.city"></app-no-data-label>
+                        </span>
+                    </div>
+
+                    <!-- State/Province/Region -->
+                    <div class="position-relative col-md-12 col-lg-6 col-xl-4">
+                        <label class="d-block coi-text-dark" for="coi-entity-org-state">
+                            <span>State/Province/Region</span>
+                            <app-common-help-text [subSectionId]="2612" [elementId]="'coi-entity-org-state'"></app-common-help-text>
+                        </label>
+                        <ng-container *ngIf="isEditMode">
+                            <app-endpoint-search [clearField]="clearStateField" [uniqueId]="'coi-entity-org-state'"
+                                [httpOptions]="stateSearchOptions" (onSelect)="selectedStateEvent($event)" [searchLimiterOptions]="stateSearchLimiterOptions"
+                                class="w-100 mt-4" [isError]="mandatoryList?.has('state')" [canEmitSearchText]="canEmitStateSearchText"
+                                [isDisabled]="isOrgAddressViewMode">
+                            </app-endpoint-search>
+                        </ng-container>
+                        <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                            [title]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.stateDetails?.stateName || entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.state">
+                            <app-no-data-label [valueToShow]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.stateDetails?.stateName || entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.state"></app-no-data-label>
+                        </span>
+                    </div>
+
+                    <!-- ZIP/Postal Code -->
+                    <div class="position-relative col-md-12 col-lg-6 col-xl-4">
+                        <label class="d-block coi-text-dark" for="coi-entity-org-postCode">
+                            <span>ZIP/Postal Code</span>
+                            <app-common-help-text [subSectionId]="2612"
+                                [elementId]="'coi-entity-org-postCode'"></app-common-help-text>
+                        </label>
+                        <ng-container *ngIf="isEditMode">
+                            <input type="text" class="form-control" id="coi-entity-org-postCode"
+                                [(ngModel)]="subAwardOrg.subAwardOrgFields.postCode"
+                                (ngModelChange)="changeEntityCopyEvent('postCode')" appLengthValidator [limit]="15"
+                                [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                                [attr.aria-label]="'Please enter the ZIP/postal code. Current value is ' + (subAwardOrg?.subAwardOrgFields?.postCode ? '' : 'empty')"
+                                [disabled]="isOrgAddressViewMode" [isShowLimiter]="!isOrgAddressViewMode">
+                        </ng-container>
+                        <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                            [title]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.postCode">
+                            <app-no-data-label [valueToShow]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.postCode"></app-no-data-label>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DUNS Number -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-org-duns">
+                <span>DUNS Number</span>
+                <app-common-help-text [subSectionId]="2612" [elementId]="'coi-entity-org-duns'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="text" id="coi-entity-org-duns" autocomplete="off" class="form-control"
+                [(ngModel)]="subAwardOrg.subAwardOrgFields.dunsNumber" (ngModelChange)="changeEntityCopyEvent('dunsNumber')"
+                appLengthValidator [limit]="20" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                [attr.aria-label]="'Please enter the duns number. Current value is ' + (subAwardOrg?.subAwardOrgFields?.dunsNumber ? '' : 'empty')"/>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.dunsNumber">
+                <app-no-data-label [valueToShow]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.dunsNumber"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- UEI Number -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-org-uei">
+                <span>UEI Number</span>
+                <app-common-help-text [subSectionId]="2612" [elementId]="'coi-entity-org-uei'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="text" id="coi-entity-org-uei" autocomplete="off" class="form-control"
+                [(ngModel)]="subAwardOrg.subAwardOrgFields.ueiNumber" (ngModelChange)="changeEntityCopyEvent('ueiNumber')"
+                appLengthValidator [limit]="12" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                [attr.aria-label]="'Please enter the uei number. Current value is ' + (subAwardOrg?.subAwardOrgFields?.ueiNumber ? '' : 'empty')"/>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.ueiNumber">
+                <app-no-data-label [valueToShow]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.ueiNumber"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- CAGE Number -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-org-cage">
+                <span>CAGE Number</span>
+                <app-common-help-text [subSectionId]="2612" [elementId]="'coi-entity-org-cage'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="text" id="coi-entity-org-cage" autocomplete="off" class="form-control"
+                [(ngModel)]="subAwardOrg.subAwardOrgFields.cageNumber" (ngModelChange)="changeEntityCopyEvent('cageNumber')"
+                appLengthValidator [limit]="20" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                [attr.aria-label]="'Please enter the cage number. Current value is ' + (subAwardOrg?.subAwardOrgFields?.cageNumber ? '' : 'empty')"/>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.cageNumber">
+                <app-no-data-label [valueToShow]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.cageNumber"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- Human Sub Assurance -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-org-human-assure">
+                <span>Human Sub Assurance</span>
+                <app-common-help-text [subSectionId]="2612" [elementId]="'coi-entity-org-human-assure'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="text" id="coi-entity-org-human-assure" autocomplete="off" class="form-control"
+                [(ngModel)]="subAwardOrg.subAwardOrgFields.humanSubAssurance" (ngModelChange)="changeEntityCopyEvent('humanSubAssurance')"
+                appLengthValidator [limit]="30" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                [attr.aria-label]="'Please enter the human sub assurance. Current value is ' + (subAwardOrg?.subAwardOrgFields?.humanSubAssurance ? '' : 'empty')"/>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.humanSubAssurance">
+                <app-no-data-label [valueToShow]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.humanSubAssurance"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- Animal Welfare Assurance -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-org-animal-assure">
+                <span>Animal Welfare Assurance</span>
+                <app-common-help-text [subSectionId]="2612" [elementId]="'coi-entity-org-animal-assure'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="text" id="coi-entity-org-animal-assure" autocomplete="off" class="form-control"
+                [(ngModel)]="subAwardOrg.subAwardOrgFields.animalWelfareAssurance" (ngModelChange)="changeEntityCopyEvent('animalWelfareAssurance')"
+                appLengthValidator [limit]="20" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                [attr.aria-label]="'Please enter the animal welfare assurance. Current value is ' + (subAwardOrg?.subAwardOrgFields?.animalWelfareAssurance ? '' : 'empty')"/>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.animalWelfareAssurance">
+                <app-no-data-label [valueToShow]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.animalWelfareAssurance"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- AAALAC (Animal Accreditation) -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-org-aaalac">
+                <span>AAALAC (Animal Accreditation)</span>
+                <app-common-help-text [subSectionId]="2612" [elementId]="'coi-entity-org-aaalac'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="text" id="coi-entity-org-aaalac" autocomplete="off" class="form-control"
+                [(ngModel)]="subAwardOrg.subAwardOrgFields.animalAccreditation" (ngModelChange)="changeEntityCopyEvent('animalAccreditation')"
+                appLengthValidator [limit]="50" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                [attr.aria-label]="'Please enter the AAALAC (animal accreditation). Current value is ' + (subAwardOrg?.subAwardOrgFields?.animalAccreditation ? '' : 'empty')"/>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.animalAccreditation">
+                <app-no-data-label [valueToShow]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.animalAccreditation"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- Phone Number -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-org-phone">
+                <span>Phone Number</span>
+                <app-common-help-text [subSectionId]="2612" [elementId]="'coi-entity-org-phone'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="text" id="coi-entity-org-phone" placeholder="" autocomplete="off" class="form-control"
+                [(ngModel)]="subAwardOrg.subAwardOrgFields.phoneNumber" (ngModelChange)="validateAndAddPhoneNumber()"
+                (keypress)="checkForValidNumber($event)" [ngClass]="{'is-invalid d-block': isEditMode && mandatoryList?.has('phoneNumber')}"
+                appLengthValidator [limit]="20" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                [attr.aria-label]="'Please enter the phone number. Current value is ' + (subAwardOrg?.subAwardOrgFields?.phoneNumber ? '' : 'empty')"/>
+            <!-- error -->
+            <span *ngIf="isEditMode && mandatoryList?.has('phoneNumber')" class="position-absolute d-block invalid-feedback fs-13">{{ mandatoryList?.get('phoneNumber') }}</span>
+            <!-- view  -->
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.phoneNumber">
+                <app-no-data-label [valueToShow]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.phoneNumber"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- Incorporation Date -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-org-corp-date">
+                <span>Incorporation Date</span>
+                <app-common-help-text [subSectionId]="2612"
+                    [elementId]="'coi-entity-org-corp-date'"></app-common-help-text>
+            </label>
+            <div *ngIf="isEditMode" class="dateField w-100">
+                <input #incorporationDateInput matInput [matDatepicker]="_incorporatedDate" id="coi-entity-org-corp-date"
+                    placeholder="{{DATE_PLACEHOLDER}}"
+                    (click)="_incorporatedDate.open()" autocomplete="off" class="d-inline-block form-control w-100"
+                    [(ngModel)]="incorporatedDate" (ngModelChange)="onDateSelect('incorporatedDate', 'ENTITY_COPY_FIELD'); validateDateFormat('incorporationDate')"
+                    (blur)="validateDateFormat('incorporationDate')" (dateChange)="validateDateFormat('incorporationDate')"
+                    (keypress)="commonService._keyPress($event, 'date')" />
+                <button class="btn-none insidePicker" (click)="_incorporatedDate.open()"
+                    title="Click here to select incorporation date"
+                    aria-label="Click here to select incorporation date.">
+                    <mat-icon class="coi-mat-icon-size" aria-hidden="true">calendar_month</mat-icon>
+                </button>
+                <mat-datepicker #_incorporatedDate>
+                </mat-datepicker>
+            </div>
+            <span *ngIf="dateValidationMap.get('incorporationDate')" class="d-block fs-13 invalid-feedback ps-1">{{
+                dateValidationMap.get('incorporationDate') }}</span>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.incorporatedDate | dateFormatter">
+                <app-no-data-label [valueToShow]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.incorporatedDate">
+                    <span>{{entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.incorporatedDate | dateFormatter}}</span>
+                </app-no-data-label>
+            </span>
+        </div>
+
+        <!-- Incorporation In -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-org-corp-in">
+                <span>Incorporation In</span>
+                <app-common-help-text [subSectionId]="2612" [elementId]="'coi-entity-org-corp-in'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="text" id="coi-entity-org-corp-in" autocomplete="off" class="form-control"
+                [(ngModel)]="subAwardOrg.subAwardOrgFields.incorporatedIn" (ngModelChange)="changeEntityCopyEvent('incorporatedIn')"
+                appLengthValidator [limit]="50" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                [attr.aria-label]="'Please enter the incorporation in. Current value is ' + (subAwardOrg?.subAwardOrgFields?.incorporatedIn ? '' : 'empty')"/>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.incorporatedIn">
+                <app-no-data-label [valueToShow]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.incorporatedIn"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- Congressional District -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-org-cong-dist">
+                <span>Congressional District</span>
+                <app-common-help-text [subSectionId]="2612" [elementId]="'coi-entity-org-cong-dist'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="text" id="coi-entity-org-cong-dist" autocomplete="off" class="form-control"
+                [(ngModel)]="subAwardOrg.subAwardOrgFields.congressionalDistrict" (ngModelChange)="changeEntityCopyEvent('congressionalDistrict')"
+                appLengthValidator [limit]="50" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                [attr.aria-label]="'Please enter the congressional district. Current value is ' + (subAwardOrg?.subAwardOrgFields?.congressionalDistrict ? '' : 'empty')"/>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.congressionalDistrict">
+                <app-no-data-label [valueToShow]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.congressionalDistrict"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- Federal Employer ID -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-org-fed-emp-id">
+                <span>Federal Employer ID</span>
+                <app-common-help-text [subSectionId]="2612" [elementId]="'coi-entity-org-fed-emp-id'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="text" id="coi-entity-org-fed-emp-id" autocomplete="off" class="form-control"
+                [(ngModel)]="subAwardOrg.subAwardOrgFields.federalEmployerId" (ngModelChange)="changeEntityCopyEvent('federalEmployerId')"
+                appLengthValidator [limit]="15" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                [attr.aria-label]="'Please enter the federal employer ID. Current value is ' + (subAwardOrg?.subAwardOrgFields?.federalEmployerId ? '' : 'empty')"/>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.federalEmployerId">
+                <app-no-data-label [valueToShow]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.federalEmployerId"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- Number of Employees -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-org-emp-no">
+                <span>Number of Employees</span>
+                <app-common-help-text [subSectionId]="2612" [elementId]="'coi-entity-org-emp-no'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="number" id="coi-entity-org-emp-no" autocomplete="off" class="form-control"
+                [(ngModel)]="subAwardOrg.subAwardOrgFields.numberOfEmployees" (ngModelChange)="changeEntityCopyEvent('numberOfEmployees')"
+                (keypress)="checkForValidNumber($event)" appLengthValidator [limit]="10" [styleList]="'position-absolute end-0 coi-pe-12px float-end word-count'"
+                [attr.aria-label]="'Please enter the number of employees. Current value is ' + (subAwardOrg?.subAwardOrgFields?.numberOfEmployees ? '' : 'empty')"/>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.numberOfEmployees">
+                <app-no-data-label [valueToShow]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.numberOfEmployees"></app-no-data-label>
+            </span>
+        </div>
+
+        <!-- SAM Expiration Date -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-sam-expiration-date">
+                <span>SAM Expiration Date</span>
+                <app-common-help-text [subSectionId]="2612"
+                    [elementId]="'coi-entity-sam-expiration-date'"></app-common-help-text>
+            </label>
+            <div *ngIf="isEditMode" class="dateField w-100">
+                <input #samExpirationDateInput matInput [matDatepicker]="_samExpirationDate" id="coi-entity-sam-expiration-date"
+                    placeholder="{{DATE_PLACEHOLDER}}"
+                    (click)="_samExpirationDate.open()" autocomplete="off" class="d-inline-block form-control w-100"
+                    [(ngModel)]="samExpirationDate" (ngModelChange)="onDateSelect('samExpirationDate'); validateDateFormat('samExpirationDate')"
+                    (blur)="validateDateFormat('samExpirationDate')" (dateChange)="validateDateFormat('samExpirationDate')"
+                    (keypress)="commonService._keyPress($event, 'date')" />
+                <button class="btn-none insidePicker" (click)="_samExpirationDate.open()"
+                    title="Click here to select SAM expiration date"
+                    aria-label="Click here to select SAM expiration date.">
+                    <mat-icon class="coi-mat-icon-size" aria-hidden="true">calendar_month</mat-icon>
+                </button>
+                <mat-datepicker #_samExpirationDate></mat-datepicker>
+            </div>
+            <span *ngIf="dateValidationMap.get('samExpirationDate')" class="d-block fs-13 invalid-feedback ps-1">{{
+                dateValidationMap.get('samExpirationDate') }}</span>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="samExpirationDate | dateFormatterWithTimeZone">
+                <app-no-data-label [valueToShow]="samExpirationDate">
+                    <span>{{samExpirationDate | dateFormatterWithTimeZone}}</span>
+                </app-no-data-label>
+            </span>
+        </div>
+
+        <!-- Sub-award Risk Assessment Date -->
+        <div class="position-relative col-xl-4 col-lg-4 col-md-6 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1 text-nowrap" for="coi-entity-risk-assesment-date">
+                <span>Sub-award Risk Assessment Date</span>
+                <app-common-help-text [subSectionId]="2612"
+                    [elementId]="'coi-entity-risk-assesment-date'"></app-common-help-text>
+            </label>
+            <div *ngIf="isEditMode" class="dateField w-100">
+                <input #subAwdRiskAssmtDateInput  matInput [matDatepicker]="_subAwdRiskAssmtDate" id="coi-entity-risk-assesment-date"
+                    placeholder="{{DATE_PLACEHOLDER}}"
+                    (click)="_subAwdRiskAssmtDate.open()" autocomplete="off" class="d-inline-block form-control w-100"
+                    [(ngModel)]="subAwdRiskAssmtDate" (ngModelChange)="onDateSelect('subAwdRiskAssmtDate'); validateDateFormat('subAwdRiskAssmtDate')"
+                    (blur)="validateDateFormat('subAwdRiskAssmtDate')" (dateChange)="validateDateFormat('subAwdRiskAssmtDate')"
+                    (keypress)="commonService._keyPress($event, 'date')" />
+                <button class="btn-none insidePicker" (click)="_subAwdRiskAssmtDate.open()"
+                    title="Click here to select sub-award risk assessment date"
+                    aria-label="Click here to select sub-award risk assessment date.">
+                    <mat-icon class="coi-mat-icon-size" aria-hidden="true">calendar_month</mat-icon>
+                </button>
+                <mat-datepicker #_subAwdRiskAssmtDate>
+                </mat-datepicker>
+            </div>
+            <span *ngIf="dateValidationMap.get('subAwdRiskAssmtDate')" class="d-block fs-13 invalid-feedback ps-1">{{
+                dateValidationMap.get('subAwdRiskAssmtDate') }}</span>
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="subAwdRiskAssmtDate | dateFormatterWithTimeZone">
+                <app-no-data-label [valueToShow]="subAwdRiskAssmtDate">
+                    <span>{{subAwdRiskAssmtDate | dateFormatterWithTimeZone}}</span>
+                </app-no-data-label>
+            </span>
+        </div>
+
+        <!-- Translated Name -->
+        <div class="position-relative col-xl-4 col-lg-4 col-12 col-sm-12">
+            <label class="d-block coi-text-dark pb-1" for="coi-entity-translated-name">
+                <span>Translated Name</span>
+                <app-common-help-text [subSectionId]="2612"
+                    [elementId]="'coi-entity-translated-name'"></app-common-help-text>
+            </label>
+            <input *ngIf="isEditMode" type="text" id="coi-entity-translated-name" title="Translated Name"
+                aria-label="Translated Name" maxlength="60" autocomplete="off" class="form-control" disabled
+                [(ngModel)]="entitySubAwardService.entitySubAwardOrganization.subAwdOrgDetailsResponseDTO.translatedName" />
+            <span *ngIf="!isEditMode" class="coi-text-light d-block fw-500 text-slice"
+                [title]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.translatedName">
+                <app-no-data-label [valueToShow]="entitySubAwardService?.entitySubAwardOrganization?.subAwdOrgDetailsResponseDTO?.translatedName"></app-no-data-label>
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- confirmation popup -->
+<app-common-modal [modalConfig]="modalConfig" (modalAction)="postConfirmation($event)">
+    <ng-container modal-header>
+        <span>Confirmation</span>
+        <app-common-help-text [subSectionId]="2612" [elementId]="'coi-entity-org-conf-modal'"></app-common-help-text>
+    </ng-container>
+    <ng-container modal-body>
+        <div class="d-flex align-items-start alert alert-primary py-2 gap-2">
+            <mat-icon aria-hidden="true" class="mat-icon material-icons flex-shrink-0">info</mat-icon>
+            <span class="fs-14">{{ copyConfirmModalInfo }}</span>
+        </div>
+        <span class="fs-14">Are you sure you want to copy the entity details to the organization details?</span>
+    </ng-container>
+</app-common-modal>

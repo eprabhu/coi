@@ -1,0 +1,355 @@
+<div *ngIf="personListTabType.isDelinquent"
+    class="d-flex justify-content-between mb-2 coi-select-all-section shadow-sm p-2 border border-primary-subtle complete-review-section rounded-2">
+    <div class="d-flex align-items-center">
+        <input type="checkbox" id="person-list-select-all-check-box" class="cursor-pointer" [checked]="isAllSelected"
+            (change)="toggleSelectAll()" title="Click here to select all" aria-label="Click here to select all">
+        <label for="person-list-select-all-check-box" class="f-14 label-text ms-2 mt-1 cursor-pointer">Select
+            All</label>
+    </div>
+    <button [@topSlideInOut] *ngIf="selectedPersonCount > 0" id="notify-selected-btn"
+        class="btn btn-primary btn-sm d-flex align-items-center gap-2" (click)="notifySelectedPersons()">
+        <mat-icon aria-hidden="true" class="flex-shrink-0">notifications_active</mat-icon>
+        <span>Notify ({{selectedPersonCount}})</span>
+    </button>
+</div>
+<div class="table-responsive coi-table-striped">
+    <table class="table table-bordered fs-14 table-striped review-person-table" id="coi-review-person-table"
+        [@fadeInOutHeight]="personDetails.length">
+        <thead>
+            <tr class="header-border table-light" id="coi-reviewer-person-table-thead" [ngClass]="{
+                    'coi-rev-person-delinquent':personListTabType.isDelinquent,
+                    'coi-rev-person-exempted':personListTabType.isExempt || personListTabType.isEligiblePerson}">
+                <!-- Select -->
+                <th *ngIf="personListTabType.isDelinquent"> <span class="visually-hidden">Column for delinquent select
+                        checkboxes</span></th>
+                <!-- Person Full name -->
+                <th class="p-0 align-middle">
+                    <button class="d-flex align-items-center btn-none w-100 h-100 px-3 py-2 mt-0 coi-table-sort-btn"
+                        id="coi-rev-table-sort-btn-name"
+                        [title]="'Click here to sort by person name in ' + (sortObject.PERSON_FULL_NAME === 'ASC' ? 'descending' : sortObject.PERSON_FULL_NAME === 'DESC' ? 'default' : 'ascending') + ' order'"
+                        [attr.aria-label]="'Click here to sort by person name in ' + (sortObject.PERSON_FULL_NAME === 'ASC' ? 'descending' : sortObject.PERSON_FULL_NAME === 'DESC' ? 'default' : 'ascending') + ' order'"
+                        (click)="onSortClick('PERSON_FULL_NAME')">
+                        <span class="coi-text-darker">Name</span>
+                        <i *ngIf="isShowSortIcon" class="fa coi-text-light ms-2 coi-table-sort-icon"
+                            [class.fa-sort-alpha-asc]="!sortObject.PERSON_FULL_NAME || sortObject.PERSON_FULL_NAME === 'ASC'"
+                            [class.fa-sort-alpha-desc]="sortObject.PERSON_FULL_NAME === 'DESC'"
+                            [class.active]="sortObject.PERSON_FULL_NAME" aria-hidden="true"></i>
+                    </button>
+                </th>
+                <!-- Department -->
+                <th class="p-0 align-middle">
+                    <button id="coi-rev-table-sort-btn-department"
+                        class="d-flex align-items-center btn-none w-100 h-100 px-3 py-2 mt-0 coi-table-sort-btn"
+                        [title]="'Click here to sort by department in ' + (sortObject.HOME_UNIT_NAME === 'ASC' ? 'descending' : sortObject.HOME_UNIT_NAME === 'DESC' ? 'default' : 'ascending') + ' order'"
+                        [attr.aria-label]="'Click here to sort by department in ' + (sortObject.HOME_UNIT_NAME === 'ASC' ? 'descending' : sortObject.HOME_UNIT_NAME === 'DESC' ? 'default' : 'ascending') + ' order'"
+                        (click)="onSortClick('HOME_UNIT_NAME')">
+                        <span i18n="@@COMMON_DEPARTMENT" class="coi-text-darker">Department</span>
+                        <i *ngIf="isShowSortIcon" class="fa coi-text-light ms-2 coi-table-sort-icon"
+                            [class.fa-sort-alpha-asc]="!sortObject.hasOwnProperty('HOME_UNIT_NAME') || sortObject.HOME_UNIT_NAME === 'ASC'"
+                            [class.fa-sort-alpha-desc]="sortObject.HOME_UNIT_NAME === 'DESC'"
+                            [class.active]="sortObject.HOME_UNIT_NAME" aria-hidden="true"></i>
+                    </button>
+                </th>
+                <!-- Appointment Title -->
+                <th class="p-0 align-middle">
+                    <button id="coi-rev-table-sort-btn-appointment-title"
+                        class="d-flex align-items-center btn-none w-100 h-100 px-3 py-2 mt-0 coi-table-sort-btn"
+                        [title]="'Click here to sort by appointment title in ' + (sortObject.APPOINTMENT_TITLE === 'ASC' ? 'descending' : sortObject.APPOINTMENT_TITLE === 'DESC' ? 'default' : 'ascending') + ' order'"
+                        [attr.aria-label]="'Click here to sort by appointment title in ' + (sortObject.APPOINTMENT_TITLE === 'ASC' ? 'descending' : sortObject.APPOINTMENT_TITLE === 'DESC' ? 'default' : 'ascending') + ' order'"
+                        (click)="onSortClick('APPOINTMENT_TITLE')">
+                        <span class="coi-text-darker">Appointment Title</span>
+                        <i *ngIf="isShowSortIcon" class="fa coi-text-light ms-2 coi-table-sort-icon"
+                            [class.fa-sort-alpha-asc]="!sortObject.hasOwnProperty('APPOINTMENT_TITLE') || sortObject.APPOINTMENT_TITLE === 'ASC'"
+                            [class.fa-sort-alpha-desc]="sortObject.APPOINTMENT_TITLE === 'DESC'"
+                            [class.active]="sortObject.APPOINTMENT_TITLE" aria-hidden="true"></i>
+                    </button>
+                </th>
+                <!-- Delinquent -->
+                <ng-container *ngIf="personListTabType.isDelinquent">
+                    <!-- Faculty/ Staff -->
+                    <th class="p-0 align-middle">
+                        <button id="coi-rev-table-sort-btn-faculty"
+                            class="d-flex align-items-center btn-none w-100 h-100 px-3 py-2 mt-0 coi-table-sort-btn"
+                            [title]="'Click here to sort by faculty/staff in ' + (sortObject.IS_FACULTY === 'ASC' ? 'descending' : sortObject.IS_FACULTY === 'DESC' ? 'default' : 'ascending') + ' order'"
+                            [attr.aria-label]="'Click here to sort by faculty/staff in ' + (sortObject.IS_FACULTY === 'ASC' ? 'descending' : sortObject.IS_FACULTY === 'DESC' ? 'default' : 'ascending') + ' order'"
+                            (click)="onSortClick('IS_FACULTY')">
+                            <span class="coi-text-darker">Faculty/ Staff</span>
+                            <i *ngIf="isShowSortIcon" class="fa coi-text-light ms-2 coi-table-sort-icon"
+                                [class.fa-sort-alpha-asc]="!sortObject.hasOwnProperty('IS_FACULTY') || sortObject.IS_FACULTY === 'ASC'"
+                                [class.fa-sort-alpha-desc]="sortObject.IS_FACULTY === 'DESC'"
+                                [class.active]="sortObject.IS_FACULTY" aria-hidden="true"></i>
+                        </button>
+                    </th>
+                    <!-- OPA Disclosure -->
+                    <th class="p-0 align-middle">
+                        <button id="coi-rev-table-sort-btn-disclosure-status"
+                            class="d-flex align-items-center btn-none w-100 h-100 px-3 py-2 mt-0 coi-table-sort-btn"
+                            [title]="'Click here to sort by OPA disclosure in ' + (sortObject.HAS_PENDING_DISCLOSURE === 'ASC' ? 'descending' : sortObject.HAS_PENDING_DISCLOSURE === 'DESC' ? 'default' : 'ascending') + ' order'"
+                            [attr.aria-label]="'Click here to sort by OPA disclosure in ' + (sortObject.HAS_PENDING_DISCLOSURE === 'ASC' ? 'descending' : sortObject.HAS_PENDING_DISCLOSURE === 'DESC' ? 'default' : 'ascending') + ' order'"
+                            (click)="onSortClick('HAS_PENDING_DISCLOSURE')">
+                            <span class="coi-text-darker">OPA Disclosure</span>
+                            <i *ngIf="isShowSortIcon" class="fa coi-text-light ms-2 coi-table-sort-icon"
+                                [class.fa-sort-alpha-asc]="!sortObject.hasOwnProperty('HAS_PENDING_DISCLOSURE') || sortObject.HAS_PENDING_DISCLOSURE === 'ASC'"
+                                [class.fa-sort-alpha-desc]="sortObject.HAS_PENDING_DISCLOSURE === 'DESC'"
+                                [class.active]="sortObject.HAS_PENDING_DISCLOSURE" aria-hidden="true"></i>
+                        </button>
+                    </th>
+                    <!-- Email -->
+                    <th class="p-0 align-middle">
+                        <span id="coi-rev-table-sort-btn-email"
+                            class="d-flex align-items-center btn-none w-100 h-100 px-3 py-2 mt-0 coi-table-sort-btn"
+                            title="Email" aria-label="Email">
+                            <span class="coi-text-darker">Email</span>
+                        </span>
+                    </th>
+                </ng-container>
+                <!-- Exemption -->
+                <ng-container *ngIf="personListTabType.isExempt || personListTabType.isEligiblePerson">
+                    <!-- Needs OPA?(HR) -->
+                    <th class="p-0 align-middle">
+                        <button id="coi-rev-table-sort-btn-need-opa"
+                            class="d-flex align-items-center btn-none w-100 h-100 px-3 py-2 mt-0 coi-table-sort-btn"
+                            [title]="'Click here to sort by OPA required (HR Feed) in ' + (sortObject.CAN_CREATE_OPA === 'ASC' ? 'descending' : sortObject.CAN_CREATE_OPA === 'DESC' ? 'default' : 'ascending') + ' order'"
+                            [attr.aria-label]="'Click here to sort by OPA required (HR Feed) in ' + (sortObject.CAN_CREATE_OPA === 'ASC' ? 'descending' : sortObject.CAN_CREATE_OPA === 'DESC' ? 'default' : 'ascending') + ' order'"
+                            (click)="onSortClick('CAN_CREATE_OPA')">
+                            <span class="coi-text-darker">OPA Required (HR Feed)</span>
+                            <i *ngIf="isShowSortIcon" class="fa coi-text-light ms-2 coi-table-sort-icon"
+                                [class.fa-sort-alpha-asc]="!sortObject.hasOwnProperty('CAN_CREATE_OPA') || sortObject.CAN_CREATE_OPA === 'ASC'"
+                                [class.fa-sort-alpha-desc]="sortObject.CAN_CREATE_OPA === 'DESC'"
+                                [class.active]="sortObject.CAN_CREATE_OPA" aria-hidden="true"></i>
+                        </button>
+                    </th>
+                    <!-- Admin Override? -->
+                    <th class="p-0 align-middle">
+                        <button id="coi-rev-table-sort-btn-admin-override"
+                            class="d-flex align-items-center btn-none w-100 h-100 px-3 py-2 mt-0 coi-table-sort-btn"
+                            [title]="'Click here to sort by force allow OPA creation in ' + (sortObject.CREATE_OPA_ADMIN_FORCE_ALLOWED === 'ASC' ? 'descending' : sortObject.CREATE_OPA_ADMIN_FORCE_ALLOWED === 'DESC' ? 'default' : 'ascending') + ' order'"
+                            [attr.aria-label]="'Click here to sort by force allow OPA creation in ' + (sortObject.CREATE_OPA_ADMIN_FORCE_ALLOWED === 'ASC' ? 'descending' : sortObject.CREATE_OPA_ADMIN_FORCE_ALLOWED === 'DESC' ? 'default' : 'ascending') + ' order'"
+                            (click)="onSortClick('CREATE_OPA_ADMIN_FORCE_ALLOWED')">
+                            <span class="coi-text-darker">Force Allow OPA Creation</span>
+                            <i *ngIf="isShowSortIcon" class="fa coi-text-light ms-2 coi-table-sort-icon"
+                                [class.fa-sort-alpha-asc]="!sortObject.hasOwnProperty('CREATE_OPA_ADMIN_FORCE_ALLOWED') || sortObject.CREATE_OPA_ADMIN_FORCE_ALLOWED === 'ASC'"
+                                [class.fa-sort-alpha-desc]="sortObject.CREATE_OPA_ADMIN_FORCE_ALLOWED === 'DESC'"
+                                [class.active]="sortObject.CREATE_OPA_ADMIN_FORCE_ALLOWED" aria-hidden="true"></i>
+                        </button>
+                    </th>
+                    <!-- Exempt from OPA? -->
+                    <th class="p-0 align-middle">
+                        <button id="coi-rev-table-sort-btn-exempt-from-opa"
+                            class="d-flex align-items-center btn-none w-100 h-100 px-3 py-2 mt-0 coi-table-sort-btn"
+                            [title]="'Click here to sort by exempt from OPA in ' + (sortObject.IS_EXEMPT_FROM_OPA === 'ASC' ? 'descending' : sortObject.IS_EXEMPT_FROM_OPA === 'DESC' ? 'default' : 'ascending') + ' order'"
+                            [attr.aria-label]="'Click here to sort by exempt from OPA in ' + (sortObject.IS_EXEMPT_FROM_OPA === 'ASC' ? 'descending' : sortObject.IS_EXEMPT_FROM_OPA === 'DESC' ? 'default' : 'ascending') + ' order'"
+                            (click)="onSortClick('IS_EXEMPT_FROM_OPA')">
+                            <span class="coi-text-darker text-nowrap">Exempt from OPA?</span>
+                            <i *ngIf="isShowSortIcon" class="fa coi-text-light ms-2 coi-table-sort-icon"
+                                [class.fa-sort-alpha-asc]="!sortObject.hasOwnProperty('IS_EXEMPT_FROM_OPA') || sortObject.IS_EXEMPT_FROM_OPA === 'ASC'"
+                                [class.fa-sort-alpha-desc]="sortObject.IS_EXEMPT_FROM_OPA === 'DESC'"
+                                [class.active]="sortObject.IS_EXEMPT_FROM_OPA" aria-hidden="true"></i>
+                        </button>
+                    </th>
+                    <!-- Period -->
+                    <th class="p-0 align-middle">
+                        <button id="coi-rev-table-sort-btn-period"
+                            class="d-flex align-items-center btn-none w-100 h-100 px-3 py-2 mt-0 coi-table-sort-btn"
+                            title="'Period'" aria-label="Period">
+                            <span class="coi-text-darker">Exemption Period</span>
+                        </button>
+                    </th>
+                    <!-- Exemption Justification -->
+                    <th class="p-0 align-middle">
+                        <button id="coi-rev-table-sort-btn-exemption-justification"
+                            class="d-flex align-items-center btn-none w-100 h-100 px-3 py-2 mt-0 coi-table-sort-btn"
+                            [title]="'Click here to sort by exemption justification in ' + (sortObject.OPA_EXEMPTION_REASON === 'ASC' ? 'descending' : sortObject.OPA_EXEMPTION_REASON === 'DESC' ? 'default' : 'ascending') + ' order'"
+                            [attr.aria-label]="'Click here to sort by exemption justification in ' + (sortObject.OPA_EXEMPTION_REASON === 'ASC' ? 'descending' : sortObject.OPA_EXEMPTION_REASON === 'DESC' ? 'default' : 'ascending') + ' order'"
+                            (click)="onSortClick('OPA_EXEMPTION_REASON')">
+                            <span class="coi-text-darker">Exemption Justification</span>
+                            <i *ngIf="isShowSortIcon" class="fa coi-text-light ms-2 coi-table-sort-icon"
+                                [class.fa-sort-alpha-asc]="!sortObject.hasOwnProperty('OPA_EXEMPTION_REASON') || sortObject.OPA_EXEMPTION_REASON === 'ASC'"
+                                [class.fa-sort-alpha-desc]="sortObject.OPA_EXEMPTION_REASON === 'DESC'"
+                                [class.active]="sortObject.OPA_EXEMPTION_REASON" aria-hidden="true"></i>
+                        </button>
+                    </th>
+                    <!-- Last updated by -->
+                    <th class="p-0 align-middle">
+                        <button id="coi-rev-table-sort-btn-last-updated"
+                            class="d-flex align-items-center btn-none w-100 h-100 px-3 py-2 mt-0 coi-table-sort-btn"
+                            [title]="'Click here to sort by last updated by in ' + (sortObject.UPDATE_TIMESTAMP === 'ASC' ? 'descending' : sortObject.UPDATE_TIMESTAMP === 'DESC' ? 'default' : 'ascending') + ' order'"
+                            [attr.aria-label]="'Click here to sort by last updated by in ' + (sortObject.UPDATE_TIMESTAMP === 'ASC' ? 'descending' : sortObject.UPDATE_TIMESTAMP === 'DESC' ? 'default' : 'ascending') + ' order'"
+                            (click)="onSortClick('UPDATE_TIMESTAMP')">
+                            <span class="coi-text-darker">Last updated by</span>
+                            <i *ngIf="isShowSortIcon" class="fa coi-text-light ms-2 coi-table-sort-icon"
+                                [class.fa-sort-alpha-asc]="!sortObject.hasOwnProperty('UPDATE_TIMESTAMP') || sortObject.UPDATE_TIMESTAMP === 'ASC'"
+                                [class.fa-sort-alpha-desc]="sortObject.UPDATE_TIMESTAMP === 'DESC'"
+                                [class.active]="sortObject.UPDATE_TIMESTAMP" aria-hidden="true"></i>
+                        </button>
+                    </th>
+                </ng-container>
+                <!-- Actions -->
+                <th *ngIf="triggeredFrom === 'PERSON_LIST'" class="p-0 align-middle">
+                    <span class="px-3 py-2 mt-0 d-flex align-items-center">Actions</span>
+                </th>
+            </tr>
+        </thead>
+        <tbody class="white-bg">
+            <!-- Loop through the employees array -->
+            <tr *ngFor="let person of personDetails; let personIndex = index">
+                <!-- Checkbox -->
+                <td *ngIf="personListTabType.isDelinquent" class="p-3 align-middle text-center">
+                    <input type="checkbox" class="cursor-pointer" [checked]="selectedPersons[personIndex]"
+                        (change)="toggleSelectPerson(personIndex)">
+                </td>
+                <!-- person full name -->
+                <td class="p-3 align-middle">
+                    <app-no-data-label [valueToShow]="person?.personFullName">
+                        <span class="align-items-center d-flex px-0" id="reviewer-dash-person-name-{{personIndex}}">
+                            <a class="link-primary text-slice" [title]="person?.personFullName"
+                                (click)="openPersonDetailsModal(person)">{{ person?.personFullName }}</a>
+                        </span>
+                    </app-no-data-label>
+
+                </td>
+                <!-- department -->
+                <td class="p-3 align-middle">
+                    <app-no-data-label [valueToShow]="person.unitName">
+                        <span class="align-items-center d-flex px-0" id="reviewer-dash-person-unit-{{personIndex}}">
+                            <span class="text-slice" [title]="person.unitName">{{ person.unitName }}</span>
+                        </span>
+                    </app-no-data-label>
+                </td>
+                <!-- appointment title -->
+                <td class="p-3 align-middle">
+                    <app-no-data-label [valueToShow]="person.appointmentTitle">
+                        <span class="align-items-center d-flex px-0" id="reviewer-dash-appointment-{{personIndex}}">
+                            <span class="text-slice" [title]="person.appointmentTitle">{{ person.appointmentTitle
+                                }}</span>
+                        </span>
+                    </app-no-data-label>
+                </td>
+                <!-- Delinquent -->
+                <ng-container *ngIf="personListTabType.isDelinquent">
+                    <!-- Faculty/ Staff -->
+                    <td class="p-3 align-middle">
+                        <app-no-data-label [valueToShow]="person.isFaculty">
+                            <span class="align-items-center d-flex px-0"
+                                id="reviewer-dash-exempt-from-OPA-{{personIndex}}">
+                                <span class="text-slice" [title]="person.isFaculty? 'Faculty' : 'Staff'">{{
+                                    person.isFaculty? 'Faculty' : 'Staff' }}</span>
+                            </span>
+                        </app-no-data-label>
+                    </td>
+                    <!-- OPA Disclosure -->
+                    <td class="p-3 align-middle">
+                        <span class="align-items-center d-flex px-0"
+                            id="reviewer-dash-disclosure-status-{{personIndex}}">
+                            <span class="text-slice"
+                                [title]="person.hasPendingDisclosure? personListLocalize.TERM_INPROGRESS_DISCLOSURE : personListLocalize.TERM_NOT_YET_CREATED_DISCLOSURE">{{
+                                person.hasPendingDisclosure? personListLocalize.TERM_INPROGRESS_DISCLOSURE
+                                : personListLocalize.TERM_NOT_YET_CREATED_DISCLOSURE }}</span>
+                        </span>
+                    </td>
+                    <!-- Email -->
+                    <td class="p-3 align-middle">
+                        <app-no-data-label [valueToShow]="person.email">
+                            <span class="align-items-center d-flex px-0"
+                                id="reviewer-dash-exempt-from-OPA-{{personIndex}}">
+                                <span class="text-slice" [title]="person.email">{{ person.email }}</span>
+                            </span>
+                        </app-no-data-label>
+                    </td>
+                </ng-container>
+                <ng-container *ngIf="personListTabType.isExempt || personListTabType.isEligiblePerson">
+                    <!-- Can create OPA -->
+                    <td class="p-3 align-middle">
+                        <app-no-data-label [valueToShow]="person.canCreateOPA">
+                            <span class="align-items-center d-flex px-0"
+                                id="reviewer-dash-can-create-OPA-{{personIndex}}">
+                                <span class="text-slice" [title]="person.canCreateOPA? 'Yes' : 'No'">{{
+                                    person.canCreateOPA? 'Yes' : 'No' }}</span>
+                            </span>
+                        </app-no-data-label>
+                    </td>
+                    <!-- Admin Override -->
+                    <td class="p-3 align-middle">
+                        <app-no-data-label [valueToShow]="person.createOpaAdminForceAllowed">
+                            <span class="align-items-center d-flex px-0"
+                                id="reviewer-dash-OPA-admin-force-{{personIndex}}">
+                                <span class="text-slice" [title]="person.createOpaAdminForceAllowed? 'Yes' : 'No'">{{
+                                    person.createOpaAdminForceAllowed? 'Yes' : 'No' }}</span>
+                            </span>
+                        </app-no-data-label>
+                    </td>
+                    <!-- Exempt from OPA -->
+                    <td class="p-3 align-middle">
+                        <app-no-data-label [valueToShow]="person.isExemptFromOPA">
+                            <span class="align-items-center d-flex px-0"
+                                id="reviewer-dash-exempt-from-OPA-{{personIndex}}">
+                                <span class="text-slice" [title]="person.isExemptFromOPA? 'Yes' : 'No'">{{
+                                    person.isExemptFromOPA? 'Yes' : 'No' }}</span>
+                            </span>
+                        </app-no-data-label>
+                    </td>
+                    <!-- Period -->
+                    <td class="p-3 align-middle">
+                        <app-no-data-label [valueToShow]="person.opaExemptFromDate">
+                            <span class="align-items-center d-flex px-0"
+                                id="reviewer-dash-exempt-from-date-{{personIndex}}">
+                                <span class="text-slice"
+                                    [title]="(person.opaExemptFromDate | dateFormatterWithTimeZone) + ' - ' + (person.opaExemptToDate | dateFormatterWithTimeZone)">
+                                    {{ (person.opaExemptFromDate | dateFormatterWithTimeZone) + ' - ' +
+                                    (person.opaExemptToDate | dateFormatterWithTimeZone) }}</span>
+                            </span>
+                        </app-no-data-label>
+                    </td>
+                    <!-- Exemption Justification -->
+                    <td class="p-3 align-middle">
+                        <app-no-data-label [valueToShow]="person.opaExemptionReason">
+                            <span class="align-items-center d-flex px-0"
+                                id="reviewer-dash-exempt-reason-{{personIndex}}">
+                                <span class="text-slice" [title]="person.opaExemptionReason">{{
+                                    person.opaExemptionReason }}</span>
+                            </span>
+                        </app-no-data-label>
+                    </td>
+                    <!-- Last updated by -->
+                    <td class="p-3 align-middle">
+                        <app-no-data-label [valueToShow]="person.updateTimestamp">
+                            <span class="align-items-center d-flex px-0"
+                                id="reviewer-dash-appoinment-title-{{personIndex}}">
+                                <span class="text-slice"
+                                    [title]="person.updateTimestamp | dateFormatterWithTimeZone:'long'">
+                                    {{ person.updateUserFullName}} - {{ person.updateTimestamp |
+                                    dateFormatterWithTimeZone:'long' }}</span>
+                            </span>
+                        </app-no-data-label>
+                    </td>
+                </ng-container>
+                <td *ngIf="triggeredFrom === 'PERSON_LIST'" class="p-0 align-middle">
+                    <div class="d-flex justify-content-start">
+                        <ng-container *ngIf="personListTabType.isExempt || personListTabType.isEligiblePerson">
+                            <button id="person-list-history-btn-{{personIndex}}"
+                                class="d-flex align-items-center justify-content-center btn btn-primary-icon rounded-circle p-2 m-1"
+                                title="Click here to view person history" aria-label="Click here to view person history"
+                                (click)="openPersonHistorySlider(person, personIndex)">
+                                <mat-icon aria-hidden="true" class="flex-shrink-0">update</mat-icon>
+                            </button>
+                            <button *ngIf="person.canEdit" id="person-list-edit-btn-{{personIndex}}"
+                                class="d-flex align-items-center justify-content-center btn btn-primary-icon rounded-circle p-2 m-1"
+                                title="Click here to edit person eligibility"
+                                aria-label="Click here to edit person eligibility"
+                                (click)="openPersonEditModal(person)">
+                                <mat-icon aria-hidden="true" class="flex-shrink-0">edit</mat-icon>
+                            </button>
+                        </ng-container>
+                        <button *ngIf="personListTabType.isDelinquent" id="person-list-notify-btn-{{personIndex}}"
+                            class="d-flex align-items-center justify-content-center btn btn-primary-icon rounded-circle p-2 m-1"
+                            title="Click here to notify the person to create their disclosure"
+                            aria-label="Click here to notify the person to create their disclosure"
+                            (click)="toggleNotificationSlider(person, personIndex)">
+                            <mat-icon aria-hidden="true" class="flex-shrink-0">notifications_active</mat-icon>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

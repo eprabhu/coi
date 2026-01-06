@@ -1,0 +1,144 @@
+<ng-container *ngIf="isShowSlider && noteEditorView === 'SLIDER'">
+    <app-coi-slider [isStickyNeeded]="false" [elementId]="sliderId" [isHeaderNeeded]="true"
+        [sliderWidth]="'w-100 w-xxl-75 w-lg-90'" (closeSlider)="closeSlider()">
+
+        <!-- slider header -->
+        <ng-container header>
+            <span>
+                <span>{{notesObj?.noteId ? mode ==='VIEW' ? 'Note' : 'Update Note': 'Add Note'}}</span>
+                <app-common-help-text [helpTextHardCoded]="notesObj?.noteId ? mode ==='VIEW' ? 'Note' : 'Update Note': 'Add Note'"></app-common-help-text>
+            </span>
+        </ng-container>
+
+        <!-- modal content -->
+        <ng-container content>
+            <div class="row row-gap-3">
+                <div *ngIf="mode === 'VIEW' && isEditMode" class="text-end">
+                    <button class="btn btn-sm btn-tertiary d-inline-flex gap-1" id="coi-edit-note-btn"
+                        title="Click here to edit note" aria-label="Click here to edit note" (click)="mode = 'EDIT'">
+                        <mat-icon aria-hidden="true" class="coi-scale-8">edit</mat-icon>
+                        <span>Edit Note</span>
+                    </button>
+                </div>
+                <!-- Notes Title -->
+                <div class="col-12">
+                    <label class="d-block coi-text-dark mb-1" for="coi-notes-title-slider">
+                        <span class="mandatory me-1">*</span>
+                        <span>Title</span>
+                        <ng-container *ngIf="mode === 'EDIT'">
+                            <app-common-help-text [helpTextHardCoded]="'Please enter note title'"></app-common-help-text>
+                        </ng-container>
+                    </label>
+                    <ng-contianer *ngIf="mode === 'EDIT'">
+                        <input type="text" id="coi-notes-title-slider" name="coi-notes-title-slider" [(ngModel)]="notesObj.title"
+                            class="form-control" [ngClass]="{'is-invalid d-block': mandatoryList?.has('title')}"
+                            (focusout)="setChangesFlag('title')" placeholder="Please enter the note title"
+                            appLengthValidator [limit]="500" appTailingSpaceRemover>
+                        <span *ngIf="mandatoryList?.has('title')"
+                            class="invalid-feedback d-inline fs-13">{{mandatoryList?.get('title')}}</span>
+                    </ng-contianer>
+                    <ng-contianer *ngIf="mode === 'VIEW'">
+                        <p class="fs-14 m-0" tabindex="-1" aria-live="assertive" role="alert">{{notesObj?.title}}</p>
+                    </ng-contianer>
+                </div>
+
+                <!-- Notes Description -->
+                <div class="col-12">
+                    <label class="d-block coi-text-dark mb-1" for="coi-notes-content-slider">
+                        <span class="mandatory me-1">*</span>
+                        <span>Description</span>
+                        <ng-container *ngIf="mode === 'EDIT'">
+                            <app-common-help-text [helpTextHardCoded]="'Please enter note description'"></app-common-help-text>
+                        </ng-container>
+                    </label>
+                    <div *ngIf="mode === 'EDIT'" class="col rounded-3 overflow-hidden coi-notes-comments-editor">
+                        <ckeditor id="coi-notes-content-slider" name="coi-notes-content-slider" [(ngModel)]="notesObj.content"
+                            [editor]="Editor" [config]="editorConfig" (ready)="onReady($event)" placeholder="Comment"
+                            row="4" maxlength="2000" [ngClass]="{'is-invalid d-block': mandatoryList?.has('content')}"
+                            (focusout)="setChangesFlag('content')">
+                        </ckeditor>
+                        <span *ngIf="mandatoryList?.has('content')"
+                            class="invalid-feedback d-inline fs-13">{{mandatoryList?.get('content')}}</span>
+                    </div>
+                    <ng-container *ngIf="mode === 'VIEW'">
+                        <p class="my-1 fs-14 d-inline ck-content" tabindex="-1" aria-live="assertive" role="alert"
+                            [innerHTML]="notesObj?.content | safe"></p>
+                    </ng-container>
+                </div>
+
+                <!-- Action button in edit mode -->
+                <div *ngIf="mode === 'EDIT'" class="col-12 d-flex justify-content-end" >
+                    <button id="coi-notes-cancel-btn" name="coi-notes-cancel-btn" type="button"
+                        title="Click here to clear notes" class="btn btn-outline-secondary fs-14 me-2"
+                        aria-label="Click here to clear notes" (click)="clearNotes()">
+                        Clear
+                    </button>
+                    <button id="coi-notes-save-btn" name="coi-notes-save-btn" type="button"
+                        title="Click here to {{notesObj?.noteId ? 'update': 'add'}} note" class="btn btn-primary fs-14"
+                        aria-label="Click here to {{notesObj?.noteId ? 'update': 'add'}} note"
+                        (click)="saveOrUpdateNotes()">
+                        <span>{{notesObj?.noteId ? 'Update Note': 'Add Note'}}</span>
+                    </button>
+                </div>
+            </div>
+        </ng-container>
+    </app-coi-slider>
+</ng-container>
+
+<ng-container *ngIf="!isShowSlider && noteEditorView === 'CARD'">
+    <div class="card mt-2 border-0 shadow-sm coi-card-regular">
+        <div class="row row-gap-3 card-body">
+            <!-- Notes Title -->
+            <div class="col-12">
+                <label class="d-block coi-text-dark mb-1" for="coi-notes-title-card">
+                    <span class="mandatory me-1">*</span>
+                    <span>Title</span>
+                    <app-common-help-text [helpTextHardCoded]="'Please enter note title'"></app-common-help-text>
+                </label>
+                <input type="text" id="coi-notes-title-card" name="coi-notes-title-card" [(ngModel)]="notesObj.title"
+                    class="form-control" [ngClass]="{'is-invalid d-block': mandatoryList?.has('title')}"
+                    (focusout)="setChangesFlag('title')" placeholder="Please enter the note title" appLengthValidator
+                    [limit]="500" appTailingSpaceRemover>
+                <span *ngIf="mandatoryList?.has('title')"
+                    class="invalid-feedback d-inline fs-13">{{mandatoryList?.get('title')}}</span>
+            </div>
+
+            <!-- Notes Description -->
+            <div class="col-12">
+                <label class="d-block coi-text-dark mb-1" for="coi-notes-content-card">
+                    <span class="mandatory me-1">*</span>
+                    <span>Description</span>
+                    <app-common-help-text [helpTextHardCoded]="'Please enter note description'"></app-common-help-text>
+                </label>
+                <div class="col rounded-3 overflow-hidden coi-notes-comments-editor">
+                    <ckeditor id="coi-notes-content-card" name="coi-notes-content-card" [(ngModel)]="notesObj.content"
+                        [editor]="Editor" [config]="editorConfig" (ready)="onReady($event)" placeholder="Comment" row="4"
+                        maxlength="2000" [ngClass]="{'is-invalid d-block': mandatoryList?.has('content')}"
+                        (focusout)="setChangesFlag('content')">
+                    </ckeditor>
+                </div>
+                <span *ngIf="mandatoryList?.has('content')"
+                    class="invalid-feedback d-inline fs-13">{{mandatoryList?.get('content')}}</span>
+            </div>
+
+            <!-- Action button in edit mode -->
+            <div class="col-12 d-flex justify-content-end">
+                <button id="coi-notes-clear-btn" name="coi-notes-clear-btn" type="button"
+                    title="Click here to clear notes" class="btn btn-outline-secondary fs-14 me-2"
+                    aria-label="Click here to clear notes" (click)="clearNotes()">
+                    Clear
+                </button>
+                <button id="coi-notes-save-btn" name="coi-notes-save-btn" type="button"
+                    title="Click here to {{notesObj?.noteId ? 'update': 'add'}} note" class="btn btn-primary fs-14"
+                    aria-label="Click here to {{notesObj?.noteId ? 'update': 'add'}} note"
+                    (click)="saveOrUpdateNotes()">
+                    <span>{{notesObj?.noteId ? 'Update Note': 'Add Note'}}</span>
+                </button>
+                <button id="coi-notes-cancel-btn" name="coi-notes-cancel-btn" type="button" title="Click here to cancel notes"
+                    class="btn btn-outline-secondary fs-14 ms-2" aria-label="Click here to clear notes" (click)="cancelAddCard()">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</ng-container>

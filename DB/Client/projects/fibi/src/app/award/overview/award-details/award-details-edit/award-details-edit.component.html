@@ -1,0 +1,340 @@
+<!-- Last updated by Greeshma on 19/05/2020. -->
+<div id="Award101" class="card mb-3" [ngClass]="{'item-highlighted': isHighlighted}">
+    <div class="card-header px-4">
+        <h4 class="card-title">
+            <ng-container i18n="@@AWARD_GENERAL_AWARD_INFORMATION">General Award Information</ng-container>
+            <span *ngIf="result?.award?.awardId" class="d-inline-block float-right icon-hover">
+                <a class="tooltip "><i class="fa fa-info-circle fa-med hand-cursor" aria-hidden="true"></i>
+                    <div class="tooltiptext-right card card-inner p-15 text-left">
+                        <span class="font-cv">Created By</span>
+                        <span class="font-cv font-weight-bold">{{result?.award?.createUserFullName}}
+                            on {{result?.award?.createTimestamp | dateFormatterWithTimeZone : 'long'}} </span>
+                        <span class="font-cv">Last Updated By</span><span
+                            class="font-cv font-weight-bold">{{result?.award?.updateUserFullName}}
+                            on {{result?.award?.updateTimeStamp | dateFormatterWithTimeZone : 'long'}}</span>
+                        <ng-container *ngIf="result?.award?.funderApprovalDate">
+                            <span class="font-cv">Funder Approval Date</span>
+                            <span class="font-cv font-weight-bold">{{result?.award?.funderApprovalDate | dateFormatter}}</span>
+                        </ng-container>
+                    </div>
+                </a>
+            </span>
+        </h4>
+    </div>
+    <div class="card-content">
+        <div class="card-body">
+            <div class="form-row">
+                <!-- Account Number: -->
+                <div class="col-lg-3 col-sm-6 col-12">
+                    <label for="award-acc-no"><ng-container i18n="@@AWARD_ACCOUNT_NUMBER">Account Number</ng-container></label>
+                    <span>
+                        <input id="award-acc-no" type="text" placeholder="Type here for Account Number"
+                        [disabled]=" ((result?.serviceRequest?.typeCode == '1' || result?.isGenerateWBSNumber) && awardId) ||
+                        (!awardId && lookupData?.isGenerateWBSNumber)"
+                            class="form-control" [(ngModel)]="award.accountNumber"
+                            (ngModelChange)="_commonData.isAwardDataChange = true" autocomplete="off" />
+                    </span>
+                </div>
+                <!-- Account Type: -->
+                <div class="col-lg-3 col-sm-6 col-12">
+                    <label for="account-type">Account Type</label>
+                    <select id="account-type" class="form-control" [disabled]="result?.serviceRequest?.typeCode == '1'"
+                        (ngModelChange)="_commonData.isAwardDataChange = true" [(ngModel)]="award.accountTypeCode">
+                        <option [ngValue]=null>--Select--</option>
+                        <option *ngFor="let accountType of lookupData?.accountTypes"
+                            [value]="accountType.accountTypeCode" [hidden]="accountType.isActive != true">
+                            {{accountType.description}}</option>
+                    </select>
+                </div>
+                <!-- Activity Type: -->
+                <div class="col-lg-3 col-sm-6 col-12">
+                    <label for="award-activity">
+                        <span class="mandatory">*</span><ng-container i18n="@@AWARD_ACTIVITY_TYPE">Activity Type</ng-container></label>
+                    <select id="award-activity" [disabled]="result?.serviceRequest?.typeCode == '1'"
+                        class="form-control" [ngClass]="(map.get('activitypecode')) ? 'is-invalid d-block' : ''"
+                        (ngModelChange)="_commonData.isAwardDataChange = true" [(ngModel)]="award.activityTypeCode">
+                        <option value=null>--Select--</option>
+                        <option *ngFor="let activityType of lookupData?.activitytypes"
+                            [value]="activityType.activityTypeCode" [hidden]="activityType.isActive != true">
+                            {{activityType.description}}</option>
+                    </select>
+                    <div *ngIf="(map.get('activitypecode'))" class="invalid-feedback d-block">
+                        <ng-container i18n="@@AWARD_NO_ACTIVITY_TYPE_ERR">Please select an Activity Type.</ng-container>
+                    </div>
+                </div>
+                <!-- Award Status: -->
+                <div class="col-lg-3 col-sm-6 col-12">
+                    <label for="award-status">
+                        <span class="mandatory">*</span><ng-container i18n="@@AWARD_AWARD_STATUS">Award Status</ng-container></label>
+                    <select id="award-status" class="form-control" [disabled]="result?.serviceRequest?.typeCode == '1'"
+                        [ngClass]="(map.get('statuscode'))? 'is-invalid d-block' : ''"
+                        (ngModelChange)="_commonData.isAwardDataChange = true" [(ngModel)]="award.statusCode"
+                        (ngModelChange)="updateAwardStatus($event)">
+                        <option value="">--Select--</option>
+                        <ng-container *ngFor="let awardstatus of lookupData?.awardStatus">
+                            <option [value]="awardstatus.statusCode" [hidden]="awardstatus.isActive != true">
+                                {{awardstatus.description}}</option>
+                        </ng-container>
+                    </select>
+                    <div *ngIf="(map.get('statuscode'))" class="invalid-feedback d-block">
+                        <ng-container i18n="@@AWARD_NO_AWARD_STATUS_ERR">Please select an award status.</ng-container>
+                    </div>
+                </div>
+                <!-- Title: -->
+                <!-- ngModal bindings are done twice to bind value of title simultaneously in header and child component  -->
+                <div class="col-md-12 col-12">
+                    <label for="award-title">
+                        <span class="mandatory">*</span>Title</label>
+                    <input type="text" id="award-title" placeholder="Type here for Title of Award" class="form-control"
+                        [disabled]="result?.serviceRequest?.typeCode == '1'" maxlength="300"
+                        [ngClass]="(map.get('awardtitle')) ? 'is-invalid d-block' : ''"
+                        (ngModelChange)="_commonData.isAwardDataChange = true" [(ngModel)]="_commonData.awardTitle.title"
+                        [(ngModel)]="award.title" autocomplete="off"/>
+                    <div *ngIf="(map.get('awardtitle'))" class="invalid-feedback d-block">
+                        Please specify the title of award.
+                    </div>
+                </div>
+                <!-- Principal Investigator: -->
+                <div *ngIf="!award?.awardId" class="col-lg-6 col-md-7 col-12">
+                    <label>
+                        <span class="mandatory">*</span>Principal Investigator</label>
+                    <span class="float-right">
+                        <input id="employee" type="radio" name='employeeRadio' [value]='true'
+                            [(ngModel)]="isEmployeeFlag" checked="true" (change)="changeMemberType()">
+                        <label for="employee" class="fs-14">
+                            Employee
+                        </label>
+                        <input id="non-employee" type="radio" name='employeeRadio' [value]='false'
+                            [(ngModel)]="isEmployeeFlag" (change)="changeMemberType()">
+                        <label for="non-employee" class="fs-14">
+                            Non-Employee
+                        </label>
+                    </span>
+                    <div class="searchBox">
+                        <app-elastic [options]="piSearchOptions" [isError]="(map.get('awardPi')) ? true : false"
+                            [placeHolder]="isEmployeeFlag ? 'Search an employee': 'Search a non-employee' "
+                            (selectedResult)="setPIDetails($event)">
+                        </app-elastic>
+                        <div class="invalid-feedback" *ngIf="(map.get('awardPi'))">Please select a Principal Investigator.</div>
+                    </div>
+                </div>
+                <!-- Lead Unit: -->
+                <div *ngIf="!award?.awardId" class="col-lg-6 col-md-5 col-sm-6 col-12">
+                    <label>
+                        <span class="mandatory">*</span>Lead Unit</label>
+                    <div class="searchBox">
+                        <app-endpoint-search [httpOptions]="leadUnitSearchOptions" [isDisabled]="isExtensionEnabled"
+                            [isError]="(map.get('awardleadunit')) ? true : false"
+                            [placeHolder]="'Type here for Lead Unit'" [clearField]="clearleadUnitField"
+                            (onSelect)="leadUnitChangeFunction($event)">
+                        </app-endpoint-search>
+                    </div>
+                </div>
+                <!-- Award Effective Date: -->
+                <div class="col-xl-3 col-lg-4 col-sm-6 col-12">
+                    <label for="award-start-date">
+                        <span class="mandatory">*</span><ng-container i18n="@@COMMON_AWARD_EFFECTIVE_DATE">Award Effective Date</ng-container></label>
+                    <span class="dateField">
+                        <input matInput [matDatepicker]="startDate" placeholder="{{datePlaceHolder}}" autocomplete="off" id="award-start-date"
+                            [ngClass]="(map.get('awardBeginDate')) ? 'is-invalid d-block' : ''" (change)="checkAwardDateExtension();startDate.close()"
+                            style="width: 100% !important" class="d-inline-block form-control"
+                            [(ngModel)]="award.beginDate" [disabled]="result?.serviceRequest?.typeCode == '1'"
+                            (keypress)="_commonService._keyPress($event, 'date');" (click)="startDate.open()"
+                            (ngModelChange)="getDuration();_commonData.isAwardDataChange = true; isDateFieldChanged = true;
+                            dateValidationBeforeAction(award.beginDate, 'awardBeginDate', 'Please pick an Award Effective Date.')" />
+                        <i id="award-start-date-icon" class="fa fa-calendar fa-large insidePicker hand-cursor"
+                            title="Open Calendar" aria-hidden="true" (click)="startDate.open()"></i>
+                        <mat-datepicker #startDate (opened)="setFocusToElement('award-start-date'); isDateFieldChanged = false"
+                        (closed)="isDateFieldChanged && checkAwardDateExtension()">
+                        </mat-datepicker>
+                    </span>
+                    <div *ngIf="(map.get('awardBeginDate'))" class="invalid-feedback d-block">
+                        <ng-container i18n="@@AWARD_PICK_AWARD_EFFECTIVE_DATE_ERR">Please pick an Award Effective Date.</ng-container>
+                    </div>
+                </div>
+                <!-- Final Expiration Date: -->
+                <div class="col-xl-3 col-lg-4 col-sm-6 col-12">
+                    <label for="award-end-date"> <span class="mandatory">*</span><ng-container i18n="@@COMMON_FINAL_EXPIRATION_DATE">Final Expiration Date</ng-container></label>
+                    <span class="dateField">
+                        <input matInput [matDatepicker]="endDate" placeholder="{{datePlaceHolder}}" autocomplete="off" id="award-end-date"
+                            style="width: 100% !important" class="d-inline-block form-control"
+                            [(ngModel)]="award.finalExpirationDate" (change)="checkAwardDateExtension();endDate.close()"
+                            [ngClass]="(map.get('awardEndDate')) ? 'is-invalid d-block' : ''"
+                            (keypress)="_commonService._keyPress($event, 'date');" (click)="endDate.open()"
+                            (ngModelChange)="getDuration();_commonData.isAwardDataChange = true; isDateFieldChanged = true;
+                            dateValidationBeforeAction(award.finalExpirationDate, 'awardEndDate', 'Please pick a Final Expiration Date.')" />
+                        <i id="award-end-date-icon" class="fa fa-calendar fa-large insidePicker hand-cursor"
+                            title="Open Calendar" aria-hidden="true" (click)="endDate.open()"></i>
+                        <mat-datepicker #endDate (opened)="setFocusToElement('award-end-date'); isDateFieldChanged = false"
+                        (closed)="isDateFieldChanged && checkAwardDateExtension()"></mat-datepicker>
+                    </span>
+                    <div *ngIf="(map.get('awardEndDate'))" class="invalid-feedback d-block">
+                        <ng-container i18n="@@AWARD_PICK_FINAL_EXPIRATION_DATE_ERR">Please pick a Final Expiration Date.</ng-container>
+                    </div>
+                    <div *ngIf="warningMsgObj?.dateWarningText != null" class="col invalid-feedback d-block">
+                        {{warningMsgObj?.dateWarningText}}
+                    </div>
+                </div>
+                <!-- Award Notice Date : -->
+                <div class="col-xl-3 col-lg-4 col-sm-6 col-12">
+                    <label for="award-effective-date"><ng-container i18n="@@AWARD_AWARD_NOTICE_DATE">Award Notice Date</ng-container> </label>
+                    <span class="dateField">
+                        <input matInput [matDatepicker]="effectiveDate" placeholder="{{datePlaceHolder}}" autocomplete="off"
+                            id="award-effective-date" style="width: 100% !important"
+                            [disabled]="result?.serviceRequest?.typeCode == '1'"
+                            class="d-inline-block form-control" [(ngModel)]="award.awardEffectiveDate"
+                            (keypress)="_commonService._keyPress($event, 'date');"
+                            (ngModelChange)="_commonData.isAwardDataChange = true"
+                            (click)="effectiveDate.open()" />
+                        <i id="award-effective-date-icon" class="fa fa-calendar fa-large insidePicker hand-cursor"
+                            title="Open Calendar" (click)="effectiveDate.open()" aria-hidden="true"></i>
+                        <mat-datepicker #effectiveDate (opened)="setFocusToElement('award-effective-date')"></mat-datepicker>
+                    </span>
+                </div>
+                <!-- Award Duration: -->
+                <div class="col-xl-3 col-lg-4 col-sm-6 col-12">
+                    <label class="d-block"><ng-container i18n="@@AWARD_AWARD_DURATION">Award Duration</ng-container></label>
+                    <span>
+                        <strong>{{award.duration}}</strong>
+                    </span>
+                </div>
+                <!-- Award Type: -->
+                <div class="col-xl-3 col-lg-4 col-md-4 col-sm-6 col-12">
+                    <label for="award-type"><ng-container i18n="@@AWARD_AWARD_TYPE">Award Type</ng-container></label>
+                    <select id="award-type" class="form-control" [disabled]="result?.serviceRequest?.typeCode == '1'"
+                        (ngModelChange)="_commonData.isAwardDataChange = true" [(ngModel)]="award.awardTypeCode">
+                        <option [ngValue]=null>--Select--</option>
+                        <option *ngFor="let awardType of lookupData?.awardTypes" [value]="awardType.awardTypeCode"
+                            [hidden]="awardType.isActive != true">
+                            {{awardType.description}}</option>
+                    </select>
+                    <div *ngIf="(map.get('awardtypecode'))" class="invalid-feedback d-block">
+                        Please select an award type.
+                    </div>
+                </div>
+                <!-- Sponsor: -->
+                <div class="col-xl-3 col-lg-4 col-md-8 col-sm-6 col-12">
+                    <label>
+                        <span class="mandatory">*</span><ng-container i18n="@@COMMON_SPONSOR">Sponsor</ng-container></label>
+                    <div>
+                        <div class="searchBox mb-0">
+                            <app-endpoint-search [httpOptions]="sponsorSearchOptions" [isDisabled]="isExtensionEnabled"
+                                [isError]="(map.get('awardsponsorcode')) ? true : false"
+                                [placeHolder]="'Type here for Sponsor'" (onSelect)="sponsorChangeFunction($event)">
+                            </app-endpoint-search>
+                        </div>
+                    </div>
+                </div>
+                <!-- Prime Sponsor: -->
+                <div class="col-xl-3 col-lg-4 col-md-8 col-sm-6 col-12">
+                    <label>Prime Sponsor</label>
+                    <div class="searchBox mb-0">
+                        <app-endpoint-search [httpOptions]="primeSponsorSearchOptions" [isDisabled]="isExtensionEnabled"
+                            [placeHolder]="'Type here for Prime Sponsor'"
+                            (onSelect)="primeSponsorChangeFunction($event)"></app-endpoint-search>
+                    </div>
+                </div>
+                <!-- Sponsor Award Number -->
+                <div class="col-xl-3 col-lg-4 col-md-4 col-sm-6 col-12">
+                    <label for="sponsor-award-number" title="The identification number assigned to the award by the Sponsor. Often obtained from the NOA.">
+                        <ng-container i18n="@@COMMON_SPONSOR_AWARD_NUMBER">Sponsor Award Number</ng-container></label>
+                    <input type="text" id="sponsor-award-number" placeholder="'Type Sponsor Award Number here'"
+                    [disabled]="result?.serviceRequest?.typeCode == '1'" i18n-placeholder="@@AWARD_SPONSOR_AWARD_NUMBER_PLHDR"
+                        class="form-control" (ngModelChange)="_commonData.isAwardDataChange = true"
+                        [(ngModel)]="award.sponsorAwardNumber" autocomplete="off"/>
+                </div>
+                <!-- CFDA  Number -->
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12">
+                    <label  for="cfda-number" title="CFDA (Catalogue of Federal Domestic Assistance Number) is a five-digit number assigned in the awarding document to most grants and cooperative agreements funded by the Federal government.">CFDA Number</label>
+                    <input type="text" id="cfda-number" placeholder="Type CFDA Number here"
+                    [disabled]="result?.serviceRequest?.typeCode == '1'"
+                        class="form-control" (ngModelChange)="_commonData.isAwardDataChange = true"
+                        [(ngModel)]="award.cfdaNumber" autocomplete="off" />
+                </div>
+                <!-- DFAFS Number -->
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12">
+                    <label for="dfafs-number" title="Can be used to enter the DFAFS Number (Department Federal Assistance Financing System). This is applicable to the NIH and Department of Education Awards.">DFAFS Number </label>
+                    <input type="text" id="dfafs-number" placeholder="Type DFAFS Number here"
+                    [disabled]="result?.serviceRequest?.typeCode == '1'"
+                        class="form-control" (ngModelChange)="_commonData.isAwardDataChange = true"
+                        [(ngModel)]="award.dfafsNumber" autocomplete="off" />
+                </div>
+                <!-- Keywords: -->
+                <div class="col-lg col-12">
+                    <label>Keywords</label>
+                    <app-endpoint-search id="award-keywords" [isDisabled]="result?.serviceRequest?.typeCode == '1' ? true : false"
+                        [httpOptions]="keywordSearchOptions" [clearField]="clearKeywordField"
+                        [placeHolder]="'Type here for Keyword or add your own Keyword'"
+                        (onSelect)="keywordSelectFunction($event)" [isError]="(map.get('keyword')) ? 'is-invalid d-block' : ''"
+                        (onEmpty)="showAddKeywordFunction($event)" (searchValue)="getSearchValue($event)" [addSearchText]="true"
+                        (onNewValueSelect)="addKeywordToDatabase($event)">
+                    </app-endpoint-search>
+                    <div *ngIf="(map.get('keyword'))" class="invalid-feedback d-block">
+                        {{map.get('keyword')}}
+                    </div>
+                    <div class="form-row">
+                        <div class="col fileChips mb-0" style="word-break: break-all;" *ngIf="keywords?.length > 0">
+                            <ng-container *ngFor="let keyword of keywords;let i = index;">
+                                <span>{{keyword?.scienceKeyword?.description}}
+                                    <i class="fa fa-close hand-cursor" id="keywrd-dlt" aria-hidden="true"
+                                        *ngIf="result?.serviceRequest?.typeCode != '1'"
+                                        (click)="deleteKeyword(keyword.awardKeywordId,i)" title="Remove this keyword"></i>
+                                </span>
+                            </ng-container>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="_commonData?.awardSectionConfig['197']?.isActive" class="col-12">
+                    <div class="searchBox position-relative">
+                        <label>Grant Call</label>
+                        <span>
+                            <app-endpoint-search id="grant-details-search" [httpOptions]="grantHttpOptions"
+                                [clearField]="clearGrantField" (keyup)="emptyValidationKeyup($event)"
+                                [isDisabled]="result?.serviceRequest?.typeCode == '1' ? true : false"
+                                [placeHolder]="'Search: Grant Call ID , Title of Grant Call'"
+                                (onSelect)="grantCallSelectFunction($event)"></app-endpoint-search>
+                        </span>
+                    </div>
+                    <a id="grantCall-details" title="Click here to view {{grantHttpOptions?.defaultValue}}"
+                        (click)="showGrantDetails = !isSaving" class="anchor-link position-absolute bottom-_10 fs-14"
+                        *ngIf="result?.award?.grantHeaderId" tabindex="0">
+                        View Grant Call Details
+                    </a>
+                </div>
+                <div class="col-12">
+                    <div class="d-flex flex-column flex-sm-row justify-content-md-end justify-content-center">
+                        <button *ngIf="award?.awardId !== undefined" class="btn btn-primary-sub btn-xs"
+                            id="award-save-btn" type="button" (click)="saveAward()"><ng-container i18n="@@AWARD_SAVE_AWARD">Save Award</ng-container></button>
+                        <button *ngIf="award?.awardId === undefined" class="btn btn-primary-sub btn-xs"
+                            id="award-save-btn" type="button" (click)="saveAward()">Proceed</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- grant details view modal -->
+<app-grant-details-view *ngIf="showGrantDetails" (showGrantDetails)="setGrantDetailsValue($event)" [grantCallId]="result?.award?.grantHeaderId"></app-grant-details-view>
+
+<!-- Award End Date Extension Warning Modal -->
+<button id="award-date-extension-modal-button" [hidden]="true" data-toggle="modal"
+    data-target="#awardDateExtensionModal"></button>
+<div class="modal modal-z-index fade mySkinDialog"  id="awardDateExtensionModal" tabindex="-1" role="dialog"
+     aria-labelledby="awardDateExtensionModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Warning</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="isDateFieldChanged = false;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p><ng-container i18n="@@AWARD_CHANGE_AWARD_DATE_AFFECT_BUDGET_DATE_ERR">Changes made to the award date(s) may affect the budget dates. Please review and modify budget dates and periods if needed.</ng-container></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary-sub btn-sm" data-dismiss="modal" (click)="isDateFieldChanged = false;">OK</button>
+            </div>
+        </div>
+    </div>
+</div>

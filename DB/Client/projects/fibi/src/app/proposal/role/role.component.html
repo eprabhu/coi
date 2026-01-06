@@ -1,0 +1,135 @@
+<ng-container *ngIf="_proposalService.proposalSectionConfig['315']?.isActive">
+    <!-- Last updated by Harshith on 16-01-2019 -->
+    <div class="card my-3">
+        <div *ngIf="canEditPermission">
+            <div class="card-content">
+                <div class="card-body" id="accordionSearch">
+                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 ct-mb10" id="collapseSearch"
+                         class="collapse show" aria-labelledby="headingOne" data-parent="#accordionSearch">
+                        <div class="form-row">
+                            <div class="col-xl-5 col-sm-6 col-12">
+                                <label><span class="mandatory">*</span>Person</label>
+                                <div class="position-relative">
+                                    <app-elastic [options]="elasticSearchOptions" [clearField]="clearField"
+                                                 [placeHolder]="'Search a person to assign a role'"
+                                                 (selectedResult)="selectedPerson($event)"
+                                                 [isError]="(map.get('person') || map.get('repeat')) ? true : false">
+                                    </app-elastic>
+                                    <div class="position-absolute bottom-_18" *ngIf="map.get('person')">
+                                        <span class="mandatory">{{map.get('person')}}</span>
+                                    </div>
+                                    <div class="position-absolute bottom-_18" *ngIf="map.get('repeat')">
+                                        <span class="mandatory">{{map.get('repeat')}}</span>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="col-xl-5 col-sm-6 col-12">
+                                <label for="role-select"><span class="mandatory">*</span><ng-container i18n="@@COMMON_ROLES">Roles</ng-container></label>
+                                <div class="position-relative">
+                                    <select id="role-select" class="form-control" [(ngModel)]="personRoleObject.roleId"
+                                            (ngModelChange)="setUnsavedChanges(true)"
+                                            [ngClass]="{'lineItem-mandatory': map.get('role')||map.get('repeat')}">
+                                        <option [value]=null>--Select--</option>
+                                        <option *ngFor="let role of roleList" [value]="role.roleId" [hidden]="!role.isActive">
+                                            {{role.roleName}}</option>
+                                    </select>
+                                    <div class="position-absolute bottom-_18" *ngIf="map.get('role')">
+                                        <span class="mandatory">{{map.get('role')}}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                                    class="col-xl-2 col-12 d-flex flex-column flex-sm-row justify-content-end align-items-end mt-3 mt-md-0">
+                                <button class="btn btn-secondary mr-sm-2 btn-xs" (click)="resetObject()"
+                                        title="Click to Cancel">Cancel</button>
+                                <button class="btn btn-primary-sub btn-xs" (click)="savePersonRoles()" i18n-title="@@PROPOSAL_CLICK_TO_ASSIGN_ROLE_TLP"
+                                        title="Click to assign role"><ng-container i18n="@@COMMON_ASSIGN_ROLES">Assign Roles</ng-container></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <ng-container *ngFor="let role of roleList;let index=index">
+        <div class="card mb-3" [ngClass]="{'pb-0': isCollapseList[role.roleName]==false}" *ngIf="filterPersonPerRole(role.roleId)?.length > 0 && role.isActive" >
+            <div class="card-header">
+                <h4 class="card-title" id="ProposalRoles">{{role.roleName}}
+                    <button class="updown-arrow float-right" id="budgetExpandBtn">
+                        <i class="fa-large fa fa-angle-double-up" aria-hidden="true"
+                           [ngClass]="(isCollapseList[role.roleName]!=true)?'fa fa-angle-double-down':'fa fa-angle-double-up'"
+                           (click)="collapseRoleTables(role.roleName)"></i>
+                    </button>
+                </h4>
+            </div>
+            <div class="hiddenRow" *ngIf="isCollapseList[role.roleName]==true && filterPersonPerRole(role.roleId)?.length > 0">
+                <div class="card-content" >
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table tableSkin grid2" aria-describedby="ProposalRoles">
+                                <thead>
+                                <th scope="col">User ID</th>
+                                <th scope="col">Full Name</th>
+                                <th scope="col">Home Unit</th>
+                                <th scope="col" *ngIf="canEditPermission">Action</th>
+                                </thead>
+                                <tbody>
+                                <tr *ngFor="let personRole of filterPersonPerRole(role.roleId)"
+                                    id="{{personRole.proposalPersonRoleId}}">
+                                    <td>{{personRole?.person?.principalName}}</td>
+                                    <td>{{personRole?.person?.fullName}}</td>
+                                    <td>{{concatUnitNumberAndUnitName(personRole?.person?.unit?.unitNumber, personRole?.person?.unit?.unitName)}}</td>
+                                    <td *ngIf="canEditPermission">
+                                        <ul class="actionButtonGroup">
+                                            <!-- SMU Specific change.
+                                            *ngIf="(role?.roleId != 5)||(role?.roleId == 5 && personRole?.personId != result?.proposal?.investigator?.personId && result?.proposal?.createUser != personRole?.person?.principalName)"-->
+                                            <li>
+                                                <a data-toggle="modal" data-target="#deletePersonRole"
+                                                   id="prop-role-delete-btn">
+                                                    <i class="fa fa-trash-o pointer" aria-hidden="true"
+                                                       title="Click here to delete {{personRole?.person?.fullName}}"
+                                                       (click)="deletePersonRole=personRole;roleName=role?.roleName"></i>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+    <!-- delete Modal -->
+    <div class="modal fade mySkinDialog" id="deletePersonRole" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header ct-footer-padding">
+                    <h4 class="modal-title">Delete</h4>
+                    <button id="prop-role-close" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body ct-modal-padding">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <p>This action will delete the <strong>{{roleName}}</strong> role for
+                                <strong>{{deletePersonRole?.person?.fullName}}</strong> in this proposal. Are you sure you
+                                want to delete <strong>{{deletePersonRole?.person?.fullName}}</strong> ?</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer ct-footer-padding">
+                    <button id="deleterolepersonId" type="button" title="No" class="btn btn-secondary"
+                            data-dismiss="modal">No</button>
+                    <button (click)="deletePersonRoles(deletePersonRole)" type="button" title="Click to Delete"
+                            class="btn btn-primary-sub" data-dismiss="modal">Yes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</ng-container>

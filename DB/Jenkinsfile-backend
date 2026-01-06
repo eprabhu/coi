@@ -1,0 +1,346 @@
+pipeline {
+    agent any
+    tools {
+        maven 'maven2'
+    }
+    
+    stages {
+    
+        stage('Read Yaml file') {
+            steps {
+                    script {
+
+                        def yamlData = readYaml file: 'release-backend.yml'
+                        env.SERVICE_NAMES = yamlData.serviceNames
+
+                        env.SSH_USER = yamlData.config.username
+                        env.BRANCH = yamlData.config.branch
+                        env.IP = yamlData.config.ip
+                        env.MAIL_ID = yamlData.config.mail_id
+                        env.BACKUP_PATH = yamlData.config.backup_path
+                        env.WEBAPP_PATH = yamlData.config.webapp_path
+                        env.WAR_NAME = yamlData.config.war_name
+                        env.DOCKER_COMPOSE_PATH = yamlData.config.docker_compose_path
+                        env.TOMCAT_CONTAINER = yamlData.config.tomcat_container
+                        env.JAR_BACKUP_PATH = yamlData.config.jar_backup_path
+                        env.JAR_BUILD_PATH = yamlData.config.jar_build_path
+
+
+
+
+                        //env['fibi-api-gateway'] = yamlData.serviceNames.fibiapigateway
+                        //env['fibi-auth-service'] = yamlData.serviceNames.fibiauthservice
+                        //env['fibi-base'] = yamlData.serviceNames.fibibase
+                        //env['fibi-config-server'] = yamlData.serviceNames.fibiconfigserver
+                        //env['fibi-mail-reader'] = yamlData.serviceNames.fibimailreader
+                        //env['fibi-service-registry'] = yamlData.serviceNames.fibiserviceregistry
+                        //env['fibi-service-request'] = yamlData.serviceNames.fibiservicerequest
+                        env['FCOI'] = yamlData.serviceNames.fibicoi
+                        env['Form-Builder'] = yamlData.serviceNames.fibiformbuilder
+                        //env['Graph-Connect'] = yamlData.serviceNames.fibigraphconnect
+                        //env['fibi-coi-connect'] = yamlData.serviceNames.fibicoiconnect
+
+
+                        //env['fibi-api-gateway_jar'] = yamlData.jarNames.fibiapigateway
+                        //env['fibi-auth-service_jar'] = yamlData.jarNames.fibiauthservice
+                        //env['fibi-base_jar'] = yamlData.jarNames.fibibase
+                        //env['fibi-config-server_jar'] = yamlData.jarNames.fibiconfigserver
+                        //env['fibi-mail-reader_jar'] = yamlData.jarNames.fibimailreader
+                        //env['fibi-service-registry_jar'] = yamlData.jarNames.fibiserviceregistry
+                        //env['fibi-service-request_jar'] = yamlData.jarNames.fibiservicerequest
+                        env['FCOI_jar'] = yamlData.jarNames.fcoi
+                        env['Form-Builder_jar'] = yamlData.jarNames.fibiformbuilder
+                        //env['Graph-Connect_jar'] = yamlData.jarNames.fibigraphconnect
+                        //env['fibi-coi-connect_jar'] = yamlData.jarNames.fibicoiconnect
+
+
+                        echo "Server Username = ${env.SSH_USER}"
+                        echo "Branch = ${env.BRANCH}"
+                        echo "IP = ${env.IP}"
+                        echo "Mail Id = ${MAIL_ID}"
+                        echo "Backup path = ${BACKUP_PATH}"
+                        echo "Webapp path = ${WEBAPP_PATH}"
+                        echo "War Name = ${WAR_NAME}"
+                        echo "Docker compose path = ${DOCKER_COMPOSE_PATH}"
+                        echo "Tomcat container Name = ${TOMCAT_CONTAINER}"
+                        echo "jar build path = ${JAR_BUILD_PATH}"
+                        echo "jar backup path = ${JAR_BACKUP_PATH}"
+
+
+                        
+                        //echo "Service name of api gateway = ${env['fibi-api-gateway']}"
+                        //echo "Service name of auth service = ${env['fibi-auth-service']}"
+                        //echo "Service name of config server = ${env['fibi-config-server']}"
+                        //echo "Service name of mail reader = ${env['fibi-mail-reader']}"
+                        //echo "Service name of service registry = ${env['fibi-service-registry']}"
+                        //echo "Service name of service request = ${env['fibi-service-request']}"
+                        echo "Service name of coi = ${env['FCOI']}"
+                         echo "Service name of service form builder = ${env['Form-Builder']}"
+                        //echo "Service name of service graphconnect = ${env['Graph-Connect']}"
+                        //echo "Service name of service coi-onnect = ${env['fibi-coi-connect']}"
+
+                } 
+                
+            }
+        }
+
+        stage('Git Checkout') {
+            steps {
+                git branch: "${env.BRANCH}", url: "git@github.com:Polus-Software/Fibi.git" // SSH URL for Git
+            }
+        }
+
+
+        stage ('Checking the Backend changes') {
+
+            steps {
+                script {
+                    def changedFiles = sh(
+                    script: "git diff --name-only HEAD^1 HEAD",
+                    returnStdout: true
+                    ).trim()
+
+                    echo "Changed Files: ${changedFiles}"
+
+                    // Determine if there are relevant changes
+                    def relevantChanges = changedFiles.split('\n').findAll { it.startsWith('Server/') }
+                    echo "Relevant Changes: ${relevantChanges}"
+
+                    if (relevantChanges.isEmpty()) {
+                    echo "No changes in Server folder. Stopping the pipeline."
+                    currentBuild.result = 'NOT_BUILT' // Mark the build as not built
+                    //error("Pipeline stopped: No relevant changes detected or only changes to Jenkinsfile and release.yml.") // Halt the pipeline
+                    return
+		            } else {
+                        echo "changes in Server folder. Proceeding with next stage."
+                    }
+
+                    def changedDirs = relevantChanges.collect { it.split('/')[1] }.unique()
+                    env.CHANGED_DIRS = changedDirs.join(',')
+                    echo "Changed directories: ${env.CHANGED_DIRS}"
+                   
+                     
+
+                }
+            }
+        }
+
+
+        stage('Build JARs and Deploy') {
+
+         when {
+                expression { currentBuild.result != 'NOT_BUILT' }
+                
+            }
+
+            steps {
+                dir('Server') {
+
+                    script {
+                        def directoriesToBuild = env.CHANGED_DIRS.split(',')
+                        def oldImageIds = []
+                        def successfulDirs = []
+                        def failedDirs = []
+
+                        directoriesToBuild.each { dirName ->
+                            catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+                                    if (['FCOI','Form-Builder'].contains(dirName)) {
+
+                                        try {
+
+                                            echo "Building project in directory: ${dirName}"
+
+                                            def serviceName = env[dirName]
+                                            env.SUCCESSFUL_JAR_DIRS = []
+                                            env.FAILED_JAR_DIRS = []
+
+
+                                            dir(dirName) {
+                                                sh 'mvn clean install'
+                                            }
+
+                                            // Dynamically set JAR_NAME based on dirName
+                                            env.JAR_DIR_NAME = "${dirName}_jar"
+                                            def jarName = env[JAR_DIR_NAME]
+
+                                            echo "Build : ${dirName} corresponding Jar Name : ${jarName}"
+
+                                            echo "Deploy the JAR : ${dirName} "
+
+                                            dir(dirName) {
+
+                                                sh """
+
+                                                ssh "${env.SSH_USER}"@"${env.IP}" "rm -rf ${env.JAR_BACKUP_PATH}${jarName}"
+                                                ssh "${env.SSH_USER}"@"${env.IP}" "mv ${env.JAR_BUILD_PATH}${jarName} ${env.JAR_BACKUP_PATH}"
+                                                scp target/"${jarName}" "${env.SSH_USER}"@"${env.IP}":"${env.JAR_BUILD_PATH}"
+                                                ssh "${env.SSH_USER}"@"${env.IP}" "sudo systemctl restart ${serviceName}"
+
+                                                """
+
+                                            }
+
+
+
+
+
+                                            successfulDirs.add(dirName) // Mark as successful
+                                            //echo "Successful directories so far: ${successfulDirs.join(', ')}"
+                                            //env.SUCCESSFUL_JAR_DIRS = "${successfulDirs.join(',')}"
+                                            //echo "Final successful directories: ${env.SUCCESSFUL_JAR_DIRS}"
+
+                                         // catchError will handle failures
+                                        }   catch (Exception e) {
+                                                failedDirs.add(dirName) // Mark as failed
+                                                //echo "Failed directories so far: ${failedDirs.join(', ')}"
+                                                //env.FAILED_JAR_DIRS = "${failedDirs.join(',')}"
+                                                //echo "Final failed directories : ${env.FAILED_JAR_DIRS}"
+
+                                            }
+                                    } else {
+                                        echo "Directory ${dirName} does not match any known project. Skipping."
+                                    }
+
+
+
+                            }
+                        }
+
+                        // Set these values as environment variables for later stages if needed
+
+                        env.SUCCESSFUL_JAR_DIRS = "${successfulDirs.join(',')}"
+                        env.FAILED_JAR_DIRS = "${failedDirs.join(',')}"
+                        echo "Final successful directories: ${env.SUCCESSFUL_JAR_DIRS}"
+                        echo "Final failed directories: ${env.FAILED_JAR_DIRS}"
+                    }
+
+
+
+                }
+                
+            }
+        }
+
+    }
+
+
+    post {
+        always {
+            script {
+                if (currentBuild.result == 'NOT_BUILT') {
+                    def multibranchFolder = env.JOB_NAME.split("/")[0]
+                    def encodedBranchName = java.net.URLEncoder.encode(env.BRANCH_NAME, "UTF-8")
+                    def consoleUrl = "http://192.168.1.253:8080/job/${multibranchFolder}/job/${encodedBranchName}/${env.BUILD_NUMBER}/console"
+                    def buildUrl = "http://192.168.1.253:8080/job/${multibranchFolder}/job/${encodedBranchName}/${env.BUILD_NUMBER}/"
+                    def mailSubject = "${currentBuild.result} Pipeline: ${env.JOB_NAME} [${env.BUILD_NUMBER}]"
+                    def mailBody = """
+                        <html>
+                            <body>
+                                <p>Pipeline <span style="color: green; font-weight: bold;">${env.JOB_NAME}</span> [${env.BUILD_NUMBER}] has completed with the following status:</p>
+                                <p>${currentBuild.result}</p>
+                                <p>No changes in the Server folder.Check the Jenkins console output for more details.</p> 
+                            </body>
+                        </html>
+                    """
+
+                    emailext(
+                        to: "${env.MAIL_ID}",
+                        subject: mailSubject,
+                        body: mailBody,
+                        attachLog: true
+                    )
+
+                    office365ConnectorSend(
+                        webhookUrl: 'https://polussoftware0.webhook.office.com/webhookb2/4b5bab47-7e0c-4f1a-a301-ab5f41c615f9@74324cf0-bf2f-47cc-bdc3-b8d07890b569/JenkinsCI/a30626b683af4b7bbcc7d4183489f900/96535c2e-42d9-4a97-adec-bf6c28ac4a8f/V2UI5F1Lfm--kvgGUsD5o3orM4ceEgX7HM4P-ihrZj-eM1',
+                        message: """
+                            <html>
+                                <body>
+                                    <p><strong>Build Status:</strong> ${currentBuild.result}</p>
+                                    <p><strong><span style="color: green;"> No Changes in the Server Folder </span></p>
+                                    <p><strong>Console Output:</strong> <a href="${consoleUrl}">View Log</a></p>
+                                    <p><strong>Build Detail Output:</strong> <a href="${buildUrl}">View Build</a></p>
+                                </body>
+                            </html>
+                        """
+                    )
+
+                    return
+                }
+
+
+                
+                
+
+               // def combinedsuccessDirs = "${env.SUCCESSFUL_JAR_DIRS},${env.SUCCESSFUL_WAR_DIRS},${env.SUCCESSFUL_CORE_DIRS}"
+                def combinedsuccessDirs = "${env.SUCCESSFUL_JAR_DIRS}"
+                def cleanedsuccessDirs = combinedsuccessDirs.replaceAll(/^\s*,\s*/, "").replaceAll(/\s*,\s*$/, "")
+                env.SUCCESSFUL_DIRS = cleanedsuccessDirs
+                echo "Final success directories : ${env.SUCCESSFUL_DIRS}" 
+
+               // def combinedfailedDirs = "${env.FAILED_JAR_DIRS},${env.FAILED_WAR_DIRS},${env.FAILED_CORE_DIRS}"
+                def combinedfailedDirs = "${env.FAILED_JAR_DIRS}"
+                def cleanedfailedDirs = combinedfailedDirs.replaceAll(/^\s*,\s*/, "").replaceAll(/\s*,\s*$/, "")
+                env.FAILED_DIRS = cleanedfailedDirs
+                echo "Final failed directories : ${env.FAILED_DIRS}" 
+
+                def successDirs = env.SUCCESSFUL_DIRS ? env.SUCCESSFUL_DIRS : "None"
+                def failedDirs = env.FAILED_DIRS ? env.FAILED_DIRS : "None"
+
+                // Determine the overall status
+                if (failedDirs != "None") {
+                    currentBuild.result = 'UNSTABLE'
+                } else {
+                    currentBuild.result = 'SUCCESS'
+                }
+
+                def overallStatus = currentBuild.result
+                def resultMessage = """
+                    <html>
+                        <body>
+                            <p><strong>Overall Build Status:</strong> ${overallStatus}</p>
+                            <p><strong><span style="color: green;">Successfully Built Directories:</span></strong> ${successDirs}</p>
+                            <p><strong><span style="color: red;">Failed Directories:</span></strong> ${failedDirs}</p>
+                        </body>
+                    </html>
+                """
+                def multibranchFolder = env.JOB_NAME.split("/")[0]
+                def encodedBranchName = java.net.URLEncoder.encode(env.BRANCH_NAME, "UTF-8")
+                def mailSubject = "${overallStatus} Pipeline: ${env.JOB_NAME} [${env.BUILD_NUMBER}]"
+                def consoleUrl = "http://192.168.1.253:8080/job/${multibranchFolder}/job/${encodedBranchName}/${env.BUILD_NUMBER}/console"
+                def buildUrl = "http://192.168.1.253:8080/job/${multibranchFolder}/job/${encodedBranchName}/${env.BUILD_NUMBER}/"
+                def mailBody = """
+                    <html>
+                        <body>
+                            <p>Pipeline <span style="color: green; font-weight: bold;">${env.JOB_NAME}</span> [${env.BUILD_NUMBER}] has completed with the following status:</p>
+                            <p>${resultMessage}</p>
+                            <p>Check the Jenkins console output for more details.</p>
+                        </body>
+                    </html>
+                """
+
+                emailext(
+                    to: "${env.MAIL_ID}",
+                    subject: mailSubject,
+                    body: mailBody,
+                    attachLog: true
+                )
+
+                office365ConnectorSend(
+                    webhookUrl: 'https://polussoftware0.webhook.office.com/webhookb2/4b5bab47-7e0c-4f1a-a301-ab5f41c615f9@74324cf0-bf2f-47cc-bdc3-b8d07890b569/JenkinsCI/a30626b683af4b7bbcc7d4183489f900/96535c2e-42d9-4a97-adec-bf6c28ac4a8f/V2UI5F1Lfm--kvgGUsD5o3orM4ceEgX7HM4P-ihrZj-eM1',
+                    message: """
+                        <html>
+                            <body>
+                                <p><strong>Build Status:</strong> ${overallStatus}</p>
+                                <p><strong><span style="color: green;">Successfully Built Directories:</span></strong> ${successDirs}</p>
+                                <p><strong><span style="color: red;">Failed Directories:</span></strong> ${failedDirs}</p>
+                                <p><strong>Console Output:</strong> <a href="${consoleUrl}">View Log</a></p>
+                                <p><strong>Build Detail Output:</strong> <a href="${buildUrl}">View Build</a></p>
+                            </body>
+                        </html>
+                    """
+                )
+            }
+        }
+    }
+
+}

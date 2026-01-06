@@ -1,0 +1,432 @@
+<div *ngIf="isLoadComponent" id="FB-custom-element-body-{{customElement?.customDataElementId}}" class="card-body fb-form-element-body fb-mb-10">
+    <div>
+        <div>
+                <div *ngIf="customElement?.columnName" class="fb-mb-1 question-font fb-fs-16">
+                    <span *ngIf="component?.isMandatory === 'Y' && !isViewMode" class="fb-mandatory fb-pt-1 fb-mr-1">*</span>
+                    <span class="question-font fb-question-font">{{customElement?.columnName }}</span>
+                </div>
+                <div *ngIf="customElement?.dataType === 'SE' || customElement?.dataType ==='NE'">
+                <ng-container *ngFor="let answer of customElement?.answers">
+                    <span
+                        [ngClass]="{'d-flex align-items-start': !isViewMode && !customElement?.columnName}">
+                        <span *ngIf="component?.isMandatory === 'Y' && !isViewMode && !customElement?.columnName"
+                            class="fb-mandatory fb-mandatory-no-label">*</span>
+                        <input type="text" id="FB-adv-search-proposal-no-{{customElement?.customDataElementId}}" [ngModel]="answer.value"
+                            placeholder="{{ customElement?.placeHolderText }}" class="form-control"
+                            (keyup)="checkValidation(answer,$event,customElement,i)" (ngModelChange)="storePreviousValueAndUpdate(answer, 'value' , $event);emitDataChange()"
+                            [disabled]="isViewMode" />
+                    </span>
+                </ng-container>
+                </div>
+                <div *ngIf="customElement?.dataType === 'TE'">
+                    <ng-container *ngFor="let answer of customElement?.answers">
+                        <span
+                            [ngClass]="{'d-flex align-items-start': !isViewMode && !customElement?.columnName}">
+                            <span *ngIf="component?.isMandatory === 'Y' && !isViewMode && !customElement?.columnName"
+                                class="fb-mandatory fb-mandatory-no-label">*</span>
+                            <div class="w-100">
+                                <textarea type="text" appAutoGrow appLengthValidator [isShowLimiter]='!isViewMode' rows="4"
+                                    id="FB-adv-search-proposal-no-{{customElement?.customDataElementId}}" [ngModel]="answer.value"
+                                    placeholder="{{ customElement?.placeHolderText }}" class="form-control" [disabled]="isViewMode"
+                                    (ngModelChange)="storePreviousValueAndUpdate(answer, 'value' , $event);emitDataChange()">
+                                </textarea>
+                            </div>
+                        </span>
+                    </ng-container>
+                </div>
+                <div *ngIf="customElement?.dataType === 'PT'">
+                    <div class="fb-mt-1">
+                        <ng-container *ngFor="let answer of customElement?.answers">
+                            <span
+                                [ngClass]="{'d-flex align-items-start': !isViewMode && !customElement?.columnName}">
+                                <span *ngIf="component?.isMandatory === 'Y' && !isViewMode && !customElement?.columnName"
+                                    class="fb-mandatory fb-mandatory-no-label">*</span>
+                                <div class="w-100">
+                                    <div *ngIf="!isViewMode" class="alert alert-warning p-1 f-15 fb-mb-2 d-flex align-items-center">
+                                        <i class="fa fa-info-circle info-icon mx-2 fb-mt-1" aria-hidden="true"></i>
+                                        <em>The editor does not support images.</em>
+                                    </div>
+                                    <ng-container *ngIf="isViewMode">
+                                        <ng-container *ngIf="!answer?.value">
+                                            <span class="noDataExists fs-14">Not specified</span>
+                                        </ng-container>
+                                        <ng-container *ngIf="answer?.value">
+                                            <div class="ck-content fb-mt-2">
+                                                <span [innerHTML]="answer?.value | safe"></span>
+                                            </div>
+                                        </ng-container>
+                                    </ng-container>
+                                    <ng-container *ngIf="!isViewMode">
+                                        <ckeditor id="FB-{{customElement?.customDataElementId}}" [editor]="editor"
+                                            [config]="getEditorConfig(customElement?.placeHolderText)" (ready)="onReady($event)"
+                                            [ngModel]="answer.value" (ngModelChange)="storePreviousValueAndUpdate(answer, 'value' , $event);emitDataChange()">
+                                        </ckeditor>
+                                    </ng-container>
+                                </div>
+                            </span>
+                        </ng-container>
+                    </div>
+                </div>
+                <div *ngIf="customElement?.dataType === 'DE' ">
+                    <ng-container *ngFor="let answer of customElement?.answers">
+                        <span
+                            [ngClass]="{'d-flex align-items-start': !isViewMode && !customElement?.columnName}">
+                            <span class="dateField fb-mr-1 w-100">
+                                <span *ngIf="component?.isMandatory === 'Y' && !isViewMode && !customElement?.columnName"
+                                    class="fb-mandatory fb-mandatory-no-label">*</span>
+                                <div class="w-100">
+                                    <input matInput [matDatepicker]="customDt"
+                                        placeholder="{{customElement?.placeHolderText || datePlaceHolder}}"
+                                        id="{{customElement?.customDataElementId}}" class="d-inline-block form-control" autocomplete="off"
+                                        [ngModel]="answer.value ?  answer.value : customElement.defaultValue" [(ngModel)]="answer.value"
+                                        (ngModelChange)="answer.value = parseDateWithoutTimestamp(answer.value)"
+                                        (keypress)="_commonService._keyPress($event, 'date');" (ngModelChange)="emitDataChange()"
+                                        [disabled]="isViewMode" (click)="customDt.open()">
+                                    <i class="fa fa-calendar fa-large insidePicker hand-cursor" (click)="customDt.open()"
+                                        aria-hidden="true"></i>
+                                    <mat-datepicker #customDt
+                                        (opened)="setFocusToElement(customElement?.customDataElementId)"></mat-datepicker>
+                                </div>
+                            </span>
+                        </span>
+                    </ng-container>
+                </div>
+                <div *ngIf="customElement?.dataType === 'CB'">
+                    <span [ngClass]="{'d-flex align-items-start': !isViewMode && !customElement?.columnName}">
+                        <!-- The below mandatory check for COI certification is temporarily disabled due to a design layout issue in the certification section.-> -->
+                        <!-- <span *ngIf="component?.isMandatory === 'Y' && !isViewMode && !customElement?.columnName"
+                            class="fb-mandatory fb-pt-1 fb-mandatory-no-label">*</span> -->
+                        <div [ngClass]="{'fb-ml-4 fb-mt-2': customElement?.columnName}">
+                            <div *ngFor="let option of customElement?.options;  let checkBoxIndex=index; let lastIndex = last"
+                                class="d-flex align-items-baseline fb-gap-2">
+                                <input type="checkbox" [disabled]="isViewMode" class="fb-mt-2"
+                                    [checked]="checkIsSelected(customElement?.answers, option.customDataOptionId)"
+                                    id="FB-{{option.optionName}}{{checkBoxIndex}}-{{customElement?.customDataElementId}}"
+                                    (change)="setAnswerForCheckBox(customElement, $event.target.checked, option)" />
+                                <div class="ck-content">
+                                    <span for="FB-{{option.optionName}}{{checkBoxIndex}}-{{customElement?.customDataElementId}}"
+                                        [ngClass]="{'hand-cursor': isViewMode != 'view' }"
+                                        [innerHTML]="option.optionName | safe"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </span>
+                </div>
+                
+                <div *ngIf="customElement?.dataType === 'RB'">
+                    <span [ngClass]="{'d-flex align-items-start': !isViewMode && !customElement?.columnName}">
+                        <span *ngIf="component?.isMandatory === 'Y' && !isViewMode && !customElement?.columnName"
+                            class="fb-mandatory fb-pt-1 fb-mandatory-no-label">*</span>
+                        <div [ngClass]="{'fb-ml-4 fb-mt-2': customElement?.columnName}">
+                            <div *ngFor="let option of customElement?.options; let radioButtonIndex=index; let lastIndex = last"
+                                class="d-flex align-items-baseline fb-gap-2">
+                                <input type="radio" [disabled]="isViewMode" [value]="option.optionName"
+                                    name="FB-{{option.optionName}}{{radioButtonIndex}}-{{customElement?.customDataElementId}}"
+                                    id="FB-{{option}}{{radioButtonIndex}}-{{customElement?.customDataElementId}}"
+                                    [(ngModel)]="customElement.answers[0].value" (ngModelChange)="emitDataChange()" />
+                                <div class="ck-content">
+                                    <span for="FB-{{option.optionName}}{{radioButtonIndex}}-{{customElement?.customDataElementId}}"
+                                        [ngClass]="{'hand-cursor': isViewMode}" [innerHTML]="option.optionName | safe"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </span>
+                </div>
+                <div *ngIf="customElement?.dataType === 'SD' || customElement?.dataType === 'UD'">
+                    <span
+                        [ngClass]="{'d-flex align-items-start': !isViewMode && !customElement?.columnName}">
+                        <span *ngIf="component?.isMandatory === 'Y' && !isViewMode && !customElement?.columnName"
+                            class="fb-mandatory fb-mandatory-no-label">*</span>
+                        <div class="w-100">
+                            <span *ngIf="!isViewMode">
+                                <app-look-up [options]='lookUpOptions' [defaultValue]='customElement?.answers?.[0]?.description'
+                                    (selectedResult)="onLookupSelect($event, customElement)" [isDisabled]="isViewMode"
+                                    [selectedLookUpList]='selectedLookUpList'>
+                                </app-look-up>
+                                <div class="col fb-mb-0 fb-pl-0 fileChips">
+                                    <ng-container *ngFor="let answer of customElement?.answers">
+                                        <span *ngIf="answer?.description" class="fb-pl-2 fb-mb-0">{{answer?.description}}</span>
+                                    </ng-container>
+                                </div>
+                            </span>
+                            <ng-container *ngIf="isViewMode">
+                                <div class="col fb-mb-0 fb-pl-0 fileChips">
+                                    <ng-container *ngFor="let answer of customElement?.answers">
+                                        <span *ngIf="answer?.description" class="fb-pl-2 fb-mb-0">{{answer?.description}}</span>
+                                    </ng-container>
+                                </div>
+                                <ng-container
+                                    *ngIf="!customElement?.answers || (customElement?.answers?.length === 1 && !customElement?.answers[0]?.description)">
+                                    <span class="noDataExists fs-14">Not specified</span>
+                                </ng-container>
+                            </ng-container>
+                        </div>
+                    </span>
+                </div>
+                <div *ngIf="customElement?.dataType === 'ES'">
+                    <ng-container *ngFor="let answer of customElement?.answers">
+                        <span
+                            [ngClass]="{'d-flex align-items-start': !isViewMode && !customElement?.columnName}">
+                            <span *ngIf="component?.isMandatory === 'Y' && !isViewMode && !customElement?.columnName"
+                                class="fb-mandatory fb-mandatory-no-label">*</span>
+                            <div class="position-relative w-100">
+                                <app-elastic [options]="ESOptions[customElement?.customDataElementId]"
+                                    [placeHolder]="customElement?.columnName ? ('Type here for ' + customElement?.columnName) : 'Type here'"
+                                    (selectedResult)="setSearchFilterValue($event,answer,customElement)" [isDisabled]="isViewMode">
+                                </app-elastic>
+                            </div>
+                        </span>
+                    </ng-container>
+                </div>
+                <div *ngIf="customElement?.dataType === 'AS'">
+                    <ng-container *ngFor="let answer of customElement?.answers">
+                        <span
+                            [ngClass]="{'d-flex align-items-start': !isViewMode && !customElement?.columnName}">
+                            <span *ngIf="component?.isMandatory === 'Y' && !isViewMode && !customElement?.columnName"
+                                class="fb-mandatory fb-mandatory-no-label">*</span>
+                            <div class="position-relative w-100">
+                                <app-endpoint-search [httpOptions]="EPOptions[customElement?.customDataElementId]"
+                                    [placeHolder]="customElement?.columnName ? ('Type here for ' + customElement?.columnName) : 'Type here'"
+                                    (onSelect)="setSearchFilterValue($event,answer,customElement)" [isDisabled]="isViewMode">
+                                </app-endpoint-search>
+                            </div>
+                        </span>
+                    </ng-container>
+                </div>
+                <div *ngIf="customElement.dataType == 'CR'" class="d-flex">
+                    <ng-container *ngFor="let answer of customElement?.answers">
+                        <div class="col-12 p-0">
+                            <label class="sr-only" for="FB-currency-value">{{customElement?.label}}</label>
+                            <span>
+                                <input type="text" appCurrencyFormat class="form-control" id="FB-currency-value-input"
+                                    [ngModel]="answer.value"
+                                    (ngModelChange)="storePreviousValueAndUpdate(answer, 'value' , $event);emitDataChange();" id="FB-currency-value"
+                                    (input)="filterNegativeValues($event)"
+                                    (keyup)="checkValidation(answer,$event,customElement,i)"
+                                    [customCurrency]="currencySymbol" [initialValue]="answer?.value"
+                                    [disabled]="isViewMode"/>
+                            </span>
+                        </div>
+                    </ng-container>
+                </div>
+                <div *ngIf="customElement?.dataType === 'AT'">
+                    <div class="d-flex">
+                            <span *ngIf="component?.isMandatory === 'Y' && !isViewMode && !customElement?.columnName"
+                                  class="fb-mandatory fb-mandatory-no-label">*</span>
+                        <a *ngIf="!isViewMode" id="add-attachment{{customElement?.customDataElementId}}" class="btn-link"
+                        role="button"
+                        aria-label="Add attachments"
+                        title="Add Attachments"
+                        (click)="showAttachmentModal('AttachmentModal', customElement?.customDataElementId)"
+                          data-toggle="modal" data-bs-toggle="modal"
+                           [attr.data-bs-target]="'#AttachmentModal' + customElement?.customDataElementId"
+                           [attr.data-target]="'#AttachmentModal' + customElement?.customDataElementId"
+                      >
+                            <i aria-hidden="true" class="fa fa-paperclip fb-mr-3"
+                            ></i>Add Attachment</a>
+                    </div>
+                    <div class="row">
+                        <div *ngFor="let attachment of customElementAttachments; let i=index"  class="fb-mt-3 col-3 attachment-info-card-gap">
+                            <div class="attachment-info">
+                                <div class="d-flex justify-content-between">
+                                    <div appEllipsisTooltip class="attachment-info-title text-truncate me-2 f-14 fs-14" title="{{attachment?.fileName}}">
+                                        <i class="fa fa-solid mr-2 {{getFileIcon(attachment?.fileName?.split('.').pop())}}"></i>
+                                        {{attachment?.fileName}}
+                                    </div>
+                                    <div>
+                                        <ul class="actionButtonGroup">
+                                            <li *ngIf="attachment?.attachmentId"><a
+                                                    title="Click here to download attachment"
+                                                    role="button"
+                                                    aria-label="Click here to download attachment"
+                                                    id="download-attachment{{customElement?.customDataElementId}}"
+                                                    (click)="downloadFormAttachment(attachment)"
+                                                    class="pointer" tabindex="0">
+                                                <i aria-hidden="true" class="fa fa-download"></i>
+                                            </a>
+                                            </li>
+                                            <li *ngIf="component.captureDescription === 'Y' && !isViewMode" ><a title="Click here to edit attachment"
+                                                   id="edit-attachment{{customElement?.customDataElementId}}"
+                                                   role="button"
+                                                    aria-label="Click here to edit attachment"
+                                                   class="pointer" tabindex="0"
+                                                   data-toggle="modal"
+                                                   data-bs-toggle="modal"
+                                                   (click)="editAttachment(attachment, customElement?.customDataElementId)"
+                                                   [attr.data-target]="'#EditAttachmentModal' + customElement?.customDataElementId">
+                                                <i aria-hidden="true" class="fa fa-pencil"></i>
+                                            </a>
+                                            </li>
+                                            <li *ngIf="!isViewMode"><a title="Click here to remove attachment"
+                                                   (click)="openDeleteAttachmentModal(attachment, customElement?.customDataElementId)"
+                                                   role="button"
+                                                aria-label="Click here to remove attachment"
+                                                   id="remove-attachment{{customElement?.customDataElementId}}"
+                                                   class="pointer" tabindex="0"><i
+                                                    aria-hidden="true" class="fa fa-trash"></i></a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div *ngIf="component.captureDescription == 'Y'" appEllipsisTooltip class="attachment-info-description text-truncate" title="{{attachment?.description}}">
+                                    {{attachment?.description}}
+                                </div>
+                            </div>
+                        </div>
+                        <span *ngIf="customElement?.attachments.length == 0 && isViewMode" class="fb-ml-2">--</span>
+                    </div>
+                </div>
+
+        </div>
+    </div>
+    <div class="row flex-column flex-sm-row justify-content-md-end justify-content-center fb-mt-3 px-3"
+        *ngIf="isViewMode && isShowSave">
+        <button class="btn btn-primary-sub btn-xs" (click)="saveCustomData()">Save</button>
+    </div>
+  </div>
+
+<!-- ADD ATTACHMENT MODAL -->
+<div *ngIf="customElement?.dataType === 'AT'" class="modal fade mySkinDialog" id="AttachmentModal{{customElement?.customDataElementId}}" tabindex="-1"
+    role="dialog" aria-labelledby="AttachmentModal" aria-hidden="true" data-backdrop="static" data-keyboard="false" data-bs-backdrop="static"
+     data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Add Attachment
+                </h5>
+               <button type="button" class="close btn-close" data-dismiss="modal" data-bs-dismiss="modal" id="attachment-popup-dismiss-btn"
+                    (click)="clearAttachmentDetails()"
+                    aria-label="Click here to close" title="Click here to close">
+                </button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="px-4 fb-pt-3">
+                    <app-file-drop [multiple]="true" (filesDropEvent)="fileDrop($event)"></app-file-drop>
+                </div>
+                <div  *ngIf="uploadedFile.length > 0 && this.component.captureDescription === 'Y'">
+                    <div class="gridSkin attachment-height-container">
+                        <div class="attachment-modal-shadow mt-4 mx-4 position-relative"
+                            *ngFor="let item of uploadedFile; let i=index">
+                            <ul class="actionButtonGroup position-absolute attachment-modal-delete-btn">
+                                <li class="m-0">
+                                    <a id="attachment-popup-dlt-btn"
+                                        class="fa fa-trash-o hand-cursor modal-attachment-delete-icon d-flex align-items-center justify-content-center"
+                                        title="Click here to remove file" (click)="deleteFromUploadedFileList(i)"
+                                        aria-label="Click here to remove file"></a>
+                                </li>
+                            </ul>
+                            <div class="ms-4 row">
+                                <div class="col-lg-4 col-12" title="{{item?.name}}">
+                                    <label for="attachment-filename" class="d-block">File Name</label>
+                                    <span id="attachment-filename" [title]="item?.name">
+                                        <i
+                                            class="fa fa-solid mr-2 me-2 f-16 fs-1 {{getFileIcon(item?.name?.split('.').pop())}}"></i>
+                                        {{(item?.name?.length > 40) ? (item?.name | slice:0:40) + '...' : (item?.name)}}
+                                    </span>
+                                </div>
+                                <div  *ngIf="component.captureDescription == 'Y'" class="col-12 col-lg-8">
+                                    <label for="attachment-filedesc">Description</label>
+                                    <textarea cols=2 rows="2" id="attachment-filedesc"
+                                        [(ngModel)]="selectedAttachmentDescription[i]" placeholder=""
+                                        class="form-control dateBox text-area-height" appLengthValidator
+                                        [isShowLimiter]='true' [limit]=2000>
+                                    </textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer mx-4">
+                <button type="button" class="btn btn-outline-secondary" id="form-attachment-popup-close-btn-{{customElement?.customDataElementId}}" data-bs-dismiss="modal" 
+                        (click)="clearAttachmentDetails()" data-dismiss="modal"
+                    aria-label="Click here to close" title="Click here to close">Close</button>
+                <ng-container *ngIf="uploadedFile.length > 0">
+                    <button type="button" class="btn btn-primary" id="attachment-popup-add-btn"
+                            aria-label="Click here to add" title="Click here to add" (click)="addAttachments()">Add</button>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT ATTACHMENT MODAL -->
+<div *ngIf="customElement?.dataType === 'AT'" class="modal fade mySkinDialog" id="EditAttachmentModal{{customElement?.customDataElementId}}" tabindex="-1"
+    role="dialog" aria-labelledby="EditAttachmentModal">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document" appModalDrag>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Edit Attachment
+                </h5>
+                <button type="button" class="btn-close close" data-dismiss="modal" data-bs-dismiss="modal" id="edit-attachment-popup-dismiss-btn"
+                        (click)="cancelAttachmentEdit()"
+                    aria-label="Click here to close" title="Click here to close">
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="gridSkin">
+                        <div class="row mb-2 px-0">
+                            <div class="col-lg-4 col-12">
+                                <label for="edit-attachment-filename">File Name</label>
+                                <span id="edit-attachment-filename" class="d-block text-break"
+                                    [title]="editAttachmentDetails?.fileName">
+                                    <i
+                                        class="fa fa-solid mr-2 me-2  f-16 fs-16 {{getFileIcon(editAttachmentDetails?.fileName?.split('.').pop())}}"></i>
+                                    {{(editAttachmentDetails?.fileName?.length > 40) ?
+                                    (editAttachmentDetails?.fileName | slice:0:40) + '...' :
+                                    (editAttachmentDetails?.fileName)}}
+                                </span>
+                            </div>
+                            <div class="col-12 col-lg-8">
+                                <label for="attachment-filedesc">Description</label>
+                                <textarea id="attachment-filedesc" cols=2 rows="2"
+                                    [(ngModel)]="editAttachmentDetails.description" class="form-control dateBox"
+                                    appLengthValidator [isShowLimiter]='true' [limit]=200>
+                                </textarea>
+                            </div>
+                        </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn  btn-outline-secondary" id="edit-attachment-popup-close-btn"
+                        (click)="cancelAttachmentEdit()"
+                    data-dismiss="modal" data-bs-dismiss="modal" title="Click here to close" aria-label="Click here to close">Close</button>
+                <button type="button" class="btn btn-primary" id="attachment-popup-update-btn"
+                    title="Click here to update" aria-label="Click here to update"
+                    (click)="updateAttachmentDetails();">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete ATTACHMENT MODAL -->
+<div *ngIf="customElement?.dataType === 'AT'" class="modal fade mySkinDialog"
+    id="deleteAttachmentModal{{customElement?.customDataElementId}}" tabindex="-1" role="dialog"
+    aria-labelledby="DeleteAttachmentModal">
+    <div class="modal-dialog modal-dialog-centered" role="document" appModalDrag>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Delete Attachment
+                </h5>
+                <button type="button" class="btn-close close" data-dismiss="modal" data-bs-dismiss="modal"
+                    id="edit-attachment-popup-dismiss-btn" (click)="cancelDeleteAttachment()"
+                    aria-label="Click here to close" title="Click here to close">
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete attahcment?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" id="edit-attachment-popup-close-btn"
+                    (click)="cancelDeleteAttachment()" data-dismiss="modal" data-bs-dismiss="modal"
+                    title="Click here to close" aria-label="Click here to close">Close</button>
+                <button type="button" class="btn btn-primary" id="attachment-popup-delet-btn"
+                title="Click here to update" aria-label="Click here to update"
+                    (click)="deleteAttachment(this.deleteAttachmentDetails);">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>

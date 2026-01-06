@@ -1,0 +1,485 @@
+<div class="push4slideMenu pageMinHeight">
+  <div class="container-fluid pushFixedHeaderFooter">
+      <div class="headerPush"></div>
+      <div class="card mb-4 mt-3">
+        <div class="card-header p-2 px-3 sticky-top-nav">
+          <h4 class="card-title align-items-center d-flex">
+            <span class="mr-auto">Report - {{requestTemplateData?.templateName}}
+              <span class="text-secondary f-12 font-weight-light d-xl-inline-block d-lg-block text-break"> 
+               - Last Updated By {{requestTemplateData?.updateUserFullName}}
+                on <span class="d-block d-md-inline-block">{{requestTemplateData?.updateTimestamp | dateFormatterWithTimeZone: 'long'}}</span>
+              </span>
+            </span>
+            <span class="d-flex ml-auto">
+              <div *ngIf="requestTemplateData?.templateType == 'U' && isReportCreator">
+                <ul class="actionButtonGroup d-flex">
+                  <li>
+                    <a id="edit-btn" data-toggle="modal" data-target="#saveTemplateModal" (click)="saveAs = false;setModalFields()">
+                      <i class="fa fa-pencil mr-4 mt-3" title="Click here to modify Report"></i>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <button class="btn btn-outline-danger btn-sm hand-cursor mr-2 outline-primary" data-toggle="modal"
+              data-target="#saveTemplateModal" (click)="saveAs = true;setModalFields()">
+              Save As
+            </button>
+            <div class="dropdown">
+              <button class="btn btn-sm mr-2 border-style dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="text-color">Configure Report</span>
+              </button>
+              <div class="dropdown-menu f-12 more-options-box" aria-labelledby="dropdownMenuButton">
+                <a class="dropdown-item pointer f-13" title="Edit Filter Criteria" data-toggle="modal" data-target="#filterModal" tabindex="0" (click)="criteriaName=''; columnName='' ">
+                  Edit Filter Criteria
+                </a>
+                <a *ngIf="!isBirt" class="dropdown-item pointer f-13" title="Edit Result Column" data-toggle="modal" data-target="#columnModal">
+                  Edit Result Column
+                </a>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-sm mr-2 min-content-width" type="button" title="Preview Report"
+              (click)="generatePreviewReport(); isCollapseCriteria = !isCollapseCriteria">
+              <ng-container i18n="@@REPORT_PREVIEW">Report Preview</ng-container>
+            </button>
+            <button *ngIf= "isBirt && allowedReports.includes('P')" (click)="downloadBirt('pdf')" class="btn btn-primary btn-sm mr-2 min-content-width" type="button" title="Export data to PDF">
+              Export as PDF
+            </button>
+            <button *ngIf= "isBirt && allowedReports.includes('E')" (click)="downloadBirt('xlsx')" class="btn btn-primary btn-sm mr-2 min-content-width" type="button"  title="Export data to Excel sheet">
+              Export as Excel 
+            </button>
+            <button *ngIf= "!isBirt" (click)="exportData()" class="btn btn-primary btn-sm mr-2 min-content-width" type="button"  title="Export data to Excel sheet">
+              Export as Excel
+            </button>
+            <button title="Back to Reports List" class="btn more-btn" [routerLink]="['/fibi/dashboard/templateList']">
+              <i class="fa fa-reply" aria-hidden="true"></i>
+            </button>
+          </span>
+        </h4>
+        </div>
+        <div class="card-content">
+          <div class="card-body p-1">
+          <!-- Criteria tab -->
+          <div class="success-banner px-3 my-2 d-flex align-items-center p-2" *ngIf="!isBirt">
+            <i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i>
+            <em>This Report can be Exported to Excel only. Use the Export as Excel button to generate the Report. To see the Preview of the Report, use the 
+              <ng-container i18n="@@REPORT_PREVIEW">Report Preview</ng-container> Button.</em>
+          </div>
+          <div class="success-banner px-3 my-2 d-flex align-items-center p-2" *ngIf="isBirt && allowedReports.includes('P') && !allowedReports.includes('E')">
+            <i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i>
+            <em>This Report can be Exported to PDF only. Use the Export as PDF button to generate the Report. To see the Preview of the Report, use the 
+              <ng-container i18n="@@REPORT_PREVIEW">Report Preview</ng-container> Button.</em>
+          </div>
+          <div class="success-banner px-3 my-2 d-flex align-items-center p-2" *ngIf="isBirt && allowedReports.includes('E') && !allowedReports.includes('P')">
+            <i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i>
+            <em>This Report can be Exported to Excel only. Use the Export as Excel button to generate the Report.</em>
+          </div>
+          <div class="success-banner px-3 my-2 d-flex align-items-center p-2" *ngIf="isBirt && allowedReports.includes('P') && isBirt && allowedReports.includes('E')">
+            <i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i>
+            <em>This Report can be Exported to PDF as well as Excel. Use the Export as PDF / Export as Excel button(s) to generate the Report. To see the Preview of the Report, use the
+               <ng-container i18n="@@REPORT_PREVIEW">Report Preview</ng-container> Button.</em>
+          </div>
+        <div *ngIf="!isFieldSelected" class="alert alert-danger py-1 f-14">
+          <div><i class="fa fa-warning mr-1" aria-hidden="true"></i>
+            <em>No columns were selected</em>
+          </div>
+        </div>
+            <div class="card card-inner mb-2 border-0" id="report-criteria-section">
+              <div class="card-header px-3">
+                <h4 class="card-title d-flex align-items-center">
+                  <span class="mr-auto">{{ !isCollapseCriteria
+                    && reportCriteria.length ? 'Criteria Used In Report' : 'Criteria' }}</span>
+                <button id="criteriaExpandBtn" class="updown-arrow" 
+                  (click)="isCollapseCriteria = !isCollapseCriteria;assignTempValuesToLookUp();">
+                  <i [ngClass]="!isCollapseCriteria?'fa fa-angle-double-down':'fa fa-angle-double-up'"
+                      aria-hidden="true" class="fa-large"></i></button>
+                </h4>
+              </div>
+              <div *ngIf="isCollapseCriteria" class="card-content">
+                <div class="card-body">
+                  <div class="form-row">
+                    <ng-container *ngFor="let data of filtersFieldsData.filters; let index = index">
+                      <div class="col-lg-4 col-md-5 col-12" *ngIf="data.filterType != 'null' ">
+                        <span class="mandatory" *ngIf="data.isMandatory">*</span>
+                        <label>{{data.displayName}}</label>
+                        <ng-container *ngIf="data.filterType == 'elastic'">
+                          <div class="searchBox memberSearchBox">
+                            <app-elastic [options]="elasticSearchOptions[data.columnName]" [placeHolder]="data.displayName"
+                              (selectedResult)="setSearchFilterValue($event, data)" [clearField]="clearField"></app-elastic>
+                          </div>
+                        </ng-container>
+                        <ng-container *ngIf="data.filterType == 'lookUp'">
+                          <app-look-up [options]='data.valueField' [selectedLookUpList]="lookUpValues[data.columnName]"
+                            (selectedResult)="onLookupSelect($event, data)"></app-look-up>
+                        </ng-container>
+                        <ng-container *ngIf="data.filterType == 'autocomplete'">
+                          <div class="searchBox memberSearchBox">
+                          <app-autocompleter [completerOptions]="autoCompleterSearchOptions[data.columnName]" [placeHolder]="data.displayName"
+                          (onSelect)="setSearchFilterValue($event, data)"></app-autocompleter>
+                        </div>
+                        </ng-container>
+                        <ng-container *ngIf="data.filterType == 'date' || data.filterType == 'datetime'">
+                          <div class="d-flex">
+                            <span class="dateField mr-1 w-100">
+                              <input type="text" placeholder="From ({{datePlaceHolder}})" id="{{data.displayName +'start-date' }}"
+                              matInput [matDatepicker]="startDt" class="d-inline-block form-control" [(ngModel)]="startDate[data.columnName]"
+                                (keypress)="_commonService._keyPress($event, 'date');" (click)="startDt.open()"
+                                (ngModelChange)="setDateValueToFilter(data.columnName, 'start')" />
+                              <i class="fa fa-calendar fa-large insidePicker hand-cursor" (click)="startDt.open()"
+                                aria-hidden="true"></i>
+                                <mat-datepicker #startDt  (opened)="setFocusToElement(data.displayName +'start-date' )"
+                                (closed)="setDateValueToFilter(data.columnName, 'start')"></mat-datepicker>
+                            </span>
+                            -
+                            <span class="dateField ml-1 w-100">
+                              <input type="text" placeholder="To ({{datePlaceHolder}})" id="{{data.displayName +'end-date' }}"
+                              matInput [matDatepicker]="endDt" class="d-inline-block form-control" [(ngModel)]="endDate[data.columnName]"
+                                (keypress)="_commonService._keyPress($event, 'date');" (click)="endDt.open()"
+                                (ngModelChange)="setDateValueToFilter(data.columnName, 'end')" />
+                              <i class="fa fa-calendar fa-large insidePicker hand-cursor" (click)="endDt.open()"
+                                aria-hidden="true"></i>
+                                <mat-datepicker #endDt  (opened)="setFocusToElement(data.displayName +'end-date' )"
+                                (closed)="setDateValueToFilter(data.columnName, 'end')"></mat-datepicker>
+                            </span>
+                          </div>
+                        </ng-container>
+                        <ng-container *ngIf="data.filterType == 'endpoint'">
+                          <div class="searchBox memberSearchBox">
+                            <app-endpoint-search [httpOptions]="endPointSearchOptions[data.columnName]" [clearField]="clearField"
+                              [placeHolder]="data.displayName" (onSelect)="setSearchFilterValue($event, data)">
+                            </app-endpoint-search>
+                          </div>
+                        </ng-container>
+                        <ng-container *ngIf="data.filterType == 'freetext'">
+                          <input [(ngModel)]="tempFilterValues[data.columnName]" class="form-control"
+                            (focusout)="setFilterValueForFreeText(data.columnName)">
+                        </ng-container>
+                        <ng-container *ngIf="data.filterType == 'range'">
+                          <div class="d-flex">
+                            <input [(ngModel)]="rangeFrom[data.columnName]" type="number" class="form-control"
+                              (focusout)="setRangeValueToFilter(data.columnName, 'From')">
+                            -
+                            <input [(ngModel)]="rangeTo[data.columnName]" type="number" class="form-control"
+                              (focusout)="setRangeValueToFilter(data.columnName, 'To')">
+                          </div>
+                        </ng-container>
+                        <ng-container *ngIf="data.filterType == 'birtdate'">
+                          <div class="d-flex">
+                            <span class="dateField mr-1 w-100">
+                              <input type="text" placeholder="From ({{datePlaceHolder}})" id="{{data.displayName +'start-date' }}"
+                              matInput [matDatepicker]="BIRTdate" class="d-inline-block form-control"
+                                [(ngModel)]="startDate[data.columnName]" (keypress)="_commonService._keyPress($event, 'date');"
+                                (click)="BIRTdate.open()" (ngModelChange)="setDateValueToFilter(data.columnName, 'start')" />
+                              <i class="fa fa-calendar fa-large insidePicker hand-cursor" (click)="BIRTdate.open()"
+                                aria-hidden="true"></i>
+                                <mat-datepicker #BIRTdate  (opened)="setFocusToElement(data.displayName +'start-date')"
+                                (closed)="setDateValueToFilter(data.columnName, 'start')"></mat-datepicker>
+                            </span>
+                          </div>
+                        </ng-container>
+                        <ng-container *ngIf="data.filterType == 'year_end' || data.filterType == 'year_start'">
+                          <select name="yearRange" id="year" class="form-control" [(ngModel)]="tempFilterValues[data.columnName]" 
+                          (ngModelChange)="setYearValueToFilter(data.columnName , data.filterType)">
+                            <option [value]=undefined>--select--</option>
+                            <option *ngFor="let year of getYearRange()" value="{{year}}">
+                              {{year}}</option>
+                          </select>
+                        </ng-container>
+                      </div>
+                    </ng-container>
+                    <div *ngIf="filtersFieldsData.filters.length" class="col-lg col-md col-sm-6 col-12 d-flex align-items-end justify-content-end mt-2">
+                    <button  class="btn btn-secondary btn-sm mb-3 mt-4 mt-md-0" (click)="clearTemplate()" type="button" title="Clear">
+                      Clear
+                    </button>
+                  </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+        <ng-container *ngIf="!isCollapseCriteria && checkFilterValuesLength()">
+            <div class="card-content">
+              <div class="card-body ml-3 mr-3">
+                <div class="form-row f-14">
+                  <span class="mr-15" *ngFor="let criteria of reportCriteria; let index = index">
+                    <div *ngIf="((!isShowCollapse && index < 6 ) || isShowCollapse)">
+                      <ng-container *ngIf="criteria.includes('contains')">
+                        <b>{{criteria.split('contains')[0] }}</b> : {{removeString(criteria.split('contains')[1]) }}
+                      </ng-container>
+                      <ng-container *ngIf="criteria.includes('between')">
+                        <b>{{criteria.split('between')[0] }}</b> : {{removeString(criteria.split('between')[1]) }}
+                      </ng-container>
+                      <ng-container *ngIf="criteria.includes('than') && !criteria.includes('equal to')">
+                        <b>{{criteria.split('than')[0] }}</b> : {{removeString(criteria.split('than')[1]) }}
+                      </ng-container>
+                      <ng-container *ngIf="criteria.includes('equal to')">
+                        <b>{{criteria.split('to')[0] }}</b> : {{removeString(criteria.split('to')[1]) }}
+                      </ng-container>
+                    </div>
+                  </span>
+                </div>
+              </div>
+            </div>
+        </ng-container>
+
+            <!-- Preview Report -->
+      <div class="card card-inner border-0">
+        <div class="card-header px-3">
+          <h4 class="card-title d-flex align-items-center" id="generateReport">
+            <span class="mr-auto"><ng-container i18n="@@REPORT_PREVIEW_HEADER">Report Preview</ng-container></span>
+          </h4>
+        </div>
+        <div class="card-content">
+          <div *ngIf="reportCount > 200"
+            class="success-banner px-3 mx-1 my-2 d-flex justify-content-between align-items-center ng-star-inserted">
+            <div>
+              <i aria-hidden="true" class="fa fa-info-circle mr-1 info-icon"></i>
+              <em class="ng-star-inserted"> showing only first 200 items of {{reportCount}}</em>
+            </div>
+            <button aria-label="Close" class="close close-button" (click)="reportCount = 0" type="button">
+              <span aria-hidden="true" class="d-block">×</span>
+            </button>
+          </div>
+          <div *ngIf="templateTypes.maxResultCount" class="success-banner px-3 mx-1 my-2 d-flex justify-content-between align-items-center ng-star-inserted">
+            <div>
+              <i  aria-hidden="true" class="fa fa-info-circle mr-1 info-icon"></i>
+              <em  class="ng-star-inserted">Maximum {{templateTypes.maxResultCount}} rows can be downloaded in a single report. Please apply filters such as date range, lead unit etc when applicable.</em>
+            </div>
+            <button  aria-label="Close" class="close close-button" (click) = "templateTypes.maxResultCount = 0" type="button">
+              <span  aria-hidden="true" class="d-block">×</span>
+            </button>
+          </div>
+          <div class="card-body p-1">
+            <div class="table-responsive fixed-header-table custom-overflow report-table-border">
+              <table *ngIf="result?.length" class="table tableSkin table-bordered">
+                <caption class="sr-only">Report Templates</caption>
+                <thead>
+                  <tr>
+                    <th scope="col" *ngFor="let data of filtersFieldsData.fields; let index = index">
+                      {{data.displayName}}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <ng-container *ngFor="let data of result">
+                    <tr>
+                      <td *ngFor="let key of filtersFieldsData?.fields">
+                        <ng-container *ngIf="key.isCurrency else betweenCheck">
+                          {{data[(key.columnName.split('.')[1] || (key.columnName.split('.')[0]))] | customCurrency}}
+                        </ng-container>
+                        <ng-template #betweenCheck>
+                          <ng-container *ngIf="key.queryType != 'BETWEEN'">
+                            {{data[(key.columnName.split('.')[1] || (key.columnName.split('.')[0]))]}}
+                          </ng-container>
+                          <ng-container
+                            *ngIf="(key.queryType == 'BETWEEN' && key.filterType === 'date') || (key.queryType == 'BETWEEN' && key.filterType === 'null')">
+                            {{data[(key.columnName.split('.')[1]) || (key.columnName.split('.')[0])] | dateFormatter}}
+                          </ng-container>
+                          <ng-container *ngIf="key.queryType == 'BETWEEN' && key.filterType === 'datetime'">
+                            {{data[(key.columnName.split('.')[1]) || (key.columnName.split('.')[0])] |
+                            dateFormatterWithTimeZone}}
+                          </ng-container>
+                        </ng-template>
+                      </td>
+                    </tr>
+                  </ng-container>
+                </tbody>
+              </table>
+              <div *ngIf="(result?.length == 0 || !isFieldSelected) && !isBirt" class="no-data-container">
+                <span class="no-data-icon-outer">
+                  <div class="no-data-icon">
+                    <i aria-hidden="true" class="fa fa-file-o"></i>
+                    <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                  </div>
+                </span>
+                <h4>{{result?.length == 0 ? 'No Data is available.' : 'No column is selected to display report.'}}</h4>
+              </div>
+              <div *ngIf="content != null && allowedReports.includes('P')">
+                <embed [src]="content" class="w-100" style="height: 400px;" id="embebededContainer">
+              </div>
+              <div *ngIf="content != null && !allowedReports.includes('P')" class="no-data-container">
+                <span class="no-data-icon-outer">
+                  <div class="no-data-icon">
+                    <i aria-hidden="true" class="fa fa-file-o"></i>
+                    <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                  </div>
+                </span>
+                <h4>No preview available. Please export the report to view the content.</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+          </div>
+        </div>
+      </div>
+      <div class="footerPush"></div>
+    </div>
+</div>
+<!-- confirmation Modal -->
+<div class="modal fade mySkinDialog" id="saveTemplateModal" role="dialog" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-lg">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">{{saveAs ? 'Save As Template' : 'Edit Template'}}</h4>
+        <button class="close" aria-label="Close" data-dismiss="modal" type="button">
+          <span class="ng-tns-c4-0" aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body ct-modal-padding">
+        <div class="col-12">
+          <div class="form-row">
+            <div class="col-12">
+              <label><span class="mandatory">*</span>Name</label>
+              <input class="form-control" [(ngModel)]="templateName"
+                [ngClass]="{'is-invalid d-block' : isTemplateName}" />
+              <div *ngIf="isTemplateName" class="invalid-feedback d-block">
+                Please enter template name.
+              </div>
+            </div>
+          </div>
+          <div class="form-row pb-3">
+            <div class="col-12">
+              <label>Description</label>
+              <textarea class="form-control" [(ngModel)]="templateDescription" appLengthValidator [isShowLimiter]='true'
+                [limit]=200></textarea>
+            </div>
+          </div>
+          <div class="form-row pb-3">
+            <div class="col-12">
+              <input type="checkbox" class="" id="templateValueCheck" [(ngModel)]="isSaveFilterValues">
+              <label class="" for="templateValueCheck">Keep the search values for future use.</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="saveReportCancelBtn" type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
+          (click)="templateName = null;">Cancel</button>
+        <button *ngIf="!saveAs" type="button" class="btn btn-sm btn-primary-sub"
+          (click)="validateTemplate('update')">Update</button>
+        <button *ngIf="saveAs" type="button" class="btn btn-primary-sub btn-sm"
+          (click)="validateTemplate('create')">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade mySkinDialog" id="filterModal" role="dialog" data-keyboard="false">
+  <div class="modal-dialog" [ngClass]="criteriaModalSize">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title mr-auto">Add Criteria
+        </h4>
+        <button class="btn btn-outline-danger btn-sm hand-cursor mr-2 outline-primary buttonsize closes" (click)="selectAllReportFields(false)">
+          Clear All
+           </button>
+           <button class="btn btn-primary btn-sm ml-2 mr-2 buttonsize closes" type="button" (click)="selectAllReportFields(true)">Select All
+          </button>
+        <button class="close m-0" aria-label="Close" data-dismiss="modal" type="button">
+          <span class="ng-tns-c4-0" aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-1.5 px-4">
+            <span><label>Filter by :</label></span>
+          </div>
+          <div class="col p-0 mr-5">
+            <input type="text" class="form-control" placeholder="Filter by criteria names" [(ngModel)]="criteriaName">
+            <a class="searchButton"><i class="fa fa-search fa-med pt-2" aria-hidden="true"></i></a>
+          </div>
+        </div>
+        <div class="row report-height-container">
+          <ng-container *ngFor="let data of configurationData | reportFilter : criteriaName">
+            <div class="col-lg-{{ 4 - criteriaSingleSpaceImpact}} col-sm-6 col-12" *ngIf="data.filterType != 'null'">
+              <div class="form-check">
+                <input [disabled]="data.isMandatory" class="form-check-input hand-cursor mt-2" type="checkbox" id=filter{{data.columnName}}
+                [(ngModel)]="data.isFilterChecked" (change)="updateFilterCriteria(data)">
+                <label class="form-check-label hand-cursor ml-2" for="filter{{data.columnName}}">{{data.displayName}}
+                </label>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button aria-label="Close" data-dismiss="modal" type="button" class="btn btn-primary-sub btn-sm">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade mySkinDialog" id="columnModal" role="dialog" data-keyboard="false">
+  <div class="modal-dialog" [ngClass]="columnModalSize">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title mr-auto">Add Columns
+        </h4>
+        <button class="btn btn-outline-danger btn-sm hand-cursor mr-2 outline-primary buttonsize" (click)="selectAllColumnFields(false)">
+          Clear All
+           </button>
+           <button class="btn btn-primary btn-sm ml-2 mr-2 buttonsize" type="button" (click)="selectAllColumnFields(true)">Select All
+          </button>
+        <button class="close m-0" aria-label="Close" data-dismiss="modal" type="button">
+          <span class="ng-tns-c4-0" aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body px-0">
+        <div class="row">
+          <div class="col-1.5 px-4">
+            <span class="ml-4"><label>Filter by :</label></span>
+          </div>
+          <div class="col p-0 mr-5">
+            <input type="text" class="form-control" placeholder="Filter by column names" [(ngModel)]="columnName">
+            <a class="searchButton"><i class="fa fa-search fa-med pt-2" aria-hidden="true"></i></a>
+          </div>
+        </div>
+        <div class="row report-height-container m-0">
+          <ng-container *ngFor="let data of configurationData | reportFilter : columnName">
+            <div class="col-xl-{{ 4 - columnSingleSpaceImpact}} col-lg-{{ 4 - columnSingleSpaceImpact}} col-sm-6 col-12"
+              *ngIf="data?.excludeDisplay !== 'Y'">
+              <div class="form-check">
+                <input type="checkbox" class=" form-check-input mt-2 hand-cursor" id=field{{data.columnName}}
+                  [(ngModel)]="data.isColumnChecked" (change)="updateColumnFields(data)">
+                <label for="field{{data.columnName}}"
+                  class="hand-cursor form-check-label ml-2 ">{{data.displayName}}</label>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button aria-label="Close" data-dismiss="modal" type="button" class="btn btn-primary-sub btn-sm">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WARNING MODAL -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="reportCheckingWarningModal" tabindex="-1" role="dialog"
+  aria-labelledby="reportChecking" data-backdrop="static" data-keyboard="false" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Error in Report</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" [routerLink]="['/fibi/dashboard/templateList']">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-danger fs-12">
+          <i aria-hidden="true" class="fa fa-exclamation-circle icon text-danger mr-3"></i>
+          This Report is not available due to an error that has occurred. Please contact the Administrator.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary-sub btn-sm" [routerLink]="['/fibi/dashboard/templateList']"
+          data-dismiss="modal">Ok</button>
+      </div>
+    </div>
+  </div>
+</div>

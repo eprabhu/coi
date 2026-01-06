@@ -1,0 +1,187 @@
+<div class="push4slideMenu pageMinHeight">
+  <div class="container-fluid pushFixedHeaderFooter">
+    <div class="headerPush"></div>
+    <div class="card rounded-0 mt-4">
+      <div class="card-content">
+        <div class="card-header py-3">
+          <h4 class="card-title d-flex justify-content-between mr-3">
+            <span class="pl-0 col-8">Sponsor Report</span>
+            <span>
+              <button *ngIf="isApplicationAdministrator" class="btn btn-primary" (click)="modalAction({},'add')">Add Report</button>
+            </span>
+          </h4>
+        </div>
+        <div class="card-body">
+          <div class="card">
+            <div class="card-body">
+              <div class="form-row">
+                <div class="col-10">
+                  <div class="row">
+                    <div class="col">
+                      <label class="d-block">Sponsor</label>
+                      <app-endpoint-search [httpOptions]="sponsorSearchOptions" [clearField]="clearField"
+                        [placeHolder]="'Type here for Sponsor Name'" (onSelect)="onSponsorSelect($event)">
+                      </app-endpoint-search>
+                    </div>
+                    <div class="col">
+                      <label class="d-block">Funding Scheme</label>
+                      <select class="form-control" [(ngModel)]="searchObj.fundingSchemeId"
+                      [disabled]="sponsorFundingSchemes == null || sponsorFundingSchemes.length == 0"
+                       >
+                        <option class="drop" [ngValue]="null">--Select--</option>
+                        <option *ngFor="let report of sponsorFundingSchemes"
+                         class="drop" [ngValue]="report.fundingSchemeId">{{report.description}}</option>
+                      </select>
+                    </div>
+                    <div class="col">
+                      <label class="d-block">Report Class</label>
+                      <select [(ngModel)]="searchObj.reportClassCode" class="form-control" (ngModelChange)="fetchReportType()"
+                        id="award-report-class">
+                        <option  [ngValue]="null">--Select--</option>
+                        <option *ngFor="let reportClass of reportTermsLookup?.reportClassList"
+                          [ngValue]="reportClass.reportClassCode">
+                          {{reportClass?.description}}</option>
+                      </select>
+                    </div>
+                    <div class="col">
+                      <label class="d-block">Report Type</label>
+                      <select [(ngModel)]="searchObj.reportCode"
+                      [disabled]="reportTypes == null || reportTypes.length == 0"
+                        class="form-control" id="award-report-type">
+                        <option [ngValue]="null">--Select--</option>
+                        <option *ngFor="let report of reportTypes" [ngValue]="report.reportCode">
+                          {{report?.description}}
+                        </option>
+                      </select>
+                    </div>
+                    <div class="col">
+                      <label class="d-block">Frequency</label>
+                      <select [(ngModel)]="searchObj.frequencyCode" class="form-control" id="award-freq">
+                        <option [ngValue]="null">--Select--</option>
+                        <option *ngFor="let frequency of reportTermsLookup?.frequencyList"
+                          [hidden]="frequency.active != true" ngValue="{{frequency.frequencyCode}}">
+                          {{frequency.description}}</option>
+                      </select>
+                    </div>  
+                  </div>
+                </div>
+               
+                <div class="col-2 d-flex align-items-end justify-content-end ">
+                  <button id="search-user" (click)="fetchAllSponsorReports()" title="Search" class="btn btn-primary ml-3">Search</button>
+                  <button  class="btn btn-secondary ml-2" (click)="clearSearchObj()">Clear</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card card-table-box rounded-0">
+            <div class="table-responsive">
+              <table class="table tableSkin mb-0" aria-describedby="user-list">
+                <tr class="header-border">
+                  <th >
+                    <span class="hand-cursor">Sponsor </span>
+                  </th>
+                  <th >
+                    <span class="hand-cursor">Funding Scheme</span>
+                  </th>
+                  <th scope="col" >
+                    <span class="hand-cursor">Report Class</span>
+
+                  </th>
+                  <th scope="col" >
+                    <span class="hand-cursor">Report Type</span>
+
+                  </th>
+                  <th >
+                    <span class="hand-cursor">Frequency</span>
+
+                  </th>
+                  <th >
+                    <span class="hand-cursor">Frequency Base</span>
+                  </th>
+                  <th class="text-center" width="10%">
+                    <span class="hand-cursor">Actions</span>
+                  </th>
+
+                </tr>
+                <tr *ngFor="let report of sponsorReports let i=index">
+                  <td>{{report?.sponsor?.sponsorName}}</td>
+                  <td>{{report?.sponsorFundingScheme?.description ? report?.sponsorFundingScheme?.description : '-'}}</td>
+                  <td>{{report?.reportClass?.description}}</td>
+                  <td>{{report?.report?.description ? report?.report?.description : '-'}}</td>
+                  <td>{{report?.frequency?.description}}</td>
+                  <td *ngIf="!['6','120'].includes(report?.frequencyBaseCode)" >{{report?.frequencyBase?.description}}</td>
+                  <td *ngIf="report?.frequencyBaseCode ==  '120'" ><span> {{report?.frequencyBase?.description}} - {{report.day}}/{{getMonthName(report.month)}}</span></td>
+                  <td *ngIf="report?.frequencyBaseCode ==  '6'" ><span> {{report?.frequencyBase?.description}} - {{ getDateStringFromTimeStamp(report.baseDate)}}</span></td>
+                  <td>
+                    <ul class="actionButtonGroup text-center">
+                      <li>
+                          <a id="view-btn"
+                          (click)="modalAction(report,'view')" 
+                              data-toggle="modal">
+                              <i class="fa fa-eye" aria-hidden="true"></i>
+                          </a>
+                      </li>
+                      <li *ngIf="isApplicationAdministrator" ><a id="delete-btn"><i
+                        (click)="modalAction(report,'update')"
+                                  class="fa fa-pencil" aria-hidden="true"></i></a></li>
+                      <li *ngIf="isApplicationAdministrator" >
+                          <a  
+                              (click)="openDeleteModal(i)" >
+                              <i class="fa fa-trash-o" aria-hidden="true"></i>
+                            </a>
+                      </li>
+                  </ul>
+                  </td>                                 
+                </tr>
+              </table>
+            </div>
+            <div class="no-data-container" *ngIf="sponsorReports == 0">
+              <span class="no-data-icon-outer">
+                <div class="no-data-icon">
+                  <i class="fa fa-file-o" aria-hidden="true"></i>
+                  <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                </div>
+              </span>
+              <h4>There is no information in this section.</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Pagination -->
+      <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12" *ngIf="sponsorReports?.length">
+        <div>
+          <nav class="pagination justify-content-end">
+            <app-pagination [totalCount]="result?.totalReports"
+            [pageCount]="searchObj.pageSize"
+                          (pageChangeEvent)="actionsOnPageChange($event)">
+                      </app-pagination>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DELETE MODAL -->
+  <div class="modal fade mySkinDialog" id="delete-modal" role="dialog" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4  class="modal-title">Delete</h4>
+        </div>
+        <div class="modal-body ct-modal-padding">
+          <div class="row">
+            <div class="col-lg-12">
+              <p>Are you sure you want to delete this reporting requirement ?</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button  type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button  type="button" class="btn btn-primary-sub" data-dismiss="modal" (click)="deleteSponsorReport()">Delete</button>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <app-addReportConfiguration [reportTermsLookup]="reportTermsLookup" (addOrUpdate)="addOrUpdate($event)" ></app-addReportConfiguration>

@@ -1,0 +1,1 @@
+\. ./FIBI-COI-5.7.2.P1/FC-1449/Procedures/RULE_EVALUATE_FUNCTION.sql

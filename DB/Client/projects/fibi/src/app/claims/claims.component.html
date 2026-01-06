@@ -1,0 +1,717 @@
+<!-- Last updated by Aravind on 26-11-2020 -->
+<!-- actionType
+    S = Submitted for Funding agency review
+    R = Revision requested by Funding agency
+    A = Approved by Funding Agency -->
+<div class="push4slideMenu pageMinHeight" id="scrollToTop">
+    <div class="container-fluid pushFixedHeaderFooter">
+        <div class="headerPush"></div>
+        <section class="row">
+            <div class="col-12" id="myclaims">
+                <!-- header start -->
+                <div class="sticky-top-nav mb-3 header-outline" id="stickyclaimsHeader">
+                    <!-- title -->
+                    <div class="row">
+                        <div class="text-left col">
+                            <h2 class="title-primary fs-20 text-justify"
+                                title="#{{result?.claim?.claimNumber}} : {{result?.claim?.title}}">
+                                #{{result?.claim?.claimNumber}} : {{result?.claim?.title}}
+                            </h2>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 col-lg">
+                            <div class="float-left d-inline-block">
+                                    <span class="badge-title bg-transparent pl-0 fs-14-nav">
+                                        <i aria-hidden="true" class="fa fa-clock-o text-primary mr-1"></i>
+                                        <span class="d-none d-md-inline-block">Period : </span>
+                                        {{result?.claim?.startDate | dateFormatter}} -
+                                        {{result?.claim?.endDate | dateFormatter}}
+                                    </span>
+                                <span *ngIf="result?.claim?.award?.principalInvestigator"
+                                      class="badge-title bg-transparent pl-0 fs-14-nav">
+                                        <i aria-hidden="true" class="fa fa-user text-primary mr-1"></i>
+                                        <span class="d-none d-md-inline-block">PI : </span>
+                                    {{result?.claim?.award?.principalInvestigator}}
+                                    </span>
+                                <span *ngIf="result?.claim?.award?.leadUnit?.unitName"
+                                      class="badge-title bg-transparent pl-0 fs-14-nav">
+                                        <i aria-hidden="true" class="fa fa-home text-primary mr-1"></i>
+                                        <span class="d-none d-md-inline-block">Lead Unit : </span>
+                                    {{concatUnitNumberAndUnitName(result?.claim?.award?.leadUnit?.unitNumber, result?.claim?.award?.leadUnit?.unitName)}}
+                                    </span>
+                                <span class="badge-title bg-transparent pl-0 fs-14-nav">
+                                        <i aria-hidden="true" class="fa fa-home text-primary mr-1"></i>
+                                        <span class="d-none d-md-inline-block">Host : </span>
+                                        {{concatUnitNumberAndUnitName(result?.claim?.hostUnitNumber, result?.claim?.hostUnitDescription)}}
+                                    </span>
+                            </div>
+                            <span
+                                class="status-badge-{{getClaimStatusCode(result?.claim?.claimStatus?.claimStatusCode)}} fs-14-nav float-right">
+                                    {{result?.claim?.claimStatus?.description}}</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <!-- nav links -->
+                        <div class="col-lg col-auto pr-0">
+                            <div class="collapse navbar-toggleable-xs mt-5 mt-lg-0 mb-1" id="navbarResponsive">
+                                <ul class="menu-responsive tabs fit-content tabs-collapsed">
+                                    <li *ngIf="_commonData.claimSectionConfig['CL1401']?.isActive"
+                                        
+                                        routerLinkActive="active">
+                                        <a [routerLink]="'/fibi/claims/overview'" queryParamsHandling='merge'>
+                                            Overview
+                                        </a>
+                                    </li>
+                                    <ng-container *ngIf="!isManualClaim && _commonData.claimSectionConfig['CL1402']?.isActive">
+                                        <li 
+                                            routerLinkActive="active">
+                                            <a [routerLink]="['/fibi/claims/claim-summary']"
+                                               queryParamsHandling='merge'>
+                                                Claim Summary </a>
+                                        </li>
+                                        <li 
+                                            *ngIf="_commonData.claimSectionConfig['CL1403']?.isActive && isDetailsBreakdownAccessible"
+                                            routerLinkActive="active">
+                                            <a [routerLink]="['/fibi/claims/details-breakdown']"
+                                               queryParamsHandling='merge'>
+                                                Details Breakdown
+                                            </a>
+                                        </li>
+                                        <li *ngIf="_commonData.claimSectionConfig['CL1404']?.isActive"
+                                            
+                                            routerLinkActive="active">
+                                            <a [routerLink]="['/fibi/claims/manpower']" queryParamsHandling='merge'>
+                                                Manpower
+                                            </a>
+                                        </li>
+                                        <li 
+                                        *ngIf="_commonData.claimSectionConfig['CL1405']?.isActive" routerLinkActive="active">
+                                            <a [routerLink]="'/fibi/claims/endorsement'" queryParamsHandling='merge'>
+                                                Endorsement
+                                            </a>
+                                        </li>
+                                    </ng-container>
+                                    <li *ngIf="_commonData.claimSectionConfig['CL1408']?.isActive"
+                                        
+                                        routerLinkActive="active">
+                                        <a [routerLink]="['/fibi/claims/invoice']" queryParamsHandling='merge'>
+                                            Invoice
+                                        </a>
+                                    </li>
+                                    <li *ngIf="_commonData.claimSectionConfig['CL1406']?.isActive"
+                                        
+                                        routerLinkActive="active">
+                                        <a [routerLink]="['/fibi/claims/attachments']" queryParamsHandling='merge'>
+                                            Attachments
+                                        </a>
+                                    </li>
+                                    <li 
+                                        *ngIf="result?.claim?.claimId && result.workflow  && _commonData.claimSectionConfig['CL1407']?.isActive" routerLinkActive="active">
+                                        <a [routerLink]="['/fibi/claims/route-log']" queryParamsHandling='merge'>
+                                            Route Log
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <!-- submit,return button -->
+                        <div class="col-lg-auto col-12 my-2">
+                            <button #mainHeaders aria-controls="navbarResponsive"
+                                    aria-expanded="false"
+                                    aria-label="Toggle navigation" class="navbar-toggler hidden-sm-up px-0 d-inline-block d-lg-none float-left mt-2" data-target="#navbarResponsive"
+                                    data-toggle="collapse" id="responsiveColapse"
+                                    type="button">
+                                <i aria-hidden="true" class="fa fa-bars f-14 text-muted mx-colr"
+                                   title="Click for more pages"></i>
+                            </button>
+                            <!-- Cancelled status is added to the buttons to avoid it to be  displayed on sequence status CANCELLED (which was introduced lately)  -->
+                            <span class="float-right">
+                                <!-- <button *ngIf="!isManualClaim && result?.lastClaimEndDate != null" class="btn btn-secondary btn-sm fs-14-nav" id="resync-claim-btn"
+                                (click)="resyncClaimDetails()" title="Resync Claim" type="button">Resync Claim</button>
+                                    <button (click)="downloadClaimExcel()" *ngIf="!isManualClaim" class="btn btn-secondary btn-sm fs-14-nav" id="excel-btn"
+                                            title="Export Claim" type="button">Export
+                                        Claim</button> -->
+                                    <button (click)="saveEndorsementDetails()" *ngIf="isShowSave" class="btn btn-secondary btn-sm fs-14-nav" id="save-btn"
+                                            title="Save"
+                                            type="button">Save</button>
+                                    <button (click)="validateClaim(true);isValidationOnlyFlag = true" *ngIf="(result?.claim?.claimStatus?.claimStatusCode == '1'
+                                    || result?.claim?.claimStatus?.claimStatusCode == '2' || result?.claim?.claimStatus?.claimStatusCode == '7') && result?.canApproveRouting != '1' && isModifiable"
+                                            class="btn btn-secondary btn-sm fs-14-nav"
+                                            type="button">Validate</button>
+                                    <button (click)="validateClaim();isValidationOnlyFlag = false;actionType = 'S';" *ngIf="(result?.claim?.claimStatus?.claimStatusCode == '1'
+                                    || result?.claim?.claimStatus?.claimStatusCode == '2' || result?.claim?.claimStatus?.claimStatusCode == '7')
+                                    && result?.canApproveRouting != '1' && isModifiable" class="btn btn-primary btn-sm fs-14-nav"
+                                            id="claims-submit-btn" type="button">Submit Claim
+                                    </button>
+                                    <button (click)="triggerInvoiceAction();actionType = 'T'" *ngIf="(result?.claim?.claimStatus?.claimStatusCode == '6' || (result?.claim?.claimStatus?.claimStatusCode == '8')) && isTriggerable"
+                                            class="btn btn-primary btn-sm fs-14-nav"
+                                            type="button">Trigger Invoice
+                                    </button>
+                                    <button (click)="disapproveClaims()" *ngIf="result?.claim?.claimStatus?.claimStatusCode == '3' && result?.canApproveRouting == '1'"
+                                            class="btn btn-secondary btn-sm fs-14-nav"
+                                            id="claims-disapprove-btn"
+                                            type="button"><ng-container i18n="@@COMMON_RETURN">Return</ng-container></button>
+                                    <button (click)="approveClaims()" *ngIf="result?.claim?.claimStatus?.claimStatusCode == '3' && result?.canApproveRouting == '1'"
+                                            class="btn btn-primary btn-sm fs-14-nav"
+                                            id="claims-approve-btn"
+                                            type="button"><ng-container i18n="@@COMMON_APPROVE">Approve</ng-container></button>
+                                    <button (click)="actionType = 'S'" *ngIf="result?.claim?.claimStatus?.claimStatusCode == '5' && isModifiable"
+                                            class="btn btn-primary btn-sm fs-14-nav"
+                                            data-target="#FOConfirmClaimModal"
+                                            data-toggle="modal" id="Funding-submit-btn"
+                                            type="button">Submit
+                                        for Funding
+                                        Agency
+                                    </button>
+                                    <button (click)="actionType = 'R'" *ngIf="['6', '10', '11'].includes(result?.claim?.claimStatus?.claimStatusCode) && isModifiable"
+                                            [disabled]="isSaving" class="btn btn-secondary btn-sm fs-14-nav"
+                                            data-target="#FOConfirmClaimModal" data-toggle="modal"
+                                            title="Revision Requested by Funding Agency"
+                                            type="button">Revision Req. by Funding Agency</button>
+                                    <button (click)="actionType = 'A';populateFunderDate();" *ngIf="result?.claim?.claimStatus?.claimStatusCode == '6' && isModifiable"
+                                            [disabled]="isSaving"
+                                            class="btn btn-primary btn-sm fs-14-nav" data-target="#FOConfirmClaimModal"
+                                            data-toggle="modal"
+                                            title="Approved by Funding Agency" type="button">Approved by Funding
+                                        Agency</button>
+                                    <span class="position-relative" *ngIf="(result?.claim?.claimId && result?.claim?.claimStatus?.claimStatusCode == '1' && (isClaimDelete ||  _commonService.getCurrentUserDetail('fullName') === result?.claim?.createUserName))|| !isManualClaim">
+                                        <button title="More Actions"
+                                            class="btn more-btn" (click)="isShowMoreOptions = !isShowMoreOptions">
+                                            <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+                                        </button>
+                                        <ul id="moreOptions-list" class="more-options-box" *ngIf="isShowMoreOptions">
+                                            <li title="Delete Claim" *ngIf = "result?.claim?.claimId && result?.claim?.claimStatus?.claimStatusCode == '1'
+                                            && (isClaimDelete || _commonService.getCurrentUserDetail('fullName') === result?.claim?.createUserName)">
+                                                <a class="dropdown-item" href="" data-toggle="modal"
+                                                    data-target="#deleteClaimModal" (click)="isShowMoreOptions = !isShowMoreOptions;
+                                                    deleteClaimTempObject(result?.claim?.claimId,result?.claim?.award?.awardId ,result?.claim?.award?.leadUnit?.unitNumber)">
+                                                <i class="fa fa-trash-o" aria-hidden="true"></i>
+                                                Delete Claim</a>
+                                            </li>
+                                            <li *ngIf="!isManualClaim">
+                                                <a class="dropdown-item pointer" (click)="isShowMoreOptions = !isShowMoreOptions; downloadClaimExcel()"  title="Export Claim"> <i class="fa fa-file-excel-o" aria-hidden="true"></i> Export Claim </a>
+                                            </li>
+                                        </ul>
+                                    </span>
+                                    <button (click)="backToClaimListClick()" class="btn more-btn" title="Back to Claim List"
+                                    type="button"><i aria-hidden="true" class="fa fa-reply"></i></button>
+                                </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="" id="dashboardOverlay"></div>
+                  <div class="card notice-box my-3" *ngIf="!isManualClaim && result?.lastClaimEndDate != null && isClaimInfo && result?.previousClaimEditable && ['1','2','7'].includes(result?.claim?.claimStatusCode)">
+                      <div class="card-content">
+                          <div class="gridSkin mb-0 ">
+                              <div class="row">
+                                  <div class="align-items-center col-10 col-lg-10 d-flex no-hover-effect py-1">
+                                      <span class="text-secondary d-block">
+                                        <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
+                                        Your previous claim(s) is in revision. So the amount might have been adjusted. Please click "Sync Now" button to sync and update the claim information.
+                                    </span>
+                                  </div>
+                                  <div class="align-items-center col-2 col-lg-2 d-flex justify-content-end no-hover-effect px-1 py-0">
+                                    <button (click)="resyncClaimDetails()" class="btn btn-primary"  title="Resync Claim">  <i class="fa fa-refresh" aria-hidden="true"></i> Sync Now</button>
+                                    <button type="button" id="modal-close" class="close close-button ml-2" data-dismiss="modal"
+                                    (click)="isClaimInfo = false" aria-label="Close">
+                                    <span  aria-hidden="true" class="text-dark">&times;</span>
+                                 </button>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="card notice-box my-3" *ngIf="!isManualClaim && result?.lastClaimEndDate != null && isClaimInfoMsg && result?.previousClaimEditable && result?.claim.claimStatusCode != '1' && result?.claim.claimStatusCode != '2' && result?.claim.claimStatusCode != '7'">
+                    <div class="card-content">
+                        <div class="gridSkin mb-0 ">
+                            <div class="row">
+                                <div class="align-items-center col-10 col-lg-10 d-flex no-hover-effect py-1">
+                                    <span class="text-secondary d-block">
+                                      <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
+                                      Your previous claim(s) is in revision. So the amount might have been adjusted. Please make this claim revision requested/return and use the "Sync Now" button to update the previous claim information.
+                                  </span>
+                                </div>
+                                <div class="align-items-center col-2 col-lg-2 d-flex justify-content-end no-hover-effect px-1 py-0">
+                                  <button type="button" id="modal-close" class="close close-button ml-2" data-dismiss="modal"
+                                  (click)="isClaimInfoMsg = false" aria-label="Close">
+                                  <span  aria-hidden="true" class="text-dark">&times;</span>
+                               </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <ng-container *ngIf="router.isActive('/fibi/claims/overview', false)
+                                        || router.isActive('/fibi/claims/endorsement', false)">
+                    <div class="card section-highlight p-1 mb-3 shadow-sm gridSkin">
+                        <div class="row">
+                            <div class="col-lg-2 pb-0">
+                                <label>Award #:</label>
+                                <span class="d-block">
+                                        <a [queryParams]="{awardId:result?.claim?.award?.awardId}"
+                                           [routerLink]="['/fibi/award/overview']" class="anchor-link hand-cursor"
+                                           target="_blank"
+                                           title="View Award Details {{result?.claim?.award?.awardNumber}}">{{result?.claim?.award?.awardNumber}}
+                                            <i aria-hidden="true" class="fa fa-external-link-square ml-1"></i>
+                                        </a>
+                                    </span>
+                                <span *ngIf="result?.claim?.award?.awardNumber == null" class="noDataExists">No Award #
+                                        Specified</span>
+                            </div>
+                            <div class="pb-0 col-lg-4">
+                                <label>Title:</label>
+                                <span class="d-block">{{result?.claim?.award?.title}}</span>
+                                <span *ngIf="result?.claim?.award?.title == null" class="noDataExists">No Title
+                                        Specified</span>
+                            </div>
+                            <div class="col-lg-3 pb-0">
+                                <label>Sponsor Award Number:</label>
+                                <span class="d-block">{{result?.claim?.award?.sponsorAwardNumber}}</span>
+                                <span *ngIf="result?.claim?.award?.sponsorAwardNumber == null" class="noDataExists">No
+                                        Sponsor Award Number Specified</span>
+                            </div>
+                            <div class="col-lg-3 pb-0">
+                                <label>Funder Approval Date:</label>
+                                <span class="d-block">{{result?.claim?.funderApprovalDate | dateFormatter}}</span>
+                                <span *ngIf="result?.claim?.funderApprovalDate == null" class="noDataExists">No
+                                        Funder Approval Date Specified</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-2">
+                                <label>NTU Ref:</label>
+                                <span class="d-block">{{result?.claim?.award?.accountNumber}}</span>
+                                <span *ngIf="result?.claim?.award?.accountNumber == null" class="noDataExists">No NTU
+                                        Ref Specified</span>
+                            </div>
+                            <div class="col-lg-4">
+                                <label>Principal Investigator:</label>
+                                <span class="d-block">{{result?.claim?.award?.principalInvestigator}}</span>
+                                <span *ngIf="result?.claim?.award?.principalInvestigator == null"
+                                      class="noDataExists">No Principal
+                                        Investigator Specified</span>
+                            </div>
+                            <div class="col-lg-3">
+                                <label>Lead Unit:</label>
+                                <span class="d-block">{{concatUnitNumberAndUnitName(result?.claim?.award?.leadUnit?.unitNumber, result?.claim?.award?.leadUnit?.unitName)}}</span>
+                                <span *ngIf="result?.claim?.award?.leadUnit?.unitName == null" class="noDataExists">No
+                                        Lead Unit Specified</span>
+                            </div>
+                            <div class="col-lg-3">
+                                <label>Claim Duration:</label>
+                                <span class="d-block">{{result?.claim?.duration}}</span>
+                                <span *ngIf="result?.claim?.duration == null" class="noDataExists">No Claim Duration
+                                        Specified</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-2">
+                                <label>Claim Created By:</label>
+                                <span class="d-block">{{result?.claim?.createUserName}}</span>
+                                <span *ngIf="!result?.claim?.createUserName" class="noDataExists">No Create User Specified</span>
+                            </div>
+                            <div class="col-lg-4 pb-0">
+                                <label>Claim Created On:</label>
+                                <span class="d-block">{{result?.claim?.createTimeStamp | dateFormatter}}</span>
+                                <span *ngIf="!result?.claim?.createTimeStamp" class="noDataExists">No Created Time Specified</span>
+                            </div>
+                            <div class="col-lg-3 pb-0">
+                                <label>Claim Updated By:</label>
+                                <span class="d-block">{{result?.claim?.updateUserName}}</span>
+                                <span *ngIf="!result?.claim?.updateUserName" class="noDataExists">No Last Updated User Specified</span>
+                            </div>
+                            <div class="col-lg-3">
+                                <label>Claim Updated On:</label>
+                                <span class="d-block">{{result?.claim?.updateTimeStamp | dateFormatter}}</span>
+                                <span *ngIf="!result?.claim?.updateTimeStamp" class="noDataExists">No Last Updated Time Specified</span>
+                            </div>
+                        </div>
+                    </div>
+                </ng-container>
+
+                <router-outlet></router-outlet>
+            </div>
+        </section>
+        <div class="footerPush"></div>
+    </div>
+</div>
+
+<button [hidden]="true" data-target="#claimTabChangeConfirmModal" data-toggle="modal"
+        id="claimTabChangebutton"></button>
+
+<!-- APPROVE-DISAPPROVE MODAL -->
+<div aria-hidden="true" aria-labelledby="skippedSchedulesTitle" class="modal fade mySkinDialog" id="approveDisapproveClaimsModal"
+     role="dialog" tabindex="-1">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="skippedSchedulesLongTitle">
+                    {{requestObject.actionType == 'A' ? COMMON_APPROVE_LABEL : COMMON_RETURN_LABEL}} <span>Claim</span>
+                </h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" id="claims-approve-dismiss-btn"
+                        type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-inner-scroll">
+                <div class="row">
+                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <label class="mySkinDialog " for="claims-approve-comments">
+                            <p class="m-0">
+                                <strong>Comments</strong>
+                            </p>
+                        </label>
+                        <textarea [(ngModel)]="requestObject.approveComment" [isShowLimiter]='true' [limit]=2000
+                                  [ngClass]="isEmptyCommentArea ? 'is-invalid d-block' : ''"
+                                  appAutoGrow appLengthValidator class="col-12 col-lg-12 commentBox auto-grow-height form-control"
+                                  cols="20" id="claims-approve-comments" placeholder=""
+                                  rows="3"></textarea>
+                        <span *ngIf="isEmptyCommentArea" class="invalid-feedback d-block">*Please add a
+                                comment.</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <label class="mySkinDialog">
+                            <p class="m-0">
+                                <strong>Add files</strong>
+                            </p>
+                        </label>
+                        <app-file-drop (filesDropEvent)="fileDrop($event)" [multiple]="true"></app-file-drop>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <div class="fileChips regularFont">
+                                <span *ngFor="let item of uploadedFile; let index=index">{{
+                                    item?.name }} <i (click)="deleteFromUploadedFileList(index)" aria-hidden="true"
+                                                     class="fa fa-close hand-cursor" id="claims-approve-attach-delete"
+                                                     title="Remove File"></i>
+                                </span>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="attachmentWarningMsg">
+                    <span class="mandatory font">{{attachmentWarningMsg}}</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button (click)="closeApproveDisapproveModal()" class="btn btn-secondary btn-sm" data-dismiss="modal" id="claims-approve-close"
+                        type="button">Close
+                </button>
+                <button (click)="maintainClaimsWorkFlow()" class="btn btn-primary-sub btn-sm" id="claims-approve-disapprove-btn"
+                        type="button">{{requestObject.actionType == 'A' ? COMMON_APPROVE_LABEL : COMMON_RETURN_LABEL}}</button>
+            </div>
+        </div>
+    </div>
+</div>
+<button [hidden]="true" data-target="#approveDisapproveClaimsModal" data-toggle="modal" id="route-log-btn"
+        type="button"></button>
+
+<!-- Confirmation Modal -->
+<div class="modal fade mySkinDialog" id="SubmitClaimModal" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header ct-footer-padding">
+                <h4 class="modal-title">Confirmation</h4>
+            </div>
+            <div class="modal-body ct-modal-padding">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <p>Are you sure you want to submit this Claim?</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer ct-footer-padding">
+                <button class="btn btn-secondary btn-sm" data-dismiss="modal" id="claim-sumbit-no-btn"
+                        type="button">No
+                </button>
+                <button (click)="submitClaim()" class="btn btn-primary-sub btn-sm" type="button">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- In MIDDLE OF EDIT WARNING MODAL -->
+<div aria-hidden="true" aria-labelledby="AwardTabChange" class="modal fade mySkinDialog" data-backdrop="static" data-keyboard="false"
+     id="claimTabChangeConfirmModal" role="dialog" tabindex="-1" tabindex="-1">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmation </h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>You have unsaved changes in <strong>{{autoSaveService.getUnsavedChanges()}}</strong>.
+                    Do you want to leave the page without saving?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-dismiss="modal" type="button">Stay on Page</button>
+                <button (click)="navigateUsingRedirectRoute()" class="btn btn-primary-sub btn-sm" data-dismiss="modal"
+                        type="button">Leave Page
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FO Confirmation Modal -->
+<div class="modal fade mySkinDialog" id="FOConfirmClaimModal" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header ct-footer-padding">
+                <h4 class="modal-title">
+                    <ng-container
+                        *ngIf="(!isManualClaim && (['',null].includes(result?.claim?.claimSubmissionDate))) else elseBlock">
+                        Validation
+                    </ng-container>
+                    <ng-template #elseBlock>
+                        Confirmation
+                    </ng-template>
+                </h4>
+            </div>
+            <div class="modal-body ct-modal-padding">
+                <div class="row">
+                    <ng-container
+                        *ngIf="(actionType === 'S' && !isManualClaim && (['',null].includes(result?.claim?.claimSubmissionDate))) else elseConfirmStatement">
+                        <div class="alert alert-danger f-13 mx-4 my-2 px-3 py-2 w-100">
+                            <i aria-hidden="true" class="fa fa-exclamation-circle mr-2"></i>
+                            Please provide a date of request submitted.
+                        </div>
+                        <div class="col-12 mb-3 mt-1">
+                            <label class="block-display">Date request submitted:</label>
+                            <span class="dateField">
+                                    <input matInput [matDatepicker]="reqDate" [(ngModel)]="claimSubmissionDate" autocomplete="off"
+                                           class="d-inline-block form-control"
+                                           id="reqDateSubmit" placeholder="{{datePlaceHolder}}"
+                                           style="width: 100% !important" (click)="reqDate.open()">
+                                    <i (click)="reqDate.open()" aria-hidden="true"
+                                       class="fa fa-calendar fa-large insidePicker hand-cursor" id="from-date-icon"
+                                       title="Open Calendar"></i>
+                                    <mat-datepicker #reqDate (opened)="setFocusToElement('reqDateSubmit')">
+                                    </mat-datepicker>
+                                </span>
+                        </div>
+                        <div *ngIf="claimSubmissionDate" class="border-top col-lg-12 pb-5 pt-4 pt-5 py-3">
+                            <p class="mb-0">Are you sure you want to submit this Claim for Funding Agency
+                                Review?</p>
+                        </div>
+                    </ng-container>
+                    <ng-template #elseConfirmStatement>
+                        <div class="col-lg-12">
+                            <p *ngIf="actionType === 'S'">Are you sure you want to submit this Claim for Funding Agency
+                                Review?</p>
+                            <p *ngIf="actionType === 'R'" class="py-4">Please confirm if you want to revise this claim</p>
+                            <p *ngIf="actionType === 'T' && result?.claim?.funderApprovalDate">Are you sure you want to Trigger Invoice?</p>
+                        </div>
+                        <ng-container *ngIf="actionType === 'A' || (actionType === 'T' && !result?.claim?.funderApprovalDate)">
+                            <div class="alert alert-warning f-13 mx-4 my-2 px-3 py-2 w-100">
+                                <i aria-hidden="true" class="fa fa-exclamation-circle mr-2"></i>
+                                Please enter Funder Approval Date to {{(actionType === 'T') ? 'trigger invoice': COMMON_APPROVE_LABEL+' this claim'}}.
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="block-display" for="funderApprovalDate">Funder Approval Date:</label>
+                                <span class="dateField">
+                                    <input matInput [matDatepicker]="reqDate" [(ngModel)]="funderApprovalDate" autocomplete="off"
+                                           class="d-inline-block form-control"
+                                           id="funderApprovalDate" placeholder="{{datePlaceHolder}}"
+                                           style="width: 100% !important"
+                                           (click)="reqDate.open()">
+                                    <i (click)="reqDate.open()" aria-hidden="true"
+                                       class="fa fa-calendar fa-large insidePicker hand-cursor"
+                                       title="Open Calendar"></i>
+                                    <mat-datepicker #reqDate (opened)="setFocusToElement('funderApprovalDate')">
+                                    </mat-datepicker>
+                                </span>
+                            </div>
+                            <div *ngIf="funderApprovalDate" class="border-top col-lg-12 pb-5 pt-4 pt-5 py-3">
+                                <p class="mb-0">Are you sure you want to {{(actionType === 'T') ? 'trigger invoice': COMMON_APPROVE_LABEL+' this claim'}}?</p>
+                            </div>
+                        </ng-container>
+                    </ng-template>
+                </div>
+            </div>
+            <div class="modal-footer ct-footer-padding">
+                <ng-container
+                    *ngIf="(actionType === 'S' && !isManualClaim && (['',null].includes(result?.claim?.claimSubmissionDate))) else elseConfirmButton">
+                    <button (click)="claimSubmissionDate = null" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                            type="button">No
+                    </button>
+                    <button (click)="validateSubmitForFundingAgency()" [disabled]="!claimSubmissionDate"
+                            class="btn btn-primary-sub btn-sm" type="button">
+                        <span>Save & Submit</span>
+                    </button>
+                </ng-container>
+                <ng-template #elseConfirmButton>
+                    <button class="btn btn-secondary btn-sm" data-dismiss="modal"
+                            type="button">No
+                    </button>
+                    <button (click)="performFOActions(actionType)" class="btn btn-primary-sub btn-sm" type="button" [disabled]="actionType === 'A' && !funderApprovalDate">
+                        <span *ngIf="actionType === 'S'">Submit</span>
+                        <span *ngIf="actionType === 'R'">Yes</span>
+                        <span *ngIf="actionType === 'A'">Save & <ng-container i18n="@@COMMON_APPROVE">Approve</ng-container></span>
+                        <span *ngIf="actionType === 'T'"><ng-container *ngIf="!result.claim.funderApprovalDate">Save & </ng-container>Trigger</span>
+                    </button>
+                </ng-template>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Validation modals -->
+<div aria-hidden="true" class="modal fade mySkinDialog" data-backdrop="static" data-keyboard="false" id="ValidateClaimModal"
+     role="dialog" tabindex="-1" tabindex="-1">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Validation</h5>
+                <button class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12 ">
+                        <div *ngIf="validationMsg?.length > 0" class="w-outer">
+                            <ng-container *ngFor="let msg of errorList">
+                                <div class="alert alert-danger f-13" role="alert">
+                                    <i aria-hidden="true" class="fa fa-exclamation-circle icon text-danger mr-3"></i>
+                                    Error:
+                                    {{msg.validationMessage}}
+                                </div>
+                            </ng-container>
+                            <ng-container *ngFor="let msg of warningList">
+                                <div class="alert alert-warning f-13" role="alert">
+                                    <i aria-hidden="true"
+                                       class="fa fa-exclamation-triangle icon text-warning mr-3"></i>Warning: {{msg.validationMessage}}
+                                </div>
+                            </ng-container>
+                        </div>
+                        <div *ngIf="validationMsg && validationMsg?.length == 0" class="w-outer">
+                            <div class="alert alert-info f-13" role="alert">
+                                <i aria-hidden="true" class="fa fa-info-circle icon text-info mr-3"></i>Claim has
+                                been successfully validated.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="!isValidationOnlyFlag && errorList?.length == 0 && !warningFlag" class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-dismiss="modal" type="button">Cancel</button>
+                <ng-container *ngIf="actionType === 'S'">
+                    <button (click)="submitClaim()" class="btn btn-primary-sub btn-sm" data-dismiss="modal"
+                            type="button">Continue to Submit
+                    </button>
+                </ng-container>
+                <ng-container *ngIf="actionType === 'T'">
+                    <button (click)="openFOConfirmationModal()" class="btn btn-primary-sub btn-sm" data-dismiss="modal"
+                            type="button">Continue to Trigger Invoice
+                    </button>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Claim Modal -->
+<div class="modal fade show mySkinDialog" tabindex="-1" id="deleteClaimModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Claim</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this Claim?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" data-toggle="modal">No</button>
+                <button type="button" class="btn btn-primary-sub btn-sm" (click)="deleteClaim();"
+                    data-dismiss="modal">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Submit without save confirmation -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="claimSubmitWithoutSaveModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="submitChange" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Are you sure you want to submit?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>You have unsaved changes. Do you want to submit without saving?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-sub btn-sm"
+                    (click)=" _commonData.isClaimDataChange = false; validateClaim(); isValidationOnlyFlag = false;actionType = 'S';" data-dismiss="modal">Continue to
+                    Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- validate without save confirmation -->
+<div class="modal fade mySkinDialog" tabindex="-1" id="claimValidatetWithoutSaveModal" tabindex="-1" role="dialog"
+    data-backdrop="static" data-keyboard="false" aria-labelledby="submitChange" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Unsaved changes</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>You have unsaved changes. Please save the data.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary-sub btn-sm"
+                    data-dismiss="modal">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Concurrency Warning modal -->
+<div class="modal fade show mySkinDialog" id="invalidActionModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Invalid Action</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+			<div class="form-row">
+				<div class="col-1">
+					<i class="fa fa-2x px-2 fa-exclamation-triangle text-warning position-person-inpur-box" aria-hidden="true"></i>
+				</div>
+				<div class="col-11">
+					<p>
+						You have tried to perform an action that is not valid for the current state of this Claim. The likely cause is that
+						somebody has changed the Claim recently. Please click the Refresh button to proceed further.
+					</p>
+				</div>
+			</div>
+            <div class="modal-footer">
+                <button class="btn btn-primary-sub btn-sm" data-dismiss="modal" type="button" (click)="reload()"
+                    >Refresh</button>
+            </div>
+        </div>
+    </div>
+  </div>
+

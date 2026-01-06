@@ -1,0 +1,218 @@
+<div class="card mb-3">
+    <div class="card-header p-2 px-4">
+        <h4 class="card-title d-inline-block title">Eligibility</h4>
+        <div class="float-right">
+            <button *ngIf="mode" class="btn btn-tertiary btn-sm mt-0 button-right" title="Add Eligibility"
+                id="grant-eligible-add-btn" data-toggle="modal" data-target="#add-eligibility-modal">Add
+                Eligibility</button>
+        </div>
+        <button id="eligibilityAddBtn" class="updown-arrow hand-cursor"
+            (click)="isShowEligibility = !isShowEligibility">
+            <i class="fa-large" aria-hidden="true"
+                [ngClass]="isShowEligibility?'fa fa-angle-double-up':'fa fa-angle-double-down'"></i>
+        </button>
+    </div>
+    <div class="card-content" *ngIf="isShowEligibility">
+        <div class="card-body p-2">
+            <div class="noDataOnChart noDataExists p-2" *ngIf="result?.grantCallEligibilities?.length == 0">
+                <div class="no-data-container">
+                    <span class="no-data-icon-outer">
+                        <div class="no-data-icon">
+                            <i aria-hidden="true" class="fa fa-file-o"></i>
+                            <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                        </div>
+                    </span>
+                    <h4>There is no information in this section.</h4>
+                </div>
+            </div>
+            <div class="table-responsive mt-2" *ngIf="result?.grantCallEligibilities?.length > 0 && isShowEligibility">
+                <table class="table tableSkin grid2" aria-describedby="criteria">
+                    <tbody>
+                        <tr class="thead-light">
+                            <th scope="col" colspan="2">Criteria</th>
+                            <th scope="col" colspan="2">Requirement</th>
+                            <th scope="col" colspan="2">Target</th>
+                            <th scope="col" colspan="2">Unit/Person</th>
+                            <th *ngIf="mode" scope="col" class="text-center">Actions</th>
+                        </tr>
+                        <tr *ngFor="let eligibility of result?.grantCallEligibilities;let i = index;">
+                            <td colspan="2">{{eligibility?.proposalPersonRole?.description}}</td>
+                            <td colspan="2">{{eligibility?.grantCallEligibilityType?.description}}
+                                <a *ngIf="eligibility?.grantCallEligibilityType?.moreInformation" class="tooltip ">
+                                    <i class="fa fa-info-circle fa-med hand-cursor" aria-hidden="true"></i>
+                                    <div class="tooltiptext-left card card-inner p-15 text-left">
+                                        <span class="font-cv">
+                                            {{eligibility?.grantCallEligibilityType?.moreInformation}}</span>
+                                    </div>
+                                </a>
+                            </td>
+                            <td colspan="2">
+                                {{eligibility?.grantEligibilityTarget?.grantEligibiltyTargetType?.description}}
+                            </td>
+                            <td colspan="2">{{eligibility?.grantEligibilityTarget?.targetValueDescription}}</td>
+                            <td *ngIf="mode">
+                                <ul class="actionButtonGroup text-center">
+                                    <li *ngIf="mode">
+                                        <a id="grant-eligible-edit-btn" data-toggle="modal"
+                                            data-target="#add-eligibility-modal">
+                                            <i class="fa fa-pencil" aria-hidden="true"
+                                                (click)="editEligibility(eligibility, i)"
+                                                title="Click here to edit eligibility criteria"></i>
+                                        </a>
+                                    </li>
+                                    <li><a href="#" data-toggle="modal"
+                                            id="grant-eligible-remove-btn" data-target="#deleteGrantEligibility"
+                                            (click)="setEligibilityDeleteObject(eligibility.grantEligibilityId,i)"><i
+                                                class="fa fa-trash-o pointer" title="Remove this eligibility criteria"
+                                                aria-hidden="true"></i></a>
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- DELETE AREA OF RESEARCH WARNING MODAL -->
+        <div class="modal fade mySkinDialog" id="deleteGrantEligibility" tabindex="-1" role="dialog"
+            aria-labelledby="deleteModalTitle" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete</h5>
+                        <button type="button" class="close" data-dismiss="modal" id="prop-doc-dlt-dismiss"
+                            aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete this item?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="prop-doc-dlt-no-btn" class="btn btn-secondary" data-dismiss="modal"
+                            data-toggle="modal">No</button>
+                        <button type="button" id="prop-doc-dlt-yes-btn" class="btn btn-primary-sub btn-sm"
+                            (click)="deleteEligibilityCriteria()" data-dismiss="modal">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Eligibility Modal -->
+<div class="modal fade mySkinDialog" id="add-eligibility-modal" role="dialog" aria-labelledby="skippedSchedulesTitle"
+    aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{isEditIndex !== null ? 'Update' : 'Add'}} Eligibility</h5>
+                <button type="button" class="close" (click)="resetEligibilityFields()" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body py-1 px-3">
+                <app-grant-call-modal-card></app-grant-call-modal-card>
+                <div class="w-100">
+                    <div class="form-row">
+                        <div class="col-lg-6 col-md-6 col-sm-12 col-12 mt-3">
+                            <label for="grant-eligible-criteria"><span class="mandatory"
+                                    id="criteria">*</span>Criteria</label>
+                            <select id="grant-eligible-criteria" class="form-control"
+                                [(ngModel)]="selectedEligibilityCriteria" (ngModelChange)="selectedCriteria()"
+                                [ngClass]="eligibilityValidation.criteriaMsg ? 'is-invalid d-block' : ''">
+                                <option [value]=null>--Select--</option>
+                                <option *ngFor="let criteria of personRoles" [ngValue]="criteria"
+                                    [hidden]="criteria.isActive != true">{{criteria.description}}
+                                </option>
+                            </select>
+                            <div *ngIf="eligibilityValidation.criteriaMsg"
+                                class="invalid-feedback position-absolute bottom-_18 text-left">
+                                {{eligibilityValidation.criteriaMsg}}
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-12 col-12 mt-3">
+                            <label for="grant-eligible-type" class="margin-left-label"><span
+                                    class="mandatory">*</span>Requirement</label>
+                            <select id="grant-eligible-type" class="form-control" [(ngModel)]="selectedEligibilityType"
+                                (ngModelChange)="selectedRequirement()"
+                                [ngClass]="eligibilityValidation.requirementMsg ? 'is-invalid d-block' : ''">
+                                <option [value]=null>--Select--</option>
+                                <option *ngFor="let type of result?.grantCallEligibilityTypes" [ngValue]="type"
+                                    [hidden]="type.isActive != true">
+                                    {{type.description}}</option>
+                            </select>
+                            <div *ngIf="eligibilityValidation.requirementMsg"
+                                class="invalid-feedback position-absolute bottom-_18 text-left">
+                                {{eligibilityValidation.requirementMsg}}
+                            </div>
+                            <div *ngIf="selectedEligibilityType?.moreInformation"
+                                class="success-banner px-3 my-2 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fa fa-info-circle mr-1 info-icon" aria-hidden="true"></i>
+                                    <em>{{selectedEligibilityType?.moreInformation}}</em>
+                                </div>
+                            </div>
+                            <div class="invalid-feedback d-block" *ngIf="isEligibilityWarning">
+                                * Eligibility already added
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-12 col-12"
+                            *ngIf="selectedEligibilityType != null &&  selectedEligibilityType?.hasTarget == true">
+                            <label for="grant-target-type" class="margin-left-label"><span
+                                    class="mandatory">*</span>Target</label>
+                            <select name="target" id="grant-target-type" class="form-control"
+                                [(ngModel)]="selectedEligibilityTarget" (ngModelChange)="selectedTargetType()"
+                                [ngClass]="eligibilityValidation.targetMsg ? 'is-invalid d-block' : ''">
+                                <option [value]='null'>--Select--</option>
+                                <option *ngFor="let target of result.grantEligibiltyTargetTypes" [ngValue]="target"
+                                    [hidden]="target.isActive != true">
+                                    {{target.description}}</option>
+                            </select>
+                            <div *ngIf="eligibilityValidation.targetMsg"
+                                class="invalid-feedback position-absolute bottom-_22 text-left">
+                                {{eligibilityValidation.targetMsg}}
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-12 col-12"
+                            *ngIf="selectedEligibilityTarget?.eligibilityTargetTypeCode == 2 && selectedEligibilityType != null &&  selectedEligibilityType.hasTarget == true">
+                            <label for="prop-project-dept" class="margin-left-label"><span
+                                    class="mandatory">*</span>Search
+                                Unit</label>
+                            <app-endpoint-search id="prop-project-dept" [httpOptions]="deptHttpOptions"
+                                [isError]="eligibilityValidation.unitMsg" [clearField]="clearDeptField"
+                                [placeHolder]="'Search for a unit'" (onSelect)="getSelectedDepartment($event)">
+                            </app-endpoint-search>
+                            <div *ngIf="eligibilityValidation.unitMsg"
+                                class="invalid-feedback position-absolute bottom-_22 text-left">
+                                {{eligibilityValidation.unitMsg}}
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-12 col-12"
+                            *ngIf="selectedEligibilityTarget?.eligibilityTargetTypeCode == 3 && selectedEligibilityType.hasTarget == true && selectedEligibilityType != null">
+                            <label class="margin-left-label"><span class="mandatory">*</span>Search Person </label>
+                            <app-elastic [options]="elasticForEligibilitySearchOptions"
+                                [clearField]="clearFieldsEligibilityPerson" [placeHolder]="'Search for a Person'"
+                                (selectedResult)="selectedPerson($event)" [isError]="eligibilityValidation.personMsg">
+                            </app-elastic>
+                            <div *ngIf="eligibilityValidation.personMsg"
+                                class="invalid-feedback position-absolute bottom-_22 text-left">
+                                {{eligibilityValidation.personMsg}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer mt-4">
+                <div class="text-center text-md-right">
+                    <button id="grant-eligible-cancel-btn" class="btn btn-secondary btn-sm btn-xs mr-2"
+                        data-dismiss="modal" (click)="resetEligibilityFields()">Cancel</button>
+                    <button class="btn btn-primary-sub btn-xs" id="grant-eligible-update-btn"
+                        (click)="addEligibility()">
+                        {{isEditIndex !== null ? 'Update' : 'Add'}} Eligibility</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,81 @@
+<app-common-modal [modalConfig]="modalConfig" (modalAction)="disclConfigurationModalAction($event)">
+    <!-- header -->
+    <ng-container modal-header>
+        <span>Configure Dashboard</span>
+    </ng-container>
+
+    <ng-container modal-body>
+        <div class="d-flex flex-column gap-3">
+            <div class="card custom-border shadow-sm mt-0">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <span class="fs-6 coi-text-dark" id="default-unit">Set Default Unit</span>
+                        <div *ngIf="isInboxInfo" role="alert"
+                            class="d-flex align-items-center justify-content-between alert alert-primary mb-0 py-2 gap-2">
+                            <div class="d-flex justify-content-between gap-2">
+                                <mat-icon role="img" class="flex-shrink-0" aria-hidden="true">info</mat-icon>
+                                <!-- message -->
+                                <p class="fs-14 mb-0">
+                                    <span class="new-line-property">Choose the Default Unit to filter widget data; only
+                                        one unit can be set as
+                                        the default.</span>
+                                </p>
+                            </div>
+                            <button type="button" id="info-close" class="btn-close" (click)="isInboxInfo= false"
+                                aria-label="Close">
+                            </button>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <fieldset
+                            class="d-flex align-items-center justify-content-between flex-wrap column-gap-3 row-gap-2">
+                            <legend class="visually-hidden">Overview Department Search</legend>
+                            <!-- department search -->
+                            <div class="col flex-grow-1">
+                                <app-endpoint-search (onSelect)="onUnitChange($event)" [canEmitSearchText]="false"
+                                    [httpOptions]="leadUnitSearchOptions" placeHolder="Search by Department"
+                                    [uniqueId]="'coi-review-dash-overview-dept'">
+                                </app-endpoint-search>
+                            </div>
+                            <button type="button" class="btn btn-primary fs-14 col-auto" title="Set as Default"
+                                (click)="saveDefaultUnit()">Set as Default</button>
+                            <span *ngIf="validationMap.has('unit')" class="mandatory invalid-feedback d-block">*
+                                {{validationMap.get('unit')}}</span>
+                        </fieldset>
+                        <!-- check box -->
+                        <div *ngIf="isShowIncludeChildUnit" class="d-flex align-items-center gap-2">
+                            <input type="checkbox" id="coi-config-childunit-checkbox"
+                                [(ngModel)]="isIncludeChildUnits" (ngModelChange)="isDataChange = true"
+                                class="coi-certify-box cursor-pointer"
+                                aria-label="Please check here to include child unit">
+                            <label for="coi-config-childunit-checkbox"
+                                class="coi-text-light fw-700 text-nowrap cursor-pointer">Include
+                                Child Unit</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+           <!-- Widget list -->
+            <div *ngIf="!isLoading" class="widget-drop-list" cdkDropList cdkDropListOrientation="vertical"
+                [cdkDropListData]="formattedWidgets" [cdkDropListDisabled]="isDropDisabled"
+                (cdkDropListDropped)="onWidgetDrop($event)">
+                <div class="card coi-card-regular card-hover mt-0 widget-card"
+                    *ngFor="let widgetDetails of formattedWidgets; trackBy: trackByWidgetId" cdkDrag cdkDragLockAxis="y"
+                    [cdkDragDisabled]="isDropDisabled">
+                    <div class="d-flex justify-content-between align-items-center card-body col-12 flex-wrap gap-3">
+                        <div class="flex-grow-1 d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                            <span class="coi-text-light" [attr.id]="'widget-' + widgetDetails.widgetId">
+                                {{ widgetDetails.widgetName }}
+                            </span>
+                            <app-toggle-checkbox [isToggled]="isWidgetSelected(widgetDetails.widgetId)"
+                                [toggleValue]="['No', 'Yes']" (toggleClick)="emitActions($event, widgetDetails)"
+                                [label]="widgetDetails.widgetName">
+                            </app-toggle-checkbox>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </ng-container>
+</app-common-modal>

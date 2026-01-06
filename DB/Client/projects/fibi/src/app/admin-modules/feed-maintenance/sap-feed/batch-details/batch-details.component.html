@@ -1,0 +1,908 @@
+<div class="card mb-3">
+    <div class="card-content">
+        <div class="card-body">
+            <div class="form-row">
+                <div class="col-lg col-md-3 col-sm-3 col-12">
+                    <label class="d-block">Batch ID</label>
+                    <input type="number" class="form-control" placeholder="Batch ID" [(ngModel)]="batchDetailsReqObj.property1"
+                        id="batch-details-batch-id" (keyup.enter)="batchDetailsReqObj.isAdvanceSearch = 'A';resetAllProperties();getBatchDetails();">
+                </div>
+                <div class="col-lg col-md-4 col-sm-4 col-12">
+                    <label class="d-block">From</label>
+                    <span class="dateField">
+                        <input matInput [matDatepicker]="startDate" placeholder="From" id="batch-details-start-date" 
+                            class="form-control d-inline-block" autocomplete="off" [(ngModel)]="startDateSearch"
+                            (keypress)="_commonService._keyPress($event, 'date');" (click)="startDate.open()" />
+                        <i aria-hidden="true" id="start-date-icon"
+                            class="fa fa-calendar fa-large insidePicker hand-cursor"
+                            (click)="startDate.open()"></i>
+                        <mat-datepicker #startDate (opened)="setFocusToElement('batch-details-start-date')"></mat-datepicker>
+                    </span>
+                </div>
+                <label class="d-none d-sm-inline-block p-2 mt-4 pt-3">-</label>
+                <div class="col-lg col-md-4 col-sm-4 col-12">
+                    <label class="d-block">To</label>
+                    <span class="dateField">
+                        <input matInput [matDatepicker]="endDate" placeholder="To" id="batch-details-end-date" 
+                            class="form-control d-inline-block" autocomplete="off" [(ngModel)]="endDateSearch"
+                            (keypress)="_commonService._keyPress($event, 'date');" (click)="endDate.open()" />
+                        <i aria-hidden="true" id="end-date-icon"
+                            class="fa fa-calendar fa-large insidePicker hand-cursor"
+                            (click)="endDate.open()"></i>
+                        <mat-datepicker #endDate (opened)="setFocusToElement('batch-details-end-date')"></mat-datepicker>
+                    </span>
+                </div>
+                <!-- <div class="col">
+                    <label class="d-block">Award ID</label>
+                    <input type="number" class="form-control" [(ngModel)]="batchDetailsReqObj.property2"
+                        id="batch-details-award-id"
+                        (keyup.enter)="batchDetailsReqObj.isAdvanceSearch = 'A';resetAllProperties();getBatchDetails();">
+                </div> -->
+                <div class="col-lg col-md-3 col-sm-3 col-12">
+                    <label class="d-block">Award Number</label>
+                    <input type="text" class="form-control" placeholder="Award Number"  [(ngModel)]="batchDetailsReqObj.property3"
+                        id="batch-details-award-number"
+                        (keyup.enter)="batchDetailsReqObj.isAdvanceSearch = 'A';resetAllProperties();getBatchDetails();">
+                </div>
+                <div class="col-lg col-md-3 col-sm-4 col-12">
+                    <label class="d-block">Account Number</label>
+                    <input type="text" class="form-control" placeholder="Account Number" [(ngModel)]="batchDetailsReqObj.property7"
+                        id="batch-details-account-number"
+                        (keyup.enter)="batchDetailsReqObj.isAdvanceSearch = 'A';resetAllProperties();getBatchDetails();">
+                </div>
+                <div class="col-lg col-md-3 col-sm-4 col-12">
+                    <label class="d-block">Feed Status</label>
+                    <select class="form-control" [(ngModel)]="searchFeedStatus">
+                        <option value="A">All</option>
+                        <option value="E">Error</option>
+                        <option value="R">Success</option>
+                        <option value="F">Awaiting SAP Response</option>
+                        <option value="N">Not Required to Feed</option>
+                    </select>
+                </div>
+                <div class="col-lg-auto col-md-auto col-12 align-self-end d-md-block d-sm-flex justify-content-end mt-3 mt-md-0 mt-sm-3">
+                    <button class="btn btn-secondary btn-sm btn-xs"
+                        (click)="resetAndSearch();">Clear</button>
+                    <button class="btn btn-primary btn-sm btn-xs"
+                        (click)="batchDetailsReqObj.isAdvanceSearch = 'A';batchDetailsReqObj.currentPage = 1;resetAllProperties();getBatchDetails();">Search</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-content">
+        <div class="card-header px-4">
+            <p class="card-title align-items-center d-flex">
+                <span class="mr-auto">Batch Details</span>
+                    <span class="float-right" *ngIf="isMaintainSapFeed && batchDetails?.sapAwardFeeds?.length">
+                        <button class="btn btn-sm btn-primary-sub"
+                            (click)="actionComment = null;isCommented = true;setAction('1');"
+                            data-toggle="modal" data-target="#modal-sap-basicdetails">Update feed status</button>
+                        <button class="btn btn-sm btn-primary-sub"
+                            (click)="actionComment = null;isCommented = true;setAction('2');"
+                            data-toggle="modal" data-target="#modal-sap-basicdetails">Notify PI</button>
+                        <button class="btn btn-sm btn-primary-sub"
+                            (click)="actionComment = null;isCommented = true;setAction('3');"
+                            data-toggle="modal" data-target="#modal-sap-basicdetails">Re-interface</button>
+                        <span class="exportButton ml-4">
+                            <span class="exportIcon-margin fs-14">Export as:</span>
+                                <a title="Export data to Excel sheet" class="exportIcon-margin  hand-cursor"
+                                    (click)="exportAsTypeDoc('excel')" id="export-prop-excel-btn" tabindex="0">
+                                    <i aria-hidden="true" class="fa fa-file-excel-o f-16"></i>
+                                </a>
+                            </span>
+                        </span>
+            </p>
+        </div>
+        <div class="card-body">
+            <div class="form-row" *ngIf="batchDetails?.sapAwardFeedHistory">
+                <div class="col">
+                    <label class="d-block">Batch ID</label>
+                    <div class="content-color">{{batchDetails?.sapAwardFeedHistory?.batchId}}</div>
+                </div>
+                <div class="col">
+                    <label class="d-block">No. of Awards Feed</label>
+                    <div class="content-color">{{batchDetails?.sapAwardFeedHistory?.totalAwards}}</div>
+                </div>
+                <div class="col">
+                    <label class="d-block">No. of Error Awards</label>
+                    <div class="content-color">{{batchDetails?.sapAwardFeedHistory?.totalErrorAwards === 0 ? 'No Error' : batchDetails?.sapAwardFeedHistory?.totalErrorAwards}}</div>
+                </div>
+                <div class="col-2">
+                    <label class="d-block">Batch Generated on</label>
+                    <div class="content-color">{{batchDetails?.sapAwardFeedHistory?.createTimestamp | dateFormatterWithTimeZone :'long'}}</div>
+                </div>
+                <div class="col-2">
+                    <label class="d-block">Response Processed on</label>
+                    <div class="content-color">{{batchDetails?.sapAwardFeedHistory?.responseTimestamp | dateFormatterWithTimeZone :'long'}}</div>
+                </div>
+                <div *ngIf="isMaintainSapProcessing" class="col align-self-center text-right">
+                    <button class="btn btn-tertiary mt-0 min-w-0" title="Download Interface Files in ZIP format."
+                        data-toggle="modal" data-target="#modal-sap-basicdetails"
+                        (click)="actionComment = null;isCommented = true;setAction('9');"><i
+                        class="fa fa-download" aria-hidden="true"></i></button>
+                    <button class="btn btn-sm btn-tertiary mt-0" data-toggle="modal" data-target="#modal-sap-basicdetails"
+                        (click)="selectedBatchId = batchDetails.sapAwardFeedHistory.batchId;setAction('4');">
+                        Re-trigger</button>
+                </div>
+            </div>
+            <div class="table-responsive card-inner mt-3" *ngIf="batchDetails?.sapAwardFeeds?.length">
+                <table class="table tableSkin mb-0">
+                    <!-- <caption>Feed List</caption> -->
+                    <thead class="header-border">
+                        <tr>
+                            <th>
+                                <input title="Select All" type="checkbox" [(ngModel)]="checkAll" (ngModelChange)="checkOrUncheckBatches()"
+                                    [disabled]="!isMaintainSapFeed || (!batchDetails?.sapAwardFeeds?.length ||
+                                                                                    (batchDetailsReqObj.property4 && (batchDetailsReqObj.property4[0] !== 'E' && batchDetailsReqObj.property4[0] !== 'A')) || 
+                                                                                    !selectableFeeds)">
+                            </th>
+                            <th (click)="sortResult('feedId')" class="hand-cursor" width="8%">Feed ID<i aria-hidden="true"
+                                    [ngClass]="((batchDetailsReqObj.sortBy == 'feedId')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' :
+                                                                                'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i></th>
+                             <th (click)="sortResult('batchId')" class="hand-cursor" width="8%">Batch ID
+                                 <i aria-hidden="true"[ngClass]="((batchDetailsReqObj.sortBy == 'batchId')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' :
+                                                                                'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i></th>
+                           <th scope="col" (click)="sortResult('awardNumber')" class="hand-cursor" width="12%">Award Number
+                                <i aria-hidden="true"
+                                    [ngClass]="((batchDetailsReqObj.sortBy == 'awardNumber')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' :
+                                                                                    'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                            </th>
+                             <th scope="col" (click)="sortResult('accountNumber')" class="hand-cursor" width="13%">Account Number
+                                <i aria-hidden="true"
+                                    [ngClass]="((batchDetailsReqObj.sortBy == 'accountNumber')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' :
+                                                                                    'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                            </th>
+                            <th (click)="sortResult('piName')" width="11%">Principal Investigator<i aria-hidden="true"
+                                [ngClass]="((batchDetailsReqObj.sortBy == 'piName')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' :
+                                                                            'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i></th>
+                            <th (click)="sortResult('feedTypeDesc')">Type<i aria-hidden="true"
+                                    [ngClass]="((batchDetailsReqObj.sortBy == 'feedTypeDesc')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' :
+                                                                                'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i></th>
+                            <th scope="col" (click)="sortResult('updateUser')" class="hand-cursor" width="11%">Updated By
+                                <i aria-hidden="true" [ngClass]="((batchDetailsReqObj.sortBy == 'updateUser')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' :
+                                    'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                            </th>
+                            <th scope="col" (click)="sortResult('updateTimeStamp')" class="hand-cursor" width="11%">Updated On
+                                <i aria-hidden="true" [ngClass]="((batchDetailsReqObj.sortBy == 'updateTimeStamp')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' :
+                                    'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                            </th>
+                            <th scope="col" (click)="sortResult('feedStatusDesc')" class="hand-cursor" width="11%">Feed Status
+                                <i aria-hidden="true"
+                                    [ngClass]="((batchDetailsReqObj.sortBy == 'feedStatusDesc')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' :
+                                                                                    'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                            </th>
+                            <th scope="col" (click)="sortResult('userActionDesc')" class="hand-cursor" width="10%">Follow Up
+                                <i aria-hidden="true"
+                                    [ngClass]="((batchDetailsReqObj.sortBy == 'userActionDesc')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' :
+                                                                                    'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                            </th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <ng-container *ngFor="let batchDetail of batchDetails?.sapAwardFeeds;let i = index">
+                            <tr [ngClass]="isFeedExpand && isFeedExpand[i] ? 'borderBoxHeading' : ''">
+                                <td>
+                                    <input
+                                        *ngIf="isMaintainSapFeed && batchDetail?.feedStatus === 'E' && !batchDetail?.userActionCode"
+                                        type="checkbox" [(ngModel)]="isChecked[batchDetail?.feedId]"
+                                        (click)="isChecked[batchDetail?.feedId] = !isChecked[batchDetail?.feedId];toggleFromList(batchDetail)">
+                                </td>
+                                <td>{{batchDetail?.feedId}}</td>
+                                <td>{{batchDetail?.batchId}}</td>
+                                <td>{{batchDetail?.awardNumber}}</td>
+                                <td>{{batchDetail?.accountNumber}}</td>
+                                <td>{{batchDetail?.piName}}</td>
+                                <td>{{batchDetail?.feedTypeDesc}}</td>
+                                <td>{{batchDetail?.updateUserFullName ? batchDetail?.updateUserFullName : 'System'}}</td>
+                                <td><ng-container *ngIf="batchDetail?.updateTimeStamp"> {{batchDetail?.updateTimeStamp | dateFormatterWithTimeZone :'long'}}</ng-container></td>
+                                <td><i aria-hidden="true" class="fa"
+                                        [ngClass]="batchDetail?.feedStatus == 'R' ? 'fa-check-circle text-success' :
+                                    (batchDetail?.feedStatus == 'F' ? 'fa-clock-o text-warning' :
+                                    (batchDetail?.feedStatus == 'E' ? 'fa-times-circle text-danger' : (batchDetail?.feedStatus == 'C' ?
+                                    'fa-random text-muted fa-rotate-270' : 'fa-ban text-muted')))"></i>
+                                    {{batchDetail?.feedStatusDesc}}</td>
+                                <td>
+                                    <span class="d-flex">
+                                        {{batchDetail?.userActionDesc}}
+                                        <div class="dropdown ml-3" *ngIf="batchDetail?.userComment && batchDetail?.userActionCode">
+                                            <a class="position-relative" id="dropdownMenuLink" data-toggle="dropdown"
+                                                aria-haspopup="true" aria-expanded="false">
+                                                <i class="fa fa-commenting-o hand-cursor hoverColor" aria-hidden="true"
+                                                    title="Comments"></i>
+                                                <div class="dropdown-menu details-comment-patch dropdown-menu-right fs-14"
+                                                    aria-labelledby="dropdownMenuLink">
+                                                    <div>
+                                                        {{batchDetail?.userComment}}
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </span>
+                                </td>
+                                <td class="text-right">
+                                    <button class="updown-arrow position-static" id="sap-batch-details-expand-btn"
+                                        (click)="expandInterface(batchDetail?.feedId, batchDetail?.awardId, i);">
+                                        <i aria-hidden="true" class="fa-large fa"
+                                            [ngClass]="isFeedExpand && isFeedExpand[i] ? 'fa-angle-up' : 'fa-angle-down'"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr *ngIf="isFeedExpand[i]">
+                                <td colspan="12"
+                                    [ngClass]="interfaceDetails[i]?.isViewSapFeedRightExist ? '' : 'text-center'">
+                                    <ng-container
+                                        *ngIf="interfaceDetails[i]?.isViewSapFeedRightExist; else noPermission;">
+                                        <div class="row ml-1">
+                                            <ul class="subTabs">
+                                                <li [ngClass]="selectedTab[i] == 'wbs_interface' ? 'active' : ''">
+                                                    <a class="subTabLink" (click)="selectedTab[i] = 'wbs_interface';">
+                                                        <i *ngIf="errorStatusInterfaceDetails[i]?.wbs_interface?.length"
+                                                            aria-hidden="true" class="fa fa-info-circle fa-med"></i> WBS
+                                                        Interface</a>
+                                                </li>
+                                                <li [ngClass]="selectedTab[i] == 'grant_budget_master' ? 'active' : ''">
+                                                    <a class="subTabLink"
+                                                        (click)="selectedTab[i] = 'grant_budget_master';">
+                                                        <i *ngIf="errorStatusInterfaceDetails[i]?.grant_budget_master?.length"
+                                                            aria-hidden="true" class="fa fa-info-circle fa-med"></i>
+                                                        Grant
+                                                        Budget Master</a>
+                                                </li>
+                                                <li [ngClass]="selectedTab[i] == 'fm_budget' ? 'active' : ''">
+                                                    <a class="subTabLink" (click)="selectedTab[i] = 'fm_budget';">
+                                                        <i *ngIf="errorStatusInterfaceDetails[i]?.fm_budget?.length"
+                                                            aria-hidden="true" class="fa fa-info-circle fa-med"></i> FM
+                                                        Budget</a>
+                                                </li>
+                                                <li [ngClass]="selectedTab[i] == 'project_definition' ? 'active' : ''">
+                                                    <a class="subTabLink"
+                                                        (click)="selectedTab[i] = 'project_definition';">
+                                                        <i *ngIf="errorStatusInterfaceDetails[i]?.project_definition?.length"
+                                                            aria-hidden="true" class="fa fa-info-circle fa-med"></i>
+                                                        Project
+                                                        Definition</a>
+                                                </li>
+                                                <li [ngClass]="selectedTab[i] == 'grant_master' ? 'active' : ''">
+                                                    <a class="subTabLink" (click)="selectedTab[i] = 'grant_master';">
+                                                        <i *ngIf="errorStatusInterfaceDetails[i]?.grant_master?.length"
+                                                            aria-hidden="true" class="fa fa-info-circle fa-med"></i>
+                                                        Grant
+                                                        Master</a>
+                                                </li>
+                                                <li [ngClass]="selectedTab[i] == 'sponsor_class' ? 'active' : ''">
+                                                    <a class="subTabLink" (click)="selectedTab[i] = 'sponsor_class';">
+                                                        <i *ngIf="errorStatusInterfaceDetails[i]?.sponsor_class?.length"
+                                                            aria-hidden="true" class="fa fa-info-circle fa-med"></i>
+                                                        Sponsor
+                                                        Class</a>
+                                                </li>
+                                                <li [ngClass]="selectedTab[i] == 'sponsor_program' ? 'active' : ''">
+                                                    <a class="subTabLink" (click)="selectedTab[i] = 'sponsor_program';">
+                                                        <i *ngIf="errorStatusInterfaceDetails[i]?.sponsor_program?.length"
+                                                            aria-hidden="true" class="fa fa-info-circle fa-med"></i>
+                                                        Sponsor
+                                                        Program</a>
+                                                </li>
+                                                <li [ngClass]="selectedTab[i] == 'funded_program' ? 'active' : ''">
+                                                    <a class="subTabLink" (click)="selectedTab[i] = 'funded_program';">
+                                                        <i *ngIf="errorStatusInterfaceDetails[i]?.funded_program?.length"
+                                                            aria-hidden="true" class="fa fa-info-circle fa-med"></i>
+                                                        Funded
+                                                        Program</a>
+                                                </li>
+                                                <li [ngClass]="selectedTab[i] == 'fm_derivation' ? 'active' : ''">
+                                                    <a class="subTabLink" (click)="selectedTab[i] = 'fm_derivation';">
+                                                        <i *ngIf="errorStatusInterfaceDetails[i]?.fm_derivation?.length" aria-hidden="true"
+                                                            class="fa fa-info-circle fa-med"></i>
+                                                        FM
+                                                        Derivation</a>
+                                                </li>
+                                                <li [ngClass]="selectedTab[i] == 'gm_derivation' ? 'active' : ''">
+                                                    <a class="subTabLink" (click)="selectedTab[i] = 'gm_derivation';">
+                                                        <i *ngIf="errorStatusInterfaceDetails[i]?.gm_derivation?.length" aria-hidden="true"
+                                                            class="fa fa-info-circle fa-med"></i>
+                                                        GM
+                                                        Derivation</a>
+                                                </li>
+                                            </ul>
+                                            <table class="table tableSkin mb-0 card-inner mr-4">
+                                                <!-- <caption>Information</caption> -->
+                                                <thead class="header-border">
+                                                    <tr *ngIf="selectedTab[i] == 'wbs_interface'">
+                                                        <th>WBS Element</th>
+                                                        <th width="11%">Interface Status</th>
+                                                        <th colspan="5">Error Message</th>
+                                                    </tr>
+                                                    <tr *ngIf="selectedTab[i] == 'grant_budget_master'">
+                                                        <th>Process</th>
+                                                        <th>Sponsor Class</th>
+                                                        <th>Budget Amount</th>
+                                                        <th width="11%">Interface Status</th>
+                                                        <th colspan="3">Error Message</th>
+                                                    </tr>
+                                                    <tr *ngIf="selectedTab[i] == 'fm_budget'">
+                                                        <th>Fund Code</th>
+                                                        <th>Funded Program</th>
+                                                        <th>Budget Amount</th>
+                                                        <th width="11%">Interface Status</th>
+                                                        <th colspan="3">Error Message</th>
+                                                    </tr>
+                                                    <tr *ngIf="selectedTab[i] == 'project_definition'">
+                                                        <th>Project Definition</th>
+                                                        <th width="11%">Interface Status</th>
+                                                        <th colspan="5">Error Message</th>
+                                                    </tr>
+                                                    <tr *ngIf="selectedTab[i] == 'grant_master'">
+                                                        <th>Sponsor Program</th>
+                                                        <th>Sponsor Class</th>
+                                                        <th width="11%">Interface Status</th>
+                                                        <th colspan="4">Error Message</th>
+                                                    </tr>
+                                                    <tr *ngIf="selectedTab[i] == 'sponsor_class'">
+                                                        <th>Sponsor Class</th>
+                                                        <th width="11%">Interface Status</th>
+                                                        <th colspan="5">Error Message</th>
+                                                    </tr>
+                                                    <tr *ngIf="selectedTab[i] == 'sponsor_program'">
+                                                        <th>Sponsor Program</th>
+                                                        <th width="11%">Interface Status</th>
+                                                        <th colspan="5">Error Message</th>
+                                                    </tr>
+                                                    <tr *ngIf="selectedTab[i] == 'funded_program'">
+                                                        <th>Funded Program</th>
+                                                        <th width="11%">Interface Status</th>
+                                                        <th colspan="5">Error Message</th>
+                                                    </tr>
+                                                    <tr *ngIf="selectedTab[i] == 'fm_derivation'">
+                                                        <th>WBS Element</th>
+                                                        <th>Target Commitment Item</th>
+                                                        <th>Interface Status</th>
+                                                        <th>Error Message</th>
+                                                    </tr>
+                                                    <tr *ngIf="selectedTab[i] == 'gm_derivation'">
+                                                        <th>WBS Element</th>
+                                                        <th>From GL Account</th>
+                                                        <th>To GL Account</th>
+                                                        <th>Interface Status</th>
+                                                        <th>Error Message</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <ng-container *ngIf="selectedTab[i] == 'wbs_interface'">
+                                                        <ng-container
+                                                            *ngFor="let interface of errorStatusInterfaceDetails[i]?.wbs_interface">
+                                                            <tr>
+                                                                <td>{{interface?.wbsElement}}</td>
+                                                                <td><i aria-hidden="true"
+                                                                        class="fa fa-times-circle text-danger"></i>
+                                                                    Error
+                                                                </td>
+                                                                <td colspan="5">{{interface?.errorMessage}}</td>
+                                                            </tr>
+                                                        </ng-container>
+                                                        <ng-container
+                                                            *ngIf="(!errorStatusInterfaceDetails[i]?.wbs_interface?.length && !otherStatusInterfaceDetails[i]?.wbs_interface?.length) || (!errorStatusInterfaceDetails[i]?.wbs_interface?.length && !isViewMore[i]?.wbs_interface)">
+                                                            <tr>
+                                                                <td colspan="7" class="text-center"><span
+                                                                        class="noDataExists">No Interface Data
+                                                                        Available</span></td>
+                                                            </tr>
+                                                        </ng-container>
+                                                        <ng-container *ngIf="isViewMore[i].wbs_interface">
+                                                            <tr
+                                                                *ngFor="let interface of otherStatusInterfaceDetails[i]?.wbs_interface" [@fadeDown]>
+                                                                <td>{{interface?.wbsElement}}</td>
+                                                                <td><i aria-hidden="true" class="fa"
+                                                                        [ngClass]="interface?.feedStatus == 'S' ? 'fa-check-circle text-success' : (interface?.feedStatus == 'E' ?
+                                                                     'fa-times-circle text-danger' : (interface?.feedStatus == 'N' ? 'fa-ban text-muted': (interface?.feedStatus == 'C' ? 'fa-random text-muted fa-rotate-270' : 'fa-clock-o text-warning')))"></i>
+                                                                    {{interface?.feedStatus == 'S' ? 'Success' : (interface?.feedStatus == 'E' ? 'Error' : (interface?.feedStatus == 'F' ? 'Fed' : (interface?.feedStatus == 'P' ? 'Pending' : (interface?.feedStatus == 'C' ? 'Concurrent' : 'Not Processed'))))}}
+                                                                </td>
+                                                                <td colspan="5">{{interface?.errorMessage}}</td>
+                                                            </tr>
+                                                        </ng-container>
+                                                    </ng-container>
+                                                    <ng-container *ngIf="selectedTab[i] == 'grant_budget_master'">
+                                                        <ng-container
+                                                            *ngFor="let interface of errorStatusInterfaceDetails[i]?.grant_budget_master">
+                                                            <tr>
+                                                                <td>{{interface?.process}}</td>
+                                                                <td>{{interface?.sponsorClass}}</td>
+                                                                <td>{{interface?.budgetAmount | customCurrency}}</td>
+                                                                <td><i aria-hidden="true"
+                                                                        class="fa fa-times-circle text-danger"></i>
+                                                                    Error
+                                                                </td>
+                                                                <td colspan="3">{{interface?.errorMessage}}</td>
+                                                            </tr>
+                                                        </ng-container>
+                                                        <ng-container
+                                                            *ngIf="(!errorStatusInterfaceDetails[i]?.grant_budget_master?.length && !otherStatusInterfaceDetails[i]?.grant_budget_master?.length) || (!errorStatusInterfaceDetails[i]?.grant_budget_master?.length && !isViewMore[i]?.grant_budget_master)">
+                                                            <tr>
+                                                                <td colspan="7" class="text-center"><span
+                                                                        class="noDataExists">No Interface Data
+                                                                        Available</span></td>
+                                                            </tr>
+                                                        </ng-container>
+                                                        <ng-container *ngIf="isViewMore[i]?.grant_budget_master">
+                                                            <tr
+                                                                *ngFor="let interface of otherStatusInterfaceDetails[i]?.grant_budget_master" [@fadeDown]>
+                                                                <td>{{interface?.process}}</td>
+                                                                <td>{{interface?.sponsorClass}}</td>
+                                                                <td>{{interface?.budgetAmount | customCurrency}}</td>
+                                                                <td><i aria-hidden="true" class="fa"
+                                                                    [ngClass]="interface?.feedStatus == 'S' ? 'fa-check-circle text-success' : (interface?.feedStatus == 'E' ?
+                                                                    'fa-times-circle text-danger' : (interface?.feedStatus == 'N' ? 'fa-ban text-muted': (interface?.feedStatus == 'C' ? 'fa-random text-muted fa-rotate-270' : 'fa-clock-o text-warning')))"></i>
+                                                                   {{interface?.feedStatus == 'S' ? 'Success' : (interface?.feedStatus == 'E' ? 'Error' : (interface?.feedStatus == 'F' ? 'Fed' : (interface?.feedStatus == 'P' ? 'Pending' : (interface?.feedStatus == 'C' ? 'Concurrent' : 'Not Processed'))))}}
+                                                                </td>
+                                                                <td colspan="3">{{interface?.errorMessage}}</td>
+                                                            </tr>
+                                                        </ng-container>
+                                                    </ng-container>
+                                                    <ng-container *ngIf="selectedTab[i] == 'fm_budget'">
+                                                        <ng-container
+                                                            *ngFor="let interface of errorStatusInterfaceDetails[i]?.fm_budget">
+                                                            <tr>
+                                                                <td>{{interface?.fundCode}}</td>
+                                                                <td>{{interface?.fundedProgram}}</td>
+                                                                <td>{{interface?.budgetAmount | customCurrency}}</td>
+                                                                <td><i aria-hidden="true"
+                                                                        class="fa fa-times-circle text-danger"></i>
+                                                                    Error
+                                                                </td>
+                                                                <td colspan="3">{{interface?.errorMessage}}</td>
+                                                            </tr>
+                                                        </ng-container>
+                                                        <ng-container
+                                                            *ngIf="(!errorStatusInterfaceDetails[i]?.fm_budget?.length && !otherStatusInterfaceDetails[i]?.fm_budget?.length) || (!errorStatusInterfaceDetails[i]?.fm_budget?.length && !isViewMore[i]?.fm_budget)">
+                                                            <tr>
+                                                                <td colspan="7" class="text-center"><span
+                                                                        class="noDataExists">No Interface Data
+                                                                        Available</span></td>
+                                                            </tr>
+                                                        </ng-container>
+                                                        <ng-container *ngIf="isViewMore[i]?.fm_budget">
+                                                            <tr
+                                                                *ngFor="let interface of otherStatusInterfaceDetails[i]?.fm_budget" [@fadeDown]>
+                                                                <td>{{interface?.fundCode}}</td>
+                                                                <td>{{interface?.fundedProgram}}</td>
+                                                                <td>{{interface?.budgetAmount | customCurrency}}</td>
+                                                                <td><i aria-hidden="true" class="fa"
+                                                                    [ngClass]="interface?.feedStatus == 'S' ? 'fa-check-circle text-success' : (interface?.feedStatus == 'E' ?
+                                                                    'fa-times-circle text-danger' : (interface?.feedStatus == 'N' ? 'fa-ban text-muted': (interface?.feedStatus == 'C' ? 'fa-random text-muted fa-rotate-270' : 'fa-clock-o text-warning')))"></i>
+                                                                   {{interface?.feedStatus == 'S' ? 'Success' : (interface?.feedStatus == 'E' ? 'Error' : (interface?.feedStatus == 'F' ? 'Fed' : (interface?.feedStatus == 'P' ? 'Pending' : (interface?.feedStatus == 'C' ? 'Concurrent' : 'Not Processed'))))}}
+                                                                </td>
+                                                                <td colspan="3">{{interface?.errorMessage}}</td>
+                                                            </tr>
+                                                        </ng-container>
+                                                    </ng-container>
+                                                    <ng-container *ngIf="selectedTab[i] == 'project_definition'">
+                                                        <ng-container
+                                                            *ngFor="let interface of errorStatusInterfaceDetails[i]?.project_definition">
+                                                            <tr>
+                                                                <td>{{interface?.projectDefinition}}</td>
+                                                                <td><i aria-hidden="true"
+                                                                        class="fa fa-times-circle text-danger"></i>
+                                                                    Error
+                                                                </td>
+                                                                <td colspan="5">{{interface?.errorMessage}}</td>
+                                                            </tr>
+                                                        </ng-container>
+                                                        <ng-container
+                                                            *ngIf="(!errorStatusInterfaceDetails[i]?.project_definition?.length && !otherStatusInterfaceDetails[i]?.project_definition?.length) || (!errorStatusInterfaceDetails[i]?.project_definition?.length && !isViewMore[i]?.project_definition)">
+                                                            <tr>
+                                                                <td colspan="7" class="text-center"><span
+                                                                        class="noDataExists">No Interface Data
+                                                                        Available</span></td>
+                                                            </tr>
+                                                        </ng-container>
+                                                        <ng-container *ngIf="isViewMore[i]?.project_definition">
+                                                            <tr
+                                                                *ngFor="let interface of otherStatusInterfaceDetails[i]?.project_definition" [@fadeDown]>
+                                                                <td>{{interface?.projectDefinition}}</td>
+                                                                <td><i aria-hidden="true" class="fa"
+                                                                    [ngClass]="interface?.feedStatus == 'S' ? 'fa-check-circle text-success' : (interface?.feedStatus == 'E' ?
+                                                                    'fa-times-circle text-danger' : (interface?.feedStatus == 'N' ? 'fa-ban text-muted': (interface?.feedStatus == 'C' ? 'fa-random text-muted fa-rotate-270' : 'fa-clock-o text-warning')))"></i>
+                                                                   {{interface?.feedStatus == 'S' ? 'Success' : (interface?.feedStatus == 'E' ? 'Error' : (interface?.feedStatus == 'F' ? 'Fed' : (interface?.feedStatus == 'P' ? 'Pending' : (interface?.feedStatus == 'C' ? 'Concurrent' : 'Not Processed'))))}}
+                                                                </td>
+                                                                <td colspan="5">{{interface?.errorMessage}}</td>
+                                                            </tr>
+                                                        </ng-container>
+                                                    </ng-container>
+                                                    <ng-container *ngIf="selectedTab[i] == 'grant_master'">
+                                                        <ng-container
+                                                            *ngFor="let interface of errorStatusInterfaceDetails[i]?.grant_master">
+                                                            <tr>
+                                                                <td>{{interface?.sponsorProgram}}</td>
+                                                                <td>{{interface?.sponsorClass}}</td>
+                                                                <td><i aria-hidden="true"
+                                                                        class="fa fa-times-circle text-danger"></i>
+                                                                    Error
+                                                                </td>
+                                                                <td colspan="4">{{interface?.errorMessage}}</td>
+                                                            </tr>
+                                                        </ng-container>
+                                                        <ng-container
+                                                            *ngIf="(!errorStatusInterfaceDetails[i]?.grant_master?.length && !otherStatusInterfaceDetails[i]?.grant_master?.length) || (!errorStatusInterfaceDetails[i]?.grant_master?.length && !isViewMore[i]?.grant_master)">
+                                                            <tr>
+                                                                <td colspan="7" class="text-center"><span
+                                                                        class="noDataExists">No Interface Data
+                                                                        Available</span></td>
+                                                            </tr>
+                                                        </ng-container>
+                                                        <ng-container *ngIf="isViewMore[i]?.grant_master">
+                                                            <tr
+                                                                *ngFor="let interface of otherStatusInterfaceDetails[i]?.grant_master" [@fadeDown]>
+                                                                <td>{{interface?.sponsorProgram}}</td>
+                                                                <td>{{interface?.sponsorClass}}</td>
+                                                                <td><i aria-hidden="true" class="fa"
+                                                                    [ngClass]="interface?.feedStatus == 'S' ? 'fa-check-circle text-success' : (interface?.feedStatus == 'E' ?
+                                                                    'fa-times-circle text-danger' : (interface?.feedStatus == 'N' ? 'fa-ban text-muted': (interface?.feedStatus == 'C' ? 'fa-random text-muted fa-rotate-270' : 'fa-clock-o text-warning')))"></i>
+                                                                   {{interface?.feedStatus == 'S' ? 'Success' : (interface?.feedStatus == 'E' ? 'Error' : (interface?.feedStatus == 'F' ? 'Fed' : (interface?.feedStatus == 'P' ? 'Pending' : (interface?.feedStatus == 'C' ? 'Concurrent' : 'Not Processed'))))}}
+                                                                </td>
+                                                                <td colspan="4">{{interface?.errorMessage}}</td>
+                                                            </tr>
+                                                        </ng-container>
+                                                    </ng-container>
+                                                    <ng-container *ngIf="selectedTab[i] == 'sponsor_class'">
+                                                        <ng-container
+                                                            *ngFor="let interface of errorStatusInterfaceDetails[i]?.sponsor_class">
+                                                            <tr>
+                                                                <td>{{interface?.sponsorClass}}</td>
+                                                                <td><i aria-hidden="true"
+                                                                        class="fa fa-times-circle text-danger"></i>
+                                                                    Error
+                                                                </td>
+                                                                <td colspan="5">{{interface?.errorMessage}}</td>
+                                                            </tr>
+                                                        </ng-container>
+                                                        <ng-container
+                                                            *ngIf="(!errorStatusInterfaceDetails[i]?.sponsor_class?.length && !otherStatusInterfaceDetails[i]?.sponsor_class?.length) || (!errorStatusInterfaceDetails[i]?.sponsor_class?.length && !isViewMore[i]?.sponsor_class)">
+                                                            <tr>
+                                                                <td colspan="7" class="text-center"><span
+                                                                        class="noDataExists">No Interface Data
+                                                                        Available</span></td>
+                                                            </tr>
+                                                        </ng-container>
+                                                        <ng-container *ngIf="isViewMore[i]?.sponsor_class">
+                                                            <tr
+                                                                *ngFor="let interface of otherStatusInterfaceDetails[i]?.sponsor_class" [@fadeDown]>
+                                                                <td>{{interface?.sponsorClass}}</td>
+                                                                <td><i aria-hidden="true" class="fa"
+                                                                    [ngClass]="interface?.feedStatus == 'S' ? 'fa-check-circle text-success' : (interface?.feedStatus == 'E' ?
+                                                                    'fa-times-circle text-danger' : (interface?.feedStatus == 'N' ? 'fa-ban text-muted': (interface?.feedStatus == 'C' ? 'fa-random text-muted fa-rotate-270' : 'fa-clock-o text-warning')))"></i>
+                                                                   {{interface?.feedStatus == 'S' ? 'Success' : (interface?.feedStatus == 'E' ? 'Error' : (interface?.feedStatus == 'F' ? 'Fed' : (interface?.feedStatus == 'P' ? 'Pending' : (interface?.feedStatus == 'C' ? 'Concurrent' : 'Not Processed'))))}}
+                                                                </td>
+                                                                <td colspan="5">{{interface?.errorMessage}}</td>
+                                                            </tr>
+                                                        </ng-container>
+                                                    </ng-container>
+                                                    <ng-container *ngIf="selectedTab[i] == 'sponsor_program'">
+                                                        <ng-container
+                                                            *ngFor="let interface of errorStatusInterfaceDetails[i]?.sponsor_program">
+                                                            <tr>
+                                                                <td>{{interface?.sponsorProgram}}</td>
+                                                                <td><i aria-hidden="true"
+                                                                        class="fa fa-times-circle text-danger"></i>
+                                                                    Error
+                                                                </td>
+                                                                <td colspan="5">{{interface?.errorMessage}}</td>
+                                                            </tr>
+                                                        </ng-container>
+                                                        <ng-container
+                                                            *ngIf="(!errorStatusInterfaceDetails[i]?.sponsor_program?.length && !otherStatusInterfaceDetails[i]?.sponsor_program?.length) || (!errorStatusInterfaceDetails[i]?.sponsor_program?.length && !isViewMore[i]?.sponsor_program)">
+                                                            <tr>
+                                                                <td colspan="7" class="text-center"><span
+                                                                        class="noDataExists">No Interface Data
+                                                                        Available</span></td>
+                                                            </tr>
+                                                        </ng-container>
+                                                        <ng-container *ngIf="isViewMore[i]?.sponsor_program">
+                                                            <tr
+                                                                *ngFor="let interface of otherStatusInterfaceDetails[i]?.sponsor_program" [@fadeDown]>
+                                                                <td>{{interface?.sponsorProgram}}</td>
+                                                                <td><i aria-hidden="true" class="fa"
+                                                                    [ngClass]="interface?.feedStatus == 'S' ? 'fa-check-circle text-success' : (interface?.feedStatus == 'E' ?
+                                                                    'fa-times-circle text-danger' : (interface?.feedStatus == 'N' ? 'fa-ban text-muted': (interface?.feedStatus == 'C' ? 'fa-random text-muted fa-rotate-270' : 'fa-clock-o text-warning')))"></i>
+                                                                   {{interface?.feedStatus == 'S' ? 'Success' : (interface?.feedStatus == 'E' ? 'Error' : (interface?.feedStatus == 'F' ? 'Fed' : (interface?.feedStatus == 'P' ? 'Pending' : (interface?.feedStatus == 'C' ? 'Concurrent' : 'Not Processed'))))}}
+                                                                </td>
+                                                                <td colspan="5">{{interface?.errorMessage}}</td>
+                                                            </tr>
+                                                        </ng-container>
+                                                    </ng-container>
+                                                    <ng-container *ngIf="selectedTab[i] == 'funded_program'">
+                                                        <ng-container
+                                                            *ngFor="let interface of errorStatusInterfaceDetails[i]?.funded_program">
+                                                            <tr>
+                                                                <td>{{interface?.fundedProgram}}</td>
+                                                                <td><i aria-hidden="true"
+                                                                        class="fa fa-times-circle text-danger"></i>
+                                                                    Error
+                                                                </td>
+                                                                <td colspan="5">{{interface?.errorMessage}}</td>
+                                                            </tr>
+                                                        </ng-container>
+                                                        <ng-container
+                                                            *ngIf="(!errorStatusInterfaceDetails[i]?.funded_program?.length && !otherStatusInterfaceDetails[i]?.funded_program?.length) || (!errorStatusInterfaceDetails[i]?.funded_program?.length && !isViewMore[i]?.funded_program)">
+                                                            <tr>
+                                                                <td colspan="7" class="text-center"><span
+                                                                        class="noDataExists">No Interface Data
+                                                                        Available</span></td>
+                                                            </tr>
+                                                        </ng-container>
+                                                        <ng-container *ngIf="isViewMore[i]?.funded_program">
+                                                            <tr
+                                                                *ngFor="let interface of otherStatusInterfaceDetails[i]?.funded_program" [@fadeDown]>
+                                                                <td>{{interface?.fundedProgram}}</td>
+                                                                <td><i aria-hidden="true" class="fa"
+                                                                    [ngClass]="interface?.feedStatus == 'S' ? 'fa-check-circle text-success' : (interface?.feedStatus == 'E' ?
+                                                                    'fa-times-circle text-danger' : (interface?.feedStatus == 'N' ? 'fa-ban text-muted': (interface?.feedStatus == 'C' ? 'fa-random text-muted fa-rotate-270' : 'fa-clock-o text-warning')))"></i>
+                                                                   {{interface?.feedStatus == 'S' ? 'Success' : (interface?.feedStatus == 'E' ? 'Error' : (interface?.feedStatus == 'F' ? 'Fed' : (interface?.feedStatus == 'P' ? 'Pending' : (interface?.feedStatus == 'C' ? 'Concurrent' : 'Not Processed'))))}}
+                                                                </td>
+                                                                <td colspan="5">{{interface?.errorMessage}}</td>
+                                                            </tr>
+                                                        </ng-container>
+                                                    </ng-container>
+                                                    
+                                                    <!-- ..........FM DERIVATION........... -->
+                                                    <ng-container *ngIf="selectedTab[i] == 'fm_derivation'">
+                                                        <ng-container *ngFor="let interface of errorStatusInterfaceDetails[i]?.fm_derivation" [@fadeDown]>
+                                                            <tr>
+                                                                <td>{{interface?.fromWbsElement}}</td>
+                                                                <td>{{interface?.targetCommitmentItem}}</td>
+                                                                <td><i aria-hidden="true" class="fa fa-times-circle text-danger"></i>
+                                                                    Error
+                                                                </td>
+                                                                <td colspan="5">{{interface?.errorMessage}}</td>
+                                                            </tr>
+                                                        </ng-container>
+                                                        <ng-container
+                                                            *ngIf="(!errorStatusInterfaceDetails[i]?.fm_derivation?.length && !otherStatusInterfaceDetails[i]?.fm_derivation?.length) || (!errorStatusInterfaceDetails[i]?.fm_derivation?.length && !isViewMore[i]?.fm_derivation)">
+                                                            <tr>
+                                                                <td colspan="7" class="text-center"><span class="noDataExists">No Interface Data
+                                                                        Available</span></td>
+                                                            </tr>
+                                                        </ng-container>
+                                                        <ng-container *ngIf="isViewMore[i]?.fm_derivation">
+                                                            <tr *ngFor="let interface of otherStatusInterfaceDetails[i]?.fm_derivation" [@fadeDown]>
+                                                                <td>{{interface?.fromWbsElement}}</td>
+                                                                <td>{{interface?.targetCommitmentItem}}</td>
+                                                                <td><i aria-hidden="true" class="fa"
+                                                                        [ngClass]="interface?.feedStatus == 'S' ? 'fa-check-circle text-success' : (interface?.feedStatus == 'E' ?
+                                                                                                                        'fa-times-circle text-danger' : (interface?.feedStatus == 'N' ? 'fa-ban text-muted': (interface?.feedStatus == 'C' ? 'fa-random text-muted fa-rotate-270' : 'fa-clock-o text-warning')))"></i>
+                                                                    {{interface?.feedStatus == 'S' ? 'Success' : (interface?.feedStatus == 'E' ? 'Error' :
+                                                                    (interface?.feedStatus == 'F' ? 'Fed' : (interface?.feedStatus == 'P' ? 'Pending' :
+                                                                    (interface?.feedStatus == 'C' ? 'Concurrent' : 'Not Processed'))))}}
+                                                                </td>
+                                                                <td>{{interface?.errorMessage}}</td>
+                                                            </tr>
+                                                        </ng-container>
+                                                    </ng-container>
+
+                                                    <!-- .........GM DERIVATION.......... -->
+                                                    <ng-container *ngIf="selectedTab[i] == 'gm_derivation'">
+                                                        <ng-container *ngFor="let interface of errorStatusInterfaceDetails[i]?.gm_derivation" [@fadeDown]>
+                                                            <tr>
+                                                                <td>{{interface?.wbsElement}}</td>
+                                                                <td>{{interface?.fromGlAccount}}</td>
+                                                                <td>{{interface?.toGlAccount}}</td>
+                                                                <td><i aria-hidden="true" class="fa fa-times-circle text-danger"></i>
+                                                                    Error
+                                                                </td>
+                                                                <td colspan="5">{{interface?.errorMessage}}</td>
+                                                            </tr>
+                                                        </ng-container>
+                                                        <ng-container
+                                                            *ngIf="(!errorStatusInterfaceDetails[i]?.gm_derivation?.length && !otherStatusInterfaceDetails[i]?.gm_derivation?.length) || (!errorStatusInterfaceDetails[i]?.gm_derivation?.length && !isViewMore[i]?.gm_derivation)">
+                                                            <tr>
+                                                                <td colspan="7" class="text-center"><span class="noDataExists">No Interface Data
+                                                                        Available</span></td>
+                                                            </tr>
+                                                        </ng-container>
+                                                        <ng-container *ngIf="isViewMore[i]?.gm_derivation">
+                                                            <tr *ngFor="let interface of otherStatusInterfaceDetails[i]?.gm_derivation" [@fadeDown]>
+                                                                <td>{{interface?.wbsElement}}</td>
+                                                                <td>{{interface?.fromGlAccount}}</td>
+                                                                <td>{{interface?.toGlAccount}}</td>
+                                                                <td><i aria-hidden="true" class="fa"
+                                                                        [ngClass]="interface?.feedStatus == 'S' ? 'fa-check-circle text-success' : (interface?.feedStatus == 'E' ?
+                                                                                                                        'fa-times-circle text-danger' : (interface?.feedStatus == 'N' ? 'fa-ban text-muted': (interface?.feedStatus == 'C' ? 'fa-random text-muted fa-rotate-270' : 'fa-clock-o text-warning')))"></i>
+                                                                    {{interface?.feedStatus == 'S' ? 'Success' : (interface?.feedStatus == 'E' ? 'Error' :
+                                                                    (interface?.feedStatus == 'F' ? 'Fed' : (interface?.feedStatus == 'P' ? 'Pending' :
+                                                                    (interface?.feedStatus == 'C' ? 'Concurrent' : 'Not Processed'))))}}
+                                                                </td>
+                                                                <td colspan="5">{{interface?.errorMessage}}</td>
+                                                            </tr>
+                                                        </ng-container>
+                                                    </ng-container>
+                                                </tbody>
+                                            </table>
+                                            <ng-container
+                                                *ngIf="selectedTab[i] == 'wbs_interface' && otherStatusInterfaceDetails[i]?.wbs_interface?.length">
+                                                <div class="col">
+                                                    <span class="float-right anchor-link"
+                                                        (click)="isViewMore[i].wbs_interface = !isViewMore[i].wbs_interface">{{isViewMore[i]?.wbs_interface ? 'Hide Other Statuses' : 'Show Other Statuses'}}</span>
+                                                </div>
+                                            </ng-container>
+                                            <ng-container
+                                                *ngIf="selectedTab[i] == 'grant_budget_master' && otherStatusInterfaceDetails[i]?.grant_budget_master?.length">
+                                                <div class="col">
+                                                    <span class="float-right anchor-link"
+                                                        (click)="isViewMore[i].grant_budget_master = !isViewMore[i].grant_budget_master">{{isViewMore[i]?.grant_budget_master ? 'Hide Other Statuses' : 'Show Other Statuses'}}</span>
+                                                </div>
+                                            </ng-container>
+                                            <ng-container
+                                                *ngIf="selectedTab[i] == 'fm_budget' && otherStatusInterfaceDetails[i]?.fm_budget?.length">
+                                                <div class="col">
+                                                    <span class="float-right anchor-link"
+                                                        (click)="isViewMore[i].fm_budget = !isViewMore[i].fm_budget">{{isViewMore[i]?.fm_budget ? 'Hide Other Statuses' : 'Show Other Statuses'}}</span>
+                                                </div>
+                                            </ng-container>
+                                            <ng-container
+                                                *ngIf="selectedTab[i] == 'project_definition' && otherStatusInterfaceDetails[i]?.project_definition?.length">
+                                                <div class="col">
+                                                    <span class="float-right anchor-link"
+                                                        (click)="isViewMore[i].project_definition = !isViewMore[i].project_definition">{{isViewMore[i]?.project_definition ? 'Hide Other Statuses' : 'Show Other Statuses'}}</span>
+                                                </div>
+                                            </ng-container>
+                                            <ng-container
+                                                *ngIf="selectedTab[i] == 'grant_master' && otherStatusInterfaceDetails[i]?.grant_master?.length">
+                                                <div class="col">
+                                                    <span class="float-right anchor-link"
+                                                        (click)="isViewMore[i].grant_master = !isViewMore[i].grant_master">{{isViewMore[i]?.grant_master ? 'Hide Other Statuses' : 'Show Other Statuses'}}</span>
+                                                </div>
+                                            </ng-container>
+                                            <ng-container
+                                                *ngIf="selectedTab[i] == 'sponsor_class' && otherStatusInterfaceDetails[i]?.sponsor_class?.length">
+                                                <div class="col">
+                                                    <span class="float-right anchor-link"
+                                                        (click)="isViewMore[i].sponsor_class = !isViewMore[i].sponsor_class">{{isViewMore[i]?.sponsor_class ? 'Hide Other Statuses' : 'Show Other Statuses'}}</span>
+                                                </div>
+                                            </ng-container>
+                                            <ng-container
+                                                *ngIf="selectedTab[i] == 'sponsor_program' && otherStatusInterfaceDetails[i]?.sponsor_program?.length">
+                                                <div class="col">
+                                                    <span class="float-right anchor-link"
+                                                        (click)="isViewMore[i].sponsor_program = !isViewMore[i].sponsor_program">{{isViewMore[i]?.sponsor_program ? 'Hide Other Statuses' : 'Show Other Statuses'}}</span>
+                                                </div>
+                                            </ng-container>
+                                            <ng-container
+                                                *ngIf="selectedTab[i] == 'funded_program' && otherStatusInterfaceDetails[i]?.funded_program?.length">
+                                                <div class="col">
+                                                    <span class="float-right anchor-link"
+                                                        (click)="isViewMore[i].funded_program = !isViewMore[i].funded_program">{{isViewMore[i]?.funded_program ? 'Hide Other Statuses' : 'Show Other Statuses'}}</span>
+                                                </div>
+                                            </ng-container>
+                                            <ng-container
+                                            *ngIf="selectedTab[i] == 'fm_derivation' && otherStatusInterfaceDetails[i]?.fm_derivation?.length">
+                                            <div class="col">
+                                                <span class="float-right anchor-link"
+                                                    (click)="isViewMore[i].fm_derivation = !isViewMore[i].fm_derivation">{{isViewMore[i]?.fm_derivation ? 'Hide Other Statuses' : 'Show Other Statuses'}}</span>
+                                            </div>
+                                        </ng-container>
+                                        <ng-container
+                                        *ngIf="selectedTab[i] == 'gm_derivation' && otherStatusInterfaceDetails[i]?.gm_derivation?.length">
+                                        <div class="col">
+                                            <span class="float-right anchor-link"
+                                                (click)="isViewMore[i].gm_derivation = !isViewMore[i].gm_derivation">{{isViewMore[i]?.gm_derivation ? 'Hide Other Statuses' : 'Show Other Statuses'}}</span>
+                                        </div>
+                                    </ng-container>
+                                        </div>
+                                    </ng-container>
+                                    <ng-template #noPermission>
+                                        <span class="noDataExists">You don't have permission to view the interface of
+                                            this Award</span>
+                                    </ng-template>
+                                </td>
+                            </tr>
+                        </ng-container>
+                    </tbody>
+                </table>
+            </div>
+            <ng-container *ngIf="!batchDetails?.sapAwardFeeds?.length">
+                <div class="no-data-container">
+                    <span class="no-data-icon-outer">
+                      <div class="no-data-icon">
+                        <i class="fa fa-file-o" aria-hidden="true"></i>
+                        <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                      </div>
+                    </span>
+                    <h4>There is no information in this section.</h4>
+                  </div>
+            </ng-container>
+            <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 mt-4"
+            *ngIf="( batchDetails?.sapAwardFeeds != null &&  batchDetails?.sapAwardFeeds?.length != 0)">
+            <nav class="pagination justify-content-end">
+                <app-pagination [totalCount]="batchDetails?.totalCount"
+                    (pageChangeEvent)="actionsOnPageChange($event)">
+                </app-pagination>
+            </nav>
+        </div>
+    </div>
+</div>
+<div class="modal fade mySkinDialog" id="modal-sap-basicdetails">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <ng-container *ngIf="selectedFeeds?.length && selectedAction?.userActionCode === '1'">Update Feed Status
+                    </ng-container>
+                    <ng-container *ngIf="selectedFeeds?.length && selectedAction?.userActionCode === '2'">Notify PI
+                    </ng-container>
+                    <ng-container *ngIf="selectedFeeds?.length && selectedAction?.userActionCode === '3'">Re-Interface
+                    </ng-container>
+                    <ng-container *ngIf="selectedAction?.userActionCode === '4'">Re-Trigger</ng-container>
+                    <ng-container *ngIf="selectedAction?.userActionCode === '9'">Download Interface Files</ng-container>
+                    <ng-container *ngIf="!selectedFeeds?.length && selectedAction?.userActionCode !== '4' && selectedAction?.userActionCode !== '9'">Warning
+                    </ng-container>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div *ngIf="selectedAction?.description && (selectedFeeds?.length || selectedAction?.userActionCode === '4' || selectedAction?.userActionCode === '9')"
+                class="success-banner px-3 m-2 d-flex justify-content-between align-items-center ng-star-inserted">
+                <div>
+                  <i aria-hidden="true" class="fa fa-info-circle mr-1 info-icon"></i>
+                  <em class="ng-star-inserted"> {{selectedAction?.description}}</em>
+                </div>
+                <button aria-label="Close" class="close close-button" type="button">
+                </button>
+            </div>
+            <div class="modal-body">
+                <ng-container *ngIf="selectedFeeds?.length && selectedAction?.userActionCode !== '4' && selectedAction?.userActionCode !== '9'">
+                    <label class="d-block"><span class="mandatory">*</span>Comments</label>
+                    <textarea class="form-control" [(ngModel)]="actionComment" placeholder="Comments"></textarea>
+                    <span class="mandatory" *ngIf="!isCommented">* Please provide comment for your action</span>
+                </ng-container>
+                <p *ngIf="!selectedFeeds?.length && selectedAction?.userActionCode !== '4' && selectedAction?.userActionCode !== '9'">Please select atleast a Feed to
+                    perform the Action.</p>
+                <p *ngIf="selectedAction?.userActionCode === '4'">Are you sure that you want to Re-trigger this Batch ?</p>
+                <p *ngIf="selectedAction?.userActionCode === '9'">Continue with downloading of Interface files belonging to batch {{batchDetails?.sapAwardFeedHistory?.batchId}} ?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn"
+                    [ngClass]="selectedFeeds?.length || selectedAction?.userActionCode === '4' || selectedAction?.userActionCode === '9' ? 'btn-secondary' : 'btn-primary-sub btn-sm'"
+                    data-dismiss="modal">{{selectedFeeds?.length || selectedAction?.userActionCode === '4' || selectedAction?.userActionCode === '9' ? 'Cancel' : 'OK'}}</button>
+                <button type="button" class="btn btn-primary-sub btn-sm"
+                    *ngIf="selectedFeeds?.length || selectedAction?.userActionCode === '4' || selectedAction?.userActionCode === '9'"
+                    (click)="proceedAction()">{{selectedAction?.userActionCode === '9' ? 'Download' : 'Proceed'}}</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade mySkinDialog" id="failedSapAwardsModal" tabindex="-1"
+role="dialog" aria-labelledby="failedSapAwardsModal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Action Denied</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex"
+                            *ngIf="batchDetails?.failedAwardNumbers?.length !== 0">
+                    <span class="text-warning mr-2 f-13"><i class="fa fa-exclamation-triangle"></i></span>
+                    <label class="mb-2 text-muted d-inline">
+                         Action cannot be performed on following award(s). Please verify the permission on the award's lead unit.
+                    </label>
+                </div>
+                <ul class="list-style-none pl-4 ml-1 mt-2">
+                    <li *ngFor="let award of batchDetails?.failedAwardNumbers">
+                        <span class="chevron"><i class="fa fa-chevron-right"></i><i
+                            class="fa fa-chevron-right"></i></span>
+                        <span class="ml-2 text-muted fw-600">{{award}}</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary-sub btn-sm"
+                    data-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>

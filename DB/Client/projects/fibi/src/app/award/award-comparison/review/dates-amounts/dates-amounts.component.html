@@ -1,0 +1,129 @@
+<div id="Award108" class="row mt-3 ">
+    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+        <div class="card ">
+            <div class="card-header px-4">
+                <h4 class="card-title">Dates and Amounts
+                    <button class="updown-arrow" (click)="isTransactions = !isTransactions">
+                        <i [ngClass]="!isTransactions?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                            aria-hidden="true" class="fa-large"></i>
+                    </button>
+                </h4>
+            </div>
+            <div class="card-content">
+                <div *ngIf="!isTransactions" class="card-body">
+                    <div class="no-data-container" *ngIf="awardAmountInfos?.length == 0">
+                        <span class="no-data-icon-outer">
+                            <div class="no-data-icon">
+                                <i class="fa fa-file-o" aria-hidden="true"></i>
+                                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                            </div>
+                        </span>
+                        <h4>There are no items to show in this view.</h4>
+                    </div>
+                    <div class="table-responsive custom-overflow">
+                        <table *ngIf="awardAmountInfos?.length > 0" class="table tableSkin grid2">
+                            <caption class="sr-only">Transaction Details</caption>
+                            <thead>
+                                <th scope="col">Transaction Type</th>
+                                <th scope="col">
+                                    <ng-container i18n="@@AWARD_INSTITUTIONAL_PROPOSAL">Proposal Number</ng-container>
+                                </th>
+                                <th scope="col">
+                                    <ng-container i18n="@@AWARD_SOURCE_AWARD">Source Award</ng-container>
+                                </th>
+                                <th scope="col">
+                                    <ng-container i18n="@@AWARD_DESTINATION_AWARD">Destination Award</ng-container>
+                                </th>
+                                <th scope="col">Notice Date</th>
+                                <th scope="col">Obligation Start Date</th>
+                                <th scope="col">Obligation End Date</th>
+                                <th scope="col">Obligated Change({{_commonService.currencyFormat}})</th>
+                                <th scope="col">Anticipated Change({{_commonService.currencyFormat}})</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Actions</th>
+                            </thead>
+                            <tbody>
+                                <ng-container *ngFor="let transaction of awardAmountInfos; let index=index">
+                                    <tr id="{{index}}" [ngClass]="{ 'delete-background': transaction.status == -1,
+                                  'add-background': transaction.status == 1}">
+                                        <td
+                                            [innerHTML]='transaction?.awardAmountTransaction?.awardTransactionType?.description | customTagRemover: currentMethod'>
+                                        </td>
+                                        <td [innerHTML]='transaction?.awardAmountTransaction?.fundingProposalNumber | customTagRemover: currentMethod'>
+                                        </td>
+                                        <td [innerHTML]='transaction?.awardAmountTransaction?.sourceAwardNumber | customTagRemover: currentMethod'></td>
+                                        <td [innerHTML]='transaction?.awardAmountTransaction?.destinationAwardNumber | customTagRemover: currentMethod'> 
+                                        </td>
+                                        <td
+                                            [innerHTML]='dateFormatter.parseDate(transaction?.awardAmountTransaction?.noticeDate) | customTagRemover: currentMethod'>
+                                        </td>
+                                        <td
+                                            [innerHTML]='dateFormatter.parseDate(transaction?.currentFundEffectiveDate) | customTagRemover: currentMethod'>
+                                        </td>
+                                        <td
+                                            [innerHTML]='dateFormatter.parseDate(transaction?.obligationExpirationDate) | customTagRemover: currentMethod'>
+                                        </td>
+                                        <td [innerHTML]='currencyFormatter.parseCurrency(transaction?.obligatedChange) | customTagRemover: currentMethod'>
+                                        </td>
+                                        <td
+                                            [innerHTML]='currencyFormatter.parseCurrency(transaction?.anticipatedChange) | customTagRemover: currentMethod'>
+                                        </td>
+                                        <td [ngClass]="{
+                                        'text-warning' :transaction?.awardAmountTransaction?.transactionStatusCode == 'P',
+                                        'text-success' : transaction?.awardAmountTransaction?.transactionStatusCode == 'A',
+                                        'text-danger' : transaction?.awardAmountTransaction?.transactionStatusCode == 'V'}"
+                                            [innerHTML]='transaction?.awardAmountTransaction?.awardTransactionStatus?.description | customTagRemover: currentMethod'>
+                                        </td>
+                                        <!-- <td [innerHTML]='transaction?.awardAmountTransaction?.comments | customTagRemover: currentMethod'></td> -->
+                                        <td>
+                                            <ul class="actionButtonGroup">
+                                                <li>
+                                                    <div class="dropdown">
+                                                        <a id="dropdownMenuLink" data-toggle="dropdown"
+                                                            aria-haspopup="true" aria-expanded="false">
+                                                            <i class="fa fa-commenting-o hand-cursor hoverColor mr-1"
+                                                                aria-hidden="true" title="Comment"></i>
+                                                        </a>
+                                                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
+                                                        
+                                                            <span *ngIf="transaction?.awardAmountTransaction?.comments"
+                                                                [innerHTML]='transaction?.awardAmountTransaction?.comments | customTagRemover: currentMethod'>
+                                                            </span>
+                                                            <span *ngIf="!transaction?.awardAmountTransaction?.comments">
+                                                                Not Available
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <span class="d-inline-block icon-hover">
+                                                        <a class="tooltip "><i class="fa fa-info-circle fa-med"
+                                                                aria-hidden="true"></i>
+                                                            <div
+                                                                class="tooltiptext-right card card-inner p-15 text-left">
+                                                                <span class="font-cv">Updated By</span>
+                                                                <span
+                                                                    class="font-cv font-weight-bold">{{transaction?.updateUserFullName}}
+                                                                    on {{transaction?.updateTimestamp |
+                                                                    dateFormatterWithTimeZone : 'long'}} </span>
+                                                            </div>
+                                                        </a>
+                                                    </span>
+                                                </li>
+                                            </ul>
+                                        </td>
+                                    </tr>
+                                </ng-container>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pt-3">
+                        <app-comment-box [sectionCode]="108" [awardId]="comparisonDetails.baseAwardId"
+                            [awardNumber]="comparisonDetails.awardNumber"
+                            [sequenceNumber]="comparisonDetails.sequenceNumber"></app-comment-box>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

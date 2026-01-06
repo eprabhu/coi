@@ -1,0 +1,283 @@
+<ng-container *ngIf="_commonData.progressReportSectionConfig['1604']?.isActive" id="progress-report-milestones">
+    <div class="card mt-2 mb-2">
+        <div class="card-header">
+            <h4 class="card-title justify-content-between d-flex align-items-center">
+                Research Milestones
+            </h4>
+        </div>
+        <div class="card-content">
+            <div class="card-body">
+                <div *ngIf="milestoneObject?.awardProgressReportMilestones?.length"
+                     class="table-responsive">
+                    <table aria-describedby="research-milestones"
+                           class="table table-inner mb-0 tableSkin grid2 table-vertical-align">
+                        <thead>
+                        <tr>
+                            <th scope="col">S/N</th>
+                            <th scope="col" style="width: 38%" (click)="isDesc = !isDesc; sortBy('awardMileStone.milestone')">Research Milestone
+                                <i aria-hidden="true"
+                                   [ngClass]="((column == 'awardMileStone.milestone')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i>
+                            </th>
+                            <th scope="col" (click)="isDesc = !isDesc; sortBy('awardMileStone.startDate')" style="width: 10%">Start Date
+                                <i aria-hidden="true"
+                                   [ngClass]="((column == 'awardMileStone.startDate')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                            </th>
+                            <th scope="col" (click)="isDesc = !isDesc; sortBy('awardMileStone.endDate')" style="width: 10%">End Date
+                                <i aria-hidden="true"
+                                   [ngClass]="((column == 'awardMileStone.endDate')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i>
+                            </th>
+                            <th scope="col" (click)="isDesc = !isDesc; sortBy('actualStartMonth')" style="width: 12%">Actual Start Date
+                                <i aria-hidden="true"
+                                   [ngClass]="((column == 'actualStartMonth')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i></th>
+                            <th scope="col" (click)="isDesc = !isDesc; sortBy('actualEndMonth')" style="width: 12%">Actual End Date
+                                <i aria-hidden="true"
+                                   [ngClass]="((column == 'actualEndMonth')  ? (!isDesc ? 'fa fa-sort-numeric-desc sortIcon' : 'fa fa-sort-numeric-asc sortIcon') : 'fa fa-sort-numeric-asc blrcolor')"></i></th>
+                            <th scope="col" (click)="isDesc = !isDesc; sortBy('milestoneStatus.description')" style="width: 12%">Status
+                                <i aria-hidden="true"
+                                   [ngClass]="((column == 'milestoneStatus.description')  ? (!isDesc ? 'fa fa-sort-alpha-desc sortIcon' : 'fa fa-sort-alpha-asc sortIcon') : 'fa fa-sort-alpha-asc blrcolor')"></i></th>
+                            <th scope="col" style="width: 10%">{{isEditMode ? 'Actions' : 'Action'}}</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <ng-container
+                                *ngFor="let milestone of milestoneObject.awardProgressReportMilestones | orderBy: {property: column, direction: direction}; let index = index">
+                            <tr>
+                                <td>{{index + 1}}</td>
+                                <td style="width: 38%" class="text-break text-justify"> {{ milestone.awardMileStone.milestone}}
+                                </td>
+                                <td style="width: 10%">{{milestone?.awardMileStone?.startDate | dateFormatter}}</td>
+                                <td style="width: 10%" >{{milestone?.awardMileStone?.endDate | dateFormatter}}</td>
+                                <td style="width: 12%">{{milestone?.actualStartMonth | dateFormatter}}</td>
+                                <td style="width: 12%">{{milestone?.actualEndMonth | dateFormatter}}</td>
+                                <td style="width: 12%">{{milestone?.milestoneStatus?.description}}</td>
+                            <td style="width: 10%">
+                                <ul class="actionButtonGroup icon">
+                                    <li title="View Remarks">
+                                        <a>
+                                            <i (click)="viewMilestoneRemarks(milestone);"
+                                               aria-hidden="true"
+                                               class="fa fa-commenting-o hand-cursor"></i>
+                                        </a>
+                                    </li>
+                                    <li *ngIf="isEditMode">
+                                        <ul class="actionButtonGroup icon">
+                                            <li>
+                                                <a title="Edit milestone" class="hand-cursor"><i
+                                                        (click)="editMilestone(milestone, index)"
+                                                        aria-hidden="true" class="fa fa-pencil"></i>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                        </ng-container>
+                        </tbody>
+                    </table>
+                </div>
+                <div *ngIf="!milestoneObject?.awardProgressReportMilestones?.length"
+                     class="card mt-2">
+                    <div class="d-flex align-items-center justify-content-center height-adjust">
+                        <div class="no-data-container">
+                        <span class="no-data-icon-outer">
+                            <div class="no-data-icon">
+                                <i aria-hidden="true" class="fa fa-file-o"></i>
+                                <i aria-hidden="true" class="fa fa-times-circle-o"></i>
+                            </div>
+                        </span>
+                            <h4>There is no information in this section.</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Show Remarks Modal -->
+    <div class="modal fade mySkinDialog modal-opacity" tabindex="-1" id="viewRemarksModal" tabindex="-1" role="dialog"
+        aria-labelledby="viewRemarksModalTitle" aria-hidden="true">
+        <div class="modal-dialog  modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Remarks</h5>
+                    <button type="button" class="close" id="prog-report-milestone-remarks-dismiss-btn" data-dismiss="modal"
+                        aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body modal-inner-scroll">
+                    <p *ngIf="openedMilestoneRemark" class="fs-14">
+                        {{openedMilestoneRemark}}</p>
+                    <div class="no-data-container" *ngIf="!openedMilestoneRemark">
+                        <span class="no-data-icon-outer">
+                            <div class="no-data-icon">
+                                <i class="fa fa-file-o" aria-hidden="true"></i>
+                                <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+                            </div>
+                        </span>
+                        <h4>There is no remarks</h4>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="prog-report-milestone-remarks-close-btn" class="btn btn-secondary" data-dismiss="modal"
+                        data-toggle="modal" (click)="openedMilestoneRemark = null">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Milestone Modal -->
+    <div class="modal fade mySkinDialog" id="progress-report-milestone-edit-modal" role="dialog" aria-labelledby="skippedSchedulesTitle"
+        aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Milestone</h5>
+                <button type="button" class="close" (click)="cancelMilestoneEdit()" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body py-1 px-3">
+				<!-- Progress Report header details banner -->
+				<div class="form-row my-2 p-2 border mx-0 grey-container">
+					  <div class="text-left col-12 mb-0">
+						  <h2 *ngIf="progressReportData?.progressReportNumber" title="{{progressReportData?.progressReportNumber}}"
+							  class="title-primary fs-16 text-justify">
+							  {{progressReportData.reportClassCode === '2' ? 'Final Report' : 'Progress Report'}}
+							  : {{progressReportData?.progressReportNumber}} : {{ _commonData?.progressReportTitle }}
+						  </h2>
+					  </div>
+					  <div class="col-lg-4 col-sm-6 col-12 no-hover-effect mb-0" *ngIf="progressReportData?.dueDate">
+						  <span class="badge-title bg-transparent px-0 mr-3 fs-14-nav">
+							  <i class="fa fa-clock-o text-primary mr-1" aria-hidden="true"></i>
+							  <span class="d-none d-md-inline-block">Due Date : </span>
+							  {{progressReportData?.dueDate | dateFormatter}}
+                            </span>
+					  </div>
+					  <div class="col-lg-4 col-sm-6 col-12 no-hover-effect mb-0">
+						  <span class="badge-title bg-transparent px-0 mr-3 fs-14-nav">
+							  <i class="fa fa-clock-o text-primary mr-1" aria-hidden="true"></i>
+							  <span class="d-none d-md-inline-block">Reporting Period : </span>
+							  {{progressReportData?.reportStartDate | dateFormatter}} -
+                                    {{progressReportData?.reportEndDate | dateFormatter}}
+						  </span>
+					  </div>
+					  <div *ngIf="progressReportData?.award?.principalInvestigator"
+						  class="col-lg-4 col-sm-6 col-12 no-hover-effect mb-0">
+						  <span class="badge-title bg-transparent px-0 fs-14-nav">
+							  <i class="fa fa-user text-primary mr-1" aria-hidden="true"></i>
+							  <span class="d-none d-md-inline-block">PI :</span>
+							  {{progressReportData?.award?.principalInvestigator}}
+						  </span>
+					  </div>
+					  <div class="col-lg-4 col-sm-6 col-12 no-hover-effect mb-0" >
+						  <span class="badge-title bg-transparent px-0 fs-14-nav"
+							  *ngIf="progressReportData?.award?.leadUnit?.unitName">
+							  <i class="fa fa-home text-primary mr-1" aria-hidden="true"></i>
+							  <span class="d-none d-md-inline-block">Lead Unit : </span>
+							  {{concatUnitNumberAndUnitName(progressReportData?.award?.leadUnit?.unitNumber,progressReportData?.award?.leadUnit?.unitName)}}
+						  </span>
+					  </div>
+				</div>
+				<!--End of Progress Report header details banner -->
+                <div class="w-100">
+                    <div class="form-row">
+						<div class="col-lg-4 col-md-4 col-sm-12 col-12">
+							<label class="d-block">Research Milestone</label>
+							<span [class.noDataExists]="!editedMilestone?.awardMileStone?.milestone">
+								{{editedMilestone?.awardMileStone?.milestone ?
+                                    (editedMilestone?.awardMileStone?.milestone?.length > 30 ? (editedMilestone?.awardMileStone?.milestone | slice:0:30) + '...' : editedMilestone?.awardMileStone?.milestone)
+                                    : 'No data available'}}
+							</span>
+						</div>
+						<div class="col-lg-4 col-md-4 col-sm-12 col-12">
+							<label class="d-block">Start Date</label>
+							<span [class.noDataExists]="!editedMilestone?.awardMileStone?.startDate">
+								{{editedMilestone?.awardMileStone?.startDate ? (editedMilestone?.awardMileStone?.startDate | dateFormatter) : 'No data available'}}
+							</span>
+						</div>
+						<div class="col-lg-4 col-md-4 col-sm-12 col-12">
+							<label class="d-block">End Date</label>
+							<span [class.noDataExists]="!editedMilestone?.awardMileStone?.endDate">
+								{{editedMilestone?.awardMileStone?.endDate ? (editedMilestone?.awardMileStone?.endDate | dateFormatter) : 'No data available'}}
+							</span>
+						</div>
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-12">
+                            <label>Actual Start Date</label>
+                            <span class="dateField">
+								<input matInput [matDatepicker]="actualStrtDt" (keypress)="_commonService._keyPress($event, 'date');"
+									   [(ngModel)]="actualStartMonth" (ngModelChange)="dateValidation()"
+									   [ngClass]="mandatoryList.has('actualStartMonth') ? 'is-invalid d-block' : ''"
+									   (click)="actualStrtDt.open()"
+									   class="d-inline-block form-control "
+									   id="actualStart-date"
+									   placeholder="{{datePlaceHolder}}">
+								<span (click)="actualStrtDt.open()" class="fa fa-calendar fa-large pointer insidePicker"
+									  title="open calendar"></span>
+								<mat-datepicker #actualStrtDt (closed)="dateValidation()"
+											   (opened)="setFocusToElement('actualStart-date')">
+								</mat-datepicker>
+							</span>
+                            <div *ngIf="mandatoryList.has('actualStartMonth')">
+                               <span class="invalid-feedback d-block">{{mandatoryList.get('actualStartMonth')}}</span>
+                           </div>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-12">
+                            <label>Actual End Date</label>
+                            <span class="dateField position-relative">
+								<input  matInput [matDatepicker]="actualEndDt" (keypress)="_commonService._keyPress($event, 'date');"
+									   [ngClass]="mandatoryList.has('actualEndMonth') ? 'is-invalid d-block' : ''"
+									   [(ngModel)]="actualEndMonth" (ngModelChange)="dateValidation()"
+									   (click)="actualEndDt.open()"
+									   class="d-inline-block form-control "
+									   id="actualEnd-date"
+									   placeholder="{{datePlaceHolder}}">
+								<span (click)="actualEndDt.open()" class="fa fa-calendar fa-large pointer insidePicker"
+									  title="open calendar"></span>
+								<mat-datepicker #actualEndDt (closed)="dateValidation()"
+											   (opened)="setFocusToElement('actualEnd-date')">
+								</mat-datepicker>
+							</span>
+                            <div *ngIf="mandatoryList.has('actualEndMonth')">
+                                <span class="invalid-feedback d-block">{{mandatoryList.get('actualEndMonth')}}</span>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-12">
+                            <label><span class="mandatory">*</span>Status</label>
+                            <select aria-label="milestone status" class="form-control" [(ngModel)]="milestoneStatusCode"
+                                [ngClass]="mandatoryList.has('status') ? 'is-invalid d-block' : ''">
+                                <option value=null>--Select--</option>
+                                <ng-container *ngFor="let statuses of milestoneObject.progressReportMilestoneStatuses">
+                                    <option *ngIf="statuses.isActive" [value]="statuses.milestoneStatusCode">{{statuses.description}}</option>
+                                </ng-container>
+                            </select>
+                            <div *ngIf="mandatoryList.get('status')">
+                                <span class="invalid-feedback d-block">{{mandatoryList.get('status')}}</span>
+                            </div>
+                        </div>
+						<div class="col-12">
+							<label class="d-block">Remarks</label>
+                            <textarea [(ngModel)]="editedMilestone.remark" aria-label="milestone-comments"
+                                    [isShowLimiter]="true"
+                                    appLengthValidator appAutoGrow
+                                    class="form-control"
+                                    limit=2000>
+                            </textarea>
+						</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="text-center text-md-right">
+                    <button class="btn btn btn-secondary btn-xs mx-2" data-dismiss="modal"
+                        (click)="cancelMilestoneEdit()">Cancel</button>
+                    <button class="btn btn-primary-sub btn-xs" (click)="updateMilestone()">
+                        Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</ng-container>

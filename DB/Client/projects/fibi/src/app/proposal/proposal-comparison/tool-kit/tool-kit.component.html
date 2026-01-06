@@ -1,0 +1,99 @@
+<div class="tool-kit-body" *ngIf="isToolkitVisible" [@enterAnimation]>
+  <div class="row m-0 border-bottom">
+    <div class="col-12 p-0">
+      <ul class="subTabs tool-tab mb-0">
+        <li [ngClass]="{'active':isCurrentReviewTab == 'SECTION'}" class="w-50">
+          <a class="subTabLink" (click)='isCurrentReviewTab = "SECTION"' tabindex="0">
+            <i [ngClass]="isCurrentReviewTab == 'SECTION'? 'text-success': 'text-muted' "
+              class="fa fa-list-ul text-success ml-2 " aria-hidden="true"></i>
+            <span class="pl-2">Section </span>
+          </a>
+        </li>
+        <ng-container *ngIf="proposalVersionsData.length">
+          <li [ngClass]="{'active':isCurrentReviewTab == 'VERSION'}" class="w-50">
+            <a (click)='isCurrentReviewTab = "VERSION"' class="subTabLink " tabindex="0">
+              <i [ngClass]="isCurrentReviewTab == 'VERSION'? 'text-success': 'text-muted' "
+                class="fa fa-history text-success ml-2" aria-hidden="true"></i>
+              <span class="pl-2">History
+                <span class="badge badge-pill badge-info">
+                  {{proposalVersionsData.length}}</span> </span>
+            </a>
+          </li>
+        </ng-container>
+      </ul>
+    </div>
+    <span class="col-1 close-btn" (click)="updateToolkitView()">
+      <i class="fa fa-times-circle f-18" aria-hidden="true"></i>
+    </span>
+  </div>
+  <div class="py-2" *ngIf="isCurrentReviewTab == 'SECTION'">
+    <div class="inner-scroll">
+      <div class="section-body ">
+        <ul class=" p-0 m-0">
+          <ng-container *ngFor="let section of sections; let i = index">
+            <li *ngIf="_proposalService.proposalSectionConfig[section.subSectionCode]?.isActive"
+              (click)="scrollToSection(section.documentId)" tabindex="0">
+              <i class="fa fa-chevron-left pr-2"></i>
+              {{section.reviewSectionDescription}}
+            </li>
+          </ng-container>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="isCurrentReviewTab == 'VERSION'">
+    <div class="inner-scroll">
+      <div class="success-banner p-2 mb-4 d-flex align-items-center">
+        <i aria-hidden="true" class="fa fa-info-circle mr-2 info-icon"></i>
+        <em class="text-secondary">Select any one of the version to view the details.</em>
+      </div>
+      <div *ngIf="masterVersion?.proposalId"  (click)='viewProposal(masterVersion)' class="active-card mx-5 p-4 fw-600 hand-cursor"
+    [ngClass]="{'highlight-active':  (masterVersion?.proposalId == leftVersion?.proposalId )}">
+      <span class="f-14 align-items-center d-flex">
+        <span class="mr-auto">#{{masterVersion?.proposalId}}: {{_proposalService.proposalTitle}}</span>
+      <!-- <span class="status-badge-success bg-transparent">Active Proposal</span>   -->
+    </span>
+    </div>
+      <div class="px-5 mb-4 history-tl-container ">
+        <ul class="tl mb-2 mt-4 pr-1">
+          <li class="tl-item hand-cursor"
+            [ngClass]="{'highlight': (version?.proposalId == leftVersion?.proposalId || version?.proposalId == rightVersion?.proposalId )}"
+            *ngFor="let version of proposalVersionsData;let proposalIndex = index" (click)='viewProposal(version)' tabindex="0">
+            <div class="f-13 fw-600">
+              <span *ngIf="version.sequenceNumber != 0">
+                Version({{version?.versionNumber}}) - {{version?.requestType}}
+              </span>
+            </div>
+            <div class="item-detail">{{version?.requestType}} by
+              {{version?.createUserFullName}} on {{version?.createTimestamp | dateFormatterWithTimeZone}}
+            </div>
+          </li>
+          <li class="no-hover-effect" *ngIf="proposalVersionsData.length == 1">
+            <div class="item-detail"> No previous versions available.</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Side jumpToList -->
+<div *ngIf="!_commonService.isDevProposalVersioningEnabled" class="nav-style widget d-flex align-items-center" id="custom-mini-widget">
+  <span id="custom-widget" class="nav-icon hand-cursor mr-2" (click)="isShowMiniToolkit = !isShowMiniToolkit">
+    <i [ngClass]="isShowMiniToolkit ? 'fa fa-angle-double-up' : 'fa fa-angle-double-down'"
+      id="custom-widget" aria-hidden="true"></i>
+  </span>
+  <span> Jump to Section </span>
+  <div class="widget-body" *ngIf="isShowMiniToolkit" (mouseleave)='isShowMiniToolkit = false'>
+    <ul class=" p-0 m-0">
+      <ng-container *ngFor="let section of sections; let i = index">
+        <li *ngIf="_proposalService.proposalSectionConfig[section.reviewSectionCode]?.isActive"
+          (click)="scrollToSection(section.documentId)" tabindex="0">
+          <i class="fa fa-chevron-left pr-2"></i>
+          {{section.reviewSectionDescription}}
+        </li>
+      </ng-container>
+    </ul>
+  </div>
+</div>

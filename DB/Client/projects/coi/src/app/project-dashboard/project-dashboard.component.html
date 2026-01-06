@@ -1,0 +1,363 @@
+<div [@fadeInOutHeight]>
+    <section class="section-advanced-search coi-dashboard-tab-sticky">
+        <div class="fs-18 fw-bold d-inline-block mb-2" tabindex="-1" title="Project Dashboard"
+            aria-label="Project Dashboard">Projects</div>
+        <nav class="coi-admin-dash mb-2 mx-0 border shadow-sm rounded-2 coi-nav-tab-sticky"
+            aria-labelledby="navbarResponsive">
+            <div class="list navbar-toggleable-xs">
+                <div class="d-flex justify-content-between">
+                    <button #mainHeaders id="coi-project-responsiveColapse"
+                        [ngClass]="isShowNavigationOptions ? 'd-none' : 'hamburger-display'"
+                        class="navbar-toggler hidden-sm-up px-0 px-sm-3" (click)="isShowNavigationOptions = true"
+                        (keyup.enter)="isShowNavigationOptions = true" (keyup.space)="isShowNavigationOptions = true"
+                        type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive"
+                        aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                        <i class="fa fa-bars f-14 text-muted mx-colr" aria-hidden="true"
+                            title="Click here for more pages"></i>
+                    </button>
+                    <button class="navbar-toggler hidden-sm-up px-0 mt-1 px-sm-3"
+                        [@topSlideInOut]="isShowNavigationOptions" type="button"
+                        [ngClass]="!isShowNavigationOptions ? 'd-none' : 'hamburger-display'"
+                        (click)="isShowNavigationOptions = false" (keyup.enter)="isShowNavigationOptions = false"
+                        (keyup.space)="isShowNavigationOptions = false" aria-controls="navbarResponsive"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                        <i class="fa fa-bars f-14 text-muted mx-colr" aria-hidden="true"
+                            title="Click here for more pages"></i>
+                    </button>
+                    <!-- tabs -->
+                    <ul class="m-0 p-0 menu-responsive fit-content tabs-collapsed collapse" id="navbarResponsive"
+                        aria-label="navigation list" tabindex="-1">
+                        <!-- fcoi/project -->
+                        <li (click)="changeTab('AWARD')" tabindex="0" id="coi-project-dashboard-award-disclosures"
+                            (keyup.enter)="changeTab('AWARD')" (keyup.space)="changeTab('AWARD')"
+                            [class.active]="projectDashboardService.projectOverviewRequestObject.tabName=='AWARD'"
+                            class="px-xxl-3 py-3 px-2 fs-6 align-self-center"
+                            [title]="projectDashboardService.projectOverviewRequestObject.tabName=='AWARD' ? 'Award' : 'Click here to view award'"
+                            [attr.aria-label]="projectDashboardService.projectOverviewRequestObject.tabName=='AWARD'? 'Selected tab is Award' : 'Click here to view Award'">
+                            Award
+                        </li>
+                        <span class="separator" aria-hidden="true" role="separator"></span>
+                        <li (click)="changeTab('DEV_PROPOSAL')" tabindex="0"
+                            id="coi-project-dashboard-dev-proposal-disclosures"
+                            (keyup.enter)="changeTab('DEV_PROPOSAL')" (keyup.space)="changeTab('DEV_PROPOSAL')"
+                            [class.active]="projectDashboardService.projectOverviewRequestObject.tabName=='DEV_PROPOSAL'"
+                            class="px-xxl-3 py-3 px-2 fs-6 align-self-center"
+                            [title]="projectDashboardService.projectOverviewRequestObject.tabName=='DEV_PROPOSAL' ? 'Development Proposal' : 'Click here to view development proposal'"
+                            [attr.aria-label]="projectDashboardService.projectOverviewRequestObject.tabName=='DEV_PROPOSAL'? 'Selected tab is Devlopment Proposal' : 'Click here to view devlopment proposal'">
+                            Development Proposal
+                        </li>
+                        <span class="separator" aria-hidden="true" role="separator"></span>
+                        <!-- </ng-container> -->
+                    </ul>
+                    <div class="mx-1 py-2 d-inline-flex align-items-center pe-2">
+                        <span role="button" class="btn btn-tertiary d-flex fs-14 align-items-center mt-0 text-nowrap position-relative"
+                            tabindex="0" id="coi-project-dash-adv-search"
+                            aria-controls="coi-project-dashboard-collapseExample" aria-expanded="false"
+                            (click)="toggleAdvanceSearch();" (keyup.enter)="toggleAdvanceSearch()"
+                            (keyup.space)="toggleAdvanceSearch()" aria-label="Toggle Advanced Search"
+                            title="Click here to expand / collapse Advanced Search fields">
+                            <span *ngIf="isAdvanceSearchMade && !isViewAdvanceSearch" class="position-absolute translate-middle adv-search-count-top bg-danger"
+                            [ngClass]="{
+                                'badge rounded-pill': advancedSearchCriteriaCount > 0,
+                                'p-2 border border-light rounded-circle': advancedSearchCriteriaCount === 0
+                            }">{{ advancedSearchCriteriaCount > 0 ? advancedSearchCriteriaCount : '' }}</span>
+                            <mat-icon aria-hidden="true" class="me-1 flex-shrink-0">tune</mat-icon>Advanced Search</span>
+                    </div>
+                </div>
+            </div>
+            <!-- advanced search -->
+            <div *ngIf="isViewAdvanceSearch" class="pb-3 px-3 pt-2 border-top" id="coi-project-dashboard-collapseExample" [@topSlideInOut]>
+                <div *ngIf="isShowInfoMessage" class="d-flex alert alert-primary mb-0 py-2 mb-2 px-2">
+                    <mat-icon role="img" class="mat-icon material-icons flex-shrink-0" aria-hidden="true">info</mat-icon>
+                    <p class="fs-14 mb-0 ms-2">
+                    <span class="d-flex align-items-start">
+                        <span>{{ defaultDataLoadMessage }}<ng-container *ngIf="projectDashboardService.projectOverviewRequestObject.tabName === 'AWARD'">
+                                Currently, there are [{{ defaultProjectCount }}] hold awards.
+                            </ng-container>
+                        </span>
+                    </span>
+                    </p>
+                </div>
+                <!-- project tab advance search -->
+                <div class="row g-3">
+                    <ng-container *ngFor="let advancedSearchOrder of PROJECT_DASHBOARD_ADV_SEARCH_ORDER[projectDashboardService.projectOverviewRequestObject.tabName]">
+                        <!-- Project title -->
+                        <div *ngIf="advancedSearchOrder === 'PROJECT_TITLE'" class="col-xl-3 col-lg-4 col-sm-6 col-12">
+                            <label class="d-block" for="coi-adv-search-project-title">{{ dynamicSortFieldName[projectDashboardService.projectOverviewRequestObject.tabName] }}</label>
+                            <input type="text" id="coi-adv-search-project-title"
+                                [attr.placeholder]="'Type the ' + dynamicSortFieldName[projectDashboardService.projectOverviewRequestObject.tabName] +' here'"
+                                [title]="'Click here to search by ' +  dynamicSortFieldName[projectDashboardService.projectOverviewRequestObject.tabName]"
+                                [attr.aria-label]="dynamicSortFieldName[projectDashboardService.projectOverviewRequestObject.tabName] + ' search field'"
+                                maxlength="60" autocomplete="off" class="form-control" [(ngModel)]="localProjectOverviewRO.property2"
+                                (keyup.enter)="projectTabAdvSearch()" />
+                        </div>
+    
+                        <!-- proposal number -->
+                        <div *ngIf="advancedSearchOrder === 'PROJECT_NUMBER'" class="col-xl-3 col-lg-4 col-sm-6 col-12">
+                            <label class="d-block" for="coi-adv-search-project-number">{{
+                                projectDashboardService.projectOverviewRequestObject.tabName === 'DEV_PROPOSAL' ? 'Proposal Number' : 'Award Number'
+                                }}</label>
+                            <input type="text" id="coi-adv-search-project-number"
+                                [attr.placeholder]="projectDashboardService.projectOverviewRequestObject.tabName === 'DEV_PROPOSAL' ? 'Type the Proposal Number here' : 'Type the Award Number here'"
+                                [title]="projectDashboardService.projectOverviewRequestObject.tabName === 'DEV_PROPOSAL' ? 'Click here to search by proposal number' : 'Click here to search by award number'"
+                                [attr.aria-label]="projectDashboardService.projectOverviewRequestObject.tabName === 'DEV_PROPOSAL' ? 'Proposal number search field' : 'Award number search field'"
+                                maxlength="60" autocomplete="off" class="form-control" [(ngModel)]="localProjectOverviewRO.property6"
+                                (keyup.enter)="projectTabAdvSearch()" />
+                        </div>
+    
+                        <!-- account number -->
+                        <div *ngIf="advancedSearchOrder === 'ACCOUNT_NUMBER' && projectDashboardService.projectOverviewRequestObject.tabName === 'AWARD'"
+                            class="col-xl-3 col-lg-4 col-sm-6 col-12">
+                            <label class="d-block" for="coi-adv-search-account-number">Account Number</label>
+                            <input type="text" id="coi-adv-search-account-number" placeholder="Type the Account Number here"
+                                title="Click here to search by Account Number" aria-label="Account Number search field"
+                                maxlength="60" autocomplete="off" class="form-control"
+                                [(ngModel)]="localProjectOverviewRO.accountNumber" (keyup.enter)="projectTabAdvSearch()" />
+                        </div>
+    
+                        <!-- PI Name -->
+                        <div *ngIf="advancedSearchOrder === 'PRINCIPAL_INVESTIGATOR'" class="col-xl-3 col-lg-4 col-sm-6 col-12"
+                            title="Click here to search by Principal Investigator" tabindex="-1" aria-label="Principal Investigator search field">
+                            <label class="d-block" for="coi-adv-search-project-pi-name">Principal Investigator</label>
+                            <app-elastic (selectedResult)="onPiPersonNameSelect($event)" [clearField]="advSearchClearField"
+                                [options]="elasticPersonSearchOptionsForProjectOverviewPI" [placeHolder]="'Search by Principal Investigator'"
+                                [uniqueId]="'coi-adv-search-project-pi-name'" (keyup.enter)="projectTabAdvSearch()" [canEmitSearchText]="true">
+                            </app-elastic>
+                        </div>
+    
+                        <!-- Department Name -->
+                        <div *ngIf="advancedSearchOrder === 'DEPARTMENT_NAME'" class="col-xl-3 col-lg-4 col-sm-6 col-12"
+                            title="Click here to search by lead unit name" tabindex="-1" aria-label="Lead unit search field">
+                            <label class="d-block" for="coi-adv-project-lead-unit-name">Lead Unit</label>
+                            <app-endpoint-search (onSelect)="onLeadUnitSelected($event)"
+                                [clearField]="clearAdvSearchFields" [httpOptions]="leadUnitSearchOptionsForProjectOverview"
+                                [placeHolder]="advSearchLeadUnitPlaceholder"
+                                [uniqueId]="'coi-adv-project-lead-unit-name'" (keyup.enter)="projectTabAdvSearch()" [canEmitSearchText]="true">
+                            </app-endpoint-search>
+                        </div>
+
+                        <!-- Contract Administrator Name -->
+                        <div *ngIf="advancedSearchOrder === 'CA_ADMIN_NAME'" class="col-xl-3 col-lg-4 col-sm-6 col-12"
+                            title="Click here to search by Contract Administrator name" tabindex="-1" aria-label="Contract Administrator search field">
+                            <label class="d-block" for="oi-adv-project-ca-admin-name">Contract Administrator</label>
+                            <app-endpoint-search (onSelect)="onCaAdminSelect($event)"
+                                [clearField]="clearAdvSearchFields" [httpOptions]="caAdminSearchOptionsForProjectOverview"
+                                [placeHolder]="advSearchCaAdminPlaceholder"
+                                [uniqueId]="'coi-adv-project-ca-admin-name'" (keyup.enter)="projectTabAdvSearch()" [canEmitSearchText]="true">
+                            </app-endpoint-search>
+                        </div>
+    
+                        <!-- Project Status -->
+                        <div *ngIf="advancedSearchOrder === 'PROJECT_STATUS'" class="col-xl-3 col-lg-4 col-sm-6 col-12" tabindex="-1" role="listbox"
+                            aria-label="Project Status dropdown" title="Click here to search by project status">
+                            <label class="d-block" for="coi-adv-search-project-status">
+                                {{ projectDashboardService.projectOverviewRequestObject.tabName === 'DEV_PROPOSAL' ? 'Proposal Status' : 'Award Status' }}
+                            </label>
+                            <app-look-up (selectedResult)="onLookupSelectData($event, 'property4')"
+                                [options]="proposalStatusOptionsForProjectOverview"
+                                [externalArray]="projectDashboardService.projectOverviewRequestObject.tabName === 'DEV_PROPOSAL' ? lookupArrayForProjectStatus : lookupArrayForAwardStatus"  [isExternalArray]="true"
+                                [selectedLookUpList]="lookupValuesForProjectOverview['property4']"
+                                [uniqueId]="'coi-adv-search-project-status'" [needResultOnEachSelection]="true"
+                                (keyup.enter)="projectTabAdvSearch()">
+                            </app-look-up>
+                        </div>
+    
+                        <!-- Sponsor -->
+                        <div *ngIf="advancedSearchOrder === 'SPONSOR'" class="col-xl-3 col-lg-4 col-sm-6 col-12"
+                            title="Click here to search by sponsor" tabindex="-1" aria-label="Sponsor search field">
+                            <label class="d-block" for="coi-adv-search-project-sponsor">
+                                Sponsor
+                            </label>
+                            <app-endpoint-search (onSelect)="onSponsorSelect($event)"
+                                [clearField]="clearAdvSearchFields" [httpOptions]="sponsorSearchOptionsForProjectOverview"
+                                [placeHolder]="'Search by Sponsor'" [uniqueId]="'coi-adv-search-project-sponsor'"
+                                (keyup.enter)="projectTabAdvSearch()" [canEmitSearchText]="true">
+                            </app-endpoint-search>
+                        </div>
+    
+                        <!-- Prime Sponsor -->
+                        <div *ngIf="advancedSearchOrder === 'PRIME_SPONSOR'" class="col-xl-3 col-lg-4 col-sm-6 col-12" title="Click here to search by prime sponsor"
+                            tabindex="-1" aria-label="Prime sponsor search field">
+                            <label class="d-block" for="coi-adv-search-project-prime-sponsor">
+                                Prime Sponsor
+                            </label>
+                            <app-endpoint-search (onSelect)="onPrimeSponsorSelect($event)"
+                                [clearField]="clearAdvSearchFields"
+                                [httpOptions]="primeSponsorSearchOptionsForProjectOverview"
+                                [placeHolder]="'Search by Prime Sponsor'"
+                                [uniqueId]="'coi-adv-search-project-prime-sponsor'" (keyup.enter)="projectTabAdvSearch()" [canEmitSearchText]="true">
+                            </app-endpoint-search>
+                        </div>
+    
+                        <!-- Person Name -->
+                        <div *ngIf="advancedSearchOrder === 'PERSON_NAME'" class="col-xl-3 col-lg-4 col-sm-6 col-12"
+                            title="Click here to search by person name" tabindex="-1" aria-label="Person search field">
+                            <label class="d-block" for="coi-adv-search-project-person-name">Person</label>
+                            <app-elastic (selectedResult)="onPersonNameSelect($event)" [clearField]="advSearchClearField"
+                                [options]="elasticPersonSearchOptionsForProjectOverview" [placeHolder]="'Search by Person'"
+                                [uniqueId]="'coi-adv-search-project-person-name'" (keyup.enter)="projectTabAdvSearch()" [canEmitSearchText]="true">
+                            </app-elastic>
+                        </div>
+    
+                        <!-- Submission Status -->
+                        <div *ngIf="advancedSearchOrder === 'SUBMISSION_STATUS'" class="col-xl-3 col-lg-4 col-sm-6 col-12"
+                            title="Click here to search by submission status" tabindex="-1" aria-label="Click here to search by submission status"
+                            i18n-title="@@PROJECT_SUBMISSION_STATUS_TITLE" i18n-aria-label="@@PROJECT_SUBMISSION_STATUS_ARIA_LABEL">
+                            <label class="d-block" for="adv-proj-submission-status"><ng-container i18n="@@PROJECT_SUBMISSION_STATUS">Submission Status</ng-container></label>
+                            <app-look-up (selectedResult)="onLookupSelectData($event, 'coiSubmissionStatus')" [options]="submissionStatusLookup.options"
+                                [externalArray]="submissionStatusLookup[projectDashboardService.projectOverviewRequestObject.tabName]" [isExternalArray]="true"
+                                [selectedLookUpList]="lookupValuesForProjectOverview.coiSubmissionStatus" [uniqueId]="'adv-proj-submission-status'"
+                                [needResultOnEachSelection]="true" (keyup.enter)="projectTabAdvSearch()">
+                            </app-look-up>
+                        </div>
+    
+                        <!-- start date -->
+                        <div *ngIf="advancedSearchOrder === 'START_DATE'" class="col-xl-3 col-lg-4 col-sm-6 col-12" title="Click here to search by start date"
+                            tabindex="-1" aria-label="Start Date search field">
+                            <label class="d-block" for="coi-adv-search-project-start-date">
+                                Start Date
+                            </label>
+                            <span class="dateField">
+                                <input #startDateInput matInput [matDatepicker]="startDate" id="coi-adv-search-project-start-date"
+                                    (click)="startDate.open()" (keyup.enter)="projectTabAdvSearch()"
+                                    (ngModelChange)="validateDateFormat('fromDate')"
+                                    (dateChange)="validateDateFormat('fromDate')" (blur)="validateDateFormat('fromDate')"
+                                    (keypress)="commonService._keyPress($event, 'date')" class="form-control d-inline-block"
+                                    [(ngModel)]="advacnceSearchDatesForProjectOverview.startDate"
+                                    placeholder="{{ datePlaceHolder }}">
+                                <button class="btn-none insidePicker" (click)="startDate.open()"
+                                    title="Click here to open date picker"
+                                    aria-label="Click here to open date picker for start date">
+                                    <mat-icon class="coi-mat-icon-size coi-text-light"
+                                        aria-hidden="true">calendar_month</mat-icon>
+                                </button>
+                                <mat-datepicker #startDate></mat-datepicker>
+                            </span>
+                            <span *ngIf="dateFormatValidationMap.get('fromDate')" class="invalid-feedback d-block">
+                                {{ dateFormatValidationMap.get('fromDate') }}
+                            </span>
+                        </div>
+    
+                        <!-- end date -->
+                        <div *ngIf="advancedSearchOrder === 'END_DATE'" class="col-xl-3 col-lg-4 col-sm-6 col-12" title="Click here to search by end date"
+                            tabindex="-1" aria-label="End date search field">
+                            <label class="d-block" for="coi-adv-search-project-end-date">
+                                End Date
+                            </label>
+                            <span class="dateField">
+                                <input #endDateInput matInput [matDatepicker]="endDate" id="coi-adv-search-project-end-date"
+                                    (click)="endDate.open()" (keyup.enter)="projectTabAdvSearch()"
+                                     (ngModelChange)="validateDateFormat('toDate')"
+                                    (dateChange)="validateDateFormat('toDate')" (blur)="validateDateFormat('toDate')"
+                                    (keypress)="commonService._keyPress($event, 'date')" class="form-control d-inline-block"
+                                    [(ngModel)]="advacnceSearchDatesForProjectOverview.endDate"
+                                    placeholder="{{ datePlaceHolder }}">
+                                <button class="btn-none insidePicker" (click)="endDate.open()"
+                                    title="Click here to open date picker"
+                                    aria-label="Click here to open date picker for end date">
+                                    <mat-icon class="coi-mat-icon-size coi-text-light"
+                                        aria-hidden="true">calendar_month</mat-icon>
+                                </button>
+                                <mat-datepicker #endDate></mat-datepicker>
+                            </span>
+                            <span *ngIf="dateFormatValidationMap.get('toDate')" class="invalid-feedback d-block">
+                                {{ dateFormatValidationMap.get('toDate') }}
+                            </span>
+                        </div>
+                    </ng-container>
+                    <div class="col d-flex justify-content-end mt-4 align-items-end">
+                        <button class="btn btn-outline-secondary fs-14 mx-2 px-3" id="coi-adv-search-project-clear-btn"
+                            (click)="clearAndExecuteAdvancedSearch()"
+                            title="Click here to clear all the fields"
+                            aria-label="Click here to clear all the fields">
+                            Clear
+                        </button>
+                        <button class="btn btn-primary fs-14" id="coi-adv-search-project-search-btn"
+                            (click)="projectTabAdvSearch()"
+                            aria-label="Click here to get the search results with/without fields">
+                            Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- sorting for all disclosures,  && coiList.length)  *ngIf="isShowDisclosureList" -->
+        <div *ngIf="isShowDisclosureList && projectOverviewData?.projectOverviewDetails?.length" class="sort-div border mt-2 px-3">
+            <span class="fs-14 fw-medium me-2 text-secondary">Sort By :</span>
+            <button *ngFor="let sortSection of sortSectionsList; let index = index"
+                title="Click here to sort by {{sortSection?.fieldName}}" (click)="sortResult(sortSection?.variableName)"
+                [attr.aria-labelledby]="'coi-admin-dashboard-sort-' + index"
+                [ngClass]="getClassForSort(index, sortSection)"
+                class="shadow-sm fw-medium py-2 px-3 fs-13 border rounded-5 bg-white coi-sort-filter-btn">
+
+                <div class="d-inline-flex align-items-center">
+                    <span class="d-none" id="coi-admin-dashboard-sort-{{index}}">Click here to sort by {{ sortSection?.fieldName }} in
+                        {{projectDashboardService.projectOverviewRequestObject.sort[sortSection?.variableName]=== 'asc' ? 'descending Order'
+                        : projectDashboardService.projectOverviewRequestObject.sort[sortSection?.variableName]=== 'desc' ? 'normal Order' : 'ascending order'}}</span>
+                    <span>{{sortSection?.fieldName}}</span>
+                    <!-- Change for PROJECTS: Checking true/false instead of 'asc'/'desc' -->
+                    <mat-icon aria-hidden="true" class="arrow selected-arrow flex-shrink-0" [@slideDown]
+                        *ngIf="projectDashboardService.projectOverviewRequestObject.sort[sortSection?.variableName]=== 'asc' ||
+                        projectDashboardService.projectOverviewRequestObject.sort[sortSection?.variableName] === 'asc' ">arrow_downward</mat-icon>
+                    <mat-icon aria-hidden="true" class="arrow selected-arrow flex-shrink-0" [@slideUp] [@scaleOut]
+                        *ngIf="projectDashboardService.projectOverviewRequestObject.sort[sortSection?.variableName]=== 'desc' ||
+                        projectDashboardService.projectOverviewRequestObject.sort[sortSection?.variableName] === 'desc' ">arrow_upward</mat-icon>
+                </div>
+            </button>
+        </div>
+    </section>
+
+    <ng-container *ngIf="isShowDisclosureList && !isLoading">
+        <ng-container *ngIf="projectOverviewData?.projectOverviewDetails?.length; else noData">
+            <ng-container *ngFor="let project of projectOverviewData?.projectOverviewDetails; let index = index">
+                <app-project-dashboard-card [projectData]="project"
+                    [isCAAdmin]="isCAAdmin" (emitProjectDetails)="getCurrentProjectDetails($event)">
+                </app-project-dashboard-card>
+            </ng-container>
+        </ng-container>
+
+         <!-- no info -->
+        <ng-template #noData>
+            <app-no-information>
+                <span>{{ isAdvanceSearchMade ? noDataMessage?.['ADVANCE_SEARCH_NO_INFO']
+                    : (noDataMessage?.[projectDashboardService?.projectOverviewRequestObject?.tabName]) }}</span>
+            </app-no-information>
+        </ng-template>
+    </ng-container>
+
+    <!-- pagination -->
+    <div *ngIf="isShowDisclosureList && projectOverviewData?.projectOverviewDetails?.length" [hidden]="isLoading"
+        class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 mt-3">
+        <nav aria-label="pagination section" class="pagination justify-content-end">
+            <app-pagination (pageChangeEvent)="actionsOnPageChange($event)" [totalCount]="totalPageCount"
+                [defaultCurrentPage]="localProjectOverviewRO.currentPage">
+            </app-pagination>
+        </nav>
+    </div>
+
+    <!-- Mark as Disclosure mandatory confirmation popup-->
+    <app-common-modal [modalConfig]="modalConfig" (modalAction)="postConfirmation($event)" >
+        <ng-container modal-header>
+            <span>Confirmation<app-common-help-text [subSectionId]="807" [elementId]="'disc-mandatory-popup-title'"></app-common-help-text></span>
+        </ng-container>
+        <ng-container modal-body>
+            <p>Are you sure you want to <strong>request a disclosure</strong> for this award?</p>
+            <div class="col-12">
+                <label class="d-block coi-text-dark" for="proj-discl-mandatory-modal-desc">
+                        <span class="mandatory me-1">*</span>Description<app-common-help-text [subSectionId]="807" [elementId]="'disc-mandatory-popup-disc'"></app-common-help-text>
+                </label>
+                <textarea appTailingSpaceRemover class="form-control" id="proj-discl-mandatory-modal-desc" rows="4"
+                    [(ngModel)]="confirmationDescription"
+                    [ngClass]="{ 'is-invalid d-block': mandatoryList?.has('description')}"
+                    appLengthValidator [limit]="2000" [styleList]="'mt-2 float-end word-count'"
+                    placeholder="Please enter the description"
+                    aria-label="Please enter the description">
+                </textarea>
+                <span *ngIf="mandatoryList?.has('description')"
+                    class="invalid-feedback d-inline fs-13"> {{mandatoryList?.get('description')}}</span>
+            </div>
+        </ng-container>
+    </app-common-modal>
+    <!-- Mark as Disclosure mandatory confirmation popup-->
+</div>

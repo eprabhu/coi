@@ -1,0 +1,81 @@
+<!-- card view -->
+<ng-container *ngIf="entityDupCheckConfig.duplicateView === 'CARD_VIEW'">
+    <ng-container *ngFor="let entity of entitiesWithConfigDetails">
+        <app-shared-entity-details-card [entityCardConfig]="entity" (actions)="actionsFromCard($event)"></app-shared-entity-details-card>
+    </ng-container>
+</ng-container>
+
+<!-- modal view -->
+<ng-container *ngIf="entityDupCheckConfig.duplicateView === 'MODAL_VIEW'">
+    <app-common-modal [modalConfig]="duplicateEntityModalConfig" (modalAction)="modalAction($event)">
+        <!-- header -->
+        <ng-container modal-header>
+            <span>{{ entityDupCheckConfig?.header }}</span>
+        </ng-container>
+        <!-- body -->
+        <ng-container modal-body>
+            <!-- info -->
+            <div class="position-sticky coi-negative-top z-index-2 pb-2 bg-white">
+                <div class="d-flex alert alert-primary mb-0 py-2 mt-2">
+                    <mat-icon class="mat-icon material-icons flex-shrink-0" aria-hidden="true">info</mat-icon>
+                    <p class="fs-14 mb-0 ms-2">
+                        <span class="d-flex algin-items-start">{{ entityDupCheckConfig?.infoText }}</span>
+                    </p>
+                </div>
+            </div>
+            <!-- card -->
+            <ng-container *ngFor="let entity of entitiesWithConfigDetails; let isFirst = first">
+                <div [class.my-1]="!isFirst">
+                    <app-shared-entity-details-card [entityCardConfig]="entity" (actions)="actionsFromCard($event)"></app-shared-entity-details-card>
+                </div>
+            </ng-container>
+        </ng-container>
+    </app-common-modal>
+</ng-container>
+
+<!-- slider view -->
+<ng-container *ngIf="entityDupCheckConfig.duplicateView === 'SLIDER_VIEW'">
+    <app-coi-slider (closeSlider)="closeDuplicateSlider('CLOSE_SLIDER', entityDupCheckConfig, entityDupCheckConfig.entityCardDetails)" [elementId]="ENTITY_DUPLICATE_MATCH_SLIDER_ID"
+        [isHeaderNeeded]="true" [sliderWidth]="'w-100 w-xxl-75 w-lg-75'">
+
+        <!-- slider header -->
+        <ng-container header>
+            <span id="{{ENTITY_DUPLICATE_MATCH_SLIDER_ID}}-head">{{matchedDuplicateEntites?.length}} {{ entityDupCheckConfig?.header }}</span>
+            <app-common-help-text [helpTextHardCoded]="entityDupCheckConfig?.header"></app-common-help-text>
+        </ng-container>
+
+        <!-- modal content -->
+        <ng-container content>
+            <!-- info -->
+            <div class="position-sticky coi-negative-top z-index-2 pb-2 bg-white">
+                <div class="d-flex alert alert-primary m-0 py-2">
+                    <mat-icon class="mat-icon material-icons flex-shrink-0" aria-hidden="true">info</mat-icon>
+                    <p class="fs-14 mb-0 ms-2">
+                        <span class="d-flex algin-items-start">{{entityDupCheckConfig?.infoText}}</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- duplicate card -->
+            <div class="d-flex flex-column gap-2">
+                <ng-container *ngFor="let entity of entitiesWithConfigDetails">
+                    <app-shared-entity-details-card [entityCardConfig]="entity" (actions)="actionsFromCard($event)"></app-shared-entity-details-card>
+                </ng-container>
+            </div>
+
+            <!-- confirmation -->
+            <div *ngIf="entityDupCheckConfig.confirmationText" class="col-12 py-2 position-sticky coi-negative-bottom bg-white z-index-2">
+                <div class="d-flex align-items-center gap-2 matching-card p-3 rounded-2">
+                    <input type="checkbox" [(ngModel)]="entityDupCheckConfig.hasConfirmedNoDuplicate"
+                        name="coi-entity-verify-duplicate-confirm"
+                        (ngModelChange)="updateVerifyButtonState()"
+                        title="Click here to confirm the items are not exact duplicates"
+                        aria-label="Click here to confirm the items are not exact duplicates"
+                        class="coi-certify-box cursor-pointer" id="coi-entity-verify-duplicate-confirm">
+                    <label for="coi-entity-verify-duplicate-confirm" class="coi-text-light cursor-pointer">{{ entityDupCheckConfig.confirmationText }}</label>
+                </div>
+            </div>
+        </ng-container>
+    </app-coi-slider>
+</ng-container>
+

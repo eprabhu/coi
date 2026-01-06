@@ -1,0 +1,68 @@
+<app-coi-section-card customClass="coi-entity-section-card overflow-hidden" [uniqueId]="sectionDetails?.sectionId">
+    <ng-container card-header-icon>
+        <mat-icon aria-hidden="true" class="coi-mat-icon-size">{{ sectionDetails?.sectionIcon }}</mat-icon>
+    </ng-container>
+    <ng-container card-header-content>
+        <span>{{ sectionDetails?.sectionName }}</span>
+    </ng-container>
+
+    <ng-container card-body>
+        <div class="row row-gap-2">
+
+            <!-- NO_CHANGE -->
+            <ng-container *ngFor="let risk of riskComparison?.NO_CHANGE">
+                <ng-container *ngTemplateOutlet="riskTemplate; context: { data: risk, type: 'NO_CHANGE' }"></ng-container>
+            </ng-container>
+
+            <!-- UPDATE -->
+            <ng-container *ngFor="let config of riskComparison?.UPDATE">
+                <ng-container *ngTemplateOutlet="riskTemplate; context: { data: config, type: 'UPDATE' }"></ng-container>
+            </ng-container>
+
+            <!-- ADD -->
+            <ng-container *ngFor="let risk of riskComparison?.ADD">
+                <ng-container *ngTemplateOutlet="riskTemplate; context: { data: risk, type: 'ADD' }"></ng-container>
+            </ng-container>
+
+            <!-- DELETE -->
+            <ng-container *ngFor="let risk of riskComparison?.DELETE">
+                <ng-container *ngTemplateOutlet="riskTemplate; context: { data: risk, type: 'DELETE' }"></ng-container>
+            </ng-container>
+
+            <!-- No Info -->
+            <ng-container
+                *ngIf="!riskComparison?.NO_CHANGE?.length && !riskComparison?.UPDATE?.length && !riskComparison?.ADD?.length && !riskComparison?.DELETE?.length">
+                <app-no-information customClass="overflow-hidden rounded-3 mt-0"
+                    [isBorderNeeded]="false"></app-no-information>
+            </ng-container>
+
+        </div>
+    </ng-container>
+</app-coi-section-card>
+
+<!-- risk template -->
+<ng-template #riskTemplate let-data="data" let-type="type">
+    <div class="col-12">
+        <ng-container [ngSwitch]="type">
+            <!-- UPDATE -->
+            <div *ngSwitchCase="'UPDATE'" class="coi-card-regular shadow-sm rounded-3 p-3 mt-0">
+                <span class="d-block coi-text-light">
+                    {{ data?.leftSideDetails?.riskType?.description || data?.leftSideDetails?.riskTypeDescription }} -
+                    <app-coi-field-compare [valueLeft]="data?.leftSideDetails?.riskLevel?.description"
+                        [valueRight]="data?.rightSideDetails?.riskLevel?.description">
+                    </app-coi-field-compare>
+                </span>
+                <app-coi-field-compare [valueLeft]="data?.leftSideDetails?.description"
+                    [valueRight]="data?.rightSideDetails?.description" [customClass]="'pt-1'">
+                </app-coi-field-compare>
+            </div>
+
+            <!-- NO_CHANGE, ADD, DELETE -->
+            <div *ngSwitchDefault class="coi-text-light shadow-sm rounded-3 p-3"
+                [ngClass]="{ 'coi-card-regular mt-0': type === 'NO_CHANGE', 'coi-comparison-bg coi-comparison-bg-green': type === 'ADD', 'coi-comparison-bg coi-comparison-bg-red': type === 'DELETE' }">
+                <span class="d-block">{{ data?.riskType?.description || data?.riskTypeDescription }} - <span class="fw-500">{{ data?.riskLevel?.description }}</span></span>
+                <span class="fw-500">{{ data?.description }}</span>
+            </div>
+        </ng-container>
+    </div>
+</ng-template>
