@@ -1,0 +1,21 @@
+
+
+--
+--  `business_rule_log`
+--
+
+DROP TABLE IF EXISTS `business_rule_log`;
+
+CREATE TABLE `business_rule_log` (
+  `RULE_LOG_ID` int(11) NOT NULL,
+  `MODULE_ITEM_KEY` varchar(20) DEFAULT NULL,
+  `RULE_ID` int(11) DEFAULT NULL,
+  `RULE_EXPRESSION_ID` varchar(1000) DEFAULT NULL,
+  `ERROR_MESSAGE` varchar(1000) DEFAULT NULL,
+  `ERROR_DATE` date DEFAULT NULL,
+  `MODULE_CODE` int(11) DEFAULT NULL,
+  `SUB_MODULE_CODE` int(11) DEFAULT NULL,
+  `SUB_MODULE_ITEM_KEY` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`RULE_LOG_ID`)
+);
+

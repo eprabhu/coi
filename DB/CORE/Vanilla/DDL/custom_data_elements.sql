@@ -1,0 +1,29 @@
+
+
+--
+--  `custom_data_elements`
+--
+
+DROP TABLE IF EXISTS `custom_data_elements`;
+
+CREATE TABLE `custom_data_elements` (
+  `CUSTOM_DATA_ELEMENTS_ID` int(11) NOT NULL,
+  `COLUMN_LABEL` varchar(255) DEFAULT NULL,
+  `DATA_LENGTH` int(11) DEFAULT NULL,
+  `DATA_TYPE` varchar(255) DEFAULT NULL,
+  `DEFAULT_VALUE` varchar(255) DEFAULT NULL,
+  `HAS_LOOKUP` varchar(255) DEFAULT NULL,
+  `LOOKUP_ARGUMENT` varchar(255) DEFAULT NULL,
+  `LOOKUP_WINDOW` varchar(255) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime(6) DEFAULT NULL,
+  `UPDATE_USER` varchar(255) DEFAULT NULL,
+  `IS_ACTIVE` varchar(1) DEFAULT 'N',
+  `IS_MULTI_SELECT_LOOKUP` varchar(1) DEFAULT NULL,
+  `custom_element_name` varchar(70) DEFAULT NULL,
+  `HELP_DESCRIPTION` text,
+  `HELP_LINK` varchar(500) DEFAULT NULL,
+  PRIMARY KEY (`CUSTOM_DATA_ELEMENTS_ID`),
+  KEY `CUSTOM_DATA_ELEMENTS_FK1` (`DATA_TYPE`),
+  CONSTRAINT `CUSTOM_DATA_ELEMENTS_FK1` FOREIGN KEY (`DATA_TYPE`) REFERENCES `custom_data_elements_data_type` (`DATA_TYPE_CODE`)
+);
+

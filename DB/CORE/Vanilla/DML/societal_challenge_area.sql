@@ -1,0 +1,5 @@
+INSERT INTO societal_challenge_area (CHALLENGE_AREA_CODE,DESCRIPTION,UPDATE_TIMESTAMP,UPDATE_USER,IS_ACTIVE) VALUES ('1','Interpreting Economies & Financial Markets','2019-04-27 16:16:06','admin','Y');
+INSERT INTO societal_challenge_area (CHALLENGE_AREA_CODE,DESCRIPTION,UPDATE_TIMESTAMP,UPDATE_USER,IS_ACTIVE) VALUES ('2','Strengthening Social Fabric & Quality of Life','2020-09-17 15:33:22.362000','admin','N');
+INSERT INTO societal_challenge_area (CHALLENGE_AREA_CODE,DESCRIPTION,UPDATE_TIMESTAMP,UPDATE_USER,IS_ACTIVE) VALUES ('3','Navigating Boundaries & Borders','2020-09-17 15:33:10.403000','admin','N');
+INSERT INTO societal_challenge_area (CHALLENGE_AREA_CODE,DESCRIPTION,UPDATE_TIMESTAMP,UPDATE_USER,IS_ACTIVE) VALUES ('4','Managing for Sustainability','2019-04-27 16:16:06','admin','Y');
+INSERT INTO societal_challenge_area (CHALLENGE_AREA_CODE,DESCRIPTION,UPDATE_TIMESTAMP,UPDATE_USER,IS_ACTIVE) VALUES ('5','Advancing Innovation & Technology','2020-09-17 15:33:04.077000','admin','N');

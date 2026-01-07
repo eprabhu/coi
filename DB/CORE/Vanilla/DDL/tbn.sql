@@ -1,0 +1,20 @@
+
+
+--
+--  `tbn`
+--
+
+DROP TABLE IF EXISTS `tbn`;
+
+CREATE TABLE `tbn` (
+  `TBN_ID` varchar(9) NOT NULL,
+  `PERSON_NAME` varchar(90) DEFAULT NULL,
+  `JOB_CODE` varchar(6) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `UPDATE_USER` varchar(60) DEFAULT NULL,
+  `IS_ACTIVE` varchar(1) DEFAULT 'Y',
+  PRIMARY KEY (`TBN_ID`),
+  KEY `TBN_FK1` (`JOB_CODE`),
+  CONSTRAINT `TBN_FK1` FOREIGN KEY (`JOB_CODE`) REFERENCES `job_code` (`JOB_CODE`)
+);
+

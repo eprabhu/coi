@@ -1,0 +1,21 @@
+
+
+--
+--  `assoc_data_migration`
+--
+
+DROP TABLE IF EXISTS `assoc_data_migration`;
+
+CREATE TABLE `assoc_data_migration` (
+  `MAPPING_ID` int(11) NOT NULL,
+  `SOURCE_MODULE_CODE` int(11) DEFAULT NULL,
+  `DESTINATION_MODULE_CODE` int(11) DEFAULT NULL,
+  `DESCRIPTION` varchar(100) DEFAULT NULL,
+  `MIGRATION_TYPE` varchar(12) DEFAULT NULL,
+  `MIGRATION_ROUTINE_NAME` varchar(60) DEFAULT NULL,
+  `IS_ACTIVE` varchar(1) DEFAULT NULL,
+  `UPDATE_USER` varchar(60) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  PRIMARY KEY (`MAPPING_ID`)
+);
+

@@ -1,0 +1,29 @@
+
+
+--
+--  `mq_exception_log`
+--
+
+DROP TABLE IF EXISTS `mq_exception_log`;
+
+CREATE TABLE `mq_exception_log` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `ACTION_TYPE` varchar(200) DEFAULT NULL,
+  `ERROR_CODE` varchar(10) DEFAULT NULL,
+  `ERROR_MESSAGE` varchar(255) DEFAULT NULL,
+  `MESSAGE_ID` varchar(100) NOT NULL,
+  `MODULE_CODE` int(11) DEFAULT NULL,
+  `QUEUE_EXCHANGE` varchar(60) DEFAULT NULL,
+  `QUEUE_MESSAGE` text NOT NULL,
+  `SOURCE_QUEUE_NAME` varchar(60) DEFAULT NULL,
+  `DESTINATION_QUEUE_NAME` varchar(60) DEFAULT NULL,
+  `STACK_TRACE` text,
+  `SUB_MODULE_CODE` int(11) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `UPDATE_USER` varchar(60) DEFAULT NULL,
+  `USER_TYPE` varchar(3) DEFAULT 'S',
+  `EVENT_TYPE` varchar(3) DEFAULT NULL,
+  `TRIGGER_TYPE` varchar(25) DEFAULT NULL,
+  PRIMARY KEY (`ID`)
+);
+

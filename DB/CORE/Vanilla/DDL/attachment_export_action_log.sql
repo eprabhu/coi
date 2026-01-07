@@ -1,0 +1,15 @@
+DROP TABLE IF EXISTS `attachment_export_action_log`;
+
+CREATE TABLE `attachment_export_action_log` (
+  `BATCH_ID` int NOT NULL AUTO_INCREMENT,
+  `FILE_NAME` varchar(300) DEFAULT NULL,
+  `EXPORT_STATUS` varchar(1) DEFAULT NULL,
+  `MODULE_ITEM_KEY` int DEFAULT NULL,
+  `MODULE_CODE` int DEFAULT NULL,
+  `PERSON_ID` varchar(60) DEFAULT NULL,
+  `DATA` longblob,
+  `FILE_PATH` varchar(1000) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `UPDATE_USER` varchar(60) DEFAULT NULL,
+  PRIMARY KEY (`BATCH_ID`)
+) ;

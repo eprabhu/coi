@@ -1,0 +1,21 @@
+
+
+--
+--  `help_text`
+--
+
+DROP TABLE IF EXISTS `help_text`;
+
+CREATE TABLE `help_text` (
+  `HELP_TEXT_ID` int(11) NOT NULL,
+  `MODULE_CODE` int(11) DEFAULT NULL,
+  `SECTION_CODE` int(11) DEFAULT NULL,
+  `CATEGORY` varchar(50) DEFAULT NULL,
+  `HELP_TEXT` varchar(500) DEFAULT NULL,
+  `PARENT_HELP_TEXT_ID` int(11) DEFAULT NULL,
+  `IS_ACTIVE` varchar(1) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `UPDATE_USER` varchar(60) DEFAULT NULL,
+  PRIMARY KEY (`HELP_TEXT_ID`)
+);
+

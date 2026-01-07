@@ -1,0 +1,17 @@
+
+
+--
+--  `person_system_notification_mapping`
+--
+
+DROP TABLE IF EXISTS `person_system_notification_mapping`;
+
+CREATE TABLE `person_system_notification_mapping` (
+  `PERSON_ID` varchar(40) NOT NULL,
+  `SYSTEM_NOTIFICATION_ID` int(11) NOT NULL,
+  `READ_TIMESTAMP` datetime DEFAULT NULL,
+  PRIMARY KEY (`PERSON_ID`,`SYSTEM_NOTIFICATION_ID`),
+  KEY `FK_SYSTEM_NOTIFICATION_ID` (`SYSTEM_NOTIFICATION_ID`),
+  CONSTRAINT `FK_SYSTEM_NOTIFICATION_ID` FOREIGN KEY (`SYSTEM_NOTIFICATION_ID`) REFERENCES `system_notification` (`SYSTEM_NOTIFICATION_ID`) ON DELETE CASCADE
+);
+

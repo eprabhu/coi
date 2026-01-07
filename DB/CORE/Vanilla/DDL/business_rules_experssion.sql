@@ -1,0 +1,21 @@
+
+
+--
+--  `business_rules_experssion`
+--
+
+DROP TABLE IF EXISTS `business_rules_experssion`;
+
+CREATE TABLE `business_rules_experssion` (
+  `RULES_EXPERSSION_ID` int(11) PRIMARY KEY NOT NULL,
+  `RULE_ID` int(11) DEFAULT NULL,
+  `EXPRESSION_NUMBER` int(11) DEFAULT NULL,
+  `EXPRESSION_TYPE_CODE` varchar(1) DEFAULT NULL,
+  `LVALUE` varchar(4000) DEFAULT NULL,
+  `CONDITION_OPERATOR` varchar(25) DEFAULT NULL,
+  `RVALUE` varchar(4000) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `UPDATE_USER` varchar(40) DEFAULT NULL,
+  `PARENT_EXPRESSION_NUMBER` int(11) DEFAULT NULL
+);
+

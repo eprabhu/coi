@@ -1,0 +1,16 @@
+
+
+--
+--  `clauses_group`
+--
+
+DROP TABLE IF EXISTS `clauses_group`;
+
+CREATE TABLE `clauses_group` (
+  `CLAUSES_GROUP_CODE` int(11) NOT NULL AUTO_INCREMENT,
+  `DESCRIPTION` varchar(200) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `UPDATE_USER` varchar(40) DEFAULT NULL,
+  PRIMARY KEY (`CLAUSES_GROUP_CODE`)
+);
+
