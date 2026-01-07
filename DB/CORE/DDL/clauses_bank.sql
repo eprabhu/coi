@@ -1,0 +1,16 @@
+
+
+--
+--  `clauses_bank`
+--
+
+DROP TABLE IF EXISTS `clauses_bank`;
+
+CREATE TABLE `clauses_bank` (
+  `CLAUSES_CODE` int(11) NOT NULL AUTO_INCREMENT,
+  `DESCRIPTION` varchar(1000) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `UPDATE_USER` varchar(40) DEFAULT NULL,
+  PRIMARY KEY (`CLAUSES_CODE`)
+);
+

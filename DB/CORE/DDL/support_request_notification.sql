@@ -1,0 +1,20 @@
+
+
+--
+--  `support_request_notification`
+--
+
+DROP TABLE IF EXISTS `support_request_notification`;
+
+CREATE TABLE `support_request_notification` (
+  `SUPPORT_REQUEST_NOTIFICATION_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `PRE_REVIEW_ID` int(11) NOT NULL,
+  `IS_READ` varchar(1) DEFAULT NULL,
+  `TO_PERSON_ID` varchar(60) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `UPDATE_USER` varchar(60) DEFAULT NULL,
+  PRIMARY KEY (`SUPPORT_REQUEST_NOTIFICATION_ID`),
+  KEY `PRE_REVIEW_ID_FK1_idx` (`PRE_REVIEW_ID`),
+  CONSTRAINT `PRE_REVIEW_ID_FK1` FOREIGN KEY (`PRE_REVIEW_ID`) REFERENCES `pre_review` (`PRE_REVIEW_ID`)
+);
+

@@ -1,0 +1,23 @@
+
+
+--
+--  `exception_log`
+--
+
+DROP TABLE IF EXISTS `exception_log`;
+
+CREATE TABLE `exception_log` (
+  `ERROR_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `ERROR_CODE` varchar(500) DEFAULT NULL,
+  `MESSAGE` varchar(1000) DEFAULT NULL,
+  `API_REQUEST` varchar(500) DEFAULT NULL,
+  `METHOD` varchar(20) DEFAULT NULL,
+  `REQUEST_BODY` varchar(4000) DEFAULT NULL,
+  `DEBUG_MESSSAGE` varchar(1000) DEFAULT NULL,
+  `STACKTRACE` mediumtext,
+  `REQUESTER_PERSON` varchar(50) DEFAULT NULL,
+  `CREATE_TIMESTAMP` datetime DEFAULT NULL,
+  `CREATE_USER` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`ERROR_ID`)
+);
+

@@ -1,0 +1,21 @@
+
+
+--
+--  `workflow_map`
+--
+
+DROP TABLE IF EXISTS `workflow_map`;
+
+CREATE TABLE `workflow_map` (
+  `MAP_ID` int(11) NOT NULL,
+  `DESCRIPTION` varchar(200) DEFAULT NULL,
+  `MAP_TYPE` varchar(1) DEFAULT NULL,
+  `UPDATE_USER` varchar(60) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `UNIT_NUMBER` varchar(8) DEFAULT NULL,
+  `MAP_NAME` varchar(300) DEFAULT NULL,
+  PRIMARY KEY (`MAP_ID`),
+  KEY `WORKFLOW_MAP_FK1` (`MAP_TYPE`),
+  CONSTRAINT `WORKFLOW_MAP_FK1` FOREIGN KEY (`MAP_TYPE`) REFERENCES `workflow_map_type` (`MAP_TYPE`)
+);
+

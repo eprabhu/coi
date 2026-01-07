@@ -1,0 +1,20 @@
+
+
+--
+--  `module_action_type`
+--
+
+DROP TABLE IF EXISTS `module_action_type`;
+
+CREATE TABLE `module_action_type` (
+  `MODULE_ACTION_TYPE_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `ACTION_TYPE` varchar(30) NOT NULL,
+  `MODULE_CODE` int(3) NOT NULL,
+  `SUB_MODULE_CODE` int(3) NOT NULL,
+  `IS_ACTIVE` varchar(1) DEFAULT NULL,
+  `DESCRIPTION` varchar(200) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `UPDATE_USER` varchar(60) DEFAULT NULL,
+  PRIMARY KEY (`MODULE_ACTION_TYPE_ID`)
+);
+

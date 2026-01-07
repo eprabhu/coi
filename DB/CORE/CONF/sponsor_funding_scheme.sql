@@ -1,0 +1,1 @@
+INSERT INTO `sponsor_funding_scheme` (`FUNDING_SCHEME_ID`, `FUNDING_SCHEME_CODE`, `SPONSOR_CODE`, `DESCRIPTION`, `UPDATE_TIMESTAMP`, `UPDATE_USER`) VALUES ('1', '1', '000100', 'International Aeronautics Research', '2025-03-25 16:00:39', 'admin');

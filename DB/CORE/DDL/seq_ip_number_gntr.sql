@@ -1,0 +1,15 @@
+
+
+--
+--  `seq_ip_number_gntr`
+--
+
+DROP TABLE IF EXISTS `seq_ip_number_gntr`;
+
+CREATE TABLE `seq_ip_number_gntr` (
+ `SEQ_IP_NUMBER_GNTR_ID` int PRIMARY KEY AUTO_INCREMENT,
+  `FY_BASED_IP_COUNTER` bigint(20) NOT NULL,
+  `CURRENT_FY` bigint(20) NOT NULL,
+  UNIQUE KEY `FY_BASED_IP_COUNTER_UNIQUE` (`FY_BASED_IP_COUNTER`),
+  UNIQUE KEY `CURRENT_FY_UNIQUE` (`CURRENT_FY`)
+);
