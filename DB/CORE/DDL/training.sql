@@ -1,0 +1,16 @@
+
+
+--
+--  `training`
+--
+
+DROP TABLE IF EXISTS `training`;
+
+CREATE TABLE `training` (
+  `TRAINING_CODE` int(11) NOT NULL,
+  `DESCRIPTION` varchar(255) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime(6) DEFAULT NULL,
+  `UPDATE_USER` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`TRAINING_CODE`)
+);
+

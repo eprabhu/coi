@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS `congressional_district`;
+
+CREATE TABLE `congressional_district` (
+  `CONG_DISTRICT_CODE` int(11) NOT NULL AUTO_INCREMENT,
+  `DESCRIPTION` varchar(200) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `UPDATE_USER` varchar(60) DEFAULT NULL,
+  `IS_ACTIVE` varchar(1) DEFAULT 'Y',
+  PRIMARY KEY (`CONG_DISTRICT_CODE`)
+) ;

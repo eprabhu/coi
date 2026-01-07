@@ -1,0 +1,17 @@
+
+
+--
+--  `locale`
+--
+
+DROP TABLE IF EXISTS `locale`;
+
+CREATE TABLE `locale` (
+  `LOCALE_CODE` varchar(5) NOT NULL,
+  `DESCRIPTION` varchar(60) DEFAULT NULL,
+  `IS_ACTIVE` varchar(1) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `UPDATE_USER` varchar(60) DEFAULT NULL,
+  PRIMARY KEY (`LOCALE_CODE`)
+);
+

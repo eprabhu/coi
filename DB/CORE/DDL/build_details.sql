@@ -1,0 +1,11 @@
+DROP TABLE IF EXISTS `build_details`;
+
+CREATE TABLE `build_details` (
+  `BUILD_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `BUILD_VERSION` varchar(50) NOT NULL,
+  `STATUS` varchar(20) DEFAULT NULL,
+  `APPLICATION_NAME` varchar(20) NOT NULL,
+  `BUILD_UPDATE_TIMESTAMP` datetime NOT NULL,
+  `JOB_ID` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`BUILD_ID`)
+) ;

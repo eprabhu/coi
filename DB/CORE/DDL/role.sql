@@ -1,0 +1,23 @@
+
+
+--
+--  `role`
+--
+
+DROP TABLE IF EXISTS `role`;
+
+CREATE TABLE `role` (
+  `ROLE_ID` int(11) NOT NULL,
+  `ROLE_NAME` varchar(50) NOT NULL,
+  `DESCRIPTION` varchar(200) NOT NULL,
+  `ROLE_TYPE_CODE` varchar(1) NOT NULL,
+  `STATUS_FLAG` varchar(1) NOT NULL,
+  `CREATE_TIMESTAMP` datetime NOT NULL,
+  `CREATE_USER` varchar(60) NOT NULL,
+  `UPDATE_TIMESTAMP` datetime NOT NULL,
+  `UPDATE_USER` varchar(60) NOT NULL,
+  PRIMARY KEY (`ROLE_ID`),
+  KEY `ROLE_FK1` (`ROLE_TYPE_CODE`),
+  CONSTRAINT `ROLE_FK1` FOREIGN KEY (`ROLE_TYPE_CODE`) REFERENCES `role_type` (`ROLE_TYPE_CODE`)
+);
+

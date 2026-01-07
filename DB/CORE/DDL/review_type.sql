@@ -1,0 +1,17 @@
+
+
+--
+--  `review_type`
+--
+
+DROP TABLE IF EXISTS `review_type`;
+
+CREATE TABLE `review_type` (
+  `REVIEW_TYPE_CODE` int(11) NOT NULL,
+  `DESCRIPTION` varchar(200) DEFAULT NULL,
+  `IS_EXTERNAL` varchar(1) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime(6) DEFAULT NULL,
+  `UPDATE_USER` varchar(60) DEFAULT NULL,
+  PRIMARY KEY (`REVIEW_TYPE_CODE`)
+);
+

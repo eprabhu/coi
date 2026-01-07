@@ -1,0 +1,19 @@
+
+
+--
+--  `research_areas`
+--
+
+DROP TABLE IF EXISTS `research_areas`;
+
+CREATE TABLE `research_areas` (
+  `RESEARCH_AREA_CODE` varchar(8) NOT NULL,
+  `PARENT_RESEARCH_AREA_CODE` varchar(8) DEFAULT NULL,
+  `HAS_CHILDREN_FLAG` varchar(1) DEFAULT NULL,
+  `DESCRIPTION` varchar(200) DEFAULT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `UPDATE_USER` varchar(60) DEFAULT NULL,
+  `IS_ACTIVE` varchar(1) DEFAULT NULL,
+  PRIMARY KEY (`RESEARCH_AREA_CODE`)
+);
+

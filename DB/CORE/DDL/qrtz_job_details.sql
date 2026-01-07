@@ -1,0 +1,24 @@
+
+
+--
+--  `qrtz_job_details`
+--
+
+DROP TABLE IF EXISTS `qrtz_job_details`;
+
+CREATE TABLE `qrtz_job_details` (
+  `SCHED_NAME` varchar(120) NOT NULL,
+  `JOB_NAME` varchar(200) NOT NULL,
+  `JOB_GROUP` varchar(200) NOT NULL,
+  `DESCRIPTION` varchar(250) DEFAULT NULL,
+  `JOB_CLASS_NAME` varchar(250) NOT NULL,
+  `IS_DURABLE` tinyint(1) NOT NULL,
+  `IS_NONCONCURRENT` tinyint(1) NOT NULL,
+  `IS_UPDATE_DATA` tinyint(1) NOT NULL,
+  `REQUESTS_RECOVERY` tinyint(1) NOT NULL,
+  `JOB_DATA` blob,
+  PRIMARY KEY (`SCHED_NAME`,`JOB_NAME`,`JOB_GROUP`),
+  KEY `IDX_QRTZ_J_REQ_RECOVERY` (`SCHED_NAME`,`REQUESTS_RECOVERY`),
+  KEY `IDX_QRTZ_J_GRP` (`SCHED_NAME`,`JOB_GROUP`)
+);
+

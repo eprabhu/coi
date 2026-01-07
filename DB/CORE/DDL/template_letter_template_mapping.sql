@@ -1,0 +1,19 @@
+
+
+--
+--  `template_letter_template_mapping`
+--
+
+DROP TABLE IF EXISTS `template_letter_template_mapping`;
+
+CREATE TABLE `template_letter_template_mapping` (
+  `TEMPLATE_CODE` varchar(4) NOT NULL,
+  `TEMPLATE_DESCRIPTION` varchar(200) DEFAULT NULL,
+  `LETTER_TEMPLATE_TYPE_CODE` varchar(4) NOT NULL,
+  `UPDATE_TIMESTAMP` datetime DEFAULT NULL,
+  `UPDATE_USER` varchar(60) DEFAULT NULL,
+  PRIMARY KEY (`TEMPLATE_CODE`,`LETTER_TEMPLATE_TYPE_CODE`),
+  KEY `TEMP_MAP_FKEY_1_idx` (`LETTER_TEMPLATE_TYPE_CODE`),
+  CONSTRAINT `TEMP_MAP_FKEY_1` FOREIGN KEY (`LETTER_TEMPLATE_TYPE_CODE`) REFERENCES `letter_template_type` (`LETTER_TEMPLATE_TYPE_CODE`)
+);
+
