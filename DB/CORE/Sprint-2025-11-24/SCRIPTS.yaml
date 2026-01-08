@@ -1,0 +1,541 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: FIBI-8855-1
+      author: Arun Ramesh
+      labels: 'DDL'
+      comment: Add IS_DEFAULT column to ASSOC_RELATION_TYPE_MODULE_MAPPING if not exists
+      changes:
+        - sql:
+            sql: |
+              SET @SQL := IF(
+                (SELECT COUNT(*)
+                 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME = 'ASSOC_RELATION_TYPE_MODULE_MAPPING'
+                   AND COLUMN_NAME = 'IS_DEFAULT') = 0,
+                'ALTER TABLE ASSOC_RELATION_TYPE_MODULE_MAPPING ADD COLUMN IS_DEFAULT VARCHAR(1) DEFAULT ''N'';',
+                'DO 1'
+              );
+
+              PREPARE stmt FROM @SQL;
+              EXECUTE stmt;
+              DEALLOCATE PREPARE stmt;
+      rollback:
+        - sql:
+            sql: |
+              SET @SQL := IF(
+                EXISTS(
+                  SELECT 1 FROM information_schema.COLUMNS
+                  WHERE TABLE_SCHEMA = DATABASE()
+                    AND TABLE_NAME = ''ASSOC_RELATION_TYPE_MODULE_MAPPING''
+                    AND COLUMN_NAME = ''IS_DEFAULT''
+                ),
+                'ALTER TABLE ASSOC_RELATION_TYPE_MODULE_MAPPING DROP COLUMN IS_DEFAULT;',
+                'DO 1'
+              );
+              PREPARE stmt FROM @SQL;
+              EXECUTE stmt;
+              DEALLOCATE PREPARE stmt;
+
+  - changeSet:
+      id: FIBI-8855-2
+      author: Arun Ramesh
+      labels: 'DML'
+      comment: Set default flags for specific association mapping rows
+      changes:
+        - sql:
+            sql: |
+              UPDATE ASSOC_RELATION_TYPE_MODULE_MAPPING
+              SET IS_DEFAULT = 'Y', UPDATE_TIMESTAMP = utc_timestamp(), UPDATE_USER = 'admin'
+              WHERE ASSOC_RELATION_TYPE_CODE = '1'
+                AND MODULE_CODE = '13';
+
+              UPDATE ASSOC_RELATION_TYPE_MODULE_MAPPING
+              SET IS_DEFAULT = 'Y', UPDATE_TIMESTAMP = utc_timestamp(), UPDATE_USER = 'admin'
+              WHERE ASSOC_RELATION_TYPE_CODE = '1'
+                AND MODULE_CODE = '20';
+      rollback:
+        - sql:
+            sql: |
+              UPDATE ASSOC_RELATION_TYPE_MODULE_MAPPING
+              SET IS_DEFAULT = 'N', UPDATE_TIMESTAMP = utc_timestamp(), UPDATE_USER = 'admin'
+              WHERE ASSOC_RELATION_TYPE_CODE = '1'
+                AND MODULE_CODE IN ('13', '20');
+  - changeSet:
+      id: FIBI-8855-3
+      author: Arun Ramesh
+      labels: 'DML'
+      comment: Update code_table_configuration for Association Relation Type Module Mapping
+      changes:
+        - sql:
+            sql: |
+              UPDATE code_table_configuration 
+              SET CONTENT = '{
+                "group": "General",
+                "codeTableName": "Association Relation Type Module Mapping",
+                "description": "List of all Association Relation Type Module Mapping",
+                "databaseTableName": "ASSOC_RELATION_TYPE_MODULE_MAPPING",
+                "fields": [
+                  {
+                    "columnName": "ASSOC_MAPPING_CODE",
+                    "displayName": "Association Mapping Code",
+                    "dataType": "String",
+                    "isEditable": false,
+                    "length": 1,
+                    "canEmpty": false,
+                    "visible": true
+                  },
+                  {
+                    "columnName": "ASSOC_RELATION_TYPE_CODE",
+                    "displayName": "Association Relation Type",
+                    "dataType": "String",
+                    "isEditable": true,
+                    "length": 3,
+                    "canEmpty": false,
+                    "visible": false,
+                    "defaultValue": "DESCRIPTION_ASSOC_RELATION_TYPE_CODE",
+                    "filterType": "lookUp",
+                    "valueField": "ASSOC_RELATION_TYPE#ASSOC_RELATION_TYPE_CODE"
+                  },
+                  {
+                    "visible": true,
+                    "columnName": "DESCRIPTION_ASSOC_RELATION_TYPE_CODE",
+                    "dataType": "String",
+                    "isEditable": false,
+                    "canEmpty": true,
+                    "displayName": "Association Relation Type",
+                    "isTransient": true
+                  },
+                  {
+                    "columnName": "MODULE_CODE",
+                    "displayName": "Applied Module",
+                    "dataType": "INTEGER",
+                    "isEditable": true,
+                    "length": 11,
+                    "canEmpty": false,
+                    "visible": false,
+                    "defaultValue": "DESCRIPTION_MODULE_CODE",
+                    "filterType": "lookUp",
+                    "valueField": "COEUS_MODULE#MODULE_CODE"
+                  },
+                  {
+                    "visible": true,
+                    "columnName": "DESCRIPTION_MODULE_CODE",
+                    "dataType": "String",
+                    "isEditable": false,
+                    "canEmpty": true,
+                    "displayName": "Applied Module",
+                    "isTransient": true
+                  },
+                  {
+                    "columnName": "IS_DEFAULT",
+                    "displayName": "Is Default",
+                    "dataType": "String",
+                    "isEditable": true,
+                    "length": 1,
+                    "canEmpty": false,
+                    "visible": true,
+                    "filterType": "switch"
+                  },
+                  {
+                    "columnName": "UPDATE_TIMESTAMP",
+                    "displayName": "Update Timestamp",
+                    "dataType": "Date",
+                    "isEditable": false,
+                    "canEmpty": false,
+                    "visible": true
+                  },
+                  {
+                    "columnName": "UPDATE_USER",
+                    "displayName": "Update User",
+                    "dataType": "String",
+                    "isEditable": false,
+                    "length": 60,
+                    "canEmpty": false,
+                    "visible": true,
+                    "refColumnName": "PERSON#USER_NAME"
+                  }
+                ],
+                "primaryKey": ["ASSOC_MAPPING_CODE"],
+                "dependency": [
+                  {
+                    "displayName": "Association Relation Type",
+                    "table_name": "ASSOC_RELATION_TYPE",
+                    "columnName": "ASSOC_RELATION_TYPE_CODE",
+                    "showTableName": true
+                  },
+                  {
+                    "displayName": "Coeus Module",
+                    "table_name": "COEUS_MODULE",
+                    "columnName": "MODULE_CODE",
+                    "showTableName": true
+                  }
+                ],
+                "actions": "IUD"
+              }', UPDATE_TIMESTAMP = utc_timestamp(), UPDATE_USER = 'admin'
+              WHERE TABLE_NAME = 'ASSOC_RELATION_TYPE_MODULE_MAPPING';
+      rollback:
+        - sql:
+            sql: |
+              UPDATE code_table_configuration
+              SET CONTENT = '{"group":"Agreements","codeTableName":"Association Relation Type Module Mapping","description":"List of all Association Relation Type Module Mapping","databaseTableName":"ASSOC_RELATION_TYPE_MODULE_MAPPING","fields":[{"columnName":"ASSOC_MAPPING_CODE","displayName":"Association Mapping Code","dataType":"String","isEditable":false,"length":1,"canEmpty":false,"visible":true,"valueChanged":null,"index":null,"filterType":null,"valueField":null,"isTransient":null,"values":null,"refColumnName":null,"defaultValue":null},{"columnName":"ASSOC_RELATION_TYPE_CODE","displayName":"Association Relation Type","dataType":"String","isEditable":true,"length":3,"canEmpty":false,"visible":false,"defaultValue":"DESCRIPTION_ASSOC_RELATION_TYPE_CODE","filterType":"lookUp","valueField":"ASSOC_RELATION_TYPE#ASSOC_RELATION_TYPE_CODE"},{"visible":"true","columnName":"DESCRIPTION_ASSOC_RELATION_TYPE_CODE","dataType":"String","isEditable":"false","canEmpty":"true","displayName":"Association Relation Type","isTransient":"true"},{"columnName":"MODULE_CODE","displayName":"Applied Module","dataType":"INTEGER","isEditable":true,"length":11,"canEmpty":false,"visible":false,"defaultValue":"DESCRIPTION_MODULE_CODE","filterType":"lookUp","valueField":"COEUS_MODULE#MODULE_CODE"},{"visible":"true","columnName":"DESCRIPTION_MODULE_CODE","dataType":"String","isEditable":"false","canEmpty":"true","displayName":"Applied Module","isTransient":"true"},{"columnName":"UPDATE_TIMESTAMP","displayName":"Update Timestamp","dataType":"Date","isEditable":false,"length":null,"canEmpty":false,"visible":true,"valueChanged":null,"index":null,"filterType":null,"valueField":null,"isTransient":null,"values":null,"refColumnName":null,"defaultValue":null},{"columnName":"UPDATE_USER","displayName":"Update User","dataType":"String","isEditable":false,"length":60,"canEmpty":false,"visible":true,"valueChanged":null,"index":null,"filterType":null,"valueField":null,"isTransient":null,"values":null,"refColumnName":"PERSON#USER_NAME","defaultValue":null}],"primaryKey":["ASSOC_MAPPING_CODE"],"dependency":[{"displayName":"Association Relation Type","table_name":"ASSOC_RELATION_TYPE","columnName":"ASSOC_RELATION_TYPE_CODE","showTableName":"true"},{"displayName":"Coeus Module","table_name":"COEUS_MODULE","columnName":"MODULE_CODE","showTableName":"true"}],"actions":"IUD"}', UPDATE_TIMESTAMP = utc_timestamp(), UPDATE_USER = 'admin'
+              WHERE TABLE_NAME = 'ASSOC_RELATION_TYPE_MODULE_MAPPING';
+
+  - changeSet:
+      id: FIBI-8855-4
+      author: Arun Ramesh
+      labels: 'DML'
+      comment: Update description for Association Relation Type Module Mapping
+      changes:
+        - sql:
+            sql: |
+              UPDATE code_table_configuration 
+              SET DESCRIPTION = 'List of all Association Relation Type Module Mapping. (If multiple default relationtypes are configured for one module the newly updated default value will be populated.)',
+              UPDATE_TIMESTAMP = utc_timestamp(), UPDATE_USER = 'admin'
+              WHERE TABLE_NAME = 'ASSOC_RELATION_TYPE_MODULE_MAPPING';
+      rollback:
+        - sql:
+            sql: |
+              UPDATE code_table_configuration
+              SET DESCRIPTION = 'List of all Association Relation Type Module Mapping'
+              WHERE TABLE_NAME = 'ASSOC_RELATION_TYPE_MODULE_MAPPING';
+
+  - changeSet:
+      id: FIBI-9208-1
+      author: Shyla.M
+      labels: 'DDL'
+      comment: Added PAGE_LIMIT column in dashboard_tab_preference table
+      changes:
+        - sql:
+            sql: |
+              ANALYZE TABLE dashboard_tab_preference;
+              SET @sql := IF(
+                  (SELECT COUNT(*)
+                  FROM information_schema.COLUMNS
+                  WHERE TABLE_SCHEMA = DATABASE()
+                    AND TABLE_NAME = 'dashboard_tab_preference'
+                    AND COLUMN_NAME = 'PAGE_LIMIT') = 0,
+                  'ALTER TABLE dashboard_tab_preference ADD COLUMN `PAGE_LIMIT` INT NOT NULL DEFAULT 20 AFTER IS_PRIMARY_TAB;',
+                  'DO 1'
+              );
+              PREPARE stmt FROM @sql;
+              EXECUTE stmt;
+              DEALLOCATE PREPARE stmt;
+      rollback:
+        - sql:
+            sql: |
+              ALTER TABLE dashboard_tab_preference DROP COLUMN PAGE_LIMIT;             
+
+  - changeSet:
+      id: FIBI-8178-1
+      author: Solih N
+      labels: 'DDL'
+      comment: Add IS_ACTIVE and IS_MANDATORY columns to DYN_ELEMENT_CONFIG
+      changes:
+        - sql:
+            sql: |
+              SET @SQL := IF(
+                EXISTS (
+                  SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+                  WHERE TABLE_SCHEMA = DATABASE()
+                    AND TABLE_NAME = 'DYN_ELEMENT_CONFIG'
+                    AND COLUMN_NAME = 'IS_ACTIVE'
+                ),
+                'DO 1',
+                'ALTER TABLE dyn_element_config ADD COLUMN IS_ACTIVE VARCHAR(1) NULL;'
+              );
+              PREPARE STMT FROM @SQL; EXECUTE STMT; DEALLOCATE PREPARE STMT;
+
+              SET @SQL := IF(
+                EXISTS (
+                  SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+                  WHERE TABLE_SCHEMA = DATABASE()
+                    AND TABLE_NAME = 'DYN_ELEMENT_CONFIG'
+                    AND COLUMN_NAME = 'IS_MANDATORY'
+                ),
+                'DO 1',
+                'ALTER TABLE dyn_element_config ADD COLUMN IS_MANDATORY VARCHAR(1) NULL;'
+              );
+              PREPARE STMT FROM @SQL; 
+              EXECUTE STMT; 
+              DEALLOCATE PREPARE STMT;
+      rollback:
+        - sql:
+            sql: |
+              ALTER TABLE dyn_element_config DROP COLUMN IS_ACTIVE;
+
+              ALTER TABLE dyn_element_config DROP COLUMN IS_MANDATORY;
+
+  - changeSet:
+      id: FIBI-8178-2
+      author: Solih N
+      labels: 'DML'
+      comment: Update IS_ACTIVE and IS_MANDATORY for specified dynamic config rows
+      changes:
+        - sql:
+            sql: |
+              UPDATE dyn_element_config SET IS_ACTIVE = 'Y', IS_MANDATORY = 'Y', UPDATE_TIMESTAMP = utc_timestamp(), UPDATE_USER = 'admin'
+              WHERE SUB_SECTION_CODE = '301' AND SECTION_CODE = 'DP301' AND UI_REFERENCE_ID IN ('prop-award-type', 'prop-sponsor');
+
+              UPDATE dyn_element_config SET IS_ACTIVE = 'Y', IS_MANDATORY = 'N', UPDATE_TIMESTAMP = utc_timestamp(), UPDATE_USER = 'admin' 
+              WHERE SUB_SECTION_CODE = '301' AND SECTION_CODE = 'DP301' AND UI_REFERENCE_ID IN ( 'proposal-gnrl-master-proposal', 'proposal-gnrl-antd-award-type', 'prop-sub-date', 'prop-funding-opp-number', 'prop-cfda-number', 'prop-internal-date');
+
+              UPDATE dyn_element_config SET IS_ACTIVE = 'Y', IS_MANDATORY = 'N', UPDATE_TIMESTAMP = utc_timestamp(), UPDATE_USER = 'admin'
+              WHERE SUB_SECTION_CODE = '201' AND SECTION_CODE = 'IP201' AND UI_REFERENCE_ID IN ( 'ip-master-proposal', 'prop-award-type', 'prop-funding-opp-number', 'prop-cfda-number', 'prop-sub-date', 'prop-internal-date');
+
+              UPDATE dyn_element_config SET IS_ACTIVE = 'Y', IS_MANDATORY = 'N', UPDATE_TIMESTAMP = utc_timestamp(), UPDATE_USER = 'admin'
+              WHERE SUB_SECTION_CODE = '101' AND SECTION_CODE = 'AW101' AND UI_REFERENCE_ID IN ( 'cfda-number', 'dfafs-number');
+
+              UPDATE dyn_element_config SET IS_ACTIVE = 'Y', IS_MANDATORY = 'Y', UPDATE_TIMESTAMP = utc_timestamp(), UPDATE_USER = 'admin'
+              WHERE UI_REFERENCE_ID = 'grant-abbrevation' AND SUB_SECTION_CODE = '1501' AND SECTION_CODE = 'GC1501';
+
+              UPDATE dyn_element_config SET IS_ACTIVE = 'Y', IS_MANDATORY = 'N', UPDATE_TIMESTAMP = utc_timestamp(), UPDATE_USER = 'admin'
+              WHERE UI_REFERENCE_ID = 'F&A-rate-type' AND SUB_SECTION_CODE = '102' AND SECTION_CODE = 'AW104';
+      rollback: empty
+
+  - changeSet:
+      id: FIBI-8178-3
+      author: Solih N
+      labels: 'DML'
+      comment: Idempotent inserts for discipline cluster config
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO dyn_element_config
+                (UI_REFERENCE_ID, DESCRIPTION, SUB_SECTION_CODE, SECTION_CODE, UPDATE_USER, UPDATE_TIMESTAMP, IS_ACTIVE, IS_MANDATORY)
+              SELECT 'ip-discipline-cluster', 'IP Discipline Cluster input field', '201', 'IP201', 'admin', utc_timestamp(), 'N', 'N'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM dyn_element_config
+                WHERE UI_REFERENCE_ID = 'ip-discipline-cluster'
+                  AND SUB_SECTION_CODE = '201'
+                  AND SECTION_CODE = 'IP201'
+              );
+
+              INSERT INTO dyn_element_config
+                (UI_REFERENCE_ID, DESCRIPTION, SUB_SECTION_CODE, SECTION_CODE, UPDATE_USER, UPDATE_TIMESTAMP, IS_ACTIVE, IS_MANDATORY)
+              SELECT 'prop-discipline-cluster', 'Proposal Discipline cluster input field', '301', 'DP301', 'admin', utc_timestamp(), 'N', 'N'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM dyn_element_config
+                WHERE UI_REFERENCE_ID = 'prop-discipline-cluster'
+                  AND SUB_SECTION_CODE = '301'
+                  AND SECTION_CODE = 'DP301'
+              );
+      rollback:
+        - sql:
+            sql: |
+              DELETE FROM dyn_element_config
+              WHERE (UI_REFERENCE_ID, SUB_SECTION_CODE, SECTION_CODE) IN (
+                ('ip-discipline-cluster',  '201', 'IP201'),
+                ('prop-discipline-cluster','301', 'DP301')
+              )
+              AND UPDATE_USER = 'admin';
+
+  - changeSet:
+      id: FIBI-8183-1
+      author: Mohamed Fazil
+      labels: 'DML'
+      comment: Insert Common Settings module configuration
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO DYN_MODULES_CONFIG (MODULE_CODE, DESCRIPTION, IS_ACTIVE, UPDATE_TIMESTAMP, UPDATE_USER)
+              SELECT 'COM', 'Common Settings', 'Y', UTC_TIMESTAMP(), 'admin'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM DYN_MODULES_CONFIG
+                WHERE MODULE_CODE = 'COM'
+              );
+      rollback:
+        - sql:
+            sql: |
+              DELETE FROM DYN_MODULES_CONFIG
+              WHERE MODULE_CODE = 'COM'
+              AND UPDATE_USER = 'admin';
+
+  - changeSet:
+      id: FIBI-8183-2
+      author: Mohamed Fazil
+      labels: 'DML'
+      comment: Insert section configurations for Common Settings and More Action sections
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO DYN_SECTION_CONFIG (SECTION_CODE, MODULE_CODE, DESCRIPTION, IS_ACTIVE, UPDATE_TIMESTAMP, UPDATE_USER)
+              SELECT 'COM101', 'COM', 'Preferences ', 'Y', UTC_TIMESTAMP(), 'admin'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM DYN_SECTION_CONFIG
+                WHERE SECTION_CODE = 'COM101'
+              );
+
+              INSERT INTO DYN_SECTION_CONFIG (SECTION_CODE, MODULE_CODE, DESCRIPTION, IS_ACTIVE, UPDATE_TIMESTAMP, UPDATE_USER)
+              SELECT 'COM102', 'COM', 'FAQ', 'Y', UTC_TIMESTAMP(), 'admin'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM DYN_SECTION_CONFIG
+                WHERE SECTION_CODE = 'COM102'
+              );
+
+              INSERT INTO DYN_SECTION_CONFIG (SECTION_CODE, MODULE_CODE, DESCRIPTION, IS_ACTIVE, UPDATE_TIMESTAMP, UPDATE_USER)
+              SELECT 'COM103', 'COM', 'Accessibility', 'Y', UTC_TIMESTAMP(), 'admin'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM DYN_SECTION_CONFIG
+                WHERE SECTION_CODE = 'COM103'
+              );
+
+              INSERT INTO DYN_SECTION_CONFIG (SECTION_CODE, MODULE_CODE, DESCRIPTION, IS_ACTIVE, UPDATE_TIMESTAMP, UPDATE_USER)
+              SELECT 'AW130', 'AW01', 'More Action', 'Y', UTC_TIMESTAMP(), 'admin'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM DYN_SECTION_CONFIG
+                WHERE SECTION_CODE = 'AW130'
+              );
+
+              INSERT INTO DYN_SECTION_CONFIG (SECTION_CODE, MODULE_CODE, DESCRIPTION, IS_ACTIVE, UPDATE_TIMESTAMP, UPDATE_USER)
+              SELECT 'PR1610', 'PR16', 'More Action', 'Y', UTC_TIMESTAMP(), 'admin'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM DYN_SECTION_CONFIG
+                WHERE SECTION_CODE = 'PR1610'
+              );
+
+              INSERT INTO DYN_SECTION_CONFIG (SECTION_CODE, MODULE_CODE, DESCRIPTION, IS_ACTIVE, UPDATE_TIMESTAMP, UPDATE_USER)
+              SELECT 'DP370', 'DP03', 'More Action', 'Y', UTC_TIMESTAMP(), 'admin'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM DYN_SECTION_CONFIG
+                WHERE SECTION_CODE = 'DP370'
+              );
+      rollback:
+        - sql:
+            sql: |
+              DELETE FROM DYN_SECTION_CONFIG
+              WHERE SECTION_CODE IN ('COM101', 'COM102', 'COM103', 'AW130', 'PR1610', 'DP370')
+              AND UPDATE_USER = 'admin';
+
+  - changeSet:
+      id: FIBI-8183-3
+      author: Mohamed Fazil
+      labels: 'DML'
+      comment: Insert subsection configurations for Preferences, Accessibility, and More Action sections
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO DYN_SUBSECTION_CONFIG (SUB_SECTION_CODE, SECTION_CODE, DESCRIPTION, IS_ACTIVE, UPDATE_TIMESTAMP, UPDATE_USER, INCLUDE_CUSTOM_DATA)
+              SELECT '4001', 'COM101', 'Themes', 'Y', UTC_TIMESTAMP(), 'admin', 'N'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM DYN_SUBSECTION_CONFIG
+                WHERE SUB_SECTION_CODE = '4001' AND SECTION_CODE = 'COM101'
+              );
+
+              INSERT INTO DYN_SUBSECTION_CONFIG (SUB_SECTION_CODE, SECTION_CODE, DESCRIPTION, IS_ACTIVE, UPDATE_TIMESTAMP, UPDATE_USER, INCLUDE_CUSTOM_DATA)
+              SELECT '4002', 'COM101', 'Notifications', 'Y', UTC_TIMESTAMP(), 'admin', 'N'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM DYN_SUBSECTION_CONFIG
+                WHERE SUB_SECTION_CODE = '4002' AND SECTION_CODE = 'COM101'
+              );
+
+              INSERT INTO DYN_SUBSECTION_CONFIG (SUB_SECTION_CODE, SECTION_CODE, DESCRIPTION, IS_ACTIVE, UPDATE_TIMESTAMP, UPDATE_USER, INCLUDE_CUSTOM_DATA)
+              SELECT '4003', 'COM101', 'Change password', 'Y', UTC_TIMESTAMP(), 'admin', 'N'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM DYN_SUBSECTION_CONFIG
+                WHERE SUB_SECTION_CODE = '4003' AND SECTION_CODE = 'COM101'
+              );
+
+              INSERT INTO DYN_SUBSECTION_CONFIG (SUB_SECTION_CODE, SECTION_CODE, DESCRIPTION, IS_ACTIVE, UPDATE_TIMESTAMP, UPDATE_USER, INCLUDE_CUSTOM_DATA)
+              SELECT '4004', 'COM101', 'Integration', 'Y', UTC_TIMESTAMP(), 'admin', 'N'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM DYN_SUBSECTION_CONFIG
+                WHERE SUB_SECTION_CODE = '4004' AND SECTION_CODE = 'COM101'
+              );
+
+              INSERT INTO DYN_SUBSECTION_CONFIG (SUB_SECTION_CODE, SECTION_CODE, DESCRIPTION, IS_ACTIVE, UPDATE_TIMESTAMP, UPDATE_USER, INCLUDE_CUSTOM_DATA)
+              SELECT '4005', 'COM103', 'Contrast', 'Y', UTC_TIMESTAMP(), 'admin', 'N'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM DYN_SUBSECTION_CONFIG
+                WHERE SUB_SECTION_CODE = '4005' AND SECTION_CODE = 'COM103'
+              );
+
+              INSERT INTO DYN_SUBSECTION_CONFIG (SUB_SECTION_CODE, SECTION_CODE, DESCRIPTION, IS_ACTIVE, UPDATE_TIMESTAMP, UPDATE_USER, INCLUDE_CUSTOM_DATA)
+              SELECT '4007', 'COM103', 'Color Scheme', 'Y', UTC_TIMESTAMP(), 'admin', 'N'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM DYN_SUBSECTION_CONFIG
+                WHERE SUB_SECTION_CODE = '4007' AND SECTION_CODE = 'COM103'
+              );
+
+              INSERT INTO DYN_SUBSECTION_CONFIG (SUB_SECTION_CODE, SECTION_CODE, DESCRIPTION, IS_ACTIVE, UPDATE_TIMESTAMP, UPDATE_USER, INCLUDE_CUSTOM_DATA)
+              SELECT '4008', 'COM103', 'Font Size', 'Y', UTC_TIMESTAMP(), 'admin', 'N'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM DYN_SUBSECTION_CONFIG
+                WHERE SUB_SECTION_CODE = '4008' AND SECTION_CODE = 'COM103'
+              );
+
+              INSERT INTO DYN_SUBSECTION_CONFIG (SUB_SECTION_CODE, SECTION_CODE, DESCRIPTION, IS_ACTIVE, UPDATE_TIMESTAMP, UPDATE_USER, INCLUDE_CUSTOM_DATA)
+              SELECT '4006', 'AW130', 'Hold For Funding Agency Review', 'Y', UTC_TIMESTAMP(), 'admin', 'N'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM DYN_SUBSECTION_CONFIG
+                WHERE SUB_SECTION_CODE = '4006' AND SECTION_CODE = 'AW130'
+              );
+
+              INSERT INTO DYN_SUBSECTION_CONFIG (SUB_SECTION_CODE, SECTION_CODE, DESCRIPTION, IS_ACTIVE, UPDATE_TIMESTAMP, UPDATE_USER, INCLUDE_CUSTOM_DATA)
+              SELECT '4009', 'AW130', 'Rates', 'Y', UTC_TIMESTAMP(), 'admin', 'N'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM DYN_SUBSECTION_CONFIG
+                WHERE SUB_SECTION_CODE = '4009' AND SECTION_CODE = 'AW130'
+              );
+
+              INSERT INTO DYN_SUBSECTION_CONFIG (SUB_SECTION_CODE, SECTION_CODE, DESCRIPTION, IS_ACTIVE, UPDATE_TIMESTAMP, UPDATE_USER, INCLUDE_CUSTOM_DATA)
+              SELECT '4010', 'AW130', 'Generate Award Notice', 'Y', UTC_TIMESTAMP(), 'admin', 'N'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM DYN_SUBSECTION_CONFIG
+                WHERE SUB_SECTION_CODE = '4010' AND SECTION_CODE = 'AW130'
+              );
+
+              INSERT INTO DYN_SUBSECTION_CONFIG (SUB_SECTION_CODE, SECTION_CODE, DESCRIPTION, IS_ACTIVE, UPDATE_TIMESTAMP, UPDATE_USER, INCLUDE_CUSTOM_DATA)
+              SELECT '4011', 'DP370', 'Import From Template', 'Y', UTC_TIMESTAMP(), 'admin', 'N'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM DYN_SUBSECTION_CONFIG
+                WHERE SUB_SECTION_CODE = '4011' AND SECTION_CODE = 'DP370'
+              );
+
+              INSERT INTO DYN_SUBSECTION_CONFIG (SUB_SECTION_CODE, SECTION_CODE, DESCRIPTION, IS_ACTIVE, UPDATE_TIMESTAMP, UPDATE_USER, INCLUDE_CUSTOM_DATA)
+              SELECT '4012', 'PR1610', 'Import from IGMS template', 'Y', UTC_TIMESTAMP(), 'admin', 'N'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM DYN_SUBSECTION_CONFIG
+                WHERE SUB_SECTION_CODE = '4012' AND SECTION_CODE = 'PR1610'
+              );
+      rollback:
+        - sql:
+            sql: |
+              DELETE FROM DYN_SUBSECTION_CONFIG
+              WHERE (SUB_SECTION_CODE, SECTION_CODE) IN (
+                ('4001', 'COM101'),
+                ('4002', 'COM101'),
+                ('4003', 'COM101'),
+                ('4004', 'COM101'),
+                ('4005', 'COM103'),
+                ('4007', 'COM103'),
+                ('4008', 'COM103'),
+                ('4006', 'AW130'),
+                ('4009', 'AW130'),
+                ('4010', 'AW130'),
+                ('4011', 'DP370'),
+                ('4012', 'PR1610')
+              )
+              AND UPDATE_USER = 'admin';

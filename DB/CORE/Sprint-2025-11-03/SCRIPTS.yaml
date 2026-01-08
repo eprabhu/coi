@@ -1,0 +1,199 @@
+databaseChangeLog:
+  - changeSet:
+      id: FIBI-9047-1
+      author: Ajin.VS
+      labels: 'DDL'
+      comment: Alter WIDGET_LOOKUP table to add MODULE_CODE column with foreign key constraint
+      changes:
+        - sql:
+            sql: |
+              SET @SQL := IF(
+                EXISTS (
+                SELECT 1
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                AND TABLE_NAME = 'WIDGET_LOOKUP'
+                AND COLUMN_NAME = 'MODULE_CODE'
+                ),
+                'DO 1',
+                'ALTER TABLE `WIDGET_LOOKUP`
+                    ADD COLUMN `MODULE_CODE` VARCHAR(5) NULL AFTER `IMAGE_PATH`,
+                    ADD INDEX `WIDGET_LOOKUP_IDX_1` (`MODULE_CODE` ASC) VISIBLE,
+                    ADD CONSTRAINT `WIDGET_LOOKUP_FK_1`
+                        FOREIGN KEY (`MODULE_CODE`)
+                        REFERENCES `DYN_MODULES_CONFIG` (`MODULE_CODE`)
+                        ON DELETE NO ACTION
+                        ON UPDATE NO ACTION;'
+              );
+              PREPARE STMT FROM @SQL;
+              EXECUTE STMT;
+              DEALLOCATE PREPARE STMT;
+      rollback:
+        - sql:
+            sql: |
+              ALTER TABLE `WIDGET_LOOKUP`
+              DROP FOREIGN KEY `WIDGET_LOOKUP_FK_1`,
+              DROP INDEX `WIDGET_LOOKUP_IDX_1`,
+              DROP COLUMN `MODULE_CODE`;
+
+  - changeSet:
+      id: FIBI-8180-1
+      author: Arun Ramesh
+      labels: 'DDL'
+      comment: Dynamic config table creation for elastic and integration sync.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS integration_sync_config (
+                  CONFIG_KEY          VARCHAR(100) PRIMARY KEY NOT NULL,
+                  CONFIG_CATEGORY     VARCHAR(100)   NULL,
+                  DISPLAY_NAME        VARCHAR(255)   NULL,
+                  IS_ACTIVE           VARCHAR(1)     NULL,
+                  SORT_ORDER          INT            NULL,
+                  UPDATE_TIMESTAMP    TIMESTAMP      NULL,
+                  UPDATE_USER         VARCHAR(50)    NULL
+              );
+      rollback:
+       - sql:
+          sql: |
+            DROP TABLE IF EXISTS integration_sync_config;
+
+  - changeSet:
+      id: FIBI-8180-2
+      author: Arun Ramesh
+      labels: 'DML'
+      comment: Dynamic config for elastic sync for base instance.
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO integration_sync_config 
+              (CONFIG_KEY, CONFIG_CATEGORY, DISPLAY_NAME, IS_ACTIVE, SORT_ORDER, UPDATE_TIMESTAMP, UPDATE_USER) VALUES
+              ('awardfibi',  'elastic_sync', 'Award Elastic',                'Y', 1, utc_timestamp(), 'admin'),
+              ('fibiproposal',  'elastic_sync', 'Proposal Elastic',             'Y', 2, utc_timestamp(), 'admin'),
+              ('grantcall',  'elastic_sync', 'Grant Call Elastic',           'Y', 3, utc_timestamp(), 'admin'),
+              ('fibiperson',  'elastic_sync', 'Person Elastic',               'Y', 4, utc_timestamp(), 'admin'),
+              ('fibirolodex',  'elastic_sync', 'Rolodex Elastic',              'Y', 5, utc_timestamp(), 'admin'),
+              ('agreementfibi',  'elastic_sync', 'Agreement Elastic',            'Y', 6, utc_timestamp(), 'admin'),
+              ('instituteproposal',  'elastic_sync', 'Institute Proposal Elastic',   'Y', 7, utc_timestamp(), 'admin'),
+              ('externalreview',  'elastic_sync', 'External Review Elastic',      'Y', 8, utc_timestamp(), 'admin'),
+              ('fibireviewer',  'elastic_sync', 'Reviewer Elastic',             'Y', 9, utc_timestamp(), 'admin'),
+              ('servicerequest', 'elastic_sync', 'Service Request Elastic',      'Y', 10, utc_timestamp(), 'admin');
+      rollback: empty
+
+  - changeSet:
+      id: FIBI-8181
+      author: Arun Ramesh
+      labels: 'DML'
+      comment: Dynamic config for integration sync for base instance.
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO integration_sync_config 
+              (CONFIG_KEY, CONFIG_CATEGORY, DISPLAY_NAME, IS_ACTIVE, SORT_ORDER, UPDATE_TIMESTAMP, UPDATE_USER) VALUES
+              ('attachment_data_migration', 'integration_sync', 'Attachment Data Migration', 'Y', 1, utc_timestamp(), 'admin'),
+              ('fast_integration', 'integration_sync', 'Fast Integration Template Creation', 'N', 2, utc_timestamp(), 'admin'),
+              ('fast_integration_template', 'integration_sync', 'Fast Integration Template Response Processing', 'N', 3, utc_timestamp(), 'admin'),
+              ('fi_expense_transaction_rt_processing', 'integration_sync', 'Fast Integration Expense Transaction RT Processing', 'Y', 4, utc_timestamp(), 'admin'),
+              ('fi_revenue_transaction_rt_processing', 'integration_sync', 'Fast Integration Revenue Transaction RT Processing', 'N', 5, utc_timestamp(), 'admin'),
+              ('level1_expense_transaction_report', 'integration_sync', 'To export level 1 expense Transaction Report', 'N', 6, utc_timestamp(), 'admin'),
+              ('level2_expense_transaction_report', 'integration_sync', 'To export level 2 expense Transaction Report', 'N', 7, utc_timestamp(), 'admin'),
+              ('revenue_transaction_report', 'integration_sync', 'To export revenue Transaction Report', 'N', 8, utc_timestamp(), 'admin'),
+              ('level1_revenue_transaction_report', 'integration_sync', 'To export level 1 revenue Transaction Report', 'N', 9, utc_timestamp(), 'admin'),
+              ('level2_revenue_transaction_report', 'integration_sync', 'To export level 2 revenue Transaction Report', 'N', 10, utc_timestamp(), 'admin'),
+              ('gc_attachment_data_migration', 'integration_sync', 'Grant Call Attachment Data Migration', 'N', 11, utc_timestamp(), 'admin'),
+              ('sync_orcid', 'integration_sync', 'Sync Orcid', 'N', 12, utc_timestamp(), 'admin'),
+              ('workday_manpower', 'integration_sync', 'WorkDay Manpower', 'N', 13, utc_timestamp(), 'admin'),
+              ('workday_citizenship', 'integration_sync', 'WorkDay Citizenship', 'N', 14, utc_timestamp(), 'admin'),
+              ('workday_cost_allocation', 'integration_sync', 'WorkDay Cost Allocation', 'N', 15, utc_timestamp(), 'admin'),
+              ('workday_termination', 'integration_sync', 'WorkDay Termination', 'N', 16, utc_timestamp(), 'admin'),
+              ('workday_long_leave', 'integration_sync', 'WorkDay Long Leave', 'N', 17, utc_timestamp(), 'admin'),
+              ('workday_cost_reconciliation', 'integration_sync', 'WorkDay Cost Reconciliation', 'N', 18, utc_timestamp(), 'admin'),
+              ('workday_close_position', 'integration_sync', 'WorkDay Close Position', 'N', 19, utc_timestamp(), 'admin'),
+              ('workday_job_profile', 'integration_sync', 'WorkDay Job Profile', 'N', 20, utc_timestamp(), 'admin'),
+              ('export_manpower_details', 'integration_sync', 'Export Manpower Details', 'N', 21, utc_timestamp(), 'admin'),
+              ('designation_change', 'integration_sync', 'Designation Change', 'N', 22, utc_timestamp(), 'admin'),
+              ('student_ics_integration', 'integration_sync', 'Student ICS Integration', 'N', 23, utc_timestamp(), 'admin'),
+              ('encrypt_migrated_citizenship', 'integration_sync', 'Encrypt All Migrated Citizenship Nationality', 'N', 24, utc_timestamp(), 'admin'),
+              ('update_claim_duration', 'integration_sync', 'Update Claim Duration', 'N', 25, utc_timestamp(), 'admin'),
+              ('generate_claim_invoice_sap_file', 'integration_sync', 'Generate Claim Invoice Sap File', 'N', 26, utc_timestamp(), 'admin'),
+              ('process_claim_invoice_feed_response', 'integration_sync', 'Process Claim Invoice Feed Response', 'N', 27, utc_timestamp(), 'admin'),
+              ('sync_aderp_annual_budget', 'integration_sync', 'Sync ADERP Annual Budget', 'N', 28, utc_timestamp(), 'admin'),
+              ('scopus_integration', 'integration_sync', 'Scopus Integration', 'N', 29, utc_timestamp(), 'admin'),
+              ('profit_center', 'integration_sync', 'Profit Center', 'Y', 30, utc_timestamp(), 'admin'),
+              ('fund_center', 'integration_sync', 'Fund Center', 'Y', 31, utc_timestamp(), 'admin'),
+              ('cost_center', 'integration_sync', 'Cost Center', 'Y', 32, utc_timestamp(), 'admin'),
+              ('grant_code', 'integration_sync', 'Grant Code', 'Y', 33, utc_timestamp(), 'admin'),
+              ('job_requisition', 'integration_sync', 'Job Requisition', 'Y', 34, utc_timestamp(), 'admin'),
+              ('cost_allocation', 'integration_sync', 'Cost Allocation', 'Y', 35, utc_timestamp(), 'admin'),
+              ('cost_allocation_with_manual_date', 'integration_sync', 'Cost Allocation With Manual Dates', 'Y', 36, utc_timestamp(), 'admin'),
+              ('update_feed_status', 'integration_sync', 'Update Feed Status', 'Y', 37, utc_timestamp(), 'admin'),
+              ('sync_aderp_projects', 'integration_sync', 'Sync ADERP Projects', 'N', 38, utc_timestamp(), 'admin'),
+              ('sync_medusa_relationship', 'integration_sync', 'Sync Medusa Relationships', 'Y', 39, utc_timestamp(), 'admin'),
+              ('sync_person_training', 'integration_sync', 'Sync Person Training', 'N', 40, utc_timestamp(), 'admin'),
+              ('sync_irb', 'integration_sync', 'Sync IRB', 'N', 41, utc_timestamp(), 'admin');
+      rollback: empty
+
+  - changeSet:
+      id: FIBI-8766-1
+      author: Vishnu B H
+      labels: 'DML'
+      comment: Update dashboard criteria config for SR linked module lookup
+      changes:
+        - sql:
+            sql: |
+              UPDATE dashboard_criteria_conf 
+              SET DESCRIPTION = 'For SR Linked module lookup', 
+                  TYPE = 'LOOK_UP_EXTERNAL', 
+                  CONFIG_JSON = '{"option": "EMPTY#EMPTY#true#true", "lookupType": "linkedModule" , "moduleCode":"20"}',
+                  UPDATE_TIMESTAMP = UTC_TIMESTAMP(),
+                  UPDATE_USER = 'admin' 
+              WHERE CRITERIA_CONF_ID = '30';
+      rollback:
+        - sql:
+            sql: |
+              UPDATE dashboard_criteria_conf 
+              SET DESCRIPTION = 'For All module lookup', 
+                  TYPE = 'LOOK_UP', 
+                  CONFIG_JSON = '{"option": "AGREEMENT_LINK_MODULE#MODULE_CODE#true#true"}',
+                  UPDATE_TIMESTAMP = UTC_TIMESTAMP(),
+                  UPDATE_USER = 'admin' 
+              WHERE CRITERIA_CONF_ID = '30';
+
+  - changeSet:
+      id: FIBI-8766-2
+      author: Vishnu B H
+      labels: 'DML'
+      comment: Insert dashboard criteria config for Agreement linked module lookup
+      changes:
+        - sql:
+            sql: |
+              INSERT IGNORE INTO dashboard_criteria_conf 
+              (CRITERIA_CONF_ID, DESCRIPTION, TYPE, CONFIG_JSON, UPDATE_TIMESTAMP, UPDATE_USER) 
+              VALUES 
+              ('31', 'For Agreement Linked module lookup', 'LOOK_UP_EXTERNAL', '{"option": "EMPTY#EMPTY#true#true", "lookupType": "linkedModule" , "moduleCode":"13"}', UTC_TIMESTAMP(), 'admin');
+      rollback:
+        - sql:
+            sql: |
+              DELETE FROM dashboard_criteria_conf WHERE CRITERIA_CONF_ID = '31';
+
+  - changeSet:
+      id: FIBI-8766-3
+      author: Vishnu B H
+      labels: 'DML'
+      comment: Update dashboard criteria lookup for Agreement associated linked module
+      changes:
+        - sql:
+            sql: |
+              UPDATE dashboard_criteria_lookup 
+              SET CRITERIA_CONF_ID = 31,
+                  UPDATE_TIMESTAMP = UTC_TIMESTAMP(),
+                  UPDATE_USER = 'admin' 
+              WHERE CRITERIA_KEY = 'CRT_AG_ASSOC_LINKED_MODULE';
+      rollback:
+        - sql:
+            sql: |
+              UPDATE dashboard_criteria_lookup 
+              SET CRITERIA_CONF_ID = 30,
+                  UPDATE_TIMESTAMP = UTC_TIMESTAMP(),
+                  UPDATE_USER = 'admin' 
+              WHERE CRITERIA_KEY = 'CRT_AG_ASSOC_LINKED_MODULE';
