@@ -1,8 +1,7 @@
 -- `ADD_TO_INBOX`; 
 
 CREATE PROCEDURE `ADD_TO_INBOX`(
-/*PRABHU db Manesh*/
-
+/*PRABHU db*/
 AV_MODULE_CODE            INT(3),
 AV_MODULE_ITEM_ID         VARCHAR(20),
 AV_PERSON_ID              VARCHAR(40),
